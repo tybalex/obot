@@ -1,0 +1,54 @@
+package agent
+
+import (
+	"strings"
+
+	"github.com/acorn-io/baaah/pkg/typed"
+	"github.com/acorn-io/mink/pkg/apigroup"
+	"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/storage/registry/generic"
+	"github.com/gptscript-ai/otto/pkg/storage/scheme"
+	"github.com/gptscript-ai/otto/pkg/storage/services"
+	"k8s.io/apiserver/pkg/registry/rest"
+	genericapiserver "k8s.io/apiserver/pkg/server"
+	kclient "sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+func Stores(services *services.Services) (map[string]rest.Storage, error) {
+	var (
+		result   = map[string]rest.Storage{}
+		generics = map[string]kclient.Object{}
+	)
+
+	for gvk := range services.DB.Scheme().AllKnownTypes() {
+		if gvk.Group == v1.SchemeGroupVersion.Group && gvk.Version == v1.SchemeGroupVersion.Version {
+			obj, err := services.DB.Scheme().New(gvk)
+			if err != nil {
+				return nil, err
+			}
+			if o, ok := obj.(kclient.Object); ok {
+				generics[strings.ToLower(gvk.Kind)+"s"] = o
+			}
+		}
+	}
+
+	for _, name := range typed.SortedKeys(generics) {
+		store, statusStore, err := generic.NewStore(services.DB, generics[name])
+		if err != nil {
+			return nil, err
+		}
+
+		result[name] = store
+		result[name+"/status"] = statusStore
+	}
+
+	return result, nil
+}
+
+func APIGroup(services *services.Services) (*genericapiserver.APIGroupInfo, error) {
+	stores, err := Stores(services)
+	if err != nil {
+		return nil, err
+	}
+	return apigroup.ForStores(scheme.AddToScheme, stores, v1.SchemeGroupVersion)
+}
