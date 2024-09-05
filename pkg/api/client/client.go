@@ -97,7 +97,7 @@ func (c *Client) Invoke(ctx context.Context, agentID string, input string, opt .
 
 	url := fmt.Sprintf("/invoke/%s?events=true", agentID)
 	if opts.ThreadID != "" {
-		url = fmt.Sprintf("/invoke/%s/%s?events=true", agentID, opts.ThreadID)
+		url = fmt.Sprintf("/invoke/%s/threads/%s?events=true", agentID, opts.ThreadID)
 	}
 
 	_, resp, err := c.doRequest(ctx, http.MethodPost, url, bytes.NewBuffer([]byte(input)), "Accept", "text/event-stream")
