@@ -5,10 +5,8 @@ import (
 	"net/http"
 
 	"github.com/BurntSushi/toml"
-	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
-	"github.com/gptscript-ai/otto/pkg/gz"
 	v2 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -74,16 +72,10 @@ func (a *AgentHandler) parseAgentSpec(ctx context.Context, req api.Request) (*v2
 		return nil, api.NewErrBadRequest("invalid definition: %v", err)
 	}
 
-	script, err := a.render(ctx, req, manifest)
-	if err != nil {
-		return nil, api.NewErrBadRequest("failed to render agent: %v", err)
-	}
-
 	return &v2.AgentSpec{
 		Manifest:       manifest,
 		ManifestSource: string(data),
 		Format:         v2.TOMLFormat,
-		Script:         script,
 	}, nil
 }
 
@@ -121,30 +113,6 @@ func (a *AgentHandler) Create(ctx context.Context, req api.Request) error {
 
 	req.ResponseWriter.WriteHeader(http.StatusCreated)
 	return req.JSON(convertAgent(agent, api.GetURLPrefix(req)))
-}
-
-func (a *AgentHandler) render(ctx context.Context, req api.Request, manifest v2.Manifest) ([]byte, error) {
-	t := []gptscript.ToolDef{{
-		Name:         manifest.Name,
-		Description:  manifest.Description,
-		Chat:         true,
-		Tools:        append(manifest.Tools, manifest.Agents...),
-		Instructions: manifest.Prompt,
-		Type:         "agent",
-	}}
-	for _, agent := range manifest.Agents {
-		t = append(t, gptscript.ToolDef{
-			Name:         agent,
-			Description:  "Send message agent named " + agent,
-			Arguments:    gptscript.ObjectSchema("message", "Message to send to the agent"),
-			Instructions: `#!${OTTO_BIN} invoke -t ${OTTO_THREAD_ID}.${1} ${1} "${MESSAGE}"`,
-		})
-	}
-	_, err := req.GPTClient.LoadTools(ctx, t)
-	if err != nil {
-		return nil, err
-	}
-	return gz.Compress(t)
 }
 
 func convertAgent(agent v2.Agent, prefix string) types.Agent {

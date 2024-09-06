@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/gptscript-ai/go-gptscript"
-	"github.com/gptscript-ai/gptscript/pkg/system"
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	"github.com/gptscript-ai/otto/pkg/jwt"
 	"github.com/gptscript-ai/otto/pkg/storage"
 	"github.com/gptscript-ai/otto/pkg/storage/services"
+	"github.com/gptscript-ai/otto/pkg/system"
 )
 
 type Config struct {

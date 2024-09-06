@@ -3,6 +3,7 @@ package invoke
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"os"
 	"strings"
 	"sync"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/pkg/agents"
 	"github.com/gptscript-ai/otto/pkg/gz"
 	"github.com/gptscript-ai/otto/pkg/jwt"
 	"github.com/gptscript-ai/otto/pkg/storage"
@@ -70,7 +72,6 @@ func (i *Invoker) getThread(ctx context.Context, agent *v2.Agent, input, threadN
 		Spec: v2.ThreadSpec{
 			AgentName: agent.Name,
 			Input:     input,
-			Script:    agent.Spec.Script,
 		},
 	}
 	err := i.storage.Create(ctx, &thread)
@@ -106,9 +107,18 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v2.Agent, input string, opt
 		return nil, err
 	}
 
-	var tools []gptscript.ToolDef
-	if err := gz.Decompress(&tools, thread.Spec.Script); err != nil {
+	tools, err := agents.Render(ctx, i.storage, agent.Namespace, agent.Spec.Manifest)
+	if err != nil {
 		return nil, err
+	}
+
+	if len(agent.Spec.Manifest.Params) == 0 {
+		data := map[string]any{}
+		if err := json.Unmarshal([]byte(input), &data); err == nil {
+			if msg, ok := data[agents.DefaultAgentParams[0]].(string); ok && len(data) == 1 && msg != "" {
+				input = msg
+			}
+		}
 	}
 
 	var run = v2.Run{

@@ -31,7 +31,6 @@ type AgentSpec struct {
 	Manifest       Manifest `json:"manifest,omitempty"`
 	ManifestSource string   `json:"manifestSource,omitempty"`
 	Format         Format   `json:"format,omitempty"`
-	Script         []byte   `json:"script,omitempty"`
 }
 
 type AgentStatus struct {

@@ -27,7 +27,6 @@ func (in *Thread) GetConditions() *[]metav1.Condition {
 type ThreadSpec struct {
 	Input     string `json:"input,omitempty"`
 	AgentName string `json:"agentName,omitempty"`
-	Script    []byte `json:"script,omitempty"`
 }
 
 type ThreadStatus struct {

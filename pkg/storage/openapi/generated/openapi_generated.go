@@ -216,12 +216,6 @@ func schema_storage_apis_ottogptscriptai_v1_AgentSpec(ref common.ReferenceCallba
 							Format: "",
 						},
 					},
-					"script": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "byte",
-						},
-					},
 				},
 			},
 		},
@@ -277,6 +271,13 @@ func schema_storage_apis_ottogptscriptai_v1_Manifest(ref common.ReferenceCallbac
 							Format:  "",
 						},
 					},
+					"Slug": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
 					"Description": {
 						SchemaProps: spec.SchemaProps{
 							Default: "",
@@ -319,8 +320,23 @@ func schema_storage_apis_ottogptscriptai_v1_Manifest(ref common.ReferenceCallbac
 							},
 						},
 					},
+					"Params": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
 				},
-				Required: []string{"ID", "Name", "Description", "Prompt", "Tools", "Agents"},
+				Required: []string{"ID", "Name", "Slug", "Description", "Prompt", "Tools", "Agents", "Params"},
 			},
 		},
 	}
@@ -931,12 +947,6 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadSpec(ref common.ReferenceCallb
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
-						},
-					},
-					"script": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "byte",
 						},
 					},
 				},
