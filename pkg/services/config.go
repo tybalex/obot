@@ -10,6 +10,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/storage"
 	"github.com/gptscript-ai/otto/pkg/storage/services"
 	"github.com/gptscript-ai/otto/pkg/system"
+	wclient "github.com/thedadams/workspace-provider/pkg/client"
 )
 
 type Config struct {
@@ -18,11 +19,12 @@ type Config struct {
 }
 
 type Services struct {
-	StorageClient storage.Client
-	GPTClient     *gptscript.GPTScript
-	Invoker       *invoke.Invoker
-	TokenServer   *jwt.TokenService
-	APIServer     *api.Server
+	StorageClient   storage.Client
+	GPTClient       *gptscript.GPTScript
+	Invoker         *invoke.Invoker
+	TokenServer     *jwt.TokenService
+	APIServer       *api.Server
+	WorkspaceClient *wclient.Client
 }
 
 func New(ctx context.Context, config Config) (*Services, error) {
@@ -40,11 +42,14 @@ func New(ctx context.Context, config Config) (*Services, error) {
 
 	tokenServer := &jwt.TokenService{}
 
+	workspaceClient := wclient.New()
+
 	return &Services{
-		StorageClient: storageClient,
-		GPTClient:     c,
-		APIServer:     api.NewServer(storageClient, c, tokenServer),
-		TokenServer:   tokenServer,
-		Invoker:       invoke.NewInvoker(storageClient, c, tokenServer),
+		StorageClient:   storageClient,
+		GPTClient:       c,
+		APIServer:       api.NewServer(storageClient, c, tokenServer),
+		TokenServer:     tokenServer,
+		WorkspaceClient: workspaceClient,
+		Invoker:         invoke.NewInvoker(storageClient, c, tokenServer, workspaceClient),
 	}, nil
 }

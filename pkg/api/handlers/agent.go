@@ -2,17 +2,21 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/BurntSushi/toml"
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
 	v2 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/thedadams/workspace-provider/pkg/client"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type AgentHandler struct {
+	WorkspaceClient   *client.Client
+	WorkspaceProvider string
 }
 
 func (a *AgentHandler) Update(ctx context.Context, req api.Request) error {
@@ -91,7 +95,20 @@ func (a *AgentHandler) Create(ctx context.Context, req api.Request) error {
 		return api.NewErrBadRequest("replace requires \"id\" in the manifest to be set")
 	}
 
-	agent := v2.Agent{
+	var (
+		agent           v2.Agent
+		createWorkspace bool
+		httpError       *api.ErrHTTP
+	)
+	if err = req.Get(&agent, spec.Manifest.ID); errors.As(err, &httpError) && httpError.Code == http.StatusNotFound {
+		createWorkspace = true
+	} else if err != nil {
+		return err
+	} else if !replace {
+		return apierrors.NewAlreadyExists(v2.SchemeGroupVersion.WithResource("agents").GroupResource(), spec.Manifest.ID)
+	}
+
+	agent = v2.Agent{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      spec.Manifest.ID,
 			Namespace: req.Namespace(),
@@ -101,6 +118,16 @@ func (a *AgentHandler) Create(ctx context.Context, req api.Request) error {
 
 	if agent.Name == "" {
 		agent.GenerateName = "a"
+		createWorkspace = true
+	}
+
+	if createWorkspace {
+		if agent.Spec.WorkspaceID, err = a.WorkspaceClient.Create(ctx, a.WorkspaceProvider); err != nil {
+			return err
+		}
+		if agent.Spec.KnowledgeWorkspaceID, err = a.WorkspaceClient.Create(ctx, a.WorkspaceProvider); err != nil {
+			return err
+		}
 	}
 
 	if err = req.Create(&agent); replace && apierrors.IsAlreadyExists(err) {
@@ -108,6 +135,10 @@ func (a *AgentHandler) Create(ctx context.Context, req api.Request) error {
 		req.ResponseWriter.Header().Set("X-Otto-Replaced", "true")
 	}
 	if err != nil {
+		if createWorkspace {
+			// Ensure the created workspaces are deleted on error
+			return errors.Join(err, a.WorkspaceClient.Rm(ctx, agent.Spec.WorkspaceID), a.WorkspaceClient.Rm(ctx, agent.Spec.KnowledgeWorkspaceID))
+		}
 		return err
 	}
 

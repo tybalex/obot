@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"strings"
 	"sync"
@@ -16,22 +17,27 @@ import (
 	"github.com/gptscript-ai/otto/pkg/jwt"
 	"github.com/gptscript-ai/otto/pkg/storage"
 	v2 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	wclient "github.com/thedadams/workspace-provider/pkg/client"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Invoker struct {
-	storage      storage.Client
-	gptClient    *gptscript.GPTScript
-	tokenService *jwt.TokenService
+	storage                 storage.Client
+	gptClient               *gptscript.GPTScript
+	tokenService            *jwt.TokenService
+	workspaceClient         *wclient.Client
+	threadWorkspaceProvider string
 }
 
-func NewInvoker(storage storage.Client, gptClient *gptscript.GPTScript, tokenService *jwt.TokenService) *Invoker {
+func NewInvoker(storage storage.Client, gptClient *gptscript.GPTScript, tokenService *jwt.TokenService, workspaceClient *wclient.Client) *Invoker {
 	return &Invoker{
-		storage:      storage,
-		gptClient:    gptClient,
-		tokenService: tokenService,
+		storage:                 storage,
+		gptClient:               gptClient,
+		tokenService:            tokenService,
+		workspaceClient:         workspaceClient,
+		threadWorkspaceProvider: "directory",
 	}
 }
 
@@ -45,8 +51,9 @@ type Options struct {
 	ThreadName string
 }
 
-func (i *Invoker) getWorkspace(ctx context.Context, thread *v2.Thread) (string, error) {
-	return "", nil
+func getWorkspace(thread *v2.Thread) string {
+	_, path, _ := strings.Cut(thread.Spec.WorkspaceID, "://")
+	return path
 }
 
 func (i *Invoker) getThread(ctx context.Context, agent *v2.Agent, input, threadName string) (*v2.Thread, error) {
@@ -63,6 +70,11 @@ func (i *Invoker) getThread(ctx context.Context, agent *v2.Agent, input, threadN
 		}
 	}
 
+	workspaceID, err := i.workspaceClient.Create(ctx, i.threadWorkspaceProvider, agent.Spec.WorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
 	thread = v2.Thread{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:         createName,
@@ -70,12 +82,16 @@ func (i *Invoker) getThread(ctx context.Context, agent *v2.Agent, input, threadN
 			Namespace:    agent.Namespace,
 		},
 		Spec: v2.ThreadSpec{
-			AgentName: agent.Name,
-			Input:     input,
+			AgentName:   agent.Name,
+			Input:       input,
+			WorkspaceID: workspaceID,
 		},
 	}
-	err := i.storage.Create(ctx, &thread)
-	return &thread, err
+	if err := i.storage.Create(ctx, &thread); err != nil {
+		// If creating the thread fails, then ensure that the workspace is cleaned up, too.
+		return nil, errors.Join(err, i.workspaceClient.Rm(ctx, thread.Spec.WorkspaceID))
+	}
+	return &thread, nil
 }
 
 func (i *Invoker) getChatState(ctx context.Context, run *v2.Run) (result string, _ error) {
@@ -138,11 +154,6 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v2.Agent, input string, opt
 		return nil, err
 	}
 
-	workspace, err := i.getWorkspace(ctx, thread)
-	if err != nil {
-		return nil, err
-	}
-
 	chatState, err := i.getChatState(ctx, &run)
 	if err != nil {
 		return nil, err
@@ -164,7 +175,7 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v2.Agent, input string, opt
 				"OTTO_AGENT_ID="+agent.Name),
 		},
 		Input:         input,
-		Workspace:     workspace,
+		Workspace:     getWorkspace(thread),
 		ChatState:     chatState,
 		IncludeEvents: true,
 	}, tools...)

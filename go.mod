@@ -13,7 +13,8 @@ require (
 	github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240903162849-eaaf0cdb72ca
 	github.com/pterm/pterm v0.12.79
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
+	github.com/thedadams/workspace-provider v0.0.0-20240906223056-9b000866098c
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
 	k8s.io/apiserver v0.29.0
@@ -27,6 +28,7 @@ require (
 	atomicgo.dev/schedule v0.1.0 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/acorn-io/broadcaster v0.0.0-20240105011354-bfadd4a7b45d // indirect
+	github.com/adrg/xdg v0.5.0 // indirect
 	github.com/antlr/antlr4/runtime/Go/antlr/v4 v4.0.0-20230305170008-8188dc5388df // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -111,7 +113,7 @@ require (
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/term v0.22.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.3.0 // indirect

@@ -11,7 +11,10 @@ func Router(services *services.Services) (http.Handler, error) {
 	w := services.APIServer.Wrap
 	mux := http.NewServeMux()
 
-	agents := handlers.AgentHandler{}
+	agents := handlers.AgentHandler{
+		WorkspaceClient:   services.WorkspaceClient,
+		WorkspaceProvider: "directory",
+	}
 	invoker := handlers.InvokeHandler{Invoker: services.Invoker}
 	threads := handlers.ThreadHandler{}
 	runs := handlers.RunHandler{}
