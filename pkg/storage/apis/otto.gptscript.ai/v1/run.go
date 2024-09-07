@@ -10,6 +10,10 @@ var (
 	_ conditions.Conditions = (*Run)(nil)
 )
 
+const (
+	RunFinalizer = "otto.gptscript.ai/run"
+)
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type Run struct {

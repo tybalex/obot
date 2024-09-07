@@ -9,6 +9,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/storage/registry/generic"
 	"github.com/gptscript-ai/otto/pkg/storage/scheme"
 	"github.com/gptscript-ai/otto/pkg/storage/services"
+	coordinationv1 "k8s.io/api/coordination/v1"
 	"k8s.io/apiserver/pkg/registry/rest"
 	genericapiserver "k8s.io/apiserver/pkg/server"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -43,6 +44,16 @@ func Stores(services *services.Services) (map[string]rest.Storage, error) {
 	}
 
 	return result, nil
+}
+
+func LeasesAPIGroup(services *services.Services) (*genericapiserver.APIGroupInfo, error) {
+	store, _, err := generic.NewStore(services.DB, &coordinationv1.Lease{})
+	if err != nil {
+		return nil, err
+	}
+	return apigroup.ForStores(scheme.AddToScheme, map[string]rest.Storage{
+		"leases": store,
+	}, coordinationv1.SchemeGroupVersion)
 }
 
 func APIGroup(services *services.Services) (*genericapiserver.APIGroupInfo, error) {

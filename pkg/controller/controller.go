@@ -5,29 +5,18 @@ import (
 	"fmt"
 
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/pkg/services"
 	// Enabled logrus logging in baaah
 	_ "github.com/acorn-io/baaah/pkg/logrus"
 )
 
-type Options struct {
-	ApiUrl    string `json:"apiUrl,omitempty" default:"http://localhost:8080"`
-	ApiToken  string `json:"apiToken,omitempty"`
-	Namespace string `usage:"Namespace to watch" default:"acorn"`
-	AppName   string `usage:"App to create assistants for"`
-}
-
 type Controller struct {
 	router   *router.Router
-	services *Services
+	services *services.Services
 }
 
-func New(ctx context.Context, opt Options) (*Controller, error) {
-	services, err := NewServices(opt)
-	if err != nil {
-		return nil, err
-	}
-
-	err = routes(services.Router, services)
+func New(ctx context.Context, services *services.Services) (*Controller, error) {
+	err := routes(services.Router, services)
 	if err != nil {
 		return nil, err
 	}
@@ -39,11 +28,8 @@ func New(ctx context.Context, opt Options) (*Controller, error) {
 }
 
 func (c *Controller) Start(ctx context.Context) error {
-	if err := c.services.PreStart(ctx); err != nil {
-		return err
-	}
 	if err := c.router.Start(ctx); err != nil {
 		return fmt.Errorf("failed to start router: %w", err)
 	}
-	select {}
+	return nil
 }

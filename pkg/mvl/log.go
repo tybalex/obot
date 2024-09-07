@@ -6,6 +6,9 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
+
+	// Setup baaah logging
+	_ "github.com/acorn-io/baaah/pkg/logrus"
 )
 
 // Minimally Viable Logger

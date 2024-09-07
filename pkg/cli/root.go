@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var log = mvl.Package()
+
 type Otto struct {
 	Debug  bool `usage:"Enable debug logging"`
 	client *client.Client

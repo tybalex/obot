@@ -11,8 +11,8 @@ import (
 type Manifest struct {
 	ID          string
 	Name        string
-	Slug        string
 	Description string
+	Slug        string
 	Prompt      string
 	Tools       []string
 	Agents      []string

@@ -14,31 +14,32 @@ import (
 	"github.com/gptscript-ai/otto/pkg/version"
 	k8sversion "k8s.io/apimachinery/pkg/version"
 	"k8s.io/apiserver/pkg/server/healthz"
+	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Client client.WithWatch
 
-func Start(ctx context.Context, config services.Config) (Client, error) {
+func Start(ctx context.Context, config services.Config) (Client, *rest.Config, error) {
 	services, err := services.New(config)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	return startMinkServer(ctx, config, services)
 }
 
-func startMinkServer(ctx context.Context, config services.Config, services *services.Services) (Client, error) {
-	apiGroups, err := mserver.BuildAPIGroups(services, agent.APIGroup)
+func startMinkServer(ctx context.Context, config services.Config, services *services.Services) (Client, *rest.Config, error) {
+	apiGroups, err := mserver.BuildAPIGroups(services, agent.APIGroup, agent.LeasesAPIGroup)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var l net.Listener
 	if config.StorageListenPort == 0 {
 		l, err = net.Listen("tcp", "127.0.0.1:0")
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -76,13 +77,14 @@ func startMinkServer(ctx context.Context, config services.Config, services *serv
 
 	minkServer, err := mserver.New(minkConfig)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	_ = minkServer.Handler(ctx)
 
 	cfg := minkServer.Loopback
-	return client.NewWithWatch(cfg, client.Options{
+	c, err := client.NewWithWatch(cfg, client.Options{
 		Scheme: scheme.Scheme,
 	})
+	return c, cfg, err
 }

@@ -16,7 +16,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/gz"
 	"github.com/gptscript-ai/otto/pkg/jwt"
 	"github.com/gptscript-ai/otto/pkg/storage"
-	v2 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,23 +42,23 @@ func NewInvoker(storage storage.Client, gptClient *gptscript.GPTScript, tokenSer
 }
 
 type Response struct {
-	Run    *v2.Run
-	Thread *v2.Thread
-	Events <-chan v2.Progress
+	Run    *v1.Run
+	Thread *v1.Thread
+	Events <-chan v1.Progress
 }
 
 type Options struct {
 	ThreadName string
 }
 
-func getWorkspace(thread *v2.Thread) string {
+func getWorkspace(thread *v1.Thread) string {
 	_, path, _ := strings.Cut(thread.Spec.WorkspaceID, "://")
 	return path
 }
 
-func (i *Invoker) getThread(ctx context.Context, agent *v2.Agent, input, threadName string) (*v2.Thread, error) {
+func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadName string) (*v1.Thread, error) {
 	var (
-		thread     v2.Thread
+		thread     v1.Thread
 		createName string
 	)
 	if threadName != "" {
@@ -75,13 +75,13 @@ func (i *Invoker) getThread(ctx context.Context, agent *v2.Agent, input, threadN
 		return nil, err
 	}
 
-	thread = v2.Thread{
+	thread = v1.Thread{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:         createName,
-			GenerateName: "t",
+			GenerateName: "t1",
 			Namespace:    agent.Namespace,
 		},
-		Spec: v2.ThreadSpec{
+		Spec: v1.ThreadSpec{
 			AgentName:   agent.Name,
 			Input:       input,
 			WorkspaceID: workspaceID,
@@ -94,12 +94,12 @@ func (i *Invoker) getThread(ctx context.Context, agent *v2.Agent, input, threadN
 	return &thread, nil
 }
 
-func (i *Invoker) getChatState(ctx context.Context, run *v2.Run) (result string, _ error) {
+func (i *Invoker) getChatState(ctx context.Context, run *v1.Run) (result string, _ error) {
 	if run.Spec.PreviousRunName == "" {
 		return "", nil
 	}
 
-	var lastRun v2.RunState
+	var lastRun v1.RunState
 	if err := i.storage.Get(ctx, router.Key(run.Namespace, run.Spec.PreviousRunName), &lastRun); apierror.IsNotFound(err) {
 		return "", nil
 	} else if err != nil {
@@ -110,7 +110,7 @@ func (i *Invoker) getChatState(ctx context.Context, run *v2.Run) (result string,
 	return result, err
 }
 
-func (i *Invoker) Invoke(ctx context.Context, agent *v2.Agent, input string, opts ...Options) (*Response, error) {
+func (i *Invoker) Invoke(ctx context.Context, agent *v1.Agent, input string, opts ...Options) (*Response, error) {
 	var opt Options
 	for _, o := range opts {
 		if o.ThreadName != "" {
@@ -137,12 +137,13 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v2.Agent, input string, opt
 		}
 	}
 
-	var run = v2.Run{
+	var run = v1.Run{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "r",
+			GenerateName: "r1",
 			Namespace:    thread.Namespace,
+			Finalizers:   []string{v1.RunFinalizer},
 		},
-		Spec: v2.RunSpec{
+		Spec: v1.RunSpec{
 			ThreadName:      thread.Name,
 			AgentName:       agent.Name,
 			PreviousRunName: thread.Status.LastRunName,
@@ -183,7 +184,7 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v2.Agent, input string, opt
 		return nil, err
 	}
 
-	var events = make(chan v2.Progress)
+	var events = make(chan v1.Progress)
 
 	go i.stream(ctx, events, thread, &run, runResp)
 
@@ -194,9 +195,9 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v2.Agent, input string, opt
 	}, nil
 }
 
-func (i *Invoker) saveState(ctx context.Context, thread *v2.Thread, run *v2.Run, runResp *gptscript.Run, retErr error) error {
+func (i *Invoker) saveState(ctx context.Context, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run, retErr error) error {
 	var (
-		runStateSpec v2.RunStateSpec
+		runStateSpec v1.RunStateSpec
 		runChanged   bool
 		err          error
 	)
@@ -222,9 +223,9 @@ func (i *Invoker) saveState(ctx context.Context, thread *v2.Thread, run *v2.Run,
 		}
 	}
 
-	var runState v2.RunState
+	var runState v1.RunState
 	if err := i.storage.Get(ctx, router.Key(run.Namespace, run.Name), &runState); apierror.IsNotFound(err) {
-		runState = v2.RunState{
+		runState = v1.RunState{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      run.Name,
 				Namespace: run.Namespace,
@@ -296,7 +297,7 @@ func (i *Invoker) saveState(ctx context.Context, thread *v2.Thread, run *v2.Run,
 	return retErr
 }
 
-func (i *Invoker) stream(ctx context.Context, events chan v2.Progress, thread *v2.Thread, run *v2.Run, runResp *gptscript.Run) (retErr error) {
+func (i *Invoker) stream(ctx context.Context, events chan v1.Progress, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run) (retErr error) {
 	defer close(events)
 
 	var (
@@ -332,7 +333,7 @@ func (i *Invoker) stream(ctx context.Context, events chan v2.Progress, thread *v
 
 	watchCtx, watchCancel := context.WithCancel(ctx)
 	defer watchCancel()
-	w, err := i.storage.Watch(watchCtx, &v2.RunStateList{}, &client.ListOptions{
+	w, err := i.storage.Watch(watchCtx, &v1.RunStateList{}, &client.ListOptions{
 		Namespace: run.Namespace,
 	})
 	if err != nil {
@@ -355,7 +356,7 @@ func (i *Invoker) stream(ctx context.Context, events chan v2.Progress, thread *v
 				watchEvents = nil
 				continue
 			}
-			runState := event.Object.(*v2.RunState)
+			runState := event.Object.(*v1.RunState)
 			if strings.HasPrefix(runState.Spec.ThreadName, thread.Name+".") {
 				//printSubCall(runState, lastPrint, events)
 			}
@@ -380,21 +381,21 @@ func (i *Invoker) stream(ctx context.Context, events chan v2.Progress, thread *v
 	}
 }
 
-func printString(out chan v2.Progress, last, current string) {
+func printString(out chan v1.Progress, last, current string) {
 	current = strings.TrimPrefix(current, "Waiting for model response...")
 	current, _, _ = strings.Cut(current, "<tool call> ")
 	if strings.HasPrefix(current, last) {
-		out <- v2.Progress{
+		out <- v1.Progress{
 			Content: current[len(last):],
 		}
 	} else {
-		out <- v2.Progress{
+		out <- v1.Progress{
 			Content: current,
 		}
 	}
 }
 
-func printSubCall(runState *v2.RunState, lastPrint map[string][]gptscript.Output, out chan v2.Progress) {
+func printSubCall(runState *v1.RunState, lastPrint map[string][]gptscript.Output, out chan v1.Progress) {
 	var (
 		prg   gptscript.Program
 		calls = map[string]gptscript.CallFrame{}
@@ -412,7 +413,7 @@ func printSubCall(runState *v2.RunState, lastPrint map[string][]gptscript.Output
 	}
 }
 
-func printCall(prg gptscript.Program, call *gptscript.CallFrame, lastPrint map[string][]gptscript.Output, out chan v2.Progress) {
+func printCall(prg gptscript.Program, call *gptscript.CallFrame, lastPrint map[string][]gptscript.Output, out chan v1.Progress) {
 	lastOutputs := lastPrint[call.ID]
 	for i, currentOutput := range call.Output {
 		for i >= len(lastOutputs) {
@@ -434,8 +435,8 @@ func printCall(prg gptscript.Program, call *gptscript.CallFrame, lastPrint map[s
 			if !ok || lastSubCall != subCall {
 				tool, ok := prg.ToolSet[subCall.ToolID]
 				if ok {
-					out <- v2.Progress{
-						Tool: v2.ToolProgress{
+					out <- v1.Progress{
+						Tool: v1.ToolProgress{
 							Name:        tool.Name,
 							Description: tool.Description,
 							Input:       subCall.Input,

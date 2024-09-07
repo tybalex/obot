@@ -7,8 +7,9 @@ require (
 	github.com/acorn-io/baaah v0.0.0-20240205174747-9cd5fb2d3e41
 	github.com/acorn-io/mink v0.0.0-20240905175847-47ca8045831c
 	github.com/dustin/go-humanize v1.0.1
+	github.com/getkin/kin-openapi v0.124.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
-	github.com/gptscript-ai/cmd v0.0.0-20240802230653-326b7baf6fcb
+	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
 	github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240903180507-c0fb2e8ebab6
 	github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240903162849-eaaf0cdb72ca
 	github.com/pterm/pterm v0.12.79
@@ -18,6 +19,7 @@ require (
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
 	k8s.io/apiserver v0.29.0
+	k8s.io/client-go v0.29.0
 	k8s.io/kube-openapi v0.0.0-20240105020646-a37d4de58910
 	sigs.k8s.io/controller-runtime v0.16.3
 )
@@ -45,7 +47,6 @@ require (
 	github.com/evanphx/json-patch/v5 v5.7.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
-	github.com/getkin/kin-openapi v0.124.0 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/jsonpointer v0.20.2 // indirect
@@ -132,7 +133,6 @@ require (
 	gorm.io/driver/mysql v1.3.2 // indirect
 	gorm.io/driver/sqlite v1.3.1 // indirect
 	gorm.io/gorm v1.23.8 // indirect
-	k8s.io/client-go v0.29.0 // indirect
 	k8s.io/component-base v0.29.0 // indirect
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
 	k8s.io/klog/v2 v2.110.1 // indirect
