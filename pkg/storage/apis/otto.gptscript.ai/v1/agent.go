@@ -28,9 +28,11 @@ type Format string
 const TOMLFormat = Format("toml")
 
 type AgentSpec struct {
-	Manifest       Manifest `json:"manifest,omitempty"`
-	ManifestSource string   `json:"manifestSource,omitempty"`
-	Format         Format   `json:"format,omitempty"`
+	Manifest             Manifest `json:"manifest,omitempty"`
+	ManifestSource       string   `json:"manifestSource,omitempty"`
+	Format               Format   `json:"format,omitempty"`
+	WorkspaceID          string   `json:"workspaceID,omitempty"`
+	KnowledgeWorkspaceID string   `json:"knowledgeWorkspaceID,omitempty"`
 }
 
 type AgentStatus struct {
