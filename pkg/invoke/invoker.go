@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/jwt"
 	"github.com/gptscript-ai/otto/pkg/storage"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/workspace"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,15 +29,19 @@ type Invoker struct {
 	tokenService            *jwt.TokenService
 	workspaceClient         *wclient.Client
 	threadWorkspaceProvider string
+	knowledgeTool           string
+	knowledgeBin            string
 }
 
-func NewInvoker(storage storage.Client, gptClient *gptscript.GPTScript, tokenService *jwt.TokenService, workspaceClient *wclient.Client) *Invoker {
+func NewInvoker(storage storage.Client, gptClient *gptscript.GPTScript, tokenService *jwt.TokenService, workspaceClient *wclient.Client, knowledgeTool, knowledgeBin string) *Invoker {
 	return &Invoker{
 		storage:                 storage,
 		gptClient:               gptClient,
 		tokenService:            tokenService,
 		workspaceClient:         workspaceClient,
 		threadWorkspaceProvider: "directory",
+		knowledgeTool:           knowledgeTool,
+		knowledgeBin:            knowledgeBin,
 	}
 }
 
@@ -49,11 +53,6 @@ type Response struct {
 
 type Options struct {
 	ThreadName string
-}
-
-func getWorkspace(thread *v1.Thread) string {
-	_, path, _ := strings.Cut(thread.Spec.WorkspaceID, "://")
-	return path
 }
 
 func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadName string) (*v1.Thread, error) {
@@ -75,6 +74,11 @@ func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadN
 		return nil, err
 	}
 
+	knowledgeWorkspaceID, err := i.workspaceClient.Create(ctx, i.threadWorkspaceProvider, agent.Spec.KnowledgeWorkspaceID)
+	if err != nil {
+		return nil, err
+	}
+
 	thread = v1.Thread{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:         createName,
@@ -82,9 +86,10 @@ func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadN
 			Namespace:    agent.Namespace,
 		},
 		Spec: v1.ThreadSpec{
-			AgentName:   agent.Name,
-			Input:       input,
-			WorkspaceID: workspaceID,
+			AgentName:            agent.Name,
+			Input:                input,
+			WorkspaceID:          workspaceID,
+			KnowledgeWorkspaceID: knowledgeWorkspaceID,
 		},
 	}
 	if err := i.storage.Create(ctx, &thread); err != nil {
@@ -123,7 +128,7 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v1.Agent, input string, opt
 		return nil, err
 	}
 
-	tools, err := agents.Render(ctx, i.storage, agent.Namespace, agent.Spec.Manifest)
+	tools, extraEnv, err := agents.Render(ctx, i.storage, agent, thread, i.knowledgeTool, i.knowledgeBin)
 	if err != nil {
 		return nil, err
 	}
@@ -148,6 +153,7 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v1.Agent, input string, opt
 			AgentName:       agent.Name,
 			PreviousRunName: thread.Status.LastRunName,
 			Input:           input,
+			ExtraEnv:        extraEnv,
 		},
 	}
 
@@ -169,14 +175,15 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v1.Agent, input string, opt
 
 	runResp, err := i.gptClient.Evaluate(ctx, gptscript.Options{
 		GlobalOptions: gptscript.GlobalOptions{
-			Env: append(os.Environ(),
+			Env: append(extraEnv,
 				"OTTO_TOKEN="+token,
 				"OTTO_RUN_ID="+run.Name,
 				"OTTO_THREAD_ID="+thread.Name,
-				"OTTO_AGENT_ID="+agent.Name),
+				"OTTO_AGENT_ID="+agent.Name,
+			),
 		},
 		Input:         input,
-		Workspace:     getWorkspace(thread),
+		Workspace:     workspace.GetDir(thread.Spec.WorkspaceID),
 		ChatState:     chatState,
 		IncludeEvents: true,
 	}, tools...)

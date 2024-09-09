@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/BurntSushi/toml"
@@ -142,7 +143,7 @@ func (a *AgentHandler) Create(ctx context.Context, req api.Request) error {
 		return err
 	}
 
-	req.ResponseWriter.WriteHeader(http.StatusCreated)
+	req.WriteHeader(http.StatusCreated)
 	return req.JSON(convertAgent(agent, api.GetURLPrefix(req)))
 }
 
@@ -171,4 +172,115 @@ func (a *AgentHandler) List(_ context.Context, req api.Request) error {
 	}
 
 	return req.JSON(resp)
+}
+
+func (a *AgentHandler) Files(ctx context.Context, req api.Request) error {
+	var (
+		id    = req.Request.PathValue("id")
+		agent v2.Agent
+	)
+	if err := req.Get(&agent, id); err != nil {
+		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
+	}
+
+	return listFiles(ctx, req, a.WorkspaceClient, agent.Spec.WorkspaceID)
+}
+
+func (a *AgentHandler) UploadFile(ctx context.Context, req api.Request) error {
+	var (
+		id    = req.Request.PathValue("id")
+		agent v2.Agent
+	)
+	if err := req.Get(&agent, id); err != nil {
+		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
+	}
+
+	return uploadFile(ctx, req, a.WorkspaceClient, agent.Spec.WorkspaceID)
+}
+
+func (a *AgentHandler) DeleteFile(ctx context.Context, req api.Request) error {
+	var (
+		id       = req.Request.PathValue("id")
+		filename = req.Request.PathValue("file")
+		agent    v2.Agent
+	)
+
+	if err := req.Get(&agent, id); err != nil {
+		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
+	}
+
+	return deleteFile(ctx, req, a.WorkspaceClient, agent.Spec.WorkspaceID, filename)
+}
+
+func (a *AgentHandler) Knowledge(ctx context.Context, req api.Request) error {
+	var (
+		id    = req.Request.PathValue("id")
+		agent v2.Agent
+	)
+	if err := req.Get(&agent, id); err != nil {
+		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
+	}
+
+	return listFiles(ctx, req, a.WorkspaceClient, agent.Spec.KnowledgeWorkspaceID)
+}
+
+func (a *AgentHandler) UploadKnowledge(ctx context.Context, req api.Request) error {
+	var (
+		id    = req.Request.PathValue("id")
+		agent v2.Agent
+	)
+	if err := req.Get(&agent, id); err != nil {
+		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
+	}
+
+	if err := uploadFile(ctx, req, a.WorkspaceClient, agent.Spec.KnowledgeWorkspaceID); err != nil {
+		return err
+	}
+
+	agent.Status.IngestKnowledge = true
+	agent.Status.HasKnowledge = true
+	return req.Storage.Status().Update(ctx, &agent)
+}
+
+func (a *AgentHandler) DeleteKnowledge(ctx context.Context, req api.Request) error {
+	var (
+		id       = req.Request.PathValue("id")
+		filename = req.Request.PathValue("file")
+		agent    v2.Agent
+	)
+
+	if err := req.Get(&agent, id); err != nil {
+		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
+	}
+
+	if err := deleteFile(ctx, req, a.WorkspaceClient, agent.Spec.KnowledgeWorkspaceID, filename); err != nil {
+		return err
+	}
+
+	agent.Status.IngestKnowledge = true
+	return req.Storage.Status().Update(ctx, &agent)
+}
+
+func (a *AgentHandler) IngestKnowledge(ctx context.Context, req api.Request) error {
+	var (
+		id    = req.Request.PathValue("id")
+		agent v2.Agent
+	)
+	if err := req.Get(&agent, id); err != nil {
+		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
+	}
+
+	files, err := a.WorkspaceClient.Ls(ctx, agent.Spec.KnowledgeWorkspaceID)
+	if err != nil {
+		return err
+	}
+
+	req.WriteHeader(http.StatusNoContent)
+
+	if len(files) == 0 && !agent.Status.HasKnowledge {
+		return nil
+	}
+
+	agent.Status.IngestKnowledge = true
+	return req.Storage.Status().Update(ctx, &agent)
 }

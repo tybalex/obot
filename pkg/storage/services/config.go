@@ -15,7 +15,9 @@ type Config struct {
 	StorageToken      string `usage:"Token for storage access, will be generated if not passed"`
 	//AuditLogPath       string `usage:"Location of where to store audit logs"`
 	//AuditLogPolicyFile string `usage:"Location of audit log policy file"`
-	DSN string `usage:"Database dsn in driver://connection_string format" default:"sqlite://file:otto.db?_journal=WAL&cache=shared&_busy_timeout=30000"`
+	DSN           string `usage:"Database dsn in driver://connection_string format" default:"sqlite://file:otto.db?_journal=WAL&cache=shared&_busy_timeout=30000"`
+	KnowledgeBin  string `usage:"Location of knowledge binary" default:"knowledge" env:"KNOWLEDGE_BIN"`
+	KnowledgeTool string `usage:"The knowledge tool to use" default:"github.com/gptscript-ai/knowledge/gateway@v0.4.14-rc.2" env:"KNOWLEDGE_TOOL"`
 }
 
 type Services struct {

@@ -15,8 +15,12 @@ func Router(services *services.Services) (http.Handler, error) {
 		WorkspaceClient:   services.WorkspaceClient,
 		WorkspaceProvider: "directory",
 	}
-	invoker := handlers.InvokeHandler{Invoker: services.Invoker}
-	threads := handlers.ThreadHandler{}
+	invoker := handlers.InvokeHandler{
+		Invoker: services.Invoker,
+	}
+	threads := handlers.ThreadHandler{
+		WorkspaceClient: services.WorkspaceClient,
+	}
 	runs := handlers.RunHandler{}
 
 	// Agents
@@ -24,6 +28,15 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.Handle("POST /agents", w(agents.Create))
 	mux.Handle("PUT /agents/{id}", w(agents.Update))
 	mux.Handle("DELETE /agents/{id}", w(agents.Delete))
+	// Agent files
+	mux.Handle("GET /agents/{id}/files", w(agents.Files))
+	mux.Handle("POST /agents/{id}/files/{file}", w(agents.UploadFile))
+	mux.Handle("DELETE /agents/{id}/files/{file}", w(agents.DeleteFile))
+	// Agent knowledge files
+	mux.Handle("GET /agents/{id}/knowledge", w(agents.Knowledge))
+	mux.Handle("POST /agents/{id}/knowledge", w(agents.IngestKnowledge))
+	mux.Handle("POST /agents/{id}/knowledge/{file}", w(agents.UploadKnowledge))
+	mux.Handle("DELETE /agents/{id}/knowledge/{file}", w(agents.DeleteKnowledge))
 
 	// Invoker
 	mux.Handle("POST /invoke/{agent}", w(invoker.Invoke))
@@ -32,6 +45,15 @@ func Router(services *services.Services) (http.Handler, error) {
 	// Threads
 	mux.Handle("GET /threads", w(threads.List))
 	mux.Handle("GET /agents/{agent}/threads", w(threads.List))
+	// Thread files
+	mux.Handle("GET /threads/{id}/files", w(threads.Files))
+	mux.Handle("POST /threads/{id}/files/{file}", w(threads.UploadFile))
+	mux.Handle("DELETE /threads/{id}/files/{file}", w(threads.DeleteFile))
+	// Thread knowledge files
+	mux.Handle("GET /threads/{id}/knowledge", w(threads.Knowledge))
+	mux.Handle("POST /threads/{id}/knowledge", w(threads.IngestKnowledge))
+	mux.Handle("POST /threads/{id}/knowledge/{file}", w(threads.UploadKnowledge))
+	mux.Handle("DELETE /threads/{id}/knowledge/{file}", w(threads.DeleteKnowledge))
 
 	// Runs
 	mux.Handle("GET /runs", w(runs.List))

@@ -8,6 +8,7 @@ import (
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/storage"
 	"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/workspace"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -15,27 +16,37 @@ var DefaultAgentParams = []string{
 	"message", "Message to send to the agent",
 }
 
-func Render(ctx context.Context, db storage.Client, namespace string, manifest v1.Manifest) ([]gptscript.ToolDef, error) {
+func Render(ctx context.Context, db storage.Client, agent *v1.Agent, thread *v1.Thread, knowledgeTool, knowledgeBin string) ([]gptscript.ToolDef, []string, error) {
+	var extraEnv []string
 	t := []gptscript.ToolDef{{
-		Name:         manifest.Name,
-		Description:  manifest.Description,
+		Name:         agent.Spec.Manifest.Name,
+		Description:  agent.Spec.Manifest.Description,
 		Chat:         true,
-		Tools:        manifest.Tools,
-		Arguments:    manifest.GetParams(),
-		Instructions: manifest.Prompt,
+		Tools:        agent.Spec.Manifest.Tools,
+		Arguments:    agent.Spec.Manifest.GetParams(),
+		Instructions: agent.Spec.Manifest.Prompt,
 		Type:         "agent",
 	}}
 
-	if len(manifest.Agents) == 0 {
-		return t, nil
+	if agent.Status.HasKnowledge || thread.Status.HasKnowledge {
+		t[0].Tools = append(t[0].Tools, knowledgeTool)
+		extraEnv = append(extraEnv,
+			fmt.Sprintf("KNOWLEDGE_BIN=%s", knowledgeBin),
+			fmt.Sprintf("GPTSCRIPT_SCRIPT_ID=%s", workspace.KnowledgeIDFromWorkspaceID(agent.Spec.KnowledgeWorkspaceID)),
+			fmt.Sprintf("GPTSCRIPT_THREAD_ID=%s", workspace.KnowledgeIDFromWorkspaceID(thread.Spec.KnowledgeWorkspaceID)),
+		)
 	}
 
-	agents, err := ByName(ctx, db, namespace)
+	if len(agent.Spec.Manifest.Agents) == 0 {
+		return t, extraEnv, nil
+	}
+
+	agents, err := ByName(ctx, db, agent.Namespace)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	for _, agentRef := range manifest.Agents {
+	for _, agentRef := range agent.Spec.Manifest.Agents {
 		agent, ok := agents[agentRef]
 		if !ok {
 			continue
@@ -61,7 +72,7 @@ func Render(ctx context.Context, db storage.Client, namespace string, manifest v
 		t = append(t, toolDef)
 	}
 
-	return t, nil
+	return t, extraEnv, nil
 }
 
 func ByName(ctx context.Context, db storage.Client, namespace string) (map[string]v1.Agent, error) {

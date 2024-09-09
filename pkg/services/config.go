@@ -30,6 +30,8 @@ type Services struct {
 	TokenServer     *jwt.TokenService
 	APIServer       *api.Server
 	WorkspaceClient *wclient.Client
+	KnowledgeBin    string
+	KnowledgeTool   string
 }
 
 func New(ctx context.Context, config Config) (*Services, error) {
@@ -65,6 +67,8 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		APIServer:       api.NewServer(storageClient, c, tokenServer),
 		TokenServer:     tokenServer,
 		WorkspaceClient: workspaceClient,
-		Invoker:         invoke.NewInvoker(storageClient, c, tokenServer, workspaceClient),
+		Invoker:         invoke.NewInvoker(storageClient, c, tokenServer, workspaceClient, config.KnowledgeTool, config.KnowledgeBin),
+		KnowledgeBin:    config.KnowledgeBin,
+		KnowledgeTool:   config.KnowledgeTool,
 	}, nil
 }

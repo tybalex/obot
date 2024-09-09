@@ -4,6 +4,7 @@ import (
 	"github.com/acorn-io/baaah/pkg/apply"
 	"github.com/acorn-io/baaah/pkg/conditions"
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/pkg/controller/handlers/agents"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/runs"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/threads"
 	"github.com/gptscript-ai/otto/pkg/services"
@@ -16,7 +17,12 @@ func routes(router *router.Router, services *services.Services) error {
 	root.Type(&v1.Run{}).FinalizeFunc(v1.RunFinalizer, runs.DeleteRunState)
 	root.Type(&v1.Run{}).HandlerFunc(runs.Cleanup)
 
+	root.Type(&v1.Thread{}).FinalizeFunc(v1.ThreadFinalizer, threads.RemoveWorkspace(services.WorkspaceClient, services.KnowledgeBin))
+	root.Type(&v1.Thread{}).HandlerFunc(threads.IngestKnowledge(services.KnowledgeBin))
 	root.Type(&v1.Thread{}).HandlerFunc(threads.Cleanup)
+
+	root.Type(&v1.Agent{}).FinalizeFunc(v1.AgentFinalizer, agents.RemoveWorkspaces(services.WorkspaceClient, services.KnowledgeBin))
+	root.Type(&v1.Agent{}).HandlerFunc(agents.IngestKnowledge(services.KnowledgeBin))
 
 	return nil
 }
