@@ -20,7 +20,6 @@ import (
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Invoker struct {
@@ -360,35 +359,10 @@ func (i *Invoker) stream(ctx context.Context, events chan v1.Progress, thread *v
 		lastPrint = map[string][]gptscript.Output{}
 	)
 
-	watchCtx, watchCancel := context.WithCancel(ctx)
-	defer watchCancel()
-	w, err := i.storage.Watch(watchCtx, &v1.RunStateList{}, &client.ListOptions{
-		Namespace: run.Namespace,
-	})
-	if err != nil {
-		return err
-	}
-
-	watchEvents := w.ResultChan()
-	defer func() {
-		for range watchEvents {
-		}
-	}()
-	defer w.Stop()
-
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
-		case event, ok := <-watchEvents:
-			if !ok {
-				watchEvents = nil
-				continue
-			}
-			runState := event.Object.(*v1.RunState)
-			if strings.HasPrefix(runState.Spec.ThreadName, thread.Name+".") {
-				//printSubCall(runState, lastPrint, events)
-			}
 		case frame, ok := <-runEvent:
 			if !ok {
 				return runResp.Err()
