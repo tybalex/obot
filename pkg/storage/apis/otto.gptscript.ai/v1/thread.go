@@ -25,18 +25,21 @@ func (in *Thread) GetConditions() *[]metav1.Condition {
 }
 
 type ThreadSpec struct {
-	Input       string `json:"input,omitempty"`
-	AgentName   string `json:"agentName,omitempty"`
-	WorkspaceID string `json:"workspaceID,omitempty"`
+	Input                string `json:"input,omitempty"`
+	AgentName            string `json:"agentName,omitempty"`
+	WorkspaceID          string `json:"workspaceID,omitempty"`
+	KnowledgeWorkspaceID string `json:"knowledgeWorkspaceID,omitempty"`
 }
 
 type ThreadStatus struct {
-	Description   string                   `json:"description,omitempty"`
-	LastRunName   string                   `json:"lastRunName,omitempty"`
-	LastRunState  gptscriptclient.RunState `json:"lastRunState,omitempty"`
-	LastRunOutput string                   `json:"lastRunOutput,omitempty"`
-	LastRunError  string                   `json:"lastRunError,omitempty"`
-	Conditions    []metav1.Condition       `json:"conditions,omitempty"`
+	Description     string                   `json:"description,omitempty"`
+	LastRunName     string                   `json:"lastRunName,omitempty"`
+	LastRunState    gptscriptclient.RunState `json:"lastRunState,omitempty"`
+	LastRunOutput   string                   `json:"lastRunOutput,omitempty"`
+	LastRunError    string                   `json:"lastRunError,omitempty"`
+	Conditions      []metav1.Condition       `json:"conditions,omitempty"`
+	HasKnowledge    bool                     `json:"hasKnowledge,omitempty"`
+	IngestKnowledge bool                     `json:"ingestKnowledge,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

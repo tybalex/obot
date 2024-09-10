@@ -37,3 +37,8 @@ vendor/
 # Ignore OS specific files
 .DS_Store
 Thumbs.db
+
+# Ignore local DB files
+otto.db
+otto.db-*
+

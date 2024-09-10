@@ -36,6 +36,8 @@ type Thread struct {
 
 type ThreadList List[Thread]
 
+type FileList List[string]
+
 type Run struct {
 	ID            string                   `json:"id,omitempty"`
 	Created       time.Time                `json:"created,omitempty"`

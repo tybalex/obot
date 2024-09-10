@@ -36,7 +36,9 @@ type AgentSpec struct {
 }
 
 type AgentStatus struct {
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
+	Conditions      []metav1.Condition `json:"conditions,omitempty"`
+	HasKnowledge    bool               `json:"hasKnowledge,omitempty"`
+	IngestKnowledge bool               `json:"ingestKnowledge,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
