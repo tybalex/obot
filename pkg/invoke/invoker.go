@@ -204,10 +204,11 @@ func (i *Invoker) createRun(ctx context.Context, thread *v1.Thread, tools []gpts
 				"OTTO_WORKFLOW_STEP_ID="+opts.WorkflowStepName,
 				"OTTO_AGENT_ID="+opts.AgentName),
 		},
-		Input:         input,
-		Workspace:     workspace.GetDir(thread.Spec.WorkspaceID),
-		ChatState:     chatState,
-		IncludeEvents: true,
+		Input:           input,
+		Workspace:       workspace.GetDir(thread.Spec.WorkspaceID),
+		ChatState:       chatState,
+		IncludeEvents:   true,
+		ForceSequential: true,
 	}, tools...)
 	if err != nil {
 		return nil, err
