@@ -27,6 +27,7 @@ func (in *Thread) GetConditions() *[]metav1.Condition {
 type ThreadSpec struct {
 	Input                string `json:"input,omitempty"`
 	AgentName            string `json:"agentName,omitempty"`
+	WorkflowStepName     string `json:"workflowStepName,omitempty"`
 	WorkspaceID          string `json:"workspaceID,omitempty"`
 	KnowledgeWorkspaceID string `json:"knowledgeWorkspaceID,omitempty"`
 }

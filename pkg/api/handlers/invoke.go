@@ -31,7 +31,7 @@ func (i *InvokeHandler) Invoke(ctx context.Context, req api.Request) error {
 		return err
 	}
 
-	resp, err := i.Invoker.Invoke(ctx, &agent, string(input), invoke.Options{
+	resp, err := i.Invoker.Agent(ctx, &agent, string(input), invoke.Options{
 		ThreadName: threadID,
 	})
 	if err != nil {

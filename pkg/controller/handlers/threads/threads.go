@@ -13,12 +13,23 @@ import (
 
 func Cleanup(req router.Request, resp router.Response) error {
 	thread := req.Object.(*v1.Thread)
-	var agent v1.Agent
 
-	if err := req.Get(&agent, thread.Namespace, thread.Spec.AgentName); apierrors.IsNotFound(err) {
-		return req.Client.Delete(req.Ctx, thread)
-	} else if err != nil {
-		return err
+	if thread.Spec.AgentName != "" {
+		var agent v1.Agent
+		if err := req.Get(&agent, thread.Namespace, thread.Spec.AgentName); apierrors.IsNotFound(err) {
+			return req.Delete(thread)
+		} else if err != nil {
+			return err
+		}
+	}
+
+	if thread.Spec.WorkflowStepName != "" {
+		var step v1.WorkflowStep
+		if err := req.Get(&step, thread.Namespace, thread.Spec.WorkflowStepName); apierrors.IsNotFound(err) {
+			return req.Delete(thread)
+		} else if err != nil {
+			return err
+		}
 	}
 
 	return nil

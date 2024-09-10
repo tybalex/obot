@@ -1,4 +1,4 @@
-package agents
+package render
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/storage"
-	"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/workspace"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -16,8 +16,7 @@ var DefaultAgentParams = []string{
 	"message", "Message to send to the agent",
 }
 
-func Render(ctx context.Context, db storage.Client, agent *v1.Agent, thread *v1.Thread, knowledgeTool, knowledgeBin string) ([]gptscript.ToolDef, []string, error) {
-	var extraEnv []string
+func Agent(ctx context.Context, db storage.Client, agent *v1.Agent, thread *v1.Thread, knowledgeTool, knowledgeBin string) (_ []gptscript.ToolDef, extraEnv []string, _ error) {
 	t := []gptscript.ToolDef{{
 		Name:         agent.Spec.Manifest.Name,
 		Description:  agent.Spec.Manifest.Description,
@@ -25,6 +24,7 @@ func Render(ctx context.Context, db storage.Client, agent *v1.Agent, thread *v1.
 		Tools:        agent.Spec.Manifest.Tools,
 		Arguments:    agent.Spec.Manifest.GetParams(),
 		Instructions: agent.Spec.Manifest.Prompt,
+		MetaData:     agent.Spec.Manifest.Metadata,
 		Type:         "agent",
 	}}
 

@@ -11,9 +11,9 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
-	"github.com/gptscript-ai/otto/pkg/agents"
 	"github.com/gptscript-ai/otto/pkg/gz"
 	"github.com/gptscript-ai/otto/pkg/jwt"
+	"github.com/gptscript-ai/otto/pkg/render"
 	"github.com/gptscript-ai/otto/pkg/storage"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/workspace"
@@ -49,6 +49,11 @@ type Response struct {
 	Run    *v1.Run
 	Thread *v1.Thread
 	Events <-chan v1.Progress
+}
+
+func (r *Response) Wait() {
+	for range r.Events {
+	}
 }
 
 type Options struct {
@@ -115,7 +120,7 @@ func (i *Invoker) getChatState(ctx context.Context, run *v1.Run) (result string,
 	return result, err
 }
 
-func (i *Invoker) Invoke(ctx context.Context, agent *v1.Agent, input string, opts ...Options) (*Response, error) {
+func (i *Invoker) Agent(ctx context.Context, agent *v1.Agent, input string, opts ...Options) (*Response, error) {
 	var opt Options
 	for _, o := range opts {
 		if o.ThreadName != "" {
@@ -128,7 +133,7 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v1.Agent, input string, opt
 		return nil, err
 	}
 
-	tools, extraEnv, err := agents.Render(ctx, i.storage, agent, thread, i.knowledgeTool, i.knowledgeBin)
+	tools, extraEnv, err := render.Agent(ctx, i.storage, agent, thread, i.knowledgeTool, i.knowledgeBin)
 	if err != nil {
 		return nil, err
 	}
@@ -136,12 +141,26 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v1.Agent, input string, opt
 	if len(agent.Spec.Manifest.Params) == 0 {
 		data := map[string]any{}
 		if err := json.Unmarshal([]byte(input), &data); err == nil {
-			if msg, ok := data[agents.DefaultAgentParams[0]].(string); ok && len(data) == 1 && msg != "" {
+			if msg, ok := data[render.DefaultAgentParams[0]].(string); ok && len(data) == 1 && msg != "" {
 				input = msg
 			}
 		}
 	}
 
+	return i.createRun(ctx, thread, tools, input, runOptions{
+		AgentName: agent.Name,
+		Env:       extraEnv,
+	})
+}
+
+type runOptions struct {
+	AgentName        string
+	WorkflowName     string
+	WorkflowStepName string
+	Env              []string
+}
+
+func (i *Invoker) createRun(ctx context.Context, thread *v1.Thread, tools []gptscript.ToolDef, input string, opts runOptions) (*Response, error) {
 	var run = v1.Run{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "r1",
@@ -149,11 +168,12 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v1.Agent, input string, opt
 			Finalizers:   []string{v1.RunFinalizer},
 		},
 		Spec: v1.RunSpec{
-			ThreadName:      thread.Name,
-			AgentName:       agent.Name,
-			PreviousRunName: thread.Status.LastRunName,
-			Input:           input,
-			ExtraEnv:        extraEnv,
+			ThreadName:       thread.Name,
+			AgentName:        opts.AgentName,
+			WorkflowStepName: opts.WorkflowStepName,
+			PreviousRunName:  thread.Status.LastRunName,
+			Input:            input,
+			Env:              opts.Env,
 		},
 	}
 
@@ -167,20 +187,23 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v1.Agent, input string, opt
 	}
 
 	token, err := i.tokenService.NewToken(jwt.TokenContext{
-		RunID:    run.Name,
-		ThreadID: thread.Name,
-		AgentID:  agent.Name,
-		Scope:    agent.Namespace,
+		RunID:          run.Name,
+		ThreadID:       thread.Name,
+		AgentID:        opts.AgentName,
+		WorkflowID:     opts.WorkflowName,
+		WorkflowStepID: opts.WorkflowStepName,
+		Scope:          thread.Namespace,
 	})
 
 	runResp, err := i.gptClient.Evaluate(ctx, gptscript.Options{
 		GlobalOptions: gptscript.GlobalOptions{
-			Env: append(extraEnv,
+			Env: append(opts.Env,
 				"OTTO_TOKEN="+token,
 				"OTTO_RUN_ID="+run.Name,
 				"OTTO_THREAD_ID="+thread.Name,
-				"OTTO_AGENT_ID="+agent.Name,
-			),
+				"OTTO_WORKFLOW_ID="+opts.WorkflowName,
+				"OTTO_WORKFLOW_STEP_ID="+opts.WorkflowStepName,
+				"OTTO_AGENT_ID="+opts.AgentName),
 		},
 		Input:         input,
 		Workspace:     workspace.GetDir(thread.Spec.WorkspaceID),
@@ -192,7 +215,6 @@ func (i *Invoker) Invoke(ctx context.Context, agent *v1.Agent, input string, opt
 	}
 
 	var events = make(chan v1.Progress)
-
 	go i.stream(ctx, events, thread, &run, runResp)
 
 	return &Response{

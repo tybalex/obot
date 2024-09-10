@@ -72,7 +72,7 @@ func (a *AgentHandler) parseAgentSpec(ctx context.Context, req api.Request) (*v2
 		return nil, err
 	}
 
-	var manifest v2.Manifest
+	var manifest v2.AgentManifest
 	if err := toml.Unmarshal(data, &manifest); err != nil {
 		return nil, api.NewErrBadRequest("invalid definition: %v", err)
 	}

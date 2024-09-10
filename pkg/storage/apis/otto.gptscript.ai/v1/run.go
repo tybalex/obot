@@ -11,9 +11,11 @@ var (
 )
 
 const (
-	RunFinalizer    = "otto.gptscript.ai/run"
-	ThreadFinalizer = "otto.gptscript.ai/thread"
-	AgentFinalizer  = "otto.gptscript.ai/agent"
+	AgentFinalizer             = "otto.gptscript.ai/agent"
+	RunFinalizer               = "otto.gptscript.ai/run"
+	ThreadFinalizer            = "otto.gptscript.ai/thread"
+	WorkflowExecutionFinalizer = "otto.gptscript.ai/workflow-execution"
+	WorkflowFinalizer          = "otto.gptscript.ai/workflow"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -42,11 +44,12 @@ type ToolProgress struct {
 }
 
 type RunSpec struct {
-	ThreadName      string   `json:"threadName,omitempty"`
-	AgentName       string   `json:"agentName,omitempty"`
-	PreviousRunName string   `json:"previousRunName,omitempty"`
-	Input           string   `json:"input"`
-	ExtraEnv        []string `json:"extraEnv,omitempty"`
+	ThreadName       string   `json:"threadName,omitempty"`
+	AgentName        string   `json:"agentName,omitempty"`
+	WorkflowStepName string   `json:"workflowStepName,omitempty"`
+	PreviousRunName  string   `json:"previousRunName,omitempty"`
+	Input            string   `json:"input"`
+	Env              []string `json:"env,omitempty"`
 }
 
 type RunStatus struct {

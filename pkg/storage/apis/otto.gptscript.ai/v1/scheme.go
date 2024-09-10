@@ -22,14 +22,18 @@ func AddToSchemeWithGV(scheme *runtime.Scheme, schemeGroupVersion schema.GroupVe
 	scheme.AddKnownTypes(schemeGroupVersion,
 		&Agent{},
 		&AgentList{},
-		&Runtime{},
-		&RuntimeList{},
 		&Run{},
 		&RunList{},
 		&RunState{},
 		&RunStateList{},
 		&Thread{},
 		&ThreadList{},
+		&Workflow{},
+		&WorkflowList{},
+		&WorkflowExecution{},
+		&WorkflowExecutionList{},
+		&WorkflowStep{},
+		&WorkflowStepList{},
 	)
 
 	// Add common types

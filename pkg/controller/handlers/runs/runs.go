@@ -9,7 +9,7 @@ import (
 
 func DeleteRunState(req router.Request, resp router.Response) error {
 	run := req.Object.(*v1.Run)
-	return req.Client.Delete(req.Ctx, &v1.RunState{
+	return req.Delete(&v1.RunState{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      run.Name,
 			Namespace: run.Namespace,
@@ -22,7 +22,7 @@ func Cleanup(req router.Request, resp router.Response) error {
 	var thread v1.Thread
 
 	if err := req.Get(&thread, run.Namespace, run.Spec.ThreadName); apierrors.IsNotFound(err) {
-		return req.Client.Delete(req.Ctx, run)
+		return req.Delete(run)
 	} else if err != nil {
 		return err
 	}

@@ -4,17 +4,20 @@ go 1.23.0
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/acorn-io/baaah v0.0.0-20240205174747-9cd5fb2d3e41
+	github.com/acorn-io/baaah v0.0.0-20240910162159-dfd39cd3089b
 	github.com/acorn-io/mink v0.0.0-20240905175847-47ca8045831c
+	github.com/dop251/goja v0.0.0-20240828124009-016eb7256539
 	github.com/dustin/go-humanize v1.0.1
 	github.com/getkin/kin-openapi v0.124.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
 	github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240903180507-c0fb2e8ebab6
 	github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240903162849-eaaf0cdb72ca
+	github.com/hexops/autogold/v2 v2.2.1
 	github.com/pterm/pterm v0.12.79
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
+	github.com/stretchr/testify v1.9.0
 	github.com/thedadams/workspace-provider v0.0.0-20240906223056-9b000866098c
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
@@ -42,9 +45,11 @@ require (
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/dlclark/regexp2 v1.11.4 // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
 	github.com/evanphx/json-patch v5.7.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.7.0 // indirect
+	github.com/fatih/color v1.17.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
@@ -52,6 +57,7 @@ require (
 	github.com/go-openapi/jsonpointer v0.20.2 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.8 // indirect
+	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
@@ -61,11 +67,14 @@ require (
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/gofuzz v1.2.0 // indirect
+	github.com/google/pprof v0.0.0-20230207041349-798e818bf904 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gookit/color v1.5.4 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.1-0.20210315223345-82c243799c99 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0 // indirect
+	github.com/hexops/gotextdiff v1.0.3 // indirect
+	github.com/hexops/valast v1.4.4 // indirect
 	github.com/imdario/mergo v0.3.15 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
@@ -76,6 +85,8 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mattn/go-sqlite3 v1.14.12 // indirect
 	github.com/matttproud/golang_protobuf_extensions/v2 v2.0.0 // indirect
@@ -84,8 +95,10 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/nightlyone/lockfile v1.0.0 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.18.0 // indirect
 	github.com/prometheus/client_model v0.5.0 // indirect
 	github.com/prometheus/common v0.45.0 // indirect
@@ -138,6 +151,7 @@ require (
 	k8s.io/klog/v2 v2.110.1 // indirect
 	k8s.io/kms v0.29.0 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
+	mvdan.cc/gofumpt v0.6.0 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.28.0 // indirect
 	sigs.k8s.io/controller-tools v0.12.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect

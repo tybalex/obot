@@ -17,7 +17,7 @@ type Agent struct {
 	Links       map[string]string `json:"links,omitempty"`
 	Name        string            `json:"name"`
 	Description string            `json:"description,omitempty"`
-	Manifest    v1.Manifest       `json:"manifest,omitempty"`
+	Manifest    v1.AgentManifest  `json:"manifest,omitempty"`
 }
 
 type AgentList List[Agent]
