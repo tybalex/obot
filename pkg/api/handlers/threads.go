@@ -130,7 +130,13 @@ func (a *ThreadHandler) DeleteKnowledge(ctx context.Context, req api.Request) er
 		return err
 	}
 
+	files, err := a.WorkspaceClient.Ls(ctx, thread.Spec.KnowledgeWorkspaceID)
+	if err != nil {
+		return fmt.Errorf("failed to list files in workspace %s: %w", thread.Spec.KnowledgeWorkspaceID, err)
+	}
+
 	thread.Status.IngestKnowledge = true
+	thread.Status.HasKnowledge = len(files) > 0
 	return req.Storage.Status().Update(ctx, &thread)
 }
 

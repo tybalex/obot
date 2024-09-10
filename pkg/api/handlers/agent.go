@@ -243,7 +243,13 @@ func (a *AgentHandler) DeleteKnowledge(ctx context.Context, req api.Request) err
 		return err
 	}
 
+	files, err := a.WorkspaceClient.Ls(ctx, agent.Status.KnowledgeWorkspaceID)
+	if err != nil {
+		return fmt.Errorf("failed to list files in workspace %s: %w", agent.Status.KnowledgeWorkspaceID, err)
+	}
+
 	agent.Status.IngestKnowledge = true
+	agent.Status.HasKnowledge = len(files) > 0
 	return req.Storage.Status().Update(ctx, &agent)
 }
 

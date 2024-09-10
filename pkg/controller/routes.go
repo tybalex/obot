@@ -9,6 +9,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflow"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflowexecution"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflowstep"
+	"github.com/gptscript-ai/otto/pkg/knowledge"
 	"github.com/gptscript-ai/otto/pkg/services"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 )
@@ -17,10 +18,15 @@ func routes(router *router.Router, services *services.Services) error {
 	workflows := workflow.New(services.WorkspaceClient, "directory")
 	workflowExecution := workflowexecution.New(services.WorkspaceClient)
 	workflowStep := workflowstep.New(services.Invoker)
+	ingester := knowledge.NewIngester(services.Invoker, services.KnowledgeTool)
 	agents := agents.AgentHandler{
 		WorkspaceClient:   services.WorkspaceClient,
-		KnowledgeBin:      services.KnowledgeBin,
+		Ingester:          ingester,
 		WorkspaceProvider: "directory",
+	}
+	threads := threads.ThreadHandler{
+		Workspace: services.WorkspaceClient,
+		Ingester:  ingester,
 	}
 
 	root := router.Middleware(conditions.ErrorMiddleware())
@@ -30,9 +36,9 @@ func routes(router *router.Router, services *services.Services) error {
 	root.Type(&v1.Run{}).HandlerFunc(runs.Cleanup)
 
 	// Threads
-	root.Type(&v1.Thread{}).FinalizeFunc(v1.ThreadFinalizer, threads.RemoveWorkspace(services.WorkspaceClient, services.KnowledgeBin))
+	root.Type(&v1.Thread{}).FinalizeFunc(v1.ThreadFinalizer, threads.RemoveWorkspaces)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.Cleanup)
-	root.Type(&v1.Thread{}).HandlerFunc(threads.IngestKnowledge(services.KnowledgeBin))
+	root.Type(&v1.Thread{}).HandlerFunc(threads.IngestKnowledge)
 
 	// Workflows
 	root.Type(&v1.Workflow{}).FinalizeFunc(v1.WorkflowFinalizer, workflows.Finalize)

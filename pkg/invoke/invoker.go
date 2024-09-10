@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"time"
@@ -29,10 +30,9 @@ type Invoker struct {
 	workspaceClient         *wclient.Client
 	threadWorkspaceProvider string
 	knowledgeTool           string
-	knowledgeBin            string
 }
 
-func NewInvoker(storage storage.Client, gptClient *gptscript.GPTScript, tokenService *jwt.TokenService, workspaceClient *wclient.Client, knowledgeTool, knowledgeBin string) *Invoker {
+func NewInvoker(storage storage.Client, gptClient *gptscript.GPTScript, tokenService *jwt.TokenService, workspaceClient *wclient.Client, knowledgeTool string) *Invoker {
 	return &Invoker{
 		storage:                 storage,
 		gptClient:               gptClient,
@@ -40,7 +40,6 @@ func NewInvoker(storage storage.Client, gptClient *gptscript.GPTScript, tokenSer
 		workspaceClient:         workspaceClient,
 		threadWorkspaceProvider: "directory",
 		knowledgeTool:           knowledgeTool,
-		knowledgeBin:            knowledgeBin,
 	}
 }
 
@@ -132,7 +131,7 @@ func (i *Invoker) Agent(ctx context.Context, agent *v1.Agent, input string, opts
 		return nil, err
 	}
 
-	tools, extraEnv, err := render.Agent(ctx, i.storage, agent, thread, i.knowledgeTool, i.knowledgeBin)
+	tools, extraEnv, err := render.Agent(ctx, i.storage, agent, thread, i.knowledgeTool)
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +145,7 @@ func (i *Invoker) Agent(ctx context.Context, agent *v1.Agent, input string, opts
 		}
 	}
 
-	return i.createRun(ctx, thread, tools, input, runOptions{
+	return i.createRunFromTools(ctx, thread, tools, input, runOptions{
 		AgentName: agent.Name,
 		Env:       extraEnv,
 	})
@@ -159,7 +158,17 @@ type runOptions struct {
 	Env              []string
 }
 
-func (i *Invoker) createRun(ctx context.Context, thread *v1.Thread, tools []gptscript.ToolDef, input string, opts runOptions) (*Response, error) {
+func (i *Invoker) createRunFromTools(ctx context.Context, thread *v1.Thread, tools []gptscript.ToolDef, input string, opts runOptions) (*Response, error) {
+	return i.createRun(ctx, thread, input, opts, tools)
+}
+
+func (i *Invoker) createRunFromRemoteTool(ctx context.Context, thread *v1.Thread, tool, input string, opts runOptions) (*Response, error) {
+	return i.createRun(ctx, thread, input, opts, tool)
+}
+
+// createRun is a low-level method that creates a Run object from a list of tools or a remote tool.
+// Callers should use createRunFromTools or createRunFromRemoteTool instead.
+func (i *Invoker) createRun(ctx context.Context, thread *v1.Thread, input string, opts runOptions, tool any) (*Response, error) {
 	var run = v1.Run{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "r1",
@@ -194,7 +203,7 @@ func (i *Invoker) createRun(ctx context.Context, thread *v1.Thread, tools []gpts
 		Scope:          thread.Namespace,
 	})
 
-	runResp, err := i.gptClient.Evaluate(ctx, gptscript.Options{
+	options := gptscript.Options{
 		GlobalOptions: gptscript.GlobalOptions{
 			Env: append(opts.Env,
 				"OTTO_TOKEN="+token,
@@ -202,14 +211,27 @@ func (i *Invoker) createRun(ctx context.Context, thread *v1.Thread, tools []gpts
 				"OTTO_THREAD_ID="+thread.Name,
 				"OTTO_WORKFLOW_ID="+opts.WorkflowName,
 				"OTTO_WORKFLOW_STEP_ID="+opts.WorkflowStepName,
-				"OTTO_AGENT_ID="+opts.AgentName),
+				"OTTO_AGENT_ID="+opts.AgentName,
+			),
 		},
 		Input:           input,
 		Workspace:       workspace.GetDir(thread.Spec.WorkspaceID),
 		ChatState:       chatState,
 		IncludeEvents:   true,
 		ForceSequential: true,
-	}, tools...)
+	}
+
+	var runResp *gptscript.Run
+	switch t := tool.(type) {
+	case gptscript.ToolDef:
+		runResp, err = i.gptClient.Evaluate(ctx, options, t)
+	case []gptscript.ToolDef:
+		runResp, err = i.gptClient.Evaluate(ctx, options, t...)
+	case string:
+		runResp, err = i.gptClient.Run(ctx, t, options)
+	default:
+		return nil, fmt.Errorf("invalid tool type: %T", tool)
+	}
 	if err != nil {
 		return nil, err
 	}

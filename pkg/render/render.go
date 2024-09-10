@@ -16,7 +16,7 @@ var DefaultAgentParams = []string{
 	"message", "Message to send to the agent",
 }
 
-func Agent(ctx context.Context, db storage.Client, agent *v1.Agent, thread *v1.Thread, knowledgeTool, knowledgeBin string) (_ []gptscript.ToolDef, extraEnv []string, _ error) {
+func Agent(ctx context.Context, db storage.Client, agent *v1.Agent, thread *v1.Thread, knowledgeTool string) (_ []gptscript.ToolDef, extraEnv []string, _ error) {
 	t := []gptscript.ToolDef{{
 		Name:         agent.Spec.Manifest.Name,
 		Description:  agent.Spec.Manifest.Description,
@@ -31,7 +31,6 @@ func Agent(ctx context.Context, db storage.Client, agent *v1.Agent, thread *v1.T
 	if agent.Status.HasKnowledge || thread.Status.HasKnowledge {
 		t[0].Tools = append(t[0].Tools, knowledgeTool)
 		extraEnv = append(extraEnv,
-			fmt.Sprintf("KNOWLEDGE_BIN=%s", knowledgeBin),
 			fmt.Sprintf("GPTSCRIPT_SCRIPT_ID=%s", workspace.KnowledgeIDFromWorkspaceID(agent.Status.KnowledgeWorkspaceID)),
 			fmt.Sprintf("GPTSCRIPT_THREAD_ID=%s", workspace.KnowledgeIDFromWorkspaceID(thread.Spec.KnowledgeWorkspaceID)),
 		)

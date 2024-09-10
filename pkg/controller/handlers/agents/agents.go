@@ -1,18 +1,15 @@
 package agents
 
 import (
-	"fmt"
-	"os/exec"
-
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/pkg/knowledge"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
-	"github.com/gptscript-ai/otto/pkg/workspace"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 )
 
 type AgentHandler struct {
 	WorkspaceClient   *wclient.Client
-	KnowledgeBin      string
+	Ingester          *knowledge.Ingester
 	WorkspaceProvider string
 }
 
@@ -44,8 +41,8 @@ func (a *AgentHandler) RemoveWorkspaces(req router.Request, resp router.Response
 	}
 
 	if agent.Status.HasKnowledge {
-		if err := exec.Command(a.KnowledgeBin, "delete-dataset", agent.Status.KnowledgeWorkspaceID).Run(); err != nil {
-			return fmt.Errorf("failed to delete knowledge dataset: %w", err)
+		if err := a.Ingester.DeleteKnowledge(req.Ctx, agent.Namespace, agent.Status.KnowledgeWorkspaceID); err != nil {
+			return err
 		}
 	}
 
@@ -61,7 +58,7 @@ func (a *AgentHandler) IngestKnowledge(req router.Request, resp router.Response)
 		return nil
 	}
 
-	if err := workspace.IngestKnowledge(a.KnowledgeBin, agent.Status.KnowledgeWorkspaceID); err != nil {
+	if err := a.Ingester.IngestKnowledge(req.Ctx, agent.Namespace, agent.Status.KnowledgeWorkspaceID); err != nil {
 		return err
 	}
 

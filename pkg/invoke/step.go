@@ -27,7 +27,7 @@ func (i *Invoker) Step(ctx context.Context, step *v1.WorkflowStep, input string)
 
 	tools := render.Step(step)
 
-	return i.createRun(ctx, &thread, tools, input, runOptions{
+	return i.createRunFromTools(ctx, &thread, tools, input, runOptions{
 		WorkflowName:     step.Spec.WorkflowName,
 		WorkflowStepName: step.Spec.AfterWorkflowStepName,
 	})
