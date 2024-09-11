@@ -53,7 +53,8 @@ func (a *AgentHandler) Delete(ctx context.Context, req api.Request) error {
 		agent v2.Agent
 	)
 
-	if err := req.Get(&agent, id); apierrors.IsNotFound(err) {
+	var httpErr *api.ErrHTTP
+	if err := req.Get(&agent, id); errors.As(err, &httpErr) && httpErr.Code == http.StatusNotFound {
 		return nil
 	} else if err != nil {
 		return err
@@ -107,6 +108,9 @@ func (a *AgentHandler) Create(ctx context.Context, req api.Request) error {
 		return err
 	} else if !replace {
 		return apierrors.NewAlreadyExists(v2.SchemeGroupVersion.WithResource("agents").GroupResource(), spec.Manifest.ID)
+	} else {
+		spec.WorkspaceID = agent.Spec.WorkspaceID
+		spec.KnowledgeWorkspaceID = agent.Spec.KnowledgeWorkspaceID
 	}
 
 	agent = v2.Agent{
