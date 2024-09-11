@@ -26,6 +26,8 @@ func AddToSchemeWithGV(scheme *runtime.Scheme, schemeGroupVersion schema.GroupVe
 		&RunList{},
 		&RunState{},
 		&RunStateList{},
+		&Slug{},
+		&SlugList{},
 		&Thread{},
 		&ThreadList{},
 		&Workflow{},

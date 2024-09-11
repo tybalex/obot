@@ -13,7 +13,7 @@ var log = mvl.Package()
 
 type Otto struct {
 	Debug  bool `usage:"Enable debug logging"`
-	client *client.Client
+	Client *client.Client
 }
 
 func (a *Otto) PersistentPre(cmd *cobra.Command, args []string) error {
@@ -25,7 +25,7 @@ func (a *Otto) PersistentPre(cmd *cobra.Command, args []string) error {
 
 func New() *cobra.Command {
 	root := &Otto{
-		client: &client.Client{
+		Client: &client.Client{
 			BaseURL: "http://localhost:8080",
 			Token:   os.Getenv("OTTO_TOKEN"),
 		},
@@ -33,6 +33,7 @@ func New() *cobra.Command {
 	return cmd.Command(root,
 		&Create{root: root},
 		&Agents{root: root},
+		&Edit{root: root},
 		&Update{root: root},
 		&Delete{root: root},
 		&Invoke{root: root},

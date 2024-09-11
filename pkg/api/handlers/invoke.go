@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"slices"
 	"time"
@@ -9,18 +8,36 @@ import (
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/system"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type InvokeHandler struct {
-	Invoker *invoke.Invoker
+	invoker *invoke.Invoker
 }
 
-func (i *InvokeHandler) Invoke(ctx context.Context, req api.Request) error {
+func NewInvokeHandler(invoker *invoke.Invoker) *InvokeHandler {
+	return &InvokeHandler{
+		invoker: invoker,
+	}
+}
+
+func (i *InvokeHandler) Invoke(req api.Context) error {
 	var (
 		agentID  = req.PathValue("agent")
 		agent    v1.Agent
+		slug     v1.Slug
 		threadID = req.PathValue("thread")
 	)
+
+	if !system.IsSystemID(agentID) {
+		if err := req.Get(&slug, agentID); apierrors.IsNotFound(err) {
+		} else if err != nil {
+			return err
+		} else if slug.Spec.AgentName != "" {
+			agentID = slug.Spec.AgentName
+		}
+	}
 
 	if err := req.Get(&agent, agentID); err != nil {
 		return err
@@ -31,7 +48,7 @@ func (i *InvokeHandler) Invoke(ctx context.Context, req api.Request) error {
 		return err
 	}
 
-	resp, err := i.Invoker.Agent(ctx, &agent, string(input), invoke.Options{
+	resp, err := i.invoker.Agent(req.Context(), &agent, string(input), invoke.Options{
 		ThreadName: threadID,
 	})
 	if err != nil {
@@ -50,18 +67,18 @@ func (i *InvokeHandler) Invoke(ctx context.Context, req api.Request) error {
 	var lastFlush time.Time
 	for event := range resp.Events {
 		if sendEvents {
-			if _, err := req.Write([]byte("data: ")); err != nil {
+			if err := req.Write([]byte("data: ")); err != nil {
 				return err
 			}
 			if err := json.NewEncoder(req.ResponseWriter).Encode(event); err != nil {
 				return err
 			}
-			if _, err := req.Write([]byte("\n\n")); err != nil {
+			if err := req.Write([]byte("\n\n")); err != nil {
 				return err
 			}
 			req.Flush()
 		} else {
-			if _, err := req.Write([]byte(event.Content)); err != nil {
+			if err := req.Write([]byte(event.Content)); err != nil {
 				return err
 			}
 			if lastFlush.IsZero() || time.Since(lastFlush) > 500*time.Millisecond {

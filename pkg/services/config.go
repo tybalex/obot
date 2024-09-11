@@ -7,6 +7,7 @@ import (
 	"github.com/acorn-io/baaah/pkg/leader"
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/pkg/aihelper"
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	"github.com/gptscript-ai/otto/pkg/jwt"
@@ -30,6 +31,7 @@ type Services struct {
 	TokenServer     *jwt.TokenService
 	APIServer       *api.Server
 	WorkspaceClient *wclient.Client
+	AIHelper        *aihelper.AIHelper
 	KnowledgeTool   string
 }
 
@@ -68,5 +70,6 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		WorkspaceClient: workspaceClient,
 		Invoker:         invoke.NewInvoker(storageClient, c, tokenServer, workspaceClient, config.KnowledgeTool),
 		KnowledgeTool:   config.KnowledgeTool,
+		AIHelper:        aihelper.New(c, config.HelperModel),
 	}, nil
 }

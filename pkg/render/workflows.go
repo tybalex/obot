@@ -10,15 +10,16 @@ func Step(step *v1.WorkflowStep) []gptscript.ToolDef {
 		return []gptscript.ToolDef{{
 			Chat:         true,
 			Tools:        step.Spec.Step.AgentStep.Tools,
-			Instructions: step.Spec.Step.AgentStep.Prompt,
+			Instructions: step.Spec.Step.AgentStep.Prompt.Instructions(),
 			Type:         "agent",
+			MetaData:     step.Spec.Step.AgentStep.Prompt.Metadata(step.Spec.Step.AgentStep.CodeDependencies),
 		}}
 	} else if step.Spec.Step.ToolStep != nil {
 		return []gptscript.ToolDef{{
 			Chat:         true,
 			Tools:        step.Spec.Step.AgentStep.Tools,
-			Instructions: step.Spec.Step.ToolStep.Tool,
-			MetaData:     step.Spec.Step.ToolStep.Metadata,
+			Instructions: step.Spec.Step.ToolStep.Tool.Instructions(),
+			MetaData:     step.Spec.Step.ToolStep.Tool.Metadata(step.Spec.Step.ToolStep.CodeDependencies),
 			Type:         "agent",
 		}}
 	} else {

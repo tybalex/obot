@@ -14,11 +14,28 @@ import (
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
+	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 )
 
 type Client struct {
 	BaseURL string
 	Token   string
+}
+
+func (c *Client) putJSON(ctx context.Context, path string, obj any, headerKV ...string) (*http.Request, *http.Response, error) {
+	data, err := json.Marshal(obj)
+	if err != nil {
+		return nil, nil, err
+	}
+	return c.doRequest(ctx, http.MethodPut, path, bytes.NewBuffer(data), append(headerKV, "Content-Type", "application/json")...)
+}
+
+func (c *Client) postJSON(ctx context.Context, path string, obj any, headerKV ...string) (*http.Request, *http.Response, error) {
+	data, err := json.Marshal(obj)
+	if err != nil {
+		return nil, nil, err
+	}
+	return c.doRequest(ctx, http.MethodPost, path, bytes.NewBuffer(data), append(headerKV, "Content-Type", "application/json")...)
 }
 
 func (c *Client) doRequest(ctx context.Context, method, path string, body io.Reader, headerKV ...string) (*http.Request, *http.Response, error) {
@@ -53,23 +70,22 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body io.Rea
 	return req, resp, err
 }
 
-type CreateOptions struct {
-	Replace          bool
-	ReplacedCallback func()
-}
-
-func (c *Client) UpdateAgent(ctx context.Context, id string, manifest []byte) (*types.Agent, error) {
-	_, resp, err := c.doRequest(ctx, http.MethodPut, fmt.Sprintf("/agents/"+id), bytes.NewBuffer(manifest))
+func (c *Client) UpdateAgent(ctx context.Context, id string, manifest v1.AgentManifest) (*types.Agent, error) {
+	_, resp, err := c.putJSON(ctx, fmt.Sprintf("/agents/%s", id), manifest)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	var agent types.Agent
-	if err := json.NewDecoder(resp.Body).Decode(&agent); err != nil {
-		return nil, err
+	return toObject(resp, &types.Agent{})
+}
+
+func toObject[T any](resp *http.Response, obj T) (def T, _ error) {
+	defer resp.Body.Close()
+	if err := json.NewDecoder(resp.Body).Decode(obj); err != nil {
+		return def, err
 	}
-	return &agent, nil
+	return obj, nil
 }
 
 func (c *Client) DeleteAgent(ctx context.Context, id string) error {
@@ -139,50 +155,64 @@ func (c *Client) Invoke(ctx context.Context, agentID string, input string, opt .
 	}, nil
 }
 
-func (c *Client) CreateAgent(ctx context.Context, manifest []byte, opts ...CreateOptions) (*types.Agent, error) {
-	var (
-		opt CreateOptions
-		cbs []func()
-	)
-	for _, o := range opts {
-		opt.Replace = opt.Replace || o.Replace
-		if o.ReplacedCallback != nil {
-			cbs = append(cbs, o.ReplacedCallback)
-		}
+func (c *Client) GetAgent(ctx context.Context, id string) (*types.Agent, error) {
+	_, resp, err := c.doRequest(ctx, http.MethodGet, fmt.Sprintf("/agents/"+id), nil)
+	if err != nil {
+		return nil, err
 	}
 
-	_, resp, err := c.doRequest(ctx, http.MethodPost, fmt.Sprintf("/agents?replace=%v", opt.Replace), bytes.NewBuffer(manifest))
+	return toObject(resp, &types.Agent{})
+}
+
+func (c *Client) CreateAgent(ctx context.Context, agent v1.AgentManifest) (*types.Agent, error) {
+	_, resp, err := c.postJSON(ctx, fmt.Sprintf("/agents"), agent)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	if resp.Header.Get("X-Otto-Replaced") == "true" {
-		for _, cb := range cbs {
-			cb()
-		}
-	}
-
-	var agent types.Agent
-	if err := json.NewDecoder(resp.Body).Decode(&agent); err != nil {
-		return nil, err
-	}
-	return &agent, nil
+	return toObject(resp, &types.Agent{})
 }
 
-func (c *Client) ListAgents(ctx context.Context) (result types.AgentList, err error) {
+type ListAgentsOptions struct {
+	Slug string
+}
+
+func (c *Client) ListAgents(ctx context.Context, opts ...ListAgentsOptions) (result types.AgentList, err error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {
-			return result.Items[i].Created.Before(result.Items[j].Created)
+			return result.Items[i].Metadata.Created.Before(result.Items[j].Metadata.Created)
 		})
 	}()
+
+	var opt ListAgentsOptions
+	for _, o := range opts {
+		if o.Slug != "" {
+			opt.Slug = o.Slug
+		}
+	}
 
 	_, resp, err := c.doRequest(ctx, http.MethodGet, "/agents", nil)
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
-	err = json.NewDecoder(resp.Body).Decode(&result)
+
+	_, err = toObject(resp, &result)
+	if err != nil {
+		return result, err
+	}
+
+	if opt.Slug != "" {
+		var filtered types.AgentList
+		for _, agent := range result.Items {
+			if agent.Slug == opt.Slug && agent.SlugAssigned {
+				filtered.Items = append(filtered.Items, agent)
+			}
+		}
+		result = filtered
+	}
+
 	return
 }
 
@@ -212,7 +242,8 @@ func (c *Client) ListThreads(ctx context.Context, opts ...ListThreadsOptions) (r
 		return
 	}
 	defer resp.Body.Close()
-	err = json.NewDecoder(resp.Body).Decode(&result)
+
+	_, err = toObject(resp, &result)
 	return
 }
 
@@ -256,11 +287,13 @@ func (c *Client) ListRuns(ctx context.Context, opts ...ListRunsOptions) (result 
 	} else if opt.ThreadID != "" {
 		url = fmt.Sprintf("/threads/%s/runs", opt.ThreadID)
 	}
+
 	_, resp, err := c.doRequest(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
-	err = json.NewDecoder(resp.Body).Decode(&result)
+
+	_, err = toObject(resp, &result)
 	return
 }

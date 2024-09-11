@@ -19,7 +19,7 @@ func (l *Invoke) Customize(cmd *cobra.Command) {
 }
 
 func (l *Invoke) Run(cmd *cobra.Command, args []string) error {
-	resp, err := l.root.client.Invoke(cmd.Context(), args[0], strings.Join(args[1:], " "), client.InvokeOptions{
+	resp, err := l.root.Client.Invoke(cmd.Context(), args[0], strings.Join(args[1:], " "), client.InvokeOptions{
 		ThreadID: l.Thread,
 	})
 	if err != nil {

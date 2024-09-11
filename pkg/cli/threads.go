@@ -5,12 +5,13 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/gptscript-ai/otto/pkg/api/client"
-	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
 type Threads struct {
-	root *Otto
+	root  *Otto
+	Quiet bool `usage:"Only print IDs of threads" short:"q"`
+	Wide  bool `usage:"Print more information" short:"w"`
 }
 
 func (l *Threads) Customize(cmd *cobra.Command) {
@@ -25,19 +26,21 @@ func (l *Threads) Run(cmd *cobra.Command, args []string) error {
 			AgentID: args[0],
 		})
 	}
-	threads, err := l.root.client.ListThreads(cmd.Context(), opts...)
+	threads, err := l.root.Client.ListThreads(cmd.Context(), opts...)
 	if err != nil {
 		return err
 	}
 
-	w := newTable("ID", "AGENT", "STATE", "INPUT", "CREATED")
-	maxLength := pterm.GetTerminalWidth() / 3
-	for _, thread := range threads.Items {
-		thread.Input = strings.Split(thread.Input, "\n")[0]
-
-		if len(thread.Input) > maxLength {
-			thread.Input = thread.Input[:maxLength] + "..."
+	if l.Quiet {
+		for _, thread := range threads.Items {
+			cmd.Println(thread.ID)
 		}
+		return nil
+	}
+
+	w := newTable("ID", "AGENT", "STATE", "INPUT", "CREATED")
+	for _, thread := range threads.Items {
+		thread.Input = truncate(strings.Split(thread.Input, "\n")[0], l.Wide)
 		state := "running"
 		if thread.LastRunState != "running" {
 			state = "waiting"

@@ -1,10 +1,10 @@
 package controller
 
 import (
-	"github.com/acorn-io/baaah/pkg/conditions"
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/agents"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/runs"
+	"github.com/gptscript-ai/otto/pkg/controller/handlers/slugs"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/threads"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflow"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflowexecution"
@@ -19,17 +19,10 @@ func routes(router *router.Router, services *services.Services) error {
 	workflowExecution := workflowexecution.New(services.WorkspaceClient)
 	workflowStep := workflowstep.New(services.Invoker)
 	ingester := knowledge.NewIngester(services.Invoker, services.KnowledgeTool)
-	agents := agents.AgentHandler{
-		WorkspaceClient:   services.WorkspaceClient,
-		Ingester:          ingester,
-		WorkspaceProvider: "directory",
-	}
-	threads := threads.ThreadHandler{
-		Workspace: services.WorkspaceClient,
-		Ingester:  ingester,
-	}
+	agents := agents.New(services.WorkspaceClient, ingester, "directory", "directory", services.AIHelper)
+	threads := threads.New(services.WorkspaceClient, ingester)
 
-	root := router.Middleware(conditions.ErrorMiddleware())
+	root := router
 
 	// Runs
 	root.Type(&v1.Run{}).FinalizeFunc(v1.RunFinalizer, runs.DeleteRunState)
@@ -62,8 +55,14 @@ func routes(router *router.Router, services *services.Services) error {
 
 	// Agents
 	root.Type(&v1.Agent{}).FinalizeFunc(v1.AgentFinalizer, agents.RemoveWorkspaces)
+	root.Type(&v1.Agent{}).HandlerFunc(agents.Suggestion)
 	root.Type(&v1.Agent{}).HandlerFunc(agents.CreateWorkspaces)
 	root.Type(&v1.Agent{}).HandlerFunc(agents.IngestKnowledge)
+
+	// Slugs
+	root.Type(&v1.Slug{}).HandlerFunc(slugs.SlugGC)
+	root.Type(&v1.Agent{}).HandlerFunc(slugs.AssociateWithSlug)
+	root.Type(&v1.Workflow{}).HandlerFunc(slugs.AssociateWithSlug)
 
 	return nil
 }

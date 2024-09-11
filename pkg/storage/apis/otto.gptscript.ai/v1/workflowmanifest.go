@@ -3,6 +3,7 @@ package v1
 type WorkflowManifest struct {
 	Name        string            `json:"name,omitempty"`
 	Description string            `json:"description,omitempty"`
+	Slug        string            `json:"slug,omitempty"`
 	Params      map[string]string `json:"params,omitempty"`
 	Steps       []Step            `json:"steps,omitempty"`
 }
@@ -19,13 +20,14 @@ type Step struct {
 }
 
 type AgentStep struct {
-	Prompt string   `json:"prompt,omitempty"`
-	Tools  []string `json:"tools,omitempty"`
+	Prompt           Body     `json:"prompt,omitempty"`
+	Tools            []string `json:"tools,omitempty"`
+	CodeDependencies string   `json:"codeDependencies,omitempty"`
 }
 
 type ToolStep struct {
-	Tool     string `json:"tool,omitempty"`
-	Metadata map[string]string
+	Tool             Body   `json:"tool,omitempty"`
+	CodeDependencies string `json:"codeDependencies,omitempty"`
 }
 
 type StepInput struct {

@@ -10,7 +10,9 @@ import (
 )
 
 type Runs struct {
-	root *Otto
+	root  *Otto
+	Wide  bool `usage:"Print more information" short:"w"`
+	Quiet bool `usage:"Only print IDs of runs" short:"q"`
 }
 
 func (l *Runs) Customize(cmd *cobra.Command) {
@@ -30,29 +32,39 @@ func (l *Runs) Run(cmd *cobra.Command, args []string) error {
 			ThreadID: args[1],
 		})
 	}
-	runs, err := l.root.client.ListRuns(cmd.Context(), opts...)
+	runs, err := l.root.Client.ListRuns(cmd.Context(), opts...)
 	if err != nil {
 		return err
 	}
 
-	w := newTable("ID", "AGENT", "THREAD", "STATE", "INPUT", "OUTPUT", "CREATED")
-	maxLength := pterm.GetTerminalWidth() / 5
-	for _, run := range runs.Items {
-		run.Input = strings.Split(run.Input, "\n")[0]
-		run.Output = strings.Split(run.Output, "\n")[0]
-		run.Error = strings.Split(run.Error, "\n")[0]
-
-		if len(run.Input) > maxLength {
-			run.Input = run.Input[:maxLength] + "..."
+	if l.Quiet {
+		for _, run := range runs.Items {
+			cmd.Println(run.ID)
 		}
+		return nil
+	}
+
+	w := newTable("ID", "AGENT", "THREAD", "STATE", "INPUT", "OUTPUT", "CREATED")
+	for _, run := range runs.Items {
+		run.Input = truncate(strings.Split(run.Input, "\n")[0], l.Wide)
+		run.Output = truncate(strings.Split(run.Output, "\n")[0], l.Wide)
+		run.Error = truncate(strings.Split(run.Error, "\n")[0], l.Wide)
 		if run.Error != "" {
 			run.Output = run.Error
-		}
-		if len(run.Output) > maxLength {
-			run.Output = run.Output[:maxLength] + "..."
 		}
 		w.WriteRow(run.ID, run.AgentID, run.ThreadID, string(run.State), run.Input, run.Output, humanize.Time(run.Created))
 	}
 
 	return w.Err()
+}
+
+func truncate(text string, wide bool) string {
+	if wide {
+		return text
+	}
+	maxLength := pterm.GetTerminalWidth() / 3
+	if len(text) > maxLength {
+		return text[:maxLength] + "..."
+	}
+	return text
 }

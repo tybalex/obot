@@ -17,7 +17,7 @@ func (l *Debug) Customize(cmd *cobra.Command) {
 }
 
 func (l *Debug) Run(cmd *cobra.Command, args []string) error {
-	debug, err := l.root.client.DebugRun(cmd.Context(), args[0])
+	debug, err := l.root.Client.DebugRun(cmd.Context(), args[0])
 	if err != nil {
 		return err
 	}

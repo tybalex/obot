@@ -22,9 +22,8 @@ func Agent(ctx context.Context, db storage.Client, agent *v1.Agent, thread *v1.T
 		Description:  agent.Spec.Manifest.Description,
 		Chat:         true,
 		Tools:        agent.Spec.Manifest.Tools,
-		Arguments:    agent.Spec.Manifest.GetParams(),
-		Instructions: agent.Spec.Manifest.Prompt,
-		MetaData:     agent.Spec.Manifest.Metadata,
+		Instructions: agent.Spec.Manifest.Prompt.Instructions(),
+		MetaData:     agent.Spec.Manifest.Prompt.Metadata(agent.Spec.Manifest.CodeDependencies),
 		Type:         "agent",
 	}}
 

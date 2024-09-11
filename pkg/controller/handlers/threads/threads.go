@@ -10,7 +10,14 @@ import (
 
 type ThreadHandler struct {
 	Workspace *wclient.Client
-	Ingester  *knowledge.Ingester
+	ingester  *knowledge.Ingester
+}
+
+func New(wc *wclient.Client, ingester *knowledge.Ingester) *ThreadHandler {
+	return &ThreadHandler{
+		Workspace: wc,
+		ingester:  ingester,
+	}
 }
 
 func (t *ThreadHandler) Cleanup(req router.Request, resp router.Response) error {
@@ -44,7 +51,7 @@ func (t *ThreadHandler) RemoveWorkspaces(req router.Request, resp router.Respons
 	}
 
 	if thread.Status.HasKnowledge {
-		if err := t.Ingester.DeleteKnowledge(req.Ctx, thread.Namespace, thread.Spec.KnowledgeWorkspaceID); err != nil {
+		if err := t.ingester.DeleteKnowledge(req.Ctx, thread.Namespace, thread.Spec.KnowledgeWorkspaceID); err != nil {
 			return err
 		}
 	}
@@ -62,7 +69,7 @@ func (t *ThreadHandler) IngestKnowledge(req router.Request, resp router.Response
 		return nil
 	}
 
-	if err := t.Ingester.IngestKnowledge(req.Ctx, thread.Namespace, thread.Spec.KnowledgeWorkspaceID); err != nil {
+	if err := t.ingester.IngestKnowledge(req.Ctx, thread.Namespace, thread.Spec.KnowledgeWorkspaceID); err != nil {
 		return err
 	}
 

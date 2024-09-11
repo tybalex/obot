@@ -32,7 +32,7 @@ func (l *Delete) Run(cmd *cobra.Command, args []string) error {
 		default:
 			fallthrough
 		case "a1":
-			if err := l.root.client.DeleteAgent(cmd.Context(), id); err != nil {
+			if err := l.root.Client.DeleteAgent(cmd.Context(), id); err != nil {
 				errs = append(errs, err)
 			} else {
 				log.Infof("Agent deleted: %s\n", id)

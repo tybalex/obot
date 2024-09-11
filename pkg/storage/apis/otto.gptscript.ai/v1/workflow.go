@@ -28,8 +28,9 @@ type WorkflowSpec struct {
 }
 
 type WorkflowStatus struct {
-	WorkspaceID string             `json:"workspaceID,omitempty"`
-	Conditions  []metav1.Condition `json:"conditions,omitempty"`
+	SlugAssigned bool               `json:"slugAssigned,omitempty"`
+	WorkspaceID  string             `json:"workspaceID,omitempty"`
+	Conditions   []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -11,27 +11,23 @@ func Router(services *services.Services) (http.Handler, error) {
 	w := services.APIServer.Wrap
 	mux := http.NewServeMux()
 
-	agents := handlers.AgentHandler{
-		WorkspaceClient:   services.WorkspaceClient,
-		WorkspaceProvider: "directory",
-	}
-	invoker := handlers.InvokeHandler{
-		Invoker: services.Invoker,
-	}
-	threads := handlers.ThreadHandler{
-		WorkspaceClient: services.WorkspaceClient,
-	}
-	runs := handlers.RunHandler{}
+	agents := handlers.NewAgentHandler(services.WorkspaceClient, "directory")
+	invoker := handlers.NewInvokeHandler(services.Invoker)
+	threads := handlers.NewThreadHandler(services.WorkspaceClient)
+	runs := handlers.NewRunHandler()
 
 	// Agents
 	mux.Handle("GET /agents", w(agents.List))
+	mux.Handle("GET /agents/{id}", w(agents.ByID))
 	mux.Handle("POST /agents", w(agents.Create))
 	mux.Handle("PUT /agents/{id}", w(agents.Update))
 	mux.Handle("DELETE /agents/{id}", w(agents.Delete))
+
 	// Agent files
 	mux.Handle("GET /agents/{id}/files", w(agents.Files))
 	mux.Handle("POST /agents/{id}/files/{file}", w(agents.UploadFile))
 	mux.Handle("DELETE /agents/{id}/files/{file}", w(agents.DeleteFile))
+
 	// Agent knowledge files
 	mux.Handle("GET /agents/{id}/knowledge", w(agents.Knowledge))
 	mux.Handle("POST /agents/{id}/knowledge", w(agents.IngestKnowledge))
@@ -45,10 +41,12 @@ func Router(services *services.Services) (http.Handler, error) {
 	// Threads
 	mux.Handle("GET /threads", w(threads.List))
 	mux.Handle("GET /agents/{agent}/threads", w(threads.List))
+
 	// Thread files
 	mux.Handle("GET /threads/{id}/files", w(threads.Files))
 	mux.Handle("POST /threads/{id}/files/{file}", w(threads.UploadFile))
 	mux.Handle("DELETE /threads/{id}/files/{file}", w(threads.DeleteFile))
+
 	// Thread knowledge files
 	mux.Handle("GET /threads/{id}/knowledge", w(threads.Knowledge))
 	mux.Handle("POST /threads/{id}/knowledge", w(threads.IngestKnowledge))

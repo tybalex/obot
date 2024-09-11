@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/spf13/cobra"
+	"sigs.k8s.io/yaml"
 )
 
 type Update struct {
@@ -23,7 +25,12 @@ func (l *Update) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	agent, err := l.root.client.UpdateAgent(cmd.Context(), id, data)
+	var newManifest v1.AgentManifest
+	if err := yaml.Unmarshal(data, &newManifest); err != nil {
+
+	}
+
+	agent, err := l.root.Client.UpdateAgent(cmd.Context(), id, newManifest)
 	if err != nil {
 		return err
 	}
