@@ -33,14 +33,15 @@ type ThreadSpec struct {
 }
 
 type ThreadStatus struct {
-	Description     string                   `json:"description,omitempty"`
-	LastRunName     string                   `json:"lastRunName,omitempty"`
-	LastRunState    gptscriptclient.RunState `json:"lastRunState,omitempty"`
-	LastRunOutput   string                   `json:"lastRunOutput,omitempty"`
-	LastRunError    string                   `json:"lastRunError,omitempty"`
-	Conditions      []metav1.Condition       `json:"conditions,omitempty"`
-	HasKnowledge    bool                     `json:"hasKnowledge,omitempty"`
-	IngestKnowledge bool                     `json:"ingestKnowledge,omitempty"`
+	Description                 string                   `json:"description,omitempty"`
+	LastRunName                 string                   `json:"lastRunName,omitempty"`
+	LastRunState                gptscriptclient.RunState `json:"lastRunState,omitempty"`
+	LastRunOutput               string                   `json:"lastRunOutput,omitempty"`
+	LastRunError                string                   `json:"lastRunError,omitempty"`
+	Conditions                  []metav1.Condition       `json:"conditions,omitempty"`
+	HasKnowledge                bool                     `json:"hasKnowledge,omitempty"`
+	KnowledgeGeneration         int64                    `json:"knowledgeGeneration,omitempty"`
+	ObservedKnowledgeGeneration int64                    `json:"observedKnowledgeGeneration,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

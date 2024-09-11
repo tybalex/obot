@@ -34,11 +34,12 @@ type AgentSpec struct {
 }
 
 type AgentStatus struct {
-	Conditions           []metav1.Condition `json:"conditions,omitempty"`
-	HasKnowledge         bool               `json:"hasKnowledge,omitempty"`
-	IngestKnowledge      bool               `json:"ingestKnowledge,omitempty"`
-	WorkspaceID          string             `json:"workspaceID,omitempty"`
-	KnowledgeWorkspaceID string             `json:"knowledgeWorkspaceID,omitempty"`
+	Conditions                  []metav1.Condition `json:"conditions,omitempty"`
+	HasKnowledge                bool               `json:"hasKnowledge,omitempty"`
+	KnowledgeGeneration         int64              `json:"knowledgeGeneration,omitempty"`
+	ObservedKnowledgeGeneration int64              `json:"observedKnowledgeGeneration,omitempty"`
+	WorkspaceID                 string             `json:"workspaceID,omitempty"`
+	KnowledgeWorkspaceID        string             `json:"knowledgeWorkspaceID,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
