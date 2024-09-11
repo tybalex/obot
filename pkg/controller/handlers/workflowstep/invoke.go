@@ -21,7 +21,7 @@ func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {
 		return err
 	}
 
-	invokeResp, err := h.Invoker.Step(ctx, step, input)
+	invokeResp, err := h.invoker.Step(ctx, step, input)
 	if err != nil {
 		return err
 	}

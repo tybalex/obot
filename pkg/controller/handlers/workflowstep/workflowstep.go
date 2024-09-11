@@ -11,7 +11,13 @@ import (
 )
 
 type Handler struct {
-	Invoker *invoke.Invoker
+	invoker *invoke.Invoker
+}
+
+func New(invoker *invoke.Invoker) *Handler {
+	return &Handler{
+		invoker: invoker,
+	}
 }
 
 func (h *Handler) Cleanup(req router.Request, resp router.Response) error {

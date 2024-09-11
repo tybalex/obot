@@ -17,13 +17,19 @@ import (
 var log = mvl.Package()
 
 type Handler struct {
-	WorkspaceClient *wclient.Client
+	workspaceClient *wclient.Client
+}
+
+func New(wc *wclient.Client) *Handler {
+	return &Handler{
+		workspaceClient: wc,
+	}
 }
 
 func (h *Handler) Finalize(req router.Request, resp router.Response) error {
 	we := req.Object.(*v1.WorkflowExecution)
 	if we.Status.WorkspaceID != "" {
-		if err := h.WorkspaceClient.Rm(req.Ctx, we.Status.WorkspaceID); err != nil {
+		if err := h.workspaceClient.Rm(req.Ctx, we.Status.WorkspaceID); err != nil {
 			return err
 		}
 		we.Status.WorkspaceID = ""
@@ -144,14 +150,14 @@ func (h *Handler) createWorkspace(ctx context.Context, client kclient.Client, we
 		return false, nil
 	}
 
-	workspaceID, err := h.WorkspaceClient.Create(ctx, "directory", workspace.Status.WorkspaceID)
+	workspaceID, err := h.workspaceClient.Create(ctx, "directory", workspace.Status.WorkspaceID)
 	if err != nil {
 		return false, err
 	}
 	we.Status.WorkspaceID = workspaceID
 	if err := client.Status().Update(ctx, we); err != nil {
 		// Delete workspace since we failed to update the workflow
-		if err := h.WorkspaceClient.Rm(ctx, workspaceID); err != nil {
+		if err := h.workspaceClient.Rm(ctx, workspaceID); err != nil {
 			log.Errorf("failed to delete workspace %s: %v", workspaceID, err)
 		}
 	}

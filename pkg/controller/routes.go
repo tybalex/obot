@@ -14,16 +14,9 @@ import (
 )
 
 func routes(router *router.Router, services *services.Services) error {
-	workflows := workflow.Handler{
-		WorkspaceClient:   services.WorkspaceClient,
-		WorkspaceProvider: "directory",
-	}
-	workflowExecution := workflowexecution.Handler{
-		WorkspaceClient: services.WorkspaceClient,
-	}
-	workflowStep := workflowstep.Handler{
-		Invoker: services.Invoker,
-	}
+	workflows := workflow.New(services.WorkspaceClient, "directory")
+	workflowExecution := workflowexecution.New(services.WorkspaceClient)
+	workflowStep := workflowstep.New(services.Invoker)
 	agents := agents.AgentHandler{
 		WorkspaceClient: services.WorkspaceClient,
 		KnowledgeBin:    services.KnowledgeBin,

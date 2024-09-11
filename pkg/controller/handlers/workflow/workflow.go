@@ -14,6 +14,13 @@ type Handler struct {
 	WorkspaceProvider string
 }
 
+func New(wc *wclient.Client, wp string) *Handler {
+	return &Handler{
+		WorkspaceClient:   wc,
+		WorkspaceProvider: wp,
+	}
+}
+
 func (h *Handler) CreateWorkspace(req router.Request, resp router.Response) error {
 	ws := req.Object.(*v1.Workflow)
 	if ws.Status.WorkspaceID != "" {
