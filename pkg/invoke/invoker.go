@@ -73,12 +73,12 @@ func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadN
 		}
 	}
 
-	workspaceID, err := i.workspaceClient.Create(ctx, i.threadWorkspaceProvider, agent.Spec.WorkspaceID)
+	workspaceID, err := i.workspaceClient.Create(ctx, i.threadWorkspaceProvider, agent.Status.WorkspaceID)
 	if err != nil {
 		return nil, err
 	}
 
-	knowledgeWorkspaceID, err := i.workspaceClient.Create(ctx, i.threadWorkspaceProvider, agent.Spec.KnowledgeWorkspaceID)
+	knowledgeWorkspaceID, err := i.workspaceClient.Create(ctx, i.threadWorkspaceProvider, agent.Status.KnowledgeWorkspaceID)
 	if err != nil {
 		return nil, err
 	}

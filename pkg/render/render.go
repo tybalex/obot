@@ -32,7 +32,7 @@ func Agent(ctx context.Context, db storage.Client, agent *v1.Agent, thread *v1.T
 		t[0].Tools = append(t[0].Tools, knowledgeTool)
 		extraEnv = append(extraEnv,
 			fmt.Sprintf("KNOWLEDGE_BIN=%s", knowledgeBin),
-			fmt.Sprintf("GPTSCRIPT_SCRIPT_ID=%s", workspace.KnowledgeIDFromWorkspaceID(agent.Spec.KnowledgeWorkspaceID)),
+			fmt.Sprintf("GPTSCRIPT_SCRIPT_ID=%s", workspace.KnowledgeIDFromWorkspaceID(agent.Status.KnowledgeWorkspaceID)),
 			fmt.Sprintf("GPTSCRIPT_THREAD_ID=%s", workspace.KnowledgeIDFromWorkspaceID(thread.Spec.KnowledgeWorkspaceID)),
 		)
 	}

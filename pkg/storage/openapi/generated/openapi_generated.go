@@ -336,18 +336,6 @@ func schema_storage_apis_ottogptscriptai_v1_AgentSpec(ref common.ReferenceCallba
 							Format: "",
 						},
 					},
-					"workspaceID": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"knowledgeWorkspaceID": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 				},
 			},
 		},
@@ -384,6 +372,18 @@ func schema_storage_apis_ottogptscriptai_v1_AgentStatus(ref common.ReferenceCall
 					"ingestKnowledge": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"workspaceID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"knowledgeWorkspaceID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
 							Format: "",
 						},
 					},

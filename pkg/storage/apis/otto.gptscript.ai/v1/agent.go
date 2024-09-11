@@ -28,17 +28,17 @@ type Format string
 const TOMLFormat = Format("toml")
 
 type AgentSpec struct {
-	Manifest             AgentManifest `json:"manifest,omitempty"`
-	ManifestSource       string        `json:"manifestSource,omitempty"`
-	Format               Format        `json:"format,omitempty"`
-	WorkspaceID          string        `json:"workspaceID,omitempty"`
-	KnowledgeWorkspaceID string        `json:"knowledgeWorkspaceID,omitempty"`
+	Manifest       AgentManifest `json:"manifest,omitempty"`
+	ManifestSource string        `json:"manifestSource,omitempty"`
+	Format         Format        `json:"format,omitempty"`
 }
 
 type AgentStatus struct {
-	Conditions      []metav1.Condition `json:"conditions,omitempty"`
-	HasKnowledge    bool               `json:"hasKnowledge,omitempty"`
-	IngestKnowledge bool               `json:"ingestKnowledge,omitempty"`
+	Conditions           []metav1.Condition `json:"conditions,omitempty"`
+	HasKnowledge         bool               `json:"hasKnowledge,omitempty"`
+	IngestKnowledge      bool               `json:"ingestKnowledge,omitempty"`
+	WorkspaceID          string             `json:"workspaceID,omitempty"`
+	KnowledgeWorkspaceID string             `json:"knowledgeWorkspaceID,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
