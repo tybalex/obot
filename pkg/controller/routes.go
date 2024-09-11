@@ -24,6 +24,10 @@ func routes(router *router.Router, services *services.Services) error {
 	workflowStep := workflowstep.Handler{
 		Invoker: services.Invoker,
 	}
+	agents := agents.AgentHandler{
+		WorkspaceClient: services.WorkspaceClient,
+		KnowledgeBin:    services.KnowledgeBin,
+	}
 
 	root := router.Middleware(conditions.ErrorMiddleware())
 
@@ -57,8 +61,8 @@ func routes(router *router.Router, services *services.Services) error {
 	running.HandlerFunc(workflowStep.RunWhile)
 
 	// Agents
-	root.Type(&v1.Agent{}).FinalizeFunc(v1.AgentFinalizer, agents.RemoveWorkspaces(services.WorkspaceClient, services.KnowledgeBin))
-	root.Type(&v1.Agent{}).HandlerFunc(agents.IngestKnowledge(services.KnowledgeBin))
+	root.Type(&v1.Agent{}).FinalizeFunc(v1.AgentFinalizer, agents.RemoveWorkspaces)
+	root.Type(&v1.Agent{}).HandlerFunc(agents.IngestKnowledge)
 
 	return nil
 }

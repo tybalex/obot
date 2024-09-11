@@ -10,38 +10,39 @@ import (
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 )
 
-func RemoveWorkspaces(wc *wclient.Client, knowledgeBin string) router.HandlerFunc {
-	return func(req router.Request, resp router.Response) error {
-		agent := req.Object.(*v1.Agent)
-		if err := wc.Rm(req.Ctx, agent.Spec.WorkspaceID); err != nil {
-			return err
-		}
-
-		if agent.Status.HasKnowledge {
-			if err := exec.Command(knowledgeBin, "delete-dataset", agent.Spec.KnowledgeWorkspaceID).Run(); err != nil {
-				return fmt.Errorf("failed to delete knowledge dataset: %w", err)
-			}
-		}
-
-		if agent.Spec.KnowledgeWorkspaceID != "" {
-			return wc.Rm(req.Ctx, agent.Spec.KnowledgeWorkspaceID)
-		}
-		return nil
-	}
+type AgentHandler struct {
+	WorkspaceClient *wclient.Client
+	KnowledgeBin    string
 }
 
-func IngestKnowledge(knowledgeBin string) router.HandlerFunc {
-	return func(req router.Request, resp router.Response) error {
-		agent := req.Object.(*v1.Agent)
-		if !agent.Status.IngestKnowledge || !agent.Status.HasKnowledge {
-			return nil
-		}
+func (a *AgentHandler) RemoveWorkspaces(req router.Request, resp router.Response) error {
+	agent := req.Object.(*v1.Agent)
+	if err := a.WorkspaceClient.Rm(req.Ctx, agent.Spec.WorkspaceID); err != nil {
+		return err
+	}
 
-		if err := workspace.IngestKnowledge(knowledgeBin, agent.Spec.KnowledgeWorkspaceID); err != nil {
-			return err
+	if agent.Status.HasKnowledge {
+		if err := exec.Command(a.KnowledgeBin, "delete-dataset", agent.Spec.KnowledgeWorkspaceID).Run(); err != nil {
+			return fmt.Errorf("failed to delete knowledge dataset: %w", err)
 		}
+	}
 
-		agent.Status.IngestKnowledge = false
+	if agent.Spec.KnowledgeWorkspaceID != "" {
+		return a.WorkspaceClient.Rm(req.Ctx, agent.Spec.KnowledgeWorkspaceID)
+	}
+	return nil
+}
+
+func (a *AgentHandler) IngestKnowledge(req router.Request, resp router.Response) error {
+	agent := req.Object.(*v1.Agent)
+	if !agent.Status.IngestKnowledge || !agent.Status.HasKnowledge {
 		return nil
 	}
+
+	if err := workspace.IngestKnowledge(a.KnowledgeBin, agent.Spec.KnowledgeWorkspaceID); err != nil {
+		return err
+	}
+
+	agent.Status.IngestKnowledge = false
+	return nil
 }
