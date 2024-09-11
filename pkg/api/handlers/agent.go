@@ -223,7 +223,7 @@ func (a *AgentHandler) UploadKnowledge(ctx context.Context, req api.Request) err
 		return err
 	}
 
-	agent.Status.IngestKnowledge = true
+	agent.Status.KnowledgeGeneration++
 	agent.Status.HasKnowledge = true
 	return req.Storage.Status().Update(ctx, &agent)
 }
@@ -248,7 +248,7 @@ func (a *AgentHandler) DeleteKnowledge(ctx context.Context, req api.Request) err
 		return fmt.Errorf("failed to list files in workspace %s: %w", agent.Status.KnowledgeWorkspaceID, err)
 	}
 
-	agent.Status.IngestKnowledge = true
+	agent.Status.KnowledgeGeneration++
 	agent.Status.HasKnowledge = len(files) > 0
 	return req.Storage.Status().Update(ctx, &agent)
 }
@@ -273,6 +273,6 @@ func (a *AgentHandler) IngestKnowledge(ctx context.Context, req api.Request) err
 		return nil
 	}
 
-	agent.Status.IngestKnowledge = true
+	agent.Status.KnowledgeGeneration++
 	return req.Storage.Status().Update(ctx, &agent)
 }

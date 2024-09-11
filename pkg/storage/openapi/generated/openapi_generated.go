@@ -369,10 +369,16 @@ func schema_storage_apis_ottogptscriptai_v1_AgentStatus(ref common.ReferenceCall
 							Format: "",
 						},
 					},
-					"ingestKnowledge": {
+					"knowledgeGeneration": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"observedKnowledgeGeneration": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
 						},
 					},
 					"workspaceID": {
@@ -1178,10 +1184,16 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadStatus(ref common.ReferenceCal
 							Format: "",
 						},
 					},
-					"ingestKnowledge": {
+					"knowledgeGeneration": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"observedKnowledgeGeneration": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
 						},
 					},
 				},

@@ -110,7 +110,7 @@ func (a *ThreadHandler) UploadKnowledge(ctx context.Context, req api.Request) er
 		return err
 	}
 
-	thread.Status.IngestKnowledge = true
+	thread.Status.KnowledgeGeneration++
 	thread.Status.HasKnowledge = true
 	return req.Storage.Status().Update(ctx, &thread)
 }
@@ -135,7 +135,7 @@ func (a *ThreadHandler) DeleteKnowledge(ctx context.Context, req api.Request) er
 		return fmt.Errorf("failed to list files in workspace %s: %w", thread.Spec.KnowledgeWorkspaceID, err)
 	}
 
-	thread.Status.IngestKnowledge = true
+	thread.Status.KnowledgeGeneration++
 	thread.Status.HasKnowledge = len(files) > 0
 	return req.Storage.Status().Update(ctx, &thread)
 }
@@ -160,6 +160,6 @@ func (a *ThreadHandler) IngestKnowledge(ctx context.Context, req api.Request) er
 		return nil
 	}
 
-	thread.Status.IngestKnowledge = true
+	thread.Status.KnowledgeGeneration++
 	return req.Storage.Status().Update(ctx, &thread)
 }

@@ -58,7 +58,7 @@ func (t *ThreadHandler) RemoveWorkspaces(req router.Request, resp router.Respons
 
 func (t *ThreadHandler) IngestKnowledge(req router.Request, resp router.Response) error {
 	thread := req.Object.(*v1.Thread)
-	if !thread.Status.IngestKnowledge || !thread.Status.HasKnowledge {
+	if thread.Status.KnowledgeGeneration == thread.Status.ObservedKnowledgeGeneration || !thread.Status.HasKnowledge {
 		return nil
 	}
 
@@ -66,6 +66,6 @@ func (t *ThreadHandler) IngestKnowledge(req router.Request, resp router.Response
 		return err
 	}
 
-	thread.Status.IngestKnowledge = false
+	thread.Status.ObservedKnowledgeGeneration = thread.Status.KnowledgeGeneration
 	return nil
 }

@@ -54,7 +54,7 @@ func (a *AgentHandler) RemoveWorkspaces(req router.Request, resp router.Response
 
 func (a *AgentHandler) IngestKnowledge(req router.Request, resp router.Response) error {
 	agent := req.Object.(*v1.Agent)
-	if !agent.Status.IngestKnowledge || !agent.Status.HasKnowledge {
+	if agent.Status.KnowledgeGeneration == agent.Status.ObservedKnowledgeGeneration || !agent.Status.HasKnowledge {
 		return nil
 	}
 
@@ -62,6 +62,6 @@ func (a *AgentHandler) IngestKnowledge(req router.Request, resp router.Response)
 		return err
 	}
 
-	agent.Status.IngestKnowledge = false
+	agent.Status.ObservedKnowledgeGeneration = agent.Status.KnowledgeGeneration
 	return nil
 }
