@@ -11,24 +11,46 @@ import (
 )
 
 type AgentHandler struct {
-	WorkspaceClient *wclient.Client
-	KnowledgeBin    string
+	WorkspaceClient   *wclient.Client
+	KnowledgeBin      string
+	WorkspaceProvider string
+}
+
+func (a *AgentHandler) CreateWorkspaces(req router.Request, resp router.Response) error {
+	agent := req.Object.(*v1.Agent)
+	if agent.Status.WorkspaceID != "" {
+		return nil
+	}
+
+	workspaceID, err := a.WorkspaceClient.Create(req.Ctx, a.WorkspaceProvider)
+	if err != nil {
+		return err
+	}
+
+	knowledgeWorkspaceID, err := a.WorkspaceClient.Create(req.Ctx, a.WorkspaceProvider)
+	if err != nil {
+		return err
+	}
+
+	agent.Status.KnowledgeWorkspaceID = knowledgeWorkspaceID
+	agent.Status.WorkspaceID = workspaceID
+	return nil
 }
 
 func (a *AgentHandler) RemoveWorkspaces(req router.Request, resp router.Response) error {
 	agent := req.Object.(*v1.Agent)
-	if err := a.WorkspaceClient.Rm(req.Ctx, agent.Spec.WorkspaceID); err != nil {
+	if err := a.WorkspaceClient.Rm(req.Ctx, agent.Status.WorkspaceID); err != nil {
 		return err
 	}
 
 	if agent.Status.HasKnowledge {
-		if err := exec.Command(a.KnowledgeBin, "delete-dataset", agent.Spec.KnowledgeWorkspaceID).Run(); err != nil {
+		if err := exec.Command(a.KnowledgeBin, "delete-dataset", agent.Status.KnowledgeWorkspaceID).Run(); err != nil {
 			return fmt.Errorf("failed to delete knowledge dataset: %w", err)
 		}
 	}
 
-	if agent.Spec.KnowledgeWorkspaceID != "" {
-		return a.WorkspaceClient.Rm(req.Ctx, agent.Spec.KnowledgeWorkspaceID)
+	if agent.Status.KnowledgeWorkspaceID != "" {
+		return a.WorkspaceClient.Rm(req.Ctx, agent.Status.KnowledgeWorkspaceID)
 	}
 	return nil
 }
@@ -39,7 +61,7 @@ func (a *AgentHandler) IngestKnowledge(req router.Request, resp router.Response)
 		return nil
 	}
 
-	if err := workspace.IngestKnowledge(a.KnowledgeBin, agent.Spec.KnowledgeWorkspaceID); err != nil {
+	if err := workspace.IngestKnowledge(a.KnowledgeBin, agent.Status.KnowledgeWorkspaceID); err != nil {
 		return err
 	}
 

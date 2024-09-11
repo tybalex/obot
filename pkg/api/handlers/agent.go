@@ -98,19 +98,15 @@ func (a *AgentHandler) Create(ctx context.Context, req api.Request) error {
 	}
 
 	var (
-		agent           v2.Agent
-		createWorkspace bool
-		httpError       *api.ErrHTTP
+		agent     v2.Agent
+		httpError *api.ErrHTTP
 	)
-	if err = req.Get(&agent, spec.Manifest.ID); errors.As(err, &httpError) && httpError.Code == http.StatusNotFound {
-		createWorkspace = true
-	} else if err != nil {
-		return err
+	if err = req.Get(&agent, spec.Manifest.ID); err != nil {
+		if !errors.As(err, &httpError) || httpError.Code != http.StatusNotFound {
+			return err
+		}
 	} else if !replace {
 		return apierrors.NewAlreadyExists(v2.SchemeGroupVersion.WithResource("agents").GroupResource(), spec.Manifest.ID)
-	} else {
-		spec.WorkspaceID = agent.Spec.WorkspaceID
-		spec.KnowledgeWorkspaceID = agent.Spec.KnowledgeWorkspaceID
 	}
 
 	agent = v2.Agent{
@@ -123,16 +119,6 @@ func (a *AgentHandler) Create(ctx context.Context, req api.Request) error {
 
 	if agent.Name == "" {
 		agent.GenerateName = "a"
-		createWorkspace = true
-	}
-
-	if createWorkspace {
-		if agent.Spec.WorkspaceID, err = a.WorkspaceClient.Create(ctx, a.WorkspaceProvider); err != nil {
-			return err
-		}
-		if agent.Spec.KnowledgeWorkspaceID, err = a.WorkspaceClient.Create(ctx, a.WorkspaceProvider); err != nil {
-			return err
-		}
 	}
 
 	if err = req.Create(&agent); replace && apierrors.IsAlreadyExists(err) {
@@ -140,10 +126,6 @@ func (a *AgentHandler) Create(ctx context.Context, req api.Request) error {
 		req.ResponseWriter.Header().Set("X-Otto-Replaced", "true")
 	}
 	if err != nil {
-		if createWorkspace {
-			// Ensure the created workspaces are deleted on error
-			return errors.Join(err, a.WorkspaceClient.Rm(ctx, agent.Spec.WorkspaceID), a.WorkspaceClient.Rm(ctx, agent.Spec.KnowledgeWorkspaceID))
-		}
 		return err
 	}
 
@@ -187,7 +169,7 @@ func (a *AgentHandler) Files(ctx context.Context, req api.Request) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return listFiles(ctx, req, a.WorkspaceClient, agent.Spec.WorkspaceID)
+	return listFiles(ctx, req, a.WorkspaceClient, agent.Status.WorkspaceID)
 }
 
 func (a *AgentHandler) UploadFile(ctx context.Context, req api.Request) error {
@@ -199,7 +181,7 @@ func (a *AgentHandler) UploadFile(ctx context.Context, req api.Request) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return uploadFile(ctx, req, a.WorkspaceClient, agent.Spec.WorkspaceID)
+	return uploadFile(ctx, req, a.WorkspaceClient, agent.Status.WorkspaceID)
 }
 
 func (a *AgentHandler) DeleteFile(ctx context.Context, req api.Request) error {
@@ -213,7 +195,7 @@ func (a *AgentHandler) DeleteFile(ctx context.Context, req api.Request) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return deleteFile(ctx, req, a.WorkspaceClient, agent.Spec.WorkspaceID, filename)
+	return deleteFile(ctx, req, a.WorkspaceClient, agent.Status.WorkspaceID, filename)
 }
 
 func (a *AgentHandler) Knowledge(ctx context.Context, req api.Request) error {
@@ -225,7 +207,7 @@ func (a *AgentHandler) Knowledge(ctx context.Context, req api.Request) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return listFiles(ctx, req, a.WorkspaceClient, agent.Spec.KnowledgeWorkspaceID)
+	return listFiles(ctx, req, a.WorkspaceClient, agent.Status.KnowledgeWorkspaceID)
 }
 
 func (a *AgentHandler) UploadKnowledge(ctx context.Context, req api.Request) error {
@@ -237,7 +219,7 @@ func (a *AgentHandler) UploadKnowledge(ctx context.Context, req api.Request) err
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	if err := uploadFile(ctx, req, a.WorkspaceClient, agent.Spec.KnowledgeWorkspaceID); err != nil {
+	if err := uploadFile(ctx, req, a.WorkspaceClient, agent.Status.KnowledgeWorkspaceID); err != nil {
 		return err
 	}
 
@@ -257,7 +239,7 @@ func (a *AgentHandler) DeleteKnowledge(ctx context.Context, req api.Request) err
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	if err := deleteFile(ctx, req, a.WorkspaceClient, agent.Spec.KnowledgeWorkspaceID, filename); err != nil {
+	if err := deleteFile(ctx, req, a.WorkspaceClient, agent.Status.KnowledgeWorkspaceID, filename); err != nil {
 		return err
 	}
 
@@ -274,7 +256,7 @@ func (a *AgentHandler) IngestKnowledge(ctx context.Context, req api.Request) err
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	files, err := a.WorkspaceClient.Ls(ctx, agent.Spec.KnowledgeWorkspaceID)
+	files, err := a.WorkspaceClient.Ls(ctx, agent.Status.KnowledgeWorkspaceID)
 	if err != nil {
 		return err
 	}
