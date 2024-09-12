@@ -484,6 +484,8 @@ github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsT
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/thedadams/workspace-provider v0.0.0-20240906223056-9b000866098c h1:XIZ3pvM6T8EmYN88o+66yvgZcS/isMKgSxBxIzqMigw=
 github.com/thedadams/workspace-provider v0.0.0-20240906223056-9b000866098c/go.mod h1:lEWAqSBY6752x3xd1GdPUT7hWbtpkT2BcRUxvu56M/0=
+github.com/thedadams/workspace-provider v0.0.0-20240912195139-5dc37cf34474 h1:4EuFOH8T7Vf9VG3Ay5hP7abBRoftO+pBmHCKSNmWKWQ=
+github.com/thedadams/workspace-provider v0.0.0-20240912195139-5dc37cf34474/go.mod h1:lEWAqSBY6752x3xd1GdPUT7hWbtpkT2BcRUxvu56M/0=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20220101234140-673ab2c3ae75 h1:6fotK7otjonDflCTK0BCfls4SPy3NcCVb5dqqmbRknE=
 github.com/tmc/grpc-websocket-proxy v0.0.0-20220101234140-673ab2c3ae75/go.mod h1:KO6IkyS8Y3j8OdNO85qEYBsRPuteD+YciPomcXdrMnk=
 github.com/ugorji/go/codec v1.2.7 h1:YPXUKf7fYbp/y8xloBqZOw2qaVggbfwMlI8WM3wZUJ0=

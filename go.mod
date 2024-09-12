@@ -17,7 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
-	github.com/thedadams/workspace-provider v0.0.0-20240906223056-9b000866098c
+	github.com/thedadams/workspace-provider v0.0.0-20240912195139-5dc37cf34474
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
 	k8s.io/apiserver v0.29.0
