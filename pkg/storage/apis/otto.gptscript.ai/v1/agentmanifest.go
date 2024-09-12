@@ -17,6 +17,7 @@ const (
 type AgentManifest struct {
 	Name             string            `json:"name"`
 	Description      string            `json:"description"`
+	Temperature      *float32          `json:"temperature"`
 	Slug             string            `json:"slug"`
 	Prompt           Body              `json:"prompt"`
 	Agents           []string          `json:"agents"`

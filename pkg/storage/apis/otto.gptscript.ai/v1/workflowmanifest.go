@@ -9,25 +9,26 @@ type WorkflowManifest struct {
 }
 
 type Step struct {
-	*AgentStep
-	*ToolStep
 	Name    string    `json:"name,omitempty"`
 	Input   StepInput `json:"input,omitempty"`
 	Tool    string    `json:"tool,omitempty"`
 	If      *If       `json:"if,omitempty"`
 	While   *While    `json:"while,omitempty"`
 	ForEach *ForEach  `json:"forEach,omitempty"`
-}
 
-type AgentStep struct {
-	Prompt           Body     `json:"prompt,omitempty"`
+	*AgentStep
+	*ToolStep
 	Tools            []string `json:"tools,omitempty"`
+	Temperature      *float32 `json:"temperature,omitempty"`
 	CodeDependencies string   `json:"codeDependencies,omitempty"`
 }
 
+type AgentStep struct {
+	Prompt Body `json:"prompt,omitempty"`
+}
+
 type ToolStep struct {
-	Tool             Body   `json:"tool,omitempty"`
-	CodeDependencies string `json:"codeDependencies,omitempty"`
+	Tool Body `json:"tool,omitempty"`
 }
 
 type StepInput struct {

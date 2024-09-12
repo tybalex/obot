@@ -255,6 +255,12 @@ func schema_storage_apis_ottogptscriptai_v1_AgentManifest(ref common.ReferenceCa
 							Format:  "",
 						},
 					},
+					"temperature": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"number"},
+							Format: "float",
+						},
+					},
 					"slug": {
 						SchemaProps: spec.SchemaProps{
 							Default: "",
@@ -320,7 +326,7 @@ func schema_storage_apis_ottogptscriptai_v1_AgentManifest(ref common.ReferenceCa
 						},
 					},
 				},
-				Required: []string{"name", "description", "slug", "prompt", "agents", "tools", "codeDependencies"},
+				Required: []string{"name", "description", "temperature", "slug", "prompt", "agents", "tools", "codeDependencies"},
 			},
 		},
 	}
@@ -422,26 +428,6 @@ func schema_storage_apis_ottogptscriptai_v1_AgentStep(ref common.ReferenceCallba
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
 					"prompt": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"tools": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
-						},
-					},
-					"codeDependencies": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -1073,16 +1059,6 @@ func schema_storage_apis_ottogptscriptai_v1_Step(ref common.ReferenceCallback) c
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"AgentStep": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentStep"),
-						},
-					},
-					"ToolStep": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolStep"),
-						},
-					},
 					"name": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -1114,6 +1090,42 @@ func schema_storage_apis_ottogptscriptai_v1_Step(ref common.ReferenceCallback) c
 					"forEach": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ForEach"),
+						},
+					},
+					"AgentStep": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentStep"),
+						},
+					},
+					"ToolStep": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolStep"),
+						},
+					},
+					"tools": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"temperature": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"number"},
+							Format: "float",
+						},
+					},
+					"codeDependencies": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 				},
@@ -1463,12 +1475,6 @@ func schema_storage_apis_ottogptscriptai_v1_ToolStep(ref common.ReferenceCallbac
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
 					"tool": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"codeDependencies": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",

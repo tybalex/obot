@@ -10,7 +10,7 @@ require (
 	github.com/getkin/kin-openapi v0.124.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
-	github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240903180507-c0fb2e8ebab6
+	github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240912171914-a7d55cdfb7fe
 	github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240903162849-eaaf0cdb72ca
 	github.com/hexops/autogold/v2 v2.2.1
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de

@@ -19,6 +19,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	// Agents
 	mux.Handle("GET /agents", w(agents.List))
 	mux.Handle("GET /agents/{id}", w(agents.ByID))
+	mux.Handle("GET /agents/{id}/script", w(agents.Script))
 	mux.Handle("POST /agents", w(agents.Create))
 	mux.Handle("PUT /agents/{id}", w(agents.Update))
 	mux.Handle("DELETE /agents/{id}", w(agents.Delete))

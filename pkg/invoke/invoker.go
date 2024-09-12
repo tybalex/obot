@@ -132,7 +132,10 @@ func (i *Invoker) Agent(ctx context.Context, agent *v1.Agent, input string, opts
 		return nil, err
 	}
 
-	tools, extraEnv, err := render.Agent(ctx, i.storage, agent, thread, i.knowledgeTool)
+	tools, extraEnv, err := render.Agent(ctx, i.storage, agent, render.AgentOptions{
+		Thread:        thread,
+		KnowledgeTool: i.knowledgeTool,
+	})
 	if err != nil {
 		return nil, err
 	}

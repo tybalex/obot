@@ -46,7 +46,12 @@ func (r *Context) Body() ([]byte, error) {
 
 func (r *Context) Write(obj any) error {
 	if data, ok := obj.([]byte); ok {
+		r.ResponseWriter.Header().Set("Content-Type", "application/octet-stream")
 		_, err := r.ResponseWriter.Write(data)
+		return err
+	} else if str, ok := obj.(string); ok {
+		r.ResponseWriter.Header().Set("Content-Type", "text/plain")
+		_, err := r.ResponseWriter.Write([]byte(str))
 		return err
 	}
 	r.ResponseWriter.Header().Set("Content-Type", "application/json")

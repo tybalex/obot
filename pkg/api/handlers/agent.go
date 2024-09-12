@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/pkg/render"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/thedadams/workspace-provider/pkg/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -237,4 +239,26 @@ func (a *AgentHandler) IngestKnowledge(req api.Context) error {
 
 	agent.Status.KnowledgeGeneration++
 	return req.Storage.Status().Update(req.Context(), &agent)
+}
+
+func (a *AgentHandler) Script(req api.Context) error {
+	var (
+		id    = req.Request.PathValue("id")
+		agent v1.Agent
+	)
+	if err := req.Get(&agent, id); err != nil {
+		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
+	}
+
+	tools, _, err := render.Agent(req.Context(), req.Storage, &agent, render.AgentOptions{})
+	if err != nil {
+		return err
+	}
+
+	script, err := req.GPTClient.Fmt(req.Context(), gptscript.ToolDefsToNodes(tools))
+	if err != nil {
+		return err
+	}
+
+	return req.Write(script)
 }
