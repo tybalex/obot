@@ -17,6 +17,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/render"
 	"github.com/gptscript-ai/otto/pkg/storage"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/system"
 	"github.com/gptscript-ai/otto/pkg/workspace"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
@@ -60,12 +61,19 @@ type Options struct {
 
 func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadName string) (*v1.Thread, error) {
 	var (
-		thread v1.Thread
+		thread     v1.Thread
+		createName string
 	)
 	if threadName != "" {
 		err := i.storage.Get(ctx, router.Key(agent.Namespace, threadName), &thread)
-		if err != nil {
-			return nil, err
+		if apierror.IsNotFound(err) {
+			if system.IsThreadID(threadName) {
+				createName = threadName
+			} else {
+				return nil, err
+			}
+		} else {
+			return &thread, err
 		}
 	}
 
@@ -81,6 +89,7 @@ func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadN
 
 	thread = v1.Thread{
 		ObjectMeta: metav1.ObjectMeta{
+			Name:         createName,
 			GenerateName: "t1",
 			Namespace:    agent.Namespace,
 			Finalizers:   []string{v1.ThreadFinalizer},
@@ -102,6 +111,21 @@ func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadN
 func (i *Invoker) getChatState(ctx context.Context, run *v1.Run) (result string, _ error) {
 	if run.Spec.PreviousRunName == "" {
 		return "", nil
+	}
+
+	for {
+		// look for the last valid state
+		var previousRun v1.Run
+		if err := i.storage.Get(ctx, router.Key(run.Namespace, run.Spec.PreviousRunName), &previousRun); err != nil {
+			return "", err
+		}
+		if previousRun.Status.State == gptscript.Continue {
+			break
+		}
+		if previousRun.Spec.PreviousRunName == "" {
+			return "", nil
+		}
+		run = &previousRun
 	}
 
 	var lastRun v1.RunState
@@ -247,6 +271,24 @@ func (i *Invoker) createRun(ctx context.Context, thread *v1.Thread, input string
 }
 
 func (i *Invoker) saveState(ctx context.Context, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run, retErr error) error {
+	for j := 0; j < 3; j++ {
+		err := i.doSaveState(ctx, thread, run, runResp, retErr)
+		if err == nil {
+			return retErr
+		}
+		if !apierror.IsConflict(err) {
+			return errors.Join(err, retErr)
+		}
+		// reload
+		if err := i.storage.Get(ctx, router.Key(run.Namespace, run.Name), run); err != nil {
+			return errors.Join(err, retErr)
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	return fmt.Errorf("failed to save state after 3 retries: %w", retErr)
+}
+
+func (i *Invoker) doSaveState(ctx context.Context, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run, retErr error) error {
 	var (
 		runStateSpec v1.RunStateSpec
 		runChanged   bool

@@ -24,7 +24,8 @@ type Step struct {
 }
 
 type AgentStep struct {
-	Prompt Body `json:"prompt,omitempty"`
+	Prompt Body  `json:"prompt,omitempty"`
+	Cache  *bool `json:"cache,omitempty"`
 }
 
 type ToolStep struct {

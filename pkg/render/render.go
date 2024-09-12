@@ -30,6 +30,7 @@ func Agent(ctx context.Context, db storage.Client, agent *v1.Agent, opts AgentOp
 		Instructions: agent.Spec.Manifest.Prompt.Instructions(),
 		MetaData:     agent.Spec.Manifest.Prompt.Metadata(agent.Spec.Manifest.CodeDependencies),
 		Temperature:  agent.Spec.Manifest.Temperature,
+		Cache:        agent.Spec.Manifest.Cache,
 		Type:         "agent",
 	}}
 

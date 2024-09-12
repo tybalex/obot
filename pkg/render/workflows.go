@@ -14,6 +14,7 @@ func Step(step *v1.WorkflowStep) []gptscript.ToolDef {
 			Type:         "agent",
 			Temperature:  step.Spec.Step.Temperature,
 			MetaData:     step.Spec.Step.AgentStep.Prompt.Metadata(step.Spec.Step.CodeDependencies),
+			Cache:        step.Spec.Step.AgentStep.Cache,
 		}}
 	} else if step.Spec.Step.ToolStep != nil {
 		return []gptscript.ToolDef{{
