@@ -34,8 +34,8 @@ github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/NYTimes/gziphandler v1.1.1 h1:ZUDjpQae29j0ryrS0u/B8HZfJBtBQHjqw2rQ2cqUQ3I=
 github.com/NYTimes/gziphandler v1.1.1/go.mod h1:n/CVRwUEOgIxrgPvAQhUUr9oeUtvrhMomdKFjzJNB0c=
-github.com/acorn-io/baaah v0.0.0-20240910162159-dfd39cd3089b h1:bcLnymfyTN8RZqzjU+M86xYqj9IBdvf5eElL5JqIZ2g=
-github.com/acorn-io/baaah v0.0.0-20240910162159-dfd39cd3089b/go.mod h1:13nTO3svO8zTD3j9E5c86tCtK5YrKsK5sxca4Lwkbc0=
+github.com/acorn-io/baaah v0.0.0-20240912163758-8f7c537609d1 h1:JobENeM/SoGMlR1/K6DCirRRwBA90FRlynqqqYchOXQ=
+github.com/acorn-io/baaah v0.0.0-20240912163758-8f7c537609d1/go.mod h1:13nTO3svO8zTD3j9E5c86tCtK5YrKsK5sxca4Lwkbc0=
 github.com/acorn-io/broadcaster v0.0.0-20240105011354-bfadd4a7b45d h1:hfpNQkJ4I2b8+DbMr8m97gG67ku0uPsMzUfskVu3cHU=
 github.com/acorn-io/broadcaster v0.0.0-20240105011354-bfadd4a7b45d/go.mod h1:WF6FYrEqW0+ZtY5OKb21JhSL0aeL5VJoVrm+u0d4gOE=
 github.com/acorn-io/mink v0.0.0-20240905175847-47ca8045831c h1:deenFVq3xrJiJTr/TfB/LLS0btelCLC234pJZ/H7ids=

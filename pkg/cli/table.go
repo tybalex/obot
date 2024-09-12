@@ -3,7 +3,8 @@ package cli
 import (
 	"os"
 	"strings"
-	"text/tabwriter"
+
+	"github.com/liggitt/tabwriter"
 )
 
 type table struct {
@@ -12,9 +13,13 @@ type table struct {
 }
 
 func newTable(cols ...string) *table {
-	w := tabwriter.NewWriter(os.Stdout, 10, 1, 3, ' ', 0)
+	w := tabwriter.NewWriter(os.Stdout, 10, 1, 3, ' ', tabwriter.RememberWidths)
 	_, err := w.Write([]byte(strings.Join(cols, "\t") + "\n"))
 	return &table{w: w, err: err}
+}
+
+func (t *table) Flush() {
+	_ = t.w.Flush()
 }
 
 func (t *table) Err() error {

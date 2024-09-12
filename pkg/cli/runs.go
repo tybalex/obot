@@ -1,18 +1,22 @@
 package cli
 
 import (
+	"fmt"
+	"iter"
 	"strings"
 
 	"github.com/dustin/go-humanize"
 	"github.com/gptscript-ai/otto/pkg/api/client"
+	"github.com/gptscript-ai/otto/pkg/api/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
 
 type Runs struct {
-	root  *Otto
-	Wide  bool `usage:"Print more information" short:"w"`
-	Quiet bool `usage:"Only print IDs of runs" short:"q"`
+	root   *Otto
+	Wide   bool `usage:"Print more information" short:"w"`
+	Quiet  bool `usage:"Only print IDs of runs" short:"q"`
+	Follow bool `usage:"Follow the output of runs" short:"f"`
 }
 
 func (l *Runs) Customize(cmd *cobra.Command) {
@@ -20,8 +24,62 @@ func (l *Runs) Customize(cmd *cobra.Command) {
 	cmd.Args = cobra.MaximumNArgs(2)
 }
 
+func (l *Runs) printRunsQuiet(i iter.Seq[types.Run]) error {
+	for run := range i {
+		fmt.Println(run.ID)
+	}
+	return nil
+}
+
+func (l *Runs) printRuns(i iter.Seq[types.Run], flush bool) error {
+	w := newTable("ID", "AGENT", "THREAD", "STATE", "INPUT", "OUTPUT", "CREATED")
+	for run := range i {
+		run.Input = truncate(strings.Split(run.Input, "\n")[0], l.Wide)
+		run.Output = truncate(strings.Split(run.Output, "\n")[0], l.Wide)
+		run.Error = truncate(strings.Split(run.Error, "\n")[0], l.Wide)
+		if run.Error != "" {
+			run.Output = run.Error
+		}
+		w.WriteRow(run.ID, run.AgentID, run.ThreadID, string(run.State), run.Input, run.Output, humanize.Time(run.Created))
+		if flush {
+			w.Flush()
+		}
+	}
+
+	return w.Err()
+}
+
+func chanToIter[T any](c <-chan T) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for item := range c {
+			if !yield(item) {
+				go func() {
+					// drain
+					for range c {
+					}
+				}()
+				return
+			}
+		}
+	}
+}
+
+func sliceToIter[T any](s []T) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for _, item := range s {
+			if !yield(item) {
+				return
+			}
+		}
+	}
+}
+
 func (l *Runs) Run(cmd *cobra.Command, args []string) error {
-	var opts []client.ListRunsOptions
+	var (
+		opts  []client.ListRunsOptions
+		flush bool
+		list  iter.Seq[types.Run]
+	)
 	if len(args) > 0 {
 		opts = append(opts, client.ListRunsOptions{
 			AgentID: args[0],
@@ -32,30 +90,27 @@ func (l *Runs) Run(cmd *cobra.Command, args []string) error {
 			ThreadID: args[1],
 		})
 	}
-	runs, err := l.root.Client.ListRuns(cmd.Context(), opts...)
-	if err != nil {
-		return err
+
+	if l.Follow {
+		items, err := l.root.Client.StreamRuns(cmd.Context(), opts...)
+		if err != nil {
+			return err
+		}
+		list = chanToIter(items)
+		flush = true
+	} else {
+		runs, err := l.root.Client.ListRuns(cmd.Context(), opts...)
+		if err != nil {
+			return err
+		}
+		list = sliceToIter(runs.Items)
 	}
 
 	if l.Quiet {
-		for _, run := range runs.Items {
-			cmd.Println(run.ID)
-		}
-		return nil
+		return l.printRunsQuiet(list)
 	}
 
-	w := newTable("ID", "AGENT", "THREAD", "STATE", "INPUT", "OUTPUT", "CREATED")
-	for _, run := range runs.Items {
-		run.Input = truncate(strings.Split(run.Input, "\n")[0], l.Wide)
-		run.Output = truncate(strings.Split(run.Output, "\n")[0], l.Wide)
-		run.Error = truncate(strings.Split(run.Error, "\n")[0], l.Wide)
-		if run.Error != "" {
-			run.Output = run.Error
-		}
-		w.WriteRow(run.ID, run.AgentID, run.ThreadID, string(run.State), run.Input, run.Output, humanize.Time(run.Created))
-	}
-
-	return w.Err()
+	return l.printRuns(list, flush)
 }
 
 func truncate(text string, wide bool) string {

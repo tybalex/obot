@@ -38,6 +38,10 @@ func (c *Client) postJSON(ctx context.Context, path string, obj any, headerKV ..
 	return c.doRequest(ctx, http.MethodPost, path, bytes.NewBuffer(data), append(headerKV, "Content-Type", "application/json")...)
 }
 
+func (c *Client) doStream(ctx context.Context, method, path string, body io.Reader, headerKV ...string) (*http.Request, *http.Response, error) {
+	return c.doRequest(ctx, method, path, body, append(headerKV, "Accept", "text/event-stream")...)
+}
+
 func (c *Client) doRequest(ctx context.Context, method, path string, body io.Reader, headerKV ...string) (*http.Request, *http.Response, error) {
 	req, err := http.NewRequestWithContext(ctx, method, c.BaseURL+path, body)
 	if err != nil {
@@ -78,6 +82,24 @@ func (c *Client) UpdateAgent(ctx context.Context, id string, manifest v1.AgentMa
 	defer resp.Body.Close()
 
 	return toObject(resp, &types.Agent{})
+}
+
+func toStream[T any](resp *http.Response) chan T {
+	ch := make(chan T)
+	go func() {
+		defer resp.Body.Close()
+		defer close(ch)
+		lines := bufio.NewScanner(resp.Body)
+		for lines.Scan() {
+			var obj T
+			if data, ok := strings.CutPrefix(lines.Text(), "data: "); ok {
+				if err := json.Unmarshal([]byte(data), &obj); err == nil {
+					ch <- obj
+				}
+			}
+		}
+	}()
+	return ch
 }
 
 func toObject[T any](resp *http.Response, obj T) (def T, _ error) {
@@ -216,6 +238,15 @@ func (c *Client) ListAgents(ctx context.Context, opts ...ListAgentsOptions) (res
 	return
 }
 
+func (c *Client) DeleteThread(ctx context.Context, id string) error {
+	_, resp, err := c.doRequest(ctx, http.MethodDelete, fmt.Sprintf("/threads/"+id), nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
 type ListThreadsOptions struct {
 	AgentID string
 }
@@ -264,12 +295,17 @@ func (c *Client) DebugRun(ctx context.Context, runID string) (result types.RunDe
 	return
 }
 
-func (c *Client) ListRuns(ctx context.Context, opts ...ListRunsOptions) (result types.RunList, err error) {
-	defer func() {
-		sort.Slice(result.Items, func(i, j int) bool {
-			return result.Items[i].Created.Before(result.Items[j].Created)
-		})
-	}()
+func (c *Client) StreamRuns(ctx context.Context, opts ...ListRunsOptions) (result <-chan types.Run, err error) {
+	url := c.runURLFromOpts(opts...)
+	_, resp, err := c.doStream(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return
+	}
+
+	return toStream[types.Run](resp), nil
+}
+
+func (c *Client) runURLFromOpts(opts ...ListRunsOptions) string {
 	var opt ListRunsOptions
 	for _, o := range opts {
 		if o.ThreadID != "" {
@@ -287,7 +323,17 @@ func (c *Client) ListRuns(ctx context.Context, opts ...ListRunsOptions) (result 
 	} else if opt.ThreadID != "" {
 		url = fmt.Sprintf("/threads/%s/runs", opt.ThreadID)
 	}
+	return url
+}
 
+func (c *Client) ListRuns(ctx context.Context, opts ...ListRunsOptions) (result types.RunList, err error) {
+	defer func() {
+		sort.Slice(result.Items, func(i, j int) bool {
+			return result.Items[i].Created.Before(result.Items[j].Created)
+		})
+	}()
+
+	url := c.runURLFromOpts(opts...)
 	_, resp, err := c.doRequest(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return

@@ -18,6 +18,7 @@ import (
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Agent":                   schema_storage_apis_ottogptscriptai_v1_Agent(ref),
+		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentExternalStatus":     schema_storage_apis_ottogptscriptai_v1_AgentExternalStatus(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentList":               schema_storage_apis_ottogptscriptai_v1_AgentList(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentManifest":           schema_storage_apis_ottogptscriptai_v1_AgentManifest(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec":               schema_storage_apis_ottogptscriptai_v1_AgentSpec(ref),
@@ -165,6 +166,24 @@ func schema_storage_apis_ottogptscriptai_v1_Agent(ref common.ReferenceCallback) 
 		},
 		Dependencies: []string{
 			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+	}
+}
+
+func schema_storage_apis_ottogptscriptai_v1_AgentExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"slugAssigned": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -346,6 +365,12 @@ func schema_storage_apis_ottogptscriptai_v1_AgentStatus(ref common.ReferenceCall
 							},
 						},
 					},
+					"external": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentExternalStatus"),
+						},
+					},
 					"slugAssigned": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"boolean"},
@@ -386,7 +411,7 @@ func schema_storage_apis_ottogptscriptai_v1_AgentStatus(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 

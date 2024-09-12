@@ -87,6 +87,7 @@ func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadN
 			Name:         createName,
 			GenerateName: "t1",
 			Namespace:    agent.Namespace,
+			Finalizers:   []string{v1.ThreadFinalizer},
 		},
 		Spec: v1.ThreadSpec{
 			AgentName:            agent.Name,

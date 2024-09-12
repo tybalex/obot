@@ -8,6 +8,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/api/types"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ThreadHandler struct {
@@ -22,8 +23,7 @@ func NewThreadHandler(wc *wclient.Client) *ThreadHandler {
 
 func convertThread(thread v1.Thread) types.Thread {
 	return types.Thread{
-		ID:            thread.Name,
-		Created:       thread.CreationTimestamp.Time,
+		Metadata:      types.MetadataFrom(&thread),
 		Description:   thread.Status.Description,
 		AgentID:       thread.Spec.AgentName,
 		Input:         thread.Spec.Input,
@@ -34,11 +34,24 @@ func convertThread(thread v1.Thread) types.Thread {
 	}
 }
 
+func (a *ThreadHandler) Delete(req api.Context) error {
+	var (
+		id = req.PathValue("id")
+	)
+	return req.Delete(&v1.Thread{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      id,
+			Namespace: req.Namespace(),
+		},
+	})
+}
+
 func (a *ThreadHandler) List(req api.Context) error {
 	var (
 		agentName  = req.PathValue("agent")
 		threadList v1.ThreadList
 	)
+
 	if err := req.List(&threadList); err != nil {
 		return err
 	}
@@ -52,6 +65,7 @@ func (a *ThreadHandler) List(req api.Context) error {
 
 	return req.Write(resp)
 }
+
 func (a *ThreadHandler) Files(req api.Context) error {
 	var (
 		id     = req.PathValue("id")

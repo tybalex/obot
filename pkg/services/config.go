@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"os"
 
 	"github.com/acorn-io/baaah"
 	"github.com/acorn-io/baaah/pkg/leader"
@@ -16,10 +17,13 @@ import (
 	"github.com/gptscript-ai/otto/pkg/storage/services"
 	"github.com/gptscript-ai/otto/pkg/system"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
+	coordinationv1 "k8s.io/api/coordination/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type Config struct {
-	HTTPListenPort int `usage:"HTTP port to listen on" default:"8080" name:"http-listen-port"`
+	HTTPListenPort int  `usage:"HTTP port to listen on" default:"8080" name:"http-listen-port"`
+	DevMode        bool `usage:"Enable development mode" default:"false" name:"dev-mode" env:"OTTO_DEV_MODE"`
 	services.Config
 }
 
@@ -38,9 +42,15 @@ type Services struct {
 func New(ctx context.Context, config Config) (*Services, error) {
 	system.SetBinToSelf()
 
+	config = configureDevMode(config)
+
 	storageClient, restConfig, err := storage.Start(ctx, config.Config)
 	if err != nil {
 		return nil, err
+	}
+
+	if config.DevMode {
+		startDevMode(ctx, storageClient)
 	}
 
 	c, err := gptscript.NewGPTScript()
@@ -72,4 +82,33 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		KnowledgeTool:   config.KnowledgeTool,
 		AIHelper:        aihelper.New(c, config.HelperModel),
 	}, nil
+}
+
+func configureDevMode(config Config) Config {
+	if !config.DevMode {
+		return config
+	}
+
+	if config.StorageListenPort == 0 {
+		if config.HTTPListenPort == 8080 {
+			config.StorageListenPort = 8443
+		} else {
+			config.StorageListenPort = config.HTTPListenPort + 1
+		}
+	}
+	if config.StorageToken == "" {
+		config.StorageToken = "adminpass"
+	}
+	_ = os.Setenv("BAAAH_DEV_MODE", "true")
+
+	return config
+}
+
+func startDevMode(ctx context.Context, storageClient storage.Client) {
+	_ = storageClient.Delete(ctx, &coordinationv1.Lease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "otto-controller",
+			Namespace: "kube-system",
+		},
+	})
 }

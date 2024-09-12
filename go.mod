@@ -3,7 +3,7 @@ module github.com/gptscript-ai/otto
 go 1.23.0
 
 require (
-	github.com/acorn-io/baaah v0.0.0-20240910162159-dfd39cd3089b
+	github.com/acorn-io/baaah v0.0.0-20240912163758-8f7c537609d1
 	github.com/acorn-io/mink v0.0.0-20240905175847-47ca8045831c
 	github.com/dop251/goja v0.0.0-20240828124009-016eb7256539
 	github.com/dustin/go-humanize v1.0.1
@@ -13,6 +13,7 @@ require (
 	github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240903180507-c0fb2e8ebab6
 	github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240903162849-eaaf0cdb72ca
 	github.com/hexops/autogold/v2 v2.2.1
+	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/pterm/pterm v0.12.79
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
@@ -92,7 +93,6 @@ require (
 	github.com/jonboulle/clockwork v0.3.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/lithammer/fuzzysearch v1.1.8 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

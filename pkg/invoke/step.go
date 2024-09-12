@@ -13,6 +13,7 @@ func (i *Invoker) Step(ctx context.Context, step *v1.WorkflowStep, input string)
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: "t1",
 			Namespace:    step.Namespace,
+			Finalizers:   []string{v1.ThreadFinalizer},
 		},
 		Spec: v1.ThreadSpec{
 			WorkflowStepName: step.Name,

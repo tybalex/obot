@@ -90,11 +90,19 @@ func (a *AgentHandler) CreateWorkspaces(req router.Request, resp router.Response
 
 	knowledgeWorkspaceID, err := a.workspaceClient.Create(req.Ctx, a.workspaceProvider)
 	if err != nil {
+		_ = a.workspaceClient.Rm(req.Ctx, workspaceID)
 		return err
 	}
 
 	agent.Status.KnowledgeWorkspaceID = knowledgeWorkspaceID
 	agent.Status.WorkspaceID = workspaceID
+
+	if err := req.Client.Status().Update(req.Ctx, agent); err != nil {
+		_ = a.workspaceClient.Rm(req.Ctx, workspaceID)
+		_ = a.workspaceClient.Rm(req.Ctx, knowledgeWorkspaceID)
+		return err
+	}
+
 	return nil
 }
 

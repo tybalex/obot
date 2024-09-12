@@ -15,6 +15,7 @@ type List[T any] struct {
 type Metadata struct {
 	ID      string            `json:"id,omitempty"`
 	Created time.Time         `json:"created,omitempty"`
+	Deleted *time.Time        `json:"deleted,omitempty"`
 	Links   map[string]string `json:"links,omitempty"`
 }
 
@@ -23,6 +24,9 @@ func MetadataFrom(obj kclient.Object, linkKV ...string) Metadata {
 		ID:      obj.GetName(),
 		Created: obj.GetCreationTimestamp().Time,
 		Links:   map[string]string{},
+	}
+	if delTime := obj.GetDeletionTimestamp(); delTime != nil {
+		m.Deleted = &delTime.Time
 	}
 	for i := 0; i < len(linkKV); i += 2 {
 		m.Links[linkKV[i]] = linkKV[i+1]
@@ -33,14 +37,13 @@ func MetadataFrom(obj kclient.Object, linkKV ...string) Metadata {
 type Agent struct {
 	Metadata
 	v1.AgentManifest
-	SlugAssigned bool `json:"slugAssigned"`
+	v1.AgentExternalStatus
 }
 
 type AgentList List[Agent]
 
 type Thread struct {
-	ID            string                   `json:"id,omitempty"`
-	Created       time.Time                `json:"created,omitempty"`
+	Metadata
 	Description   string                   `json:"description,omitempty"`
 	AgentID       string                   `json:"agentID,omitempty"`
 	Input         string                   `json:"input,omitempty"`

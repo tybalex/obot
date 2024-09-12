@@ -4,7 +4,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
 	"github.com/gptscript-ai/otto/pkg/gz"
-	v2 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 )
 
 type RunHandler struct {
@@ -14,7 +14,7 @@ func NewRunHandler() *RunHandler {
 	return &RunHandler{}
 }
 
-func convertRun(run v2.Run) types.Run {
+func convertRun(run v1.Run) types.Run {
 	return types.Run{
 		ID:            run.Name,
 		Created:       run.CreationTimestamp.Time,
@@ -33,7 +33,7 @@ func (a *RunHandler) Debug(req api.Context) error {
 		runID = req.Request.PathValue("run")
 	)
 
-	var run v2.RunState
+	var run v1.RunState
 	if err := req.Get(&run, runID); err != nil {
 		return err
 	}
@@ -46,25 +46,56 @@ func (a *RunHandler) Debug(req api.Context) error {
 	return req.Write(calls)
 }
 
+func (a *RunHandler) stream(req api.Context, criteria func(*v1.Run) bool) error {
+	c, err := api.Watch[*v1.Run](req, &v1.RunList{})
+	if err != nil {
+		return err
+	}
+
+	req.ResponseWriter.Header().Set("Content-Type", "text/event-stream")
+	for run := range c {
+		if !criteria(run) {
+			continue
+		}
+		if err := req.WriteDataEvent(convertRun(*run)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func runCriteria(agentName, threadName string) func(*v1.Run) bool {
+	return func(run *v1.Run) bool {
+		if agentName != "" && run.Spec.AgentName != agentName {
+			return false
+		}
+		if threadName != "" && run.Spec.ThreadName != threadName {
+			return false
+		}
+		return true
+	}
+}
+
 func (a *RunHandler) List(req api.Context) error {
 	var (
-		agentName  = req.Request.PathValue("agent")
-		threadName = req.Request.PathValue("thread")
-		runList    v2.RunList
+		criteria = runCriteria(req.Request.PathValue("agent"), req.Request.PathValue("thread"))
+		runList  v1.RunList
 	)
+
+	if req.IsStream() {
+		return a.stream(req, criteria)
+	}
+
 	if err := req.List(&runList); err != nil {
 		return err
 	}
 
 	var resp types.RunList
 	for _, run := range runList.Items {
-		if agentName != "" && run.Spec.AgentName != agentName {
-			continue
+		if criteria(&run) {
+			resp.Items = append(resp.Items, convertRun(run))
 		}
-		if threadName != "" && run.Spec.ThreadName != threadName {
-			continue
-		}
-		resp.Items = append(resp.Items, convertRun(run))
 	}
 
 	return req.Write(resp)

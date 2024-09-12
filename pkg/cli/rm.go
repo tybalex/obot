@@ -23,26 +23,20 @@ func (l *Delete) Run(cmd *cobra.Command, args []string) error {
 		}
 
 		switch id[0:2] {
-		//case "t1":
-		//	if err := l.root.client.DeleteThread(cmd.Context(), id); err != nil {
-		//		errs = append(errs, err)
-		//	} else {
-		//		log.Errorf("Thread deleted: %s\n", id)
-		//	}
-		default:
-			fallthrough
+		case "t1":
+			if err := l.root.Client.DeleteThread(cmd.Context(), id); err != nil {
+				errs = append(errs, err)
+			} else {
+				log.Infof("Thread deleted: %s\n", id)
+			}
 		case "a1":
 			if err := l.root.Client.DeleteAgent(cmd.Context(), id); err != nil {
 				errs = append(errs, err)
 			} else {
 				log.Infof("Agent deleted: %s\n", id)
 			}
-			//case "r1":
-			//	if err := l.root.client.DeleteRun(cmd.Context(), id); err != nil {
-			//		errs = append(errs, err)
-			//	} else {
-			//		log.Errorf("Run deleted: %s\n", id)
-			//	}
+		default:
+			errs = append(errs, errors.New("invalid ID: "+id))
 		}
 	}
 

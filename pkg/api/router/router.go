@@ -40,6 +40,7 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	// Threads
 	mux.Handle("GET /threads", w(threads.List))
+	mux.Handle("DELETE /threads/{id}", w(threads.Delete))
 	mux.Handle("GET /agents/{agent}/threads", w(threads.List))
 
 	// Thread files

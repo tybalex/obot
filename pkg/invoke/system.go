@@ -10,8 +10,9 @@ import (
 func (i *Invoker) SystemAction(ctx context.Context, generateName, namespace, tool, input string, env ...string) (*Response, error) {
 	thread := v1.Thread{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: generateName,
+			GenerateName: "t1" + generateName,
 			Namespace:    namespace,
+			Finalizers:   []string{v1.ThreadFinalizer},
 		},
 		Spec: v1.ThreadSpec{
 			Input: input,
