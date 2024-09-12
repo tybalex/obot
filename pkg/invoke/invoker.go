@@ -414,7 +414,7 @@ func (i *Invoker) stream(ctx context.Context, events chan v1.Progress, thread *v
 			select {
 			case <-saveCtx.Done():
 				return
-			case <-time.After(2 * time.Second):
+			case <-time.After(1 * time.Second):
 				_ = i.saveState(ctx, thread, run, runResp, nil)
 			}
 		}
@@ -450,34 +450,36 @@ func (i *Invoker) stream(ctx context.Context, events chan v1.Progress, thread *v
 }
 
 func printString(out chan v1.Progress, last, current string) {
-	current = strings.TrimPrefix(current, "Waiting for model response...")
-	current, _, _ = strings.Cut(current, "<tool call> ")
+	toPrint := current
 	if strings.HasPrefix(current, last) {
-		out <- v1.Progress{
-			Content: current[len(last):],
-		}
-	} else {
-		out <- v1.Progress{
-			Content: current,
-		}
+		toPrint = current[len(last):]
 	}
-}
 
-func printSubCall(runState *v1.RunState, lastPrint map[string][]gptscript.Output, out chan v1.Progress) {
-	var (
-		prg   gptscript.Program
-		calls = map[string]gptscript.CallFrame{}
-	)
-	if err := gz.Decompress(&calls, runState.Spec.CallFrame); err != nil {
-		return
-	}
-	if err := gz.Decompress(&prg, runState.Spec.Program); err != nil {
-		return
-	}
-	for _, call := range calls {
-		if call.ParentID == "" {
-			printCall(prg, &call, lastPrint, out)
+	toPrint, waitingOnModel := strings.CutPrefix(toPrint, "Waiting for model response...")
+	toPrint, toolPrint, isToolCall := strings.Cut(toPrint, "<tool call> ")
+	toolName := ""
+
+	if isToolCall {
+		toolName = strings.Split(toolPrint, " ->")[0]
+	} else {
+		_, wasToolPrint, wasToolCall := strings.Cut(current, "<tool call> ")
+		if wasToolCall {
+			toolName = strings.Split(wasToolPrint, " ->")[0]
+			toolPrint = toPrint
+			toPrint = ""
 		}
+	}
+
+	toolPrint = strings.TrimPrefix(toolPrint, toolName+" -> ")
+
+	out <- v1.Progress{
+		Content: toPrint,
+		Tool: v1.ToolProgress{
+			GeneratingInputForName: toolName,
+			GeneratingInput:        isToolCall,
+			PartialInput:           toolPrint,
+		},
+		WaitingOnModel: waitingOnModel,
 	}
 }
 

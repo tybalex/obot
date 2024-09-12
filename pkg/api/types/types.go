@@ -81,14 +81,4 @@ type InvokeResponse struct {
 	ThreadID string
 }
 
-type Progress struct {
-	Content string       `json:"content,omitempty"`
-	Error   string       `json:"error,omitempty"`
-	Tool    ToolProgress `json:"tool,omitempty"`
-}
-
-type ToolProgress struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	Input       string `json:"input,omitempty"`
-}
+type Progress v1.Progress

@@ -261,6 +261,12 @@ func schema_storage_apis_ottogptscriptai_v1_AgentManifest(ref common.ReferenceCa
 							Format: "float",
 						},
 					},
+					"cache": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 					"slug": {
 						SchemaProps: spec.SchemaProps{
 							Default: "",
@@ -326,7 +332,7 @@ func schema_storage_apis_ottogptscriptai_v1_AgentManifest(ref common.ReferenceCa
 						},
 					},
 				},
-				Required: []string{"name", "description", "temperature", "slug", "prompt", "agents", "tools", "codeDependencies"},
+				Required: []string{"name", "description", "temperature", "cache", "slug", "prompt", "agents", "tools", "codeDependencies"},
 			},
 		},
 	}
@@ -430,6 +436,12 @@ func schema_storage_apis_ottogptscriptai_v1_AgentStep(ref common.ReferenceCallba
 					"prompt": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"cache": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
 							Format: "",
 						},
 					},
@@ -541,6 +553,18 @@ func schema_storage_apis_ottogptscriptai_v1_Progress(ref common.ReferenceCallbac
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
 							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolProgress"),
+						},
+					},
+					"waitingOnModel": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"error": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 				},
@@ -1459,6 +1483,24 @@ func schema_storage_apis_ottogptscriptai_v1_ToolProgress(ref common.ReferenceCal
 					"input": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"partialInput": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"generatingInputForName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"generatingInput": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
 							Format: "",
 						},
 					},

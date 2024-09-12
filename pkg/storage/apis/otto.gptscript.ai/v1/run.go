@@ -33,14 +33,19 @@ func (in *Run) GetConditions() *[]metav1.Condition {
 }
 
 type Progress struct {
-	Content string       `json:"content"`
-	Tool    ToolProgress `json:"tool"`
+	Content        string       `json:"content"`
+	Tool           ToolProgress `json:"tool"`
+	WaitingOnModel bool         `json:"waitingOnModel,omitempty"`
+	Error          string       `json:"error,omitempty"`
 }
 
 type ToolProgress struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	Input       string `json:"input,omitempty"`
+	Name                   string `json:"name,omitempty"`
+	Description            string `json:"description,omitempty"`
+	Input                  string `json:"input,omitempty"`
+	PartialInput           string `json:"partialInput,omitempty"`
+	GeneratingInputForName string `json:"generatingInputForName,omitempty"`
+	GeneratingInput        bool   `json:"generatingInput,omitempty"`
 }
 
 type RunSpec struct {

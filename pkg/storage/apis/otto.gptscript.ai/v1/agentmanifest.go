@@ -18,7 +18,7 @@ type AgentManifest struct {
 	Name             string            `json:"name"`
 	Description      string            `json:"description"`
 	Temperature      *float32          `json:"temperature"`
-	Cache            *bool             `json:"cache,omitempty"`
+	Cache            *bool             `json:"cache"`
 	Slug             string            `json:"slug"`
 	Prompt           Body              `json:"prompt"`
 	Agents           []string          `json:"agents"`
@@ -28,6 +28,10 @@ type AgentManifest struct {
 }
 
 type Body string
+
+func (a Body) IsInline() bool {
+	return strings.HasPrefix(string(a), "!")
+}
 
 func (a Body) Instructions() string {
 	if a.IsJSON() {
