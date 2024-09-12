@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +23,7 @@ func (l *Agents) Run(cmd *cobra.Command, args []string) error {
 
 	if l.Quiet {
 		for _, agent := range agents.Items {
-			cmd.Println(agent.ID)
+			fmt.Println(agent.ID)
 		}
 		return nil
 	}

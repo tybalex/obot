@@ -28,7 +28,7 @@ type Context struct {
 	User      user.Info
 }
 
-func (r *Context) IsStream() bool {
+func (r *Context) IsStreamRequested() bool {
 	return slices.Contains(r.Request.Header.Values("Accept"), "text/event-stream")
 }
 

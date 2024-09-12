@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
-	"slices"
 	"time"
 
 	"github.com/gptscript-ai/otto/pkg/api"
@@ -29,6 +27,10 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 		slug     v1.Slug
 		threadID = req.PathValue("thread")
 	)
+
+	if threadID == "" {
+		threadID = req.Request.Header.Get("X-Otto-Thread-Id")
+	}
 
 	if !system.IsSystemID(agentID) {
 		if err := req.Get(&slug, agentID); apierrors.IsNotFound(err) {
@@ -59,7 +61,7 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 	req.ResponseWriter.Header().Set("X-Otto-Run-Id", resp.Run.Name)
 
 	// Check if SSE is requested
-	sendEvents := slices.Contains(req.Request.Header.Values("Accept"), "text/event-stream")
+	sendEvents := req.IsStreamRequested()
 	if sendEvents {
 		req.ResponseWriter.Header().Set("Content-Type", "text/event-stream")
 	}
@@ -67,16 +69,9 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 	var lastFlush time.Time
 	for event := range resp.Events {
 		if sendEvents {
-			if err := req.Write([]byte("data: ")); err != nil {
+			if err := req.WriteDataEvent(event); err != nil {
 				return err
 			}
-			if err := json.NewEncoder(req.ResponseWriter).Encode(event); err != nil {
-				return err
-			}
-			if err := req.Write([]byte("\n\n")); err != nil {
-				return err
-			}
-			req.Flush()
 		} else {
 			if err := req.Write([]byte(event.Content)); err != nil {
 				return err

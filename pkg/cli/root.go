@@ -4,8 +4,8 @@ import (
 	"os"
 
 	"github.com/gptscript-ai/cmd"
-	"github.com/gptscript-ai/gptscript/pkg/mvl"
 	"github.com/gptscript-ai/otto/pkg/api/client"
+	"github.com/gptscript-ai/otto/pkg/mvl"
 	"github.com/spf13/cobra"
 )
 

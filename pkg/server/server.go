@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gptscript-ai/gptscript/pkg/mvl"
 	"github.com/gptscript-ai/otto/pkg/api/router"
 	"github.com/gptscript-ai/otto/pkg/controller"
+	"github.com/gptscript-ai/otto/pkg/mvl"
 	"github.com/gptscript-ai/otto/pkg/services"
 )
 

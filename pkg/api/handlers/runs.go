@@ -83,7 +83,7 @@ func (a *RunHandler) List(req api.Context) error {
 		runList  v1.RunList
 	)
 
-	if req.IsStream() {
+	if req.IsStreamRequested() {
 		return a.stream(req, criteria)
 	}
 

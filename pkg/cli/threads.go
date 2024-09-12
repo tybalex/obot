@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/dustin/go-humanize"
@@ -33,7 +34,7 @@ func (l *Threads) Run(cmd *cobra.Command, args []string) error {
 
 	if l.Quiet {
 		for _, thread := range threads.Items {
-			cmd.Println(thread.ID)
+			fmt.Println(thread.ID)
 		}
 		return nil
 	}

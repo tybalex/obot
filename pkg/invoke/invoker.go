@@ -60,15 +60,12 @@ type Options struct {
 
 func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadName string) (*v1.Thread, error) {
 	var (
-		thread     v1.Thread
-		createName string
+		thread v1.Thread
 	)
 	if threadName != "" {
 		err := i.storage.Get(ctx, router.Key(agent.Namespace, threadName), &thread)
-		if apierror.IsNotFound(err) {
-			createName = threadName
-		} else {
-			return &thread, err
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -84,7 +81,6 @@ func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadN
 
 	thread = v1.Thread{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:         createName,
 			GenerateName: "t1",
 			Namespace:    agent.Namespace,
 			Finalizers:   []string{v1.ThreadFinalizer},

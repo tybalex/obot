@@ -11,7 +11,6 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
 	github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240912171914-a7d55cdfb7fe
-	github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240903162849-eaaf0cdb72ca
 	github.com/hexops/autogold/v2 v2.2.1
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/pterm/pterm v0.12.79
@@ -121,6 +120,7 @@ require (
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
+	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stoewer/go-strcase v1.2.0 // indirect
 	github.com/xlab/treeprint v1.2.0 // indirect

@@ -130,7 +130,7 @@ func (l *Create) Run(cmd *cobra.Command, args []string) error {
 		textio.Print(fmt.Sprintf("You can now interact with your new agent by running:"))
 		fmt.Println()
 		fmt.Printf("CLI:  otto invoke --chat %s Hello\n", agent.ID)
-		fmt.Printf("cURL: curl -d Hello %s\n", agent.Links["invoke"]+"/threads/random-thread-id")
+		fmt.Printf("cURL: curl -d Hello %s\n", agent.Links["invoke"])
 	}
 	return nil
 }

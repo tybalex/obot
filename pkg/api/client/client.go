@@ -10,12 +10,16 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/pkg/mvl"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 )
+
+var log = mvl.Package()
 
 type Client struct {
 	BaseURL string
@@ -43,6 +47,31 @@ func (c *Client) doStream(ctx context.Context, method, path string, body io.Read
 }
 
 func (c *Client) doRequest(ctx context.Context, method, path string, body io.Reader, headerKV ...string) (*http.Request, *http.Response, error) {
+	if log.IsDebug() {
+		var (
+			data    = "[NONE]"
+			headers string
+		)
+		if body != nil {
+			dataBytes, err := io.ReadAll(body)
+			if err != nil {
+				return nil, nil, err
+			}
+			if utf8.Valid(dataBytes) {
+				data = string(dataBytes)
+			} else {
+				data = fmt.Sprintf("[BINARY DATA len(%d)]", len(dataBytes))
+			}
+
+			body = bytes.NewReader(dataBytes)
+		}
+		// Convert headerKV... into a string of format k1=v1, k2=v2, ...
+		for i := 0; i < len(headerKV); i += 2 {
+			headers += fmt.Sprintf("%s=%s, ", headerKV[i], headerKV[i+1])
+		}
+		log.Fields("method", method, "path", path, "body", data, "headers", headers).Debugf("HTTP Request")
+	}
+
 	req, err := http.NewRequestWithContext(ctx, method, c.BaseURL+path, body)
 	if err != nil {
 		return nil, nil, err
