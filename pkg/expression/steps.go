@@ -96,6 +96,19 @@ func (s *Steps) GetStep(name string) (*Step, bool, error) {
 		}
 	}
 
+	if s.step.Spec.ParentWorkflowStepName != "" {
+		var parent v1.WorkflowStep
+		if err := s.client.Get(s.ctx, router.Key(s.step.Namespace, s.step.Spec.ParentWorkflowStepName), &parent); err != nil {
+			return nil, false, err
+		}
+		parentSteps := &Steps{
+			step:   &parent,
+			ctx:    s.ctx,
+			client: s.client,
+		}
+		return parentSteps.GetStep(name)
+	}
+
 	return nil, false, nil
 }
 
