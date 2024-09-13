@@ -155,7 +155,7 @@ func Eval(ctx context.Context, client kclient.Client, step *v1.WorkflowStep, exp
 
 	x, err := vm.RunString(expr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("while evaluating %q: %w", expr, err)
 	}
 	return x.Export(), nil
 }
