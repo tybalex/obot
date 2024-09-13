@@ -11,7 +11,6 @@ type WorkflowManifest struct {
 type Step struct {
 	Name    string    `json:"name,omitempty"`
 	Input   StepInput `json:"input,omitempty"`
-	Tool    string    `json:"tool,omitempty"`
 	If      *If       `json:"if,omitempty"`
 	While   *While    `json:"while,omitempty"`
 	ForEach *ForEach  `json:"forEach,omitempty"`

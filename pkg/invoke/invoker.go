@@ -253,6 +253,8 @@ func (i *Invoker) createRun(ctx context.Context, thread *v1.Thread, input string
 		runResp, err = i.gptClient.Evaluate(ctx, options, t...)
 	case string:
 		runResp, err = i.gptClient.Run(ctx, t, options)
+	case v1.Body:
+		runResp, err = i.gptClient.Run(ctx, string(t), options)
 	default:
 		return nil, fmt.Errorf("invalid tool type: %T", tool)
 	}
