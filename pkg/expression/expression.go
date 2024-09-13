@@ -98,7 +98,7 @@ func setForItem(ctx context.Context, client kclient.Client, vm *goja.Runtime, st
 		return setForItem(ctx, client, vm, &parentStep)
 	}
 
-	if len(step.Spec.ForItem) == 0 {
+	if len(step.Spec.ForItem) == 0 || step.Spec.Step.ForEach == nil {
 		return nil
 	}
 
