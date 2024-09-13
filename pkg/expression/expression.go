@@ -199,7 +199,11 @@ func EvalString(ctx context.Context, client kclient.Client, step *v1.WorkflowSte
 	if str, ok := result.(string); ok {
 		return str, nil
 	}
-	return "", fmt.Errorf("while evaluating %q expected string, got %T", expr, result)
+	data, err := json.Marshal(result)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }
 
 func setForItem(ctx context.Context, client kclient.Client, vm *goja.Runtime, step *v1.WorkflowStep) error {
