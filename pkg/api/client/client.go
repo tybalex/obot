@@ -355,6 +355,16 @@ func (c *Client) runURLFromOpts(opts ...ListRunsOptions) string {
 	return url
 }
 
+func (c *Client) GetRun(ctx context.Context, id string) (result *types.Run, err error) {
+	_, resp, err := c.doRequest(ctx, http.MethodGet, fmt.Sprintf("/runs/"+id), nil)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	return toObject(resp, &types.Run{})
+}
+
 func (c *Client) ListRuns(ctx context.Context, opts ...ListRunsOptions) (result types.RunList, err error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {

@@ -30,7 +30,7 @@ func convertRun(run v1.Run) types.Run {
 
 func (a *RunHandler) Debug(req api.Context) error {
 	var (
-		runID = req.Request.PathValue("run")
+		runID = req.Request.PathValue("id")
 	)
 
 	var run v1.RunState
@@ -75,6 +75,19 @@ func runCriteria(agentName, threadName string) func(*v1.Run) bool {
 		}
 		return true
 	}
+}
+
+func (a *RunHandler) ByID(req api.Context) error {
+	var (
+		runID = req.Request.PathValue("id")
+	)
+
+	var run v1.Run
+	if err := req.Get(&run, runID); err != nil {
+		return err
+	}
+
+	return req.Write(convertRun(run))
 }
 
 func (a *RunHandler) List(req api.Context) error {

@@ -57,7 +57,8 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	// Runs
 	mux.Handle("GET /runs", w(runs.List))
-	mux.Handle("GET /runs/{run}/debug", w(runs.Debug))
+	mux.Handle("GET /runs/{id}", w(runs.ByID))
+	mux.Handle("GET /runs/{id}/debug", w(runs.Debug))
 	mux.Handle("GET /threads/{thread}/runs", w(runs.List))
 	mux.Handle("GET /agents/{agent}/runs", w(runs.List))
 	mux.Handle("GET /agents/{agent}/threads/{thread}/runs", w(runs.List))
