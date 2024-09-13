@@ -13,7 +13,7 @@ func (h *Handler) getInput(ctx context.Context, client kclient.Client, step *v1.
 	if len(step.Spec.Step.Input.Args) > 0 {
 		resultMap := map[string]any{}
 		for key, value := range step.Spec.Step.Input.Args {
-			result, err := expression.EvalString(ctx, client, step, value)
+			result, err := expression.Eval(ctx, client, step, value)
 			if err != nil {
 				return "", err
 			}
