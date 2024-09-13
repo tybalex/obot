@@ -60,10 +60,6 @@ func (s *Steps) Get(key string) (any, bool, error) {
 }
 
 func (s *Steps) getSiblings() (result []v1.WorkflowStep, _ error) {
-	if s.step.Spec.ParentWorkflowStepName == "" {
-		return nil, nil
-	}
-
 	var steps v1.WorkflowStepList
 	if err := s.client.List(s.ctx, &steps, kclient.InNamespace(s.step.Namespace)); err != nil {
 		return nil, err
