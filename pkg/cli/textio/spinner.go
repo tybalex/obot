@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-var chars []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"},
+var chars = []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
 
 type SpinnerPrinter struct {
 	lastContent string
