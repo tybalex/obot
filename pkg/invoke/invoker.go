@@ -398,7 +398,6 @@ func (i *Invoker) stream(ctx context.Context, events chan v1.Progress, thread *v
 	var (
 		runEvent = runResp.Events()
 		wg       sync.WaitGroup
-		prg      gptscript.Program
 	)
 	defer func() {
 		retErr = i.saveState(ctx, thread, run, runResp, retErr)
@@ -435,15 +434,21 @@ func (i *Invoker) stream(ctx context.Context, events chan v1.Progress, thread *v
 				return runResp.Err()
 			}
 
-			if frame.Run != nil {
-				if len(frame.Run.Program.ToolSet) > 0 {
-					prg = frame.Run.Program
-				}
-			} else if frame.Call != nil {
+			if frame.Call != nil {
 				switch frame.Call.Type {
+				case gptscript.EventTypeCallStart:
+					if frame.Call.ToolCategory == gptscript.NoCategory && !frame.Call.Tool.Chat {
+						events <- v1.Progress{
+							Tool: v1.ToolProgress{
+								Name:        frame.Call.Tool.Name,
+								Description: frame.Call.Tool.Description,
+								Input:       frame.Call.Input,
+							},
+						}
+					}
 				case gptscript.EventTypeCallProgress, gptscript.EventTypeCallFinish:
 					if frame.Call.ToolCategory == gptscript.NoCategory && frame.Call.Tool.Chat {
-						printCall(prg, frame.Call, lastPrint, events)
+						printCall(frame.Call, lastPrint, events)
 					}
 				}
 			}
@@ -485,7 +490,7 @@ func printString(out chan v1.Progress, last, current string) {
 	}
 }
 
-func printCall(prg gptscript.Program, call *gptscript.CallFrame, lastPrint map[string][]gptscript.Output, out chan v1.Progress) {
+func printCall(call *gptscript.CallFrame, lastPrint map[string][]gptscript.Output, out chan v1.Progress) {
 	lastOutputs := lastPrint[call.ID]
 	for i, currentOutput := range call.Output {
 		for i >= len(lastOutputs) {
@@ -497,28 +502,6 @@ func printCall(prg gptscript.Program, call *gptscript.CallFrame, lastPrint map[s
 			printString(out, last.Content, currentOutput.Content)
 			last.Content = currentOutput.Content
 		}
-
-		if last.SubCalls == nil {
-			last.SubCalls = map[string]gptscript.Call{}
-		}
-
-		for subCallID, subCall := range currentOutput.SubCalls {
-			lastSubCall, ok := last.SubCalls[subCallID]
-			if !ok || lastSubCall != subCall {
-				tool, ok := prg.ToolSet[subCall.ToolID]
-				if ok {
-					out <- v1.Progress{
-						Tool: v1.ToolProgress{
-							Name:        tool.Name,
-							Description: tool.Description,
-							Input:       subCall.Input,
-						},
-					}
-				}
-			}
-			last.SubCalls[subCallID] = subCall
-		}
-
 		lastOutputs[i] = currentOutput
 	}
 
