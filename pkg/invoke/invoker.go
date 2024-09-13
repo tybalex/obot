@@ -77,12 +77,12 @@ func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadN
 		}
 	}
 
-	workspaceID, err := i.workspaceClient.Create(ctx, i.threadWorkspaceProvider, agent.Status.WorkspaceID)
+	workspaceID, err := i.workspaceClient.Create(ctx, i.threadWorkspaceProvider, agent.Status.Workspace.WorkspaceID)
 	if err != nil {
 		return nil, err
 	}
 
-	knowledgeWorkspaceID, err := i.workspaceClient.Create(ctx, i.threadWorkspaceProvider, agent.Status.KnowledgeWorkspaceID)
+	knowledgeWorkspaceID, err := i.workspaceClient.Create(ctx, i.threadWorkspaceProvider, agent.Status.KnowledgeWorkspace.KnowledgeWorkspaceID)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (i *Invoker) getThread(ctx context.Context, agent *v1.Agent, input, threadN
 	thread = v1.Thread{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:         createName,
-			GenerateName: "t1",
+			GenerateName: system.ThreadPrefix,
 			Namespace:    agent.Namespace,
 			Finalizers:   []string{v1.ThreadFinalizer},
 		},
@@ -195,7 +195,7 @@ func (i *Invoker) createRunFromRemoteTool(ctx context.Context, thread *v1.Thread
 func (i *Invoker) createRun(ctx context.Context, thread *v1.Thread, input string, opts runOptions, tool any) (*Response, error) {
 	var run = v1.Run{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "r1",
+			GenerateName: system.RunPrefix,
 			Namespace:    thread.Namespace,
 			Finalizers:   []string{v1.RunFinalizer},
 		},

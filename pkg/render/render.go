@@ -21,6 +21,17 @@ type AgentOptions struct {
 	KnowledgeTool string
 }
 
+func agentKnowledgeEnv(agent *v1.Agent, thread *v1.Thread) (envs []string) {
+	if agent.GetKnowledgeWorkspaceStatus().HasKnowledge {
+		envs = append(envs, fmt.Sprintf("GPTSCRIPT_SCRIPT_ID=%s",
+			workspace.KnowledgeIDFromWorkspaceID(agent.GetKnowledgeWorkspaceStatus().KnowledgeWorkspaceID)))
+		if thread != nil && thread.GetKnowledgeWorkspaceStatus().HasKnowledge {
+			envs = append(envs, fmt.Sprintf("OTTO_THREAD_ID=%s", workspace.KnowledgeIDFromWorkspaceID(thread.GetKnowledgeWorkspaceStatus().KnowledgeWorkspaceID)))
+		}
+	}
+	return envs
+}
+
 func Agent(ctx context.Context, db storage.Client, agent *v1.Agent, opts AgentOptions) (_ []gptscript.ToolDef, extraEnv []string, _ error) {
 	t := []gptscript.ToolDef{{
 		Name:         agent.Spec.Manifest.Name,
@@ -34,15 +45,10 @@ func Agent(ctx context.Context, db storage.Client, agent *v1.Agent, opts AgentOp
 		Type:         "agent",
 	}}
 
-	if agent.Status.HasKnowledge || (opts.Thread != nil && opts.Thread.Status.HasKnowledge) {
-		t[0].Tools = append(t[0].Tools, opts.KnowledgeTool)
-		extraEnv = append(extraEnv,
-			fmt.Sprintf("GPTSCRIPT_SCRIPT_ID=%s", workspace.KnowledgeIDFromWorkspaceID(agent.Status.KnowledgeWorkspaceID)),
-		)
-		if opts.Thread != nil {
-			extraEnv = append(extraEnv,
-				fmt.Sprintf("OTTO_THREAD_ID=%s", workspace.KnowledgeIDFromWorkspaceID(opts.Thread.Spec.KnowledgeWorkspaceID)),
-			)
+	if envs := agentKnowledgeEnv(agent, opts.Thread); len(envs) > 0 {
+		extraEnv = envs
+		if opts.KnowledgeTool != "" {
+			t[0].Tools = append(t[0].Tools, opts.KnowledgeTool)
 		}
 	}
 

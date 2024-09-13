@@ -24,16 +24,18 @@ func (in *WorkflowStep) GetConditions() *[]metav1.Condition {
 }
 
 type WorkflowStepSpec struct {
-	ParentWorkflowStepName string   `json:"parentWorkflowStepName,omitempty"`
-	AfterWorkflowStepName  string   `json:"afterWorkflowStepName,omitempty"`
-	Step                   Step     `json:"step,omitempty"`
-	Path                   []string `json:"path,omitempty"`
-	GroupIndex             *int     `json:"groupIndex,omitempty"`
-	StepIndex              *int     `json:"stepIndex,omitempty"`
-	ForItem                []byte   `json:"forItem,omitempty"`
-	WorkflowName           string   `json:"workflowName,omitempty"`
-	WorkflowExecutionName  string   `json:"workflowExecutionName,omitempty"`
-	WorkspaceID            string   `json:"workspaceID,omitempty"`
+	ParentWorkflowStepName                string   `json:"parentWorkflowStepName,omitempty"`
+	AfterWorkflowStepName                 string   `json:"afterWorkflowStepName,omitempty"`
+	Step                                  Step     `json:"step,omitempty"`
+	Path                                  []string `json:"path,omitempty"`
+	GroupIndex                            *int     `json:"groupIndex,omitempty"`
+	StepIndex                             *int     `json:"stepIndex,omitempty"`
+	ForItem                               []byte   `json:"forItem,omitempty"`
+	WorkflowName                          string   `json:"workflowName,omitempty"`
+	WorkflowExecutionName                 string   `json:"workflowExecutionName,omitempty"`
+	WorkflowKnowledgeWorkspaceID          string   `json:"workflowKnowledgeWorkspaceID,omitempty"`
+	WorkflowExecutionKnowledgeWorkspaceID string   `json:"workflowExecutionKnowledgeWorkspaceId,omitempty"`
+	WorkspaceID                           string   `json:"workspaceID,omitempty"`
 }
 
 type WorkflowStepState string

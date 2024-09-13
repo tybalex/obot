@@ -22,6 +22,7 @@ type Runs struct {
 func (l *Runs) Customize(cmd *cobra.Command) {
 	cmd.Use = "runs [flags] [AGENT_ID] [THREAD_ID]"
 	cmd.Args = cobra.MaximumNArgs(2)
+	cmd.Aliases = []string{"run", "r"}
 }
 
 func (l *Runs) printRunsQuiet(i iter.Seq[types.Run]) error {

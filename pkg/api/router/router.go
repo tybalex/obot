@@ -12,6 +12,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux := http.NewServeMux()
 
 	agents := handlers.NewAgentHandler(services.WorkspaceClient, "directory")
+	workflows := handlers.NewWorkflowHandler(services.WorkspaceClient, "directory")
 	invoker := handlers.NewInvokeHandler(services.Invoker)
 	threads := handlers.NewThreadHandler(services.WorkspaceClient)
 	runs := handlers.NewRunHandler()
@@ -34,6 +35,24 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.Handle("POST /agents/{id}/knowledge", w(agents.IngestKnowledge))
 	mux.Handle("POST /agents/{id}/knowledge/{file}", w(agents.UploadKnowledge))
 	mux.Handle("DELETE /agents/{id}/knowledge/{file}", w(agents.DeleteKnowledge))
+
+	// Workflows
+	mux.Handle("GET /workflows", w(workflows.List))
+	mux.Handle("GET /workflows/{id}", w(workflows.ByID))
+	mux.Handle("POST /workflows", w(workflows.Create))
+	mux.Handle("PUT /workflows/{id}", w(workflows.Update))
+	mux.Handle("DELETE /workflows/{id}", w(workflows.Delete))
+
+	// Workflow files
+	mux.Handle("GET /workflows/{id}/files", w(workflows.Files))
+	mux.Handle("POST /workflows/{id}/files/{file}", w(workflows.UploadFile))
+	mux.Handle("DELETE /workflows/{id}/files/{file}", w(workflows.DeleteFile))
+
+	// Workflow knowledge files
+	mux.Handle("GET /workflows/{id}/knowledge", w(workflows.Knowledge))
+	mux.Handle("POST /workflows/{id}/knowledge", w(workflows.IngestKnowledge))
+	mux.Handle("POST /workflows/{id}/knowledge/{file}", w(workflows.UploadKnowledge))
+	mux.Handle("DELETE /workflows/{id}/knowledge/{file}", w(workflows.DeleteKnowledge))
 
 	// Invoker
 	mux.Handle("POST /invoke/{agent}", w(invoker.Invoke))

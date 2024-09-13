@@ -19,6 +19,14 @@ type Workflow struct {
 	Status WorkflowStatus `json:"status,omitempty"`
 }
 
+func (in *Workflow) GetKnowledgeWorkspaceStatus() *KnowledgeWorkspaceStatus {
+	return &in.Status.KnowledgeWorkspace
+}
+
+func (in *Workflow) GetWorkspaceStatus() *WorkspaceStatus {
+	return &in.Status.Workspace
+}
+
 func (in *Workflow) GetConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
 }
@@ -27,10 +35,15 @@ type WorkflowSpec struct {
 	Manifest WorkflowManifest `json:"manifest,omitempty"`
 }
 
+type WorkflowExternalStatus struct {
+	SlugAssigned bool `json:"slugAssigned,omitempty"`
+}
+
 type WorkflowStatus struct {
-	SlugAssigned bool               `json:"slugAssigned,omitempty"`
-	WorkspaceID  string             `json:"workspaceID,omitempty"`
-	Conditions   []metav1.Condition `json:"conditions,omitempty"`
+	External           WorkflowExternalStatus   `json:"external,omitempty"`
+	Workspace          WorkspaceStatus          `json:"workspace,omitempty"`
+	KnowledgeWorkspace KnowledgeWorkspaceStatus `json:"knowledgeWorkspace,omitempty"`
+	Conditions         []metav1.Condition       `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

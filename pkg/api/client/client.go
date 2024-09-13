@@ -8,15 +8,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"sort"
 	"strings"
 	"unicode/utf8"
 
-	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/api/types"
 	"github.com/gptscript-ai/otto/pkg/mvl"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 )
 
 var log = mvl.Package()
@@ -103,16 +99,6 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body io.Rea
 	return req, resp, err
 }
 
-func (c *Client) UpdateAgent(ctx context.Context, id string, manifest v1.AgentManifest) (*types.Agent, error) {
-	_, resp, err := c.putJSON(ctx, fmt.Sprintf("/agents/%s", id), manifest)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	return toObject(resp, &types.Agent{})
-}
-
 func toStream[T any](resp *http.Response) chan T {
 	ch := make(chan T)
 	go func() {
@@ -139,201 +125,6 @@ func toObject[T any](resp *http.Response, obj T) (def T, _ error) {
 	return obj, nil
 }
 
-func (c *Client) DeleteAgent(ctx context.Context, id string) error {
-	_, resp, err := c.doRequest(ctx, http.MethodDelete, fmt.Sprintf("/agents/"+id), nil)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	return nil
-}
-
-type InvokeOptions struct {
-	ThreadID string
-}
-
-func (c *Client) Invoke(ctx context.Context, agentID string, input string, opt ...InvokeOptions) (*types.InvokeResponse, error) {
-	var (
-		opts InvokeOptions
-	)
-	for _, o := range opt {
-		if o.ThreadID != "" {
-			opts.ThreadID = o.ThreadID
-		}
-	}
-
-	url := fmt.Sprintf("/invoke/%s?events=true", agentID)
-	if opts.ThreadID != "" {
-		url = fmt.Sprintf("/invoke/%s/threads/%s?events=true", agentID, opts.ThreadID)
-	}
-
-	_, resp, err := c.doRequest(ctx, http.MethodPost, url, bytes.NewBuffer([]byte(input)), "Accept", "text/event-stream")
-	if err != nil {
-		return nil, err
-	}
-
-	events := make(chan types.Progress)
-	go func() {
-		defer resp.Body.Close()
-		defer close(events)
-		lines := bufio.NewScanner(resp.Body)
-		for lines.Scan() {
-			var event types.Progress
-			data := strings.TrimPrefix(lines.Text(), "data: ")
-			if len(data) == 0 {
-				continue
-			}
-			if err := json.Unmarshal([]byte(data), &event); err != nil {
-				events <- types.Progress{
-					Error: err.Error(),
-				}
-			} else {
-				events <- event
-			}
-		}
-
-		if err := lines.Err(); err != nil {
-			events <- types.Progress{
-				Error: err.Error(),
-			}
-		}
-	}()
-
-	return &types.InvokeResponse{
-		Events:   events,
-		RunID:    resp.Header.Get("X-Otto-Run-Id"),
-		ThreadID: resp.Header.Get("X-Otto-Thread-Id"),
-	}, nil
-}
-
-func (c *Client) GetAgent(ctx context.Context, id string) (*types.Agent, error) {
-	_, resp, err := c.doRequest(ctx, http.MethodGet, fmt.Sprintf("/agents/"+id), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return toObject(resp, &types.Agent{})
-}
-
-func (c *Client) CreateAgent(ctx context.Context, agent v1.AgentManifest) (*types.Agent, error) {
-	_, resp, err := c.postJSON(ctx, fmt.Sprintf("/agents"), agent)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	return toObject(resp, &types.Agent{})
-}
-
-type ListAgentsOptions struct {
-	Slug string
-}
-
-func (c *Client) ListAgents(ctx context.Context, opts ...ListAgentsOptions) (result types.AgentList, err error) {
-	defer func() {
-		sort.Slice(result.Items, func(i, j int) bool {
-			return result.Items[i].Metadata.Created.Before(result.Items[j].Metadata.Created)
-		})
-	}()
-
-	var opt ListAgentsOptions
-	for _, o := range opts {
-		if o.Slug != "" {
-			opt.Slug = o.Slug
-		}
-	}
-
-	_, resp, err := c.doRequest(ctx, http.MethodGet, "/agents", nil)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	_, err = toObject(resp, &result)
-	if err != nil {
-		return result, err
-	}
-
-	if opt.Slug != "" {
-		var filtered types.AgentList
-		for _, agent := range result.Items {
-			if agent.Slug == opt.Slug && agent.SlugAssigned {
-				filtered.Items = append(filtered.Items, agent)
-			}
-		}
-		result = filtered
-	}
-
-	return
-}
-
-func (c *Client) DeleteThread(ctx context.Context, id string) error {
-	_, resp, err := c.doRequest(ctx, http.MethodDelete, fmt.Sprintf("/threads/"+id), nil)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	return nil
-}
-
-type ListThreadsOptions struct {
-	AgentID string
-}
-
-func (c *Client) ListThreads(ctx context.Context, opts ...ListThreadsOptions) (result types.ThreadList, err error) {
-	defer func() {
-		sort.Slice(result.Items, func(i, j int) bool {
-			return result.Items[i].Created.Before(result.Items[j].Created)
-		})
-	}()
-
-	var opt ListThreadsOptions
-	for _, o := range opts {
-		if o.AgentID != "" {
-			opt.AgentID = o.AgentID
-		}
-	}
-	url := "/threads"
-	if opt.AgentID != "" {
-		url = fmt.Sprintf("/agents/%s", opt.AgentID) + url
-	}
-	_, resp, err := c.doRequest(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	_, err = toObject(resp, &result)
-	return
-}
-
-type ListRunsOptions struct {
-	AgentID  string
-	ThreadID string
-}
-
-func (c *Client) DebugRun(ctx context.Context, runID string) (result types.RunDebug, err error) {
-	_, resp, err := c.doRequest(ctx, http.MethodGet, fmt.Sprintf("/runs/%s/debug", runID), nil)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	result.Frames = map[string]gptscript.CallFrame{}
-	err = json.NewDecoder(resp.Body).Decode(&result.Frames)
-	return
-}
-
-func (c *Client) StreamRuns(ctx context.Context, opts ...ListRunsOptions) (result <-chan types.Run, err error) {
-	url := c.runURLFromOpts(opts...)
-	_, resp, err := c.doStream(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return
-	}
-
-	return toStream[types.Run](resp), nil
-}
-
 func (c *Client) runURLFromOpts(opts ...ListRunsOptions) string {
 	var opt ListRunsOptions
 	for _, o := range opts {
@@ -353,32 +144,4 @@ func (c *Client) runURLFromOpts(opts ...ListRunsOptions) string {
 		url = fmt.Sprintf("/threads/%s/runs", opt.ThreadID)
 	}
 	return url
-}
-
-func (c *Client) GetRun(ctx context.Context, id string) (result *types.Run, err error) {
-	_, resp, err := c.doRequest(ctx, http.MethodGet, fmt.Sprintf("/runs/"+id), nil)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	return toObject(resp, &types.Run{})
-}
-
-func (c *Client) ListRuns(ctx context.Context, opts ...ListRunsOptions) (result types.RunList, err error) {
-	defer func() {
-		sort.Slice(result.Items, func(i, j int) bool {
-			return result.Items[i].Created.Before(result.Items[j].Created)
-		})
-	}()
-
-	url := c.runURLFromOpts(opts...)
-	_, resp, err := c.doRequest(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return
-	}
-	defer resp.Body.Close()
-
-	_, err = toObject(resp, &result)
-	return
 }

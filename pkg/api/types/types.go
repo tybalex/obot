@@ -42,6 +42,14 @@ type Agent struct {
 
 type AgentList List[Agent]
 
+type Workflow struct {
+	Metadata
+	v1.WorkflowManifest
+	v1.WorkflowExternalStatus
+}
+
+type WorkflowList List[Workflow]
+
 type Thread struct {
 	Metadata
 	Description   string                   `json:"description,omitempty"`

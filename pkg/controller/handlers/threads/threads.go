@@ -43,36 +43,3 @@ func (t *ThreadHandler) Cleanup(req router.Request, resp router.Response) error 
 
 	return nil
 }
-
-func (t *ThreadHandler) RemoveWorkspaces(req router.Request, resp router.Response) error {
-	thread := req.Object.(*v1.Thread)
-	if err := t.Workspace.Rm(req.Ctx, thread.Spec.WorkspaceID); err != nil {
-		return err
-	}
-
-	if thread.Status.HasKnowledge {
-		if err := t.ingester.DeleteKnowledge(req.Ctx, thread.Namespace, thread.Spec.KnowledgeWorkspaceID); err != nil {
-			return err
-		}
-	}
-
-	if thread.Spec.KnowledgeWorkspaceID != "" {
-		return t.Workspace.Rm(req.Ctx, thread.Spec.KnowledgeWorkspaceID)
-	}
-
-	return nil
-}
-
-func (t *ThreadHandler) IngestKnowledge(req router.Request, resp router.Response) error {
-	thread := req.Object.(*v1.Thread)
-	if thread.Status.KnowledgeGeneration == thread.Status.ObservedKnowledgeGeneration || !thread.Status.HasKnowledge {
-		return nil
-	}
-
-	if err := t.ingester.IngestKnowledge(req.Ctx, thread.Namespace, thread.Spec.KnowledgeWorkspaceID); err != nil {
-		return err
-	}
-
-	thread.Status.ObservedKnowledgeGeneration = thread.Status.KnowledgeGeneration
-	return nil
-}

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
@@ -125,13 +124,7 @@ func (a *ThreadHandler) UploadKnowledge(req api.Context) error {
 		return fmt.Errorf("failed to get thread with id %s: %w", id, err)
 	}
 
-	if err := uploadFile(req.Context(), req, a.workspaceClient, thread.Spec.KnowledgeWorkspaceID); err != nil {
-		return err
-	}
-
-	thread.Status.KnowledgeGeneration++
-	thread.Status.HasKnowledge = true
-	return req.Storage.Status().Update(req.Context(), &thread)
+	return uploadKnowledge(req, a.workspaceClient, &thread, &thread.Status.KnowledgeWorkspace)
 }
 
 func (a *ThreadHandler) DeleteKnowledge(req api.Context) error {
@@ -145,18 +138,7 @@ func (a *ThreadHandler) DeleteKnowledge(req api.Context) error {
 		return fmt.Errorf("failed to get thread with id %s: %w", id, err)
 	}
 
-	if err := deleteFile(req.Context(), req, a.workspaceClient, thread.Spec.KnowledgeWorkspaceID, filename); err != nil {
-		return err
-	}
-
-	files, err := a.workspaceClient.Ls(req.Context(), thread.Spec.KnowledgeWorkspaceID)
-	if err != nil {
-		return fmt.Errorf("failed to list files in workspace %s: %w", thread.Spec.KnowledgeWorkspaceID, err)
-	}
-
-	thread.Status.KnowledgeGeneration++
-	thread.Status.HasKnowledge = len(files) > 0
-	return req.Storage.Status().Update(req.Context(), &thread)
+	return deleteKnowledge(req, a.workspaceClient, &thread, &thread.Status.KnowledgeWorkspace, filename)
 }
 
 func (a *ThreadHandler) IngestKnowledge(req api.Context) error {
@@ -168,17 +150,5 @@ func (a *ThreadHandler) IngestKnowledge(req api.Context) error {
 		return fmt.Errorf("failed to get thread with id %s: %w", id, err)
 	}
 
-	files, err := a.workspaceClient.Ls(req.Context(), thread.Spec.KnowledgeWorkspaceID)
-	if err != nil {
-		return err
-	}
-
-	req.WriteHeader(http.StatusNoContent)
-
-	if len(files) == 0 && !thread.Status.HasKnowledge {
-		return nil
-	}
-
-	thread.Status.KnowledgeGeneration++
-	return req.Storage.Status().Update(req.Context(), &thread)
+	return ingestKnowlege(req, a.workspaceClient, &thread, &thread.Status.KnowledgeWorkspace)
 }

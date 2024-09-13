@@ -33,6 +33,7 @@ func New() *cobra.Command {
 	return cmd.Command(root,
 		&Create{root: root},
 		&Agents{root: root},
+		&Workflows{root: root},
 		&Edit{root: root},
 		&Update{root: root},
 		&Delete{root: root},

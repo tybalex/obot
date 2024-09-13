@@ -69,9 +69,9 @@ func AssociateWithSlug(req router.Request, _ router.Response) error {
 	assigned := existingSlug.Spec == slug.Spec
 	switch v := req.Object.(type) {
 	case *v1.Workflow:
-		v.Status.SlugAssigned = assigned
+		v.Status.External.SlugAssigned = assigned
 	case *v1.Agent:
-		v.Status.SlugAssigned = assigned
+		v.Status.External.SlugAssigned = assigned
 	}
 	return nil
 }

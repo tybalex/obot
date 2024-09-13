@@ -9,6 +9,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/api/types"
 	"github.com/gptscript-ai/otto/pkg/render"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/system"
 	"github.com/thedadams/workspace-provider/pkg/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -68,7 +69,7 @@ func (a *AgentHandler) Create(req api.Context) error {
 	}
 	agent := v1.Agent{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: "a1",
+			GenerateName: system.AgentPrefix,
 			Namespace:    req.Namespace(),
 			Finalizers:   []string{v1.AgentFinalizer},
 		},
@@ -89,7 +90,7 @@ func convertAgent(agent v1.Agent, prefix string) *types.Agent {
 	var links []string
 	if prefix != "" {
 		slug := agent.Name
-		if agent.Status.SlugAssigned && agent.Spec.Manifest.Slug != "" {
+		if agent.Status.External.SlugAssigned && agent.Spec.Manifest.Slug != "" {
 			slug = agent.Spec.Manifest.Slug
 		}
 		links = []string{"invoke", prefix + "/invoke/" + slug}
@@ -133,7 +134,7 @@ func (a *AgentHandler) Files(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return listFiles(req.Context(), req, a.workspaceClient, agent.Status.WorkspaceID)
+	return listFiles(req.Context(), req, a.workspaceClient, agent.Status.Workspace.WorkspaceID)
 }
 
 func (a *AgentHandler) UploadFile(req api.Context) error {
@@ -145,7 +146,7 @@ func (a *AgentHandler) UploadFile(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return uploadFile(req.Context(), req, a.workspaceClient, agent.Status.WorkspaceID)
+	return uploadFile(req.Context(), req, a.workspaceClient, agent.Status.Workspace.WorkspaceID)
 }
 
 func (a *AgentHandler) DeleteFile(req api.Context) error {
@@ -159,7 +160,7 @@ func (a *AgentHandler) DeleteFile(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return deleteFile(req.Context(), req, a.workspaceClient, agent.Status.WorkspaceID, filename)
+	return deleteFile(req.Context(), req, a.workspaceClient, agent.Status.Workspace.WorkspaceID, filename)
 }
 
 func (a *AgentHandler) Knowledge(req api.Context) error {
@@ -171,7 +172,7 @@ func (a *AgentHandler) Knowledge(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return listFiles(req.Context(), req, a.workspaceClient, agent.Status.KnowledgeWorkspaceID)
+	return listFiles(req.Context(), req, a.workspaceClient, agent.Status.KnowledgeWorkspace.KnowledgeWorkspaceID)
 }
 
 func (a *AgentHandler) UploadKnowledge(req api.Context) error {
@@ -183,13 +184,7 @@ func (a *AgentHandler) UploadKnowledge(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	if err := uploadFile(req.Context(), req, a.workspaceClient, agent.Status.KnowledgeWorkspaceID); err != nil {
-		return err
-	}
-
-	agent.Status.KnowledgeGeneration++
-	agent.Status.HasKnowledge = true
-	return req.Storage.Status().Update(req.Context(), &agent)
+	return uploadKnowledge(req, a.workspaceClient, &agent, &agent.Status.KnowledgeWorkspace)
 }
 
 func (a *AgentHandler) DeleteKnowledge(req api.Context) error {
@@ -203,18 +198,7 @@ func (a *AgentHandler) DeleteKnowledge(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	if err := deleteFile(req.Context(), req, a.workspaceClient, agent.Status.KnowledgeWorkspaceID, filename); err != nil {
-		return err
-	}
-
-	files, err := a.workspaceClient.Ls(req.Context(), agent.Status.KnowledgeWorkspaceID)
-	if err != nil {
-		return fmt.Errorf("failed to list files in workspace %s: %w", agent.Status.KnowledgeWorkspaceID, err)
-	}
-
-	agent.Status.KnowledgeGeneration++
-	agent.Status.HasKnowledge = len(files) > 0
-	return req.Storage.Status().Update(req.Context(), &agent)
+	return deleteKnowledge(req, a.workspaceClient, &agent, &agent.Status.KnowledgeWorkspace, filename)
 }
 
 func (a *AgentHandler) IngestKnowledge(req api.Context) error {
@@ -226,19 +210,7 @@ func (a *AgentHandler) IngestKnowledge(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	files, err := a.workspaceClient.Ls(req.Context(), agent.Status.KnowledgeWorkspaceID)
-	if err != nil {
-		return err
-	}
-
-	req.WriteHeader(http.StatusNoContent)
-
-	if len(files) == 0 && !agent.Status.HasKnowledge {
-		return nil
-	}
-
-	agent.Status.KnowledgeGeneration++
-	return req.Storage.Status().Update(req.Context(), &agent)
+	return ingestKnowlege(req, a.workspaceClient, &agent, &agent.Status.KnowledgeWorkspace)
 }
 
 func (a *AgentHandler) Script(req api.Context) error {

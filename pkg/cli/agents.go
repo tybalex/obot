@@ -13,6 +13,7 @@ type Agents struct {
 }
 
 func (l *Agents) Customize(cmd *cobra.Command) {
+	cmd.Aliases = []string{"agent", "a"}
 }
 
 func (l *Agents) Run(cmd *cobra.Command, args []string) error {

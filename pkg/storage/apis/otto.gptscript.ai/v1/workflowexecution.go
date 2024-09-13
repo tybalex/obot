@@ -19,6 +19,14 @@ type WorkflowExecution struct {
 	Status WorkflowExecutionStatus `json:"status,omitempty"`
 }
 
+func (in *WorkflowExecution) GetKnowledgeWorkspaceStatus() *KnowledgeWorkspaceStatus {
+	return &in.Status.KnowledgeWorkspace
+}
+
+func (in *WorkflowExecution) GetWorkspaceStatus() *WorkspaceStatus {
+	return &in.Status.Workspace
+}
+
 func (in *WorkflowExecution) GetConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
 }
@@ -44,10 +52,11 @@ type WorkflowExecutionExternalStatus struct {
 }
 
 type WorkflowExecutionStatus struct {
-	External         WorkflowExecutionExternalStatus `json:"external,omitempty"`
-	WorkflowManifest *WorkflowManifest               `json:"workflowManifest,omitempty"`
-	WorkspaceID      string                          `json:"workspaceID,omitempty"`
-	Conditions       []metav1.Condition              `json:"conditions,omitempty"`
+	External           WorkflowExecutionExternalStatus `json:"external,omitempty"`
+	WorkflowManifest   *WorkflowManifest               `json:"workflowManifest,omitempty"`
+	Workspace          WorkspaceStatus                 `json:"workspace,omitempty"`
+	KnowledgeWorkspace KnowledgeWorkspaceStatus        `json:"knowledgeWorkspace,omitempty"`
+	Conditions         []metav1.Condition              `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

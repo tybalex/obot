@@ -18,6 +18,7 @@ type Threads struct {
 func (l *Threads) Customize(cmd *cobra.Command) {
 	cmd.Use = "threads [flags] AGENT_ID"
 	cmd.Args = cobra.MaximumNArgs(1)
+	cmd.Aliases = []string{"thread", "t"}
 }
 
 func (l *Threads) Run(cmd *cobra.Command, args []string) error {

@@ -26,18 +26,6 @@ func New(wc *wclient.Client) *Handler {
 	}
 }
 
-func (h *Handler) Finalize(req router.Request, resp router.Response) error {
-	we := req.Object.(*v1.WorkflowExecution)
-	if we.Status.WorkspaceID != "" {
-		if err := h.workspaceClient.Rm(req.Ctx, we.Status.WorkspaceID); err != nil {
-			return err
-		}
-		we.Status.WorkspaceID = ""
-	}
-
-	return nil
-}
-
 func (h *Handler) Cleanup(req router.Request, resp router.Response) error {
 	var (
 		we       = req.Object.(*v1.WorkflowExecution)
@@ -62,6 +50,11 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 		return nil
 	}
 
+	var wf v1.Workflow
+	if err := req.Get(&wf, we.Namespace, we.Spec.WorkflowName); err != nil {
+		return err
+	}
+
 	if we.Status.External.State != v1.WorkflowStateRunning {
 		we.Status.External.State = v1.WorkflowStateRunning
 		if err := req.Client.Status().Update(req.Ctx, we); err != nil {
@@ -77,12 +70,17 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 		}
 	}
 
-	if we.Status.WorkspaceID == "" {
+	if we.Status.Workspace.WorkspaceID == "" {
 		if ok, err := h.createWorkspace(req.Ctx, req.Client, we); err != nil {
 			return err
 		} else if !ok {
 			return nil
 		}
+	}
+
+	if wf.Status.KnowledgeWorkspace.KnowledgeWorkspaceID == "" {
+		we.Status.External.Message = "Waiting for knowledge workflow workspace to be created"
+		return nil
 	}
 
 	var (
@@ -98,12 +96,14 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 				Namespace: we.Namespace,
 			},
 			Spec: v1.WorkflowStepSpec{
-				AfterWorkflowStepName: lastStepName,
-				Step:                  step,
-				Path:                  []string{fmt.Sprint(i)},
-				WorkflowName:          we.Spec.WorkflowName,
-				WorkflowExecutionName: we.Name,
-				WorkspaceID:           we.Status.WorkspaceID,
+				AfterWorkflowStepName:                 lastStepName,
+				Step:                                  step,
+				Path:                                  []string{fmt.Sprint(i)},
+				WorkflowName:                          we.Spec.WorkflowName,
+				WorkflowExecutionName:                 we.Name,
+				WorkflowKnowledgeWorkspaceID:          wf.Status.KnowledgeWorkspace.KnowledgeWorkspaceID,
+				WorkflowExecutionKnowledgeWorkspaceID: we.Status.KnowledgeWorkspace.KnowledgeWorkspaceID,
+				WorkspaceID:                           we.Status.Workspace.WorkspaceID,
 			},
 		})
 
@@ -145,16 +145,16 @@ func (h *Handler) createWorkspace(ctx context.Context, client kclient.Client, we
 		return false, err
 	}
 
-	if workspace.Status.WorkspaceID == "" {
+	if workspace.Status.Workspace.WorkspaceID == "" {
 		we.Status.External.Message = "Waiting for workflow workspace to be created"
 		return false, nil
 	}
 
-	workspaceID, err := h.workspaceClient.Create(ctx, "directory", workspace.Status.WorkspaceID)
+	workspaceID, err := h.workspaceClient.Create(ctx, "directory", workspace.Status.Workspace.WorkspaceID)
 	if err != nil {
 		return false, err
 	}
-	we.Status.WorkspaceID = workspaceID
+	we.Status.Workspace.WorkspaceID = workspaceID
 	if err := client.Status().Update(ctx, we); err != nil {
 		// Delete workspace since we failed to update the workflow
 		if err := h.workspaceClient.Rm(ctx, workspaceID); err != nil {

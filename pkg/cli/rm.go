@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 
+	"github.com/gptscript-ai/otto/pkg/system"
 	"github.com/spf13/cobra"
 )
 
@@ -22,18 +23,24 @@ func (l *Delete) Run(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		switch id[0:2] {
-		case "t1":
+		switch {
+		case system.IsThreadID(id):
 			if err := l.root.Client.DeleteThread(cmd.Context(), id); err != nil {
 				errs = append(errs, err)
 			} else {
 				log.Infof("Thread deleted: %s\n", id)
 			}
-		case "a1":
+		case system.IsAgentID(id):
 			if err := l.root.Client.DeleteAgent(cmd.Context(), id); err != nil {
 				errs = append(errs, err)
 			} else {
 				log.Infof("Agent deleted: %s\n", id)
+			}
+		case system.IsWorkflowID(id):
+			if err := l.root.Client.DeleteWorkflow(cmd.Context(), id); err != nil {
+				errs = append(errs, err)
+			} else {
+				log.Infof("Workflow deleted: %s\n", id)
 			}
 		default:
 			errs = append(errs, errors.New("invalid ID: "+id))
