@@ -56,20 +56,20 @@ func (h *Handler) Cleanup(req router.Request, resp router.Response) error {
 func (h *Handler) Run(req router.Request, resp router.Response) error {
 	we := req.Object.(*v1.WorkflowExecution)
 
-	switch we.Status.State {
+	switch we.Status.External.State {
 	case v1.WorkflowStateError, v1.WorkflowStateComplete:
 		resp.DisablePrune()
 		return nil
 	}
 
-	if we.Status.State != v1.WorkflowStateRunning {
-		we.Status.State = v1.WorkflowStateRunning
+	if we.Status.External.State != v1.WorkflowStateRunning {
+		we.Status.External.State = v1.WorkflowStateRunning
 		if err := req.Client.Status().Update(req.Ctx, we); err != nil {
 			return err
 		}
 	}
 
-	we.Status.StatusMessage = ""
+	we.Status.External.Message = ""
 
 	if we.Status.WorkflowManifest == nil {
 		if err := h.loadManifest(req, we); err != nil {
@@ -115,7 +115,7 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 		return err
 	}
 
-	we.Status.State = newState
+	we.Status.External.State = newState
 	resp.Objects(steps...)
 	return nil
 }
@@ -146,7 +146,7 @@ func (h *Handler) createWorkspace(ctx context.Context, client kclient.Client, we
 	}
 
 	if workspace.Status.WorkspaceID == "" {
-		we.Status.StatusMessage = "Waiting for workflow workspace to be created"
+		we.Status.External.Message = "Waiting for workflow workspace to be created"
 		return false, nil
 	}
 

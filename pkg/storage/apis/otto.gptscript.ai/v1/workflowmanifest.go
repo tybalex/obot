@@ -6,6 +6,7 @@ type WorkflowManifest struct {
 	Slug        string            `json:"slug,omitempty"`
 	Params      map[string]string `json:"params,omitempty"`
 	Steps       []Step            `json:"steps,omitempty"`
+	Output      WorkflowOutput    `json:"output,omitempty"`
 }
 
 type Step struct {
@@ -19,17 +20,20 @@ type Step struct {
 	*ToolStep
 	Tools            []string `json:"tools,omitempty"`
 	Temperature      *float32 `json:"temperature,omitempty"`
+	Cache            *bool    `json:"cache,omitempty"`
 	CodeDependencies string   `json:"codeDependencies,omitempty"`
 }
 
 type AgentStep struct {
-	Prompt Body  `json:"prompt,omitempty"`
-	Cache  *bool `json:"cache,omitempty"`
+	Prompt Body `json:"prompt,omitempty"`
 }
 
 type ToolStep struct {
-	Tool Body `json:"tool,omitempty"`
+	Tool Body              `json:"tool,omitempty"`
+	Args map[string]string `json:"args,omitempty"`
 }
+
+type WorkflowOutput StepInput
 
 type StepInput struct {
 	Content string            `json:"content,omitempty"`

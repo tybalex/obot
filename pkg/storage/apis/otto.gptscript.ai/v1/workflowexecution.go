@@ -37,12 +37,17 @@ const (
 	WorkflowStateComplete WorkflowState = "Complete"
 )
 
+type WorkflowExecutionExternalStatus struct {
+	State   WorkflowState `json:"state,omitempty"`
+	Message string        `json:"message,omitempty"`
+	Output  string        `json:"output,omitempty"`
+}
+
 type WorkflowExecutionStatus struct {
-	State            WorkflowState      `json:"state,omitempty"`
-	StatusMessage    string             `json:"statusMessage,omitempty"`
-	WorkflowManifest *WorkflowManifest  `json:"workflowManifest,omitempty"`
-	WorkspaceID      string             `json:"workspaceID,omitempty"`
-	Conditions       []metav1.Condition `json:"conditions,omitempty"`
+	External         WorkflowExecutionExternalStatus `json:"external,omitempty"`
+	WorkflowManifest *WorkflowManifest               `json:"workflowManifest,omitempty"`
+	WorkspaceID      string                          `json:"workspaceID,omitempty"`
+	Conditions       []metav1.Condition              `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
