@@ -90,23 +90,27 @@ func EvalString(ctx context.Context, client kclient.Client, step *v1.WorkflowSte
 }
 
 func setForItem(ctx context.Context, client kclient.Client, vm *goja.Runtime, step *v1.WorkflowStep) error {
-	if step.Spec.ParentWorkflowStepName != "" {
-		if err := setForItem(ctx, client, vm, step); err != nil {
+	if len(step.Spec.ForItem) == 0 && step.Spec.ParentWorkflowStepName != "" {
+		var parentStep v1.WorkflowStep
+		if err := client.Get(ctx, router.Key(step.Namespace, step.Spec.ParentWorkflowStepName), &parentStep); err != nil {
 			return err
 		}
+		return setForItem(ctx, client, vm, &parentStep)
 	}
-	if len(step.Spec.ForItem) > 0 {
-		var obj any
-		if err := gz.Decompress(&obj, step.Spec.ForItem); err != nil {
-			return err
-		}
-		var itemName = "item"
-		if step.Spec.Step.ForEach.Var != "" {
-			itemName = step.Spec.Step.ForEach.Var
-		}
-		return vm.Set(itemName, obj)
+
+	if len(step.Spec.ForItem) == 0 {
+		return nil
 	}
-	return nil
+
+	var obj any
+	if err := gz.Decompress(&obj, step.Spec.ForItem); err != nil {
+		return err
+	}
+	var itemName = "item"
+	if step.Spec.Step.ForEach.Var != "" {
+		itemName = step.Spec.Step.ForEach.Var
+	}
+	return vm.Set(itemName, obj)
 }
 
 func Eval(ctx context.Context, client kclient.Client, step *v1.WorkflowStep, expr string) (any, error) {
