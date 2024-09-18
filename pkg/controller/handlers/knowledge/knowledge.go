@@ -3,9 +3,7 @@ package knowledge
 import (
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/otto/pkg/knowledge"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
-	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Handler struct {
@@ -22,13 +20,8 @@ func New(wc *wclient.Client, ingester *knowledge.Ingester, wp string) *Handler {
 	}
 }
 
-type knowledgeable interface {
-	kclient.Object
-	GetKnowledgeWorkspaceStatus() *v1.KnowledgeWorkspaceStatus
-}
-
 func (a *Handler) CreateWorkspace(req router.Request, resp router.Response) error {
-	knowledged := req.Object.(knowledgeable)
+	knowledged := req.Object.(knowledge.Knowledgeable)
 	status := knowledged.GetKnowledgeWorkspaceStatus()
 	if status.KnowledgeWorkspaceID != "" {
 		return nil
@@ -51,7 +44,7 @@ func (a *Handler) CreateWorkspace(req router.Request, resp router.Response) erro
 }
 
 func (a *Handler) RemoveWorkspace(req router.Request, resp router.Response) error {
-	knowledged := req.Object.(knowledgeable)
+	knowledged := req.Object.(knowledge.Knowledgeable)
 	status := knowledged.GetKnowledgeWorkspaceStatus()
 
 	if status.HasKnowledge {
@@ -67,8 +60,9 @@ func (a *Handler) RemoveWorkspace(req router.Request, resp router.Response) erro
 	return nil
 }
 
+// TODO(thedadams): add another handler that pulls the status logs off the run and stores them.
 func (a *Handler) IngestKnowledge(req router.Request, resp router.Response) error {
-	knowleged := req.Object.(knowledgeable)
+	knowleged := req.Object.(knowledge.Knowledgeable)
 	status := knowleged.GetKnowledgeWorkspaceStatus()
 	if status.KnowledgeGeneration == status.ObservedKnowledgeGeneration || !status.HasKnowledge {
 		return nil

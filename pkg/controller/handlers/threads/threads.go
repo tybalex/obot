@@ -32,6 +32,15 @@ func (t *ThreadHandler) Cleanup(req router.Request, resp router.Response) error 
 		}
 	}
 
+	if thread.Spec.WorkflowName != "" {
+		var workflow v1.Workflow
+		if err := req.Get(&workflow, thread.Namespace, thread.Spec.WorkflowName); apierrors.IsNotFound(err) {
+			return req.Delete(thread)
+		} else if err != nil {
+			return err
+		}
+	}
+
 	if thread.Spec.WorkflowStepName != "" {
 		var step v1.WorkflowStep
 		if err := req.Get(&step, thread.Namespace, thread.Spec.WorkflowStepName); apierrors.IsNotFound(err) {

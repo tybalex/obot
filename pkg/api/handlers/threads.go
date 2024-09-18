@@ -116,39 +116,13 @@ func (a *ThreadHandler) Knowledge(req api.Context) error {
 }
 
 func (a *ThreadHandler) UploadKnowledge(req api.Context) error {
-	var (
-		id     = req.PathValue("id")
-		thread v1.Thread
-	)
-	if err := req.Get(&thread, id); err != nil {
-		return fmt.Errorf("failed to get thread with id %s: %w", id, err)
-	}
-
-	return uploadKnowledge(req, a.workspaceClient, &thread, &thread.Status.KnowledgeWorkspace)
+	return uploadKnowledge(req, a.workspaceClient, req.PathValue("id"), new(v1.Thread))
 }
 
 func (a *ThreadHandler) DeleteKnowledge(req api.Context) error {
-	var (
-		id       = req.PathValue("id")
-		filename = req.PathValue("file")
-		thread   v1.Thread
-	)
-
-	if err := req.Get(&thread, id); err != nil {
-		return fmt.Errorf("failed to get thread with id %s: %w", id, err)
-	}
-
-	return deleteKnowledge(req, a.workspaceClient, &thread, &thread.Status.KnowledgeWorkspace, filename)
+	return deleteKnowledge(req, a.workspaceClient, req.PathValue("file"), req.PathValue("id"), new(v1.Thread))
 }
 
 func (a *ThreadHandler) IngestKnowledge(req api.Context) error {
-	var (
-		id     = req.PathValue("id")
-		thread v1.Thread
-	)
-	if err := req.Get(&thread, id); err != nil {
-		return fmt.Errorf("failed to get thread with id %s: %w", id, err)
-	}
-
-	return ingestKnowlege(req, a.workspaceClient, &thread, &thread.Status.KnowledgeWorkspace)
+	return ingestKnowledge(req, a.workspaceClient, req.PathValue("id"), new(v1.Thread))
 }

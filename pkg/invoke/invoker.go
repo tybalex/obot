@@ -193,7 +193,7 @@ func (i *Invoker) createRunFromRemoteTool(ctx context.Context, thread *v1.Thread
 // createRun is a low-level method that creates a Run object from a list of tools or a remote tool.
 // Callers should use createRunFromTools or createRunFromRemoteTool instead.
 func (i *Invoker) createRun(ctx context.Context, thread *v1.Thread, input string, opts runOptions, tool any) (*Response, error) {
-	var run = v1.Run{
+	run := v1.Run{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: system.RunPrefix,
 			Namespace:    thread.Namespace,

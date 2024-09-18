@@ -36,6 +36,12 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.Handle("POST /agents/{id}/knowledge/{file}", w(agents.UploadKnowledge))
 	mux.Handle("DELETE /agents/{id}/knowledge/{file}", w(agents.DeleteKnowledge))
 
+	mux.Handle("POST /agents/{agent_id}/onedrive-links", w(agents.CreateOnedriveLinks))
+	mux.Handle("GET /agents/{agent_id}/onedrive-links", w(agents.GetOnedriveLinks))
+	mux.Handle("PATCH /agents/{agent_id}/onedrive-links/{id}", w(agents.ReSyncOnedriveLinks))
+	mux.Handle("PUT /agents/{agent_id}/onedrive-links/{id}", w(agents.UpdateOnedriveLinks))
+	mux.Handle("DELETE /agents/{agent_id}/onedrive-links/{id}", w(agents.DeleteOnedriveLinks))
+
 	// Workflows
 	mux.Handle("GET /workflows", w(workflows.List))
 	mux.Handle("GET /workflows/{id}", w(workflows.ByID))
@@ -53,6 +59,12 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.Handle("POST /workflows/{id}/knowledge", w(workflows.IngestKnowledge))
 	mux.Handle("POST /workflows/{id}/knowledge/{file}", w(workflows.UploadKnowledge))
 	mux.Handle("DELETE /workflows/{id}/knowledge/{file}", w(workflows.DeleteKnowledge))
+
+	mux.Handle("POST /workflows/{workflow_id}/onedrive-links", w(workflows.CreateOnedriveLinks))
+	mux.Handle("GET /workflows/{workflow_id}/onedrive-links", w(workflows.GetOnedriveLinks))
+	mux.Handle("PATCH /workflows/{workflow_id}/onedrive-links/{id}", w(workflows.ReSyncOnedriveLinks))
+	mux.Handle("PUT /workflows/{workflow_id}/onedrive-links/{id}", w(workflows.UpdateOnedriveLinks))
+	mux.Handle("DELETE /workflows/{workflow_id}/onedrive-links/{id}", w(workflows.DeleteOnedriveLinks))
 
 	// Invoker
 	mux.Handle("POST /invoke/{agent}", w(invoker.Invoke))

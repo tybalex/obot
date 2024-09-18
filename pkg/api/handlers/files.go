@@ -8,9 +8,8 @@ import (
 
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/knowledge"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
-	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func listFiles(ctx context.Context, req api.Context, wc *wclient.Client, workspaceID string) error {
@@ -22,7 +21,12 @@ func listFiles(ctx context.Context, req api.Context, wc *wclient.Client, workspa
 	return req.Write(types.FileList{Items: files})
 }
 
-func uploadKnowledge(req api.Context, workspaceClient *wclient.Client, toUpdate kclient.Object, status *v1.KnowledgeWorkspaceStatus) error {
+func uploadKnowledge(req api.Context, workspaceClient *wclient.Client, parentName string, toUpdate knowledge.Knowledgeable) error {
+	if err := req.Get(toUpdate, parentName); err != nil {
+		return fmt.Errorf("failed to get parent with id %s: %w", req.PathValue("id"), err)
+	}
+
+	status := toUpdate.GetKnowledgeWorkspaceStatus()
 	if err := uploadFile(req.Context(), req, workspaceClient, status.KnowledgeWorkspaceID); err != nil {
 		return err
 	}
@@ -33,7 +37,7 @@ func uploadKnowledge(req api.Context, workspaceClient *wclient.Client, toUpdate 
 }
 
 func uploadFile(ctx context.Context, req api.Context, wc *wclient.Client, workspaceID string) error {
-	file := req.Request.PathValue("file")
+	file := req.PathValue("file")
 	if file == "" {
 		return fmt.Errorf("file path parameter is required")
 	}
@@ -53,7 +57,12 @@ func uploadFile(ctx context.Context, req api.Context, wc *wclient.Client, worksp
 	return nil
 }
 
-func deleteKnowledge(req api.Context, workspaceClient *wclient.Client, toUpdate kclient.Object, status *v1.KnowledgeWorkspaceStatus, filename string) error {
+func deleteKnowledge(req api.Context, workspaceClient *wclient.Client, filename, parentName string, toUpdate knowledge.Knowledgeable) error {
+	if err := req.Get(toUpdate, parentName); err != nil {
+		return fmt.Errorf("failed to get parent with id %s: %w", parentName, err)
+	}
+
+	status := toUpdate.GetKnowledgeWorkspaceStatus()
 	if err := deleteFile(req.Context(), req, workspaceClient, status.KnowledgeWorkspaceID, filename); err != nil {
 		return err
 	}
@@ -78,7 +87,12 @@ func deleteFile(ctx context.Context, req api.Context, wc *wclient.Client, worksp
 	return nil
 }
 
-func ingestKnowlege(req api.Context, workspaceClient *wclient.Client, toUpdate kclient.Object, status *v1.KnowledgeWorkspaceStatus) error {
+func ingestKnowledge(req api.Context, workspaceClient *wclient.Client, parentName string, toUpdate knowledge.Knowledgeable) error {
+	if err := req.Get(toUpdate, parentName); err != nil {
+		return fmt.Errorf("failed to get parent with id %s: %w", req.PathValue("id"), err)
+	}
+
+	status := toUpdate.GetKnowledgeWorkspaceStatus()
 	files, err := workspaceClient.Ls(req.Context(), status.KnowledgeWorkspaceID)
 	if err != nil {
 		return err

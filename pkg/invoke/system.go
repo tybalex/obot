@@ -24,7 +24,11 @@ func (i *Invoker) SystemAction(ctx context.Context, generateName, namespace, too
 		return nil, err
 	}
 
-	return i.createRunFromRemoteTool(ctx, &thread, tool, input, runOptions{
+	return i.SystemActionWithThread(ctx, &thread, tool, input, env...)
+}
+
+func (i *Invoker) SystemActionWithThread(ctx context.Context, thread *v1.Thread, tool, input string, env ...string) (*Response, error) {
+	return i.createRunFromRemoteTool(ctx, thread, tool, input, runOptions{
 		Env: env,
 	})
 }
