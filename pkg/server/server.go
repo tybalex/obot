@@ -9,6 +9,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/controller"
 	"github.com/gptscript-ai/otto/pkg/mvl"
 	"github.com/gptscript-ai/otto/pkg/services"
+	"github.com/rs/cors"
 )
 
 var log = mvl.Package()
@@ -40,5 +41,18 @@ func Run(ctx context.Context, c services.Config) error {
 
 	address := fmt.Sprintf("0.0.0.0:%d", c.HTTPListenPort)
 	log.Infof("Starting server on %s", address)
-	return http.ListenAndServe(address, handler)
+	allowEverything := cors.New(cors.Options{
+		AllowedOrigins: []string{c.AllowedOrigin},
+		AllowedMethods: []string{
+			http.MethodHead,
+			http.MethodGet,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodDelete,
+		},
+		AllowedHeaders: []string{"*"},
+		ExposedHeaders: []string{"*"},
+	})
+	return http.ListenAndServe(address, allowEverything.Handler(handler))
 }

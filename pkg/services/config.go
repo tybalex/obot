@@ -22,8 +22,9 @@ import (
 )
 
 type Config struct {
-	HTTPListenPort int  `usage:"HTTP port to listen on" default:"8080" name:"http-listen-port"`
-	DevMode        bool `usage:"Enable development mode" default:"false" name:"dev-mode" env:"OTTO_DEV_MODE"`
+	HTTPListenPort int    `usage:"HTTP port to listen on" default:"8080" name:"http-listen-port"`
+	DevMode        bool   `usage:"Enable development mode" default:"false" name:"dev-mode" env:"OTTO_DEV_MODE"`
+	AllowedOrigin  string `usage:"Allowed origin for CORS"`
 	services.Config
 }
 
