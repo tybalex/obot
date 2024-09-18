@@ -26,7 +26,7 @@ func NewWorkflowHandler(wc *client.Client, wp string) *WorkflowHandler {
 
 func (a *WorkflowHandler) Update(req api.Context) error {
 	var (
-		id       = req.Request.PathValue("id")
+		id       = req.PathValue("id")
 		workflow v1.Workflow
 		manifest v1.WorkflowManifest
 	)
@@ -49,7 +49,7 @@ func (a *WorkflowHandler) Update(req api.Context) error {
 
 func (a *WorkflowHandler) Delete(req api.Context) error {
 	var (
-		id = req.Request.PathValue("id")
+		id = req.PathValue("id")
 	)
 
 	return req.Delete(&v1.Workflow{
@@ -125,7 +125,7 @@ func (a *WorkflowHandler) List(req api.Context) error {
 
 func (a *WorkflowHandler) Files(req api.Context) error {
 	var (
-		id       = req.Request.PathValue("id")
+		id       = req.PathValue("id")
 		workflow v1.Workflow
 	)
 	if err := req.Get(&workflow, id); err != nil {
@@ -137,7 +137,7 @@ func (a *WorkflowHandler) Files(req api.Context) error {
 
 func (a *WorkflowHandler) UploadFile(req api.Context) error {
 	var (
-		id       = req.Request.PathValue("id")
+		id       = req.PathValue("id")
 		workflow v1.Workflow
 	)
 	if err := req.Get(&workflow, id); err != nil {
@@ -149,8 +149,8 @@ func (a *WorkflowHandler) UploadFile(req api.Context) error {
 
 func (a *WorkflowHandler) DeleteFile(req api.Context) error {
 	var (
-		id       = req.Request.PathValue("id")
-		filename = req.Request.PathValue("file")
+		id       = req.PathValue("id")
+		filename = req.PathValue("file")
 		workflow v1.Workflow
 	)
 
@@ -163,7 +163,7 @@ func (a *WorkflowHandler) DeleteFile(req api.Context) error {
 
 func (a *WorkflowHandler) Knowledge(req api.Context) error {
 	var (
-		id       = req.Request.PathValue("id")
+		id       = req.PathValue("id")
 		workflow v1.Workflow
 	)
 	if err := req.Get(&workflow, id); err != nil {
@@ -174,39 +174,33 @@ func (a *WorkflowHandler) Knowledge(req api.Context) error {
 }
 
 func (a *WorkflowHandler) UploadKnowledge(req api.Context) error {
-	var (
-		id       = req.Request.PathValue("id")
-		workflow v1.Workflow
-	)
-	if err := req.Get(&workflow, id); err != nil {
-		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
-	}
-
-	return uploadKnowledge(req, a.workspaceClient, &workflow, &workflow.Status.KnowledgeWorkspace)
+	return uploadKnowledge(req, a.workspaceClient, req.PathValue("id"), new(v1.Workflow))
 }
 
 func (a *WorkflowHandler) DeleteKnowledge(req api.Context) error {
-	var (
-		id       = req.Request.PathValue("id")
-		filename = req.Request.PathValue("file")
-		workflow v1.Workflow
-	)
-
-	if err := req.Get(&workflow, id); err != nil {
-		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
-	}
-
-	return deleteKnowledge(req, a.workspaceClient, &workflow, &workflow.Status.KnowledgeWorkspace, filename)
+	return deleteKnowledge(req, a.workspaceClient, req.PathValue("file"), req.PathValue("id"), new(v1.Workflow))
 }
 
 func (a *WorkflowHandler) IngestKnowledge(req api.Context) error {
-	var (
-		id       = req.Request.PathValue("id")
-		workflow v1.Workflow
-	)
-	if err := req.Get(&workflow, id); err != nil {
-		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
-	}
+	return ingestKnowledge(req, a.workspaceClient, req.PathValue("id"), new(v1.Workflow))
+}
 
-	return ingestKnowlege(req, a.workspaceClient, &workflow, &workflow.Status.KnowledgeWorkspace)
+func (a *WorkflowHandler) CreateOnedriveLinks(req api.Context) error {
+	return createOneDriveLinks(req, req.PathValue("workflow_id"), new(v1.Workflow))
+}
+
+func (a *WorkflowHandler) UpdateOnedriveLinks(req api.Context) error {
+	return updateOneDriveLinks(req, req.PathValue("id"), req.PathValue("workflow_id"), new(v1.Workflow))
+}
+
+func (a *WorkflowHandler) ReSyncOnedriveLinks(req api.Context) error {
+	return reSyncOneDriveLinks(req, req.PathValue("id"), req.PathValue("workflow_id"), new(v1.Workflow))
+}
+
+func (a *WorkflowHandler) GetOnedriveLinks(req api.Context) error {
+	return getOneDriveLinksForParent(req, req.PathValue("workflow_id"), new(v1.Workflow))
+}
+
+func (a *WorkflowHandler) DeleteOnedriveLinks(req api.Context) error {
+	return deleteOneDriveLinks(req, req.PathValue("id"), req.PathValue("workflow_id"), new(v1.Workflow))
 }

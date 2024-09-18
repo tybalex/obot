@@ -28,7 +28,7 @@ func NewAgentHandler(wc *client.Client, wp string) *AgentHandler {
 
 func (a *AgentHandler) Update(req api.Context) error {
 	var (
-		id       = req.Request.PathValue("id")
+		id       = req.PathValue("id")
 		agent    v1.Agent
 		manifest v1.AgentManifest
 	)
@@ -51,7 +51,7 @@ func (a *AgentHandler) Update(req api.Context) error {
 
 func (a *AgentHandler) Delete(req api.Context) error {
 	var (
-		id = req.Request.PathValue("id")
+		id = req.PathValue("id")
 	)
 
 	return req.Delete(&v1.Agent{
@@ -127,7 +127,7 @@ func (a *AgentHandler) List(req api.Context) error {
 
 func (a *AgentHandler) Files(req api.Context) error {
 	var (
-		id    = req.Request.PathValue("id")
+		id    = req.PathValue("id")
 		agent v1.Agent
 	)
 	if err := req.Get(&agent, id); err != nil {
@@ -139,7 +139,7 @@ func (a *AgentHandler) Files(req api.Context) error {
 
 func (a *AgentHandler) UploadFile(req api.Context) error {
 	var (
-		id    = req.Request.PathValue("id")
+		id    = req.PathValue("id")
 		agent v1.Agent
 	)
 	if err := req.Get(&agent, id); err != nil {
@@ -151,8 +151,8 @@ func (a *AgentHandler) UploadFile(req api.Context) error {
 
 func (a *AgentHandler) DeleteFile(req api.Context) error {
 	var (
-		id       = req.Request.PathValue("id")
-		filename = req.Request.PathValue("file")
+		id       = req.PathValue("id")
+		filename = req.PathValue("file")
 		agent    v1.Agent
 	)
 
@@ -165,7 +165,7 @@ func (a *AgentHandler) DeleteFile(req api.Context) error {
 
 func (a *AgentHandler) Knowledge(req api.Context) error {
 	var (
-		id    = req.Request.PathValue("id")
+		id    = req.PathValue("id")
 		agent v1.Agent
 	)
 	if err := req.Get(&agent, id); err != nil {
@@ -176,46 +176,40 @@ func (a *AgentHandler) Knowledge(req api.Context) error {
 }
 
 func (a *AgentHandler) UploadKnowledge(req api.Context) error {
-	var (
-		id    = req.Request.PathValue("id")
-		agent v1.Agent
-	)
-	if err := req.Get(&agent, id); err != nil {
-		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
-	}
-
-	return uploadKnowledge(req, a.workspaceClient, &agent, &agent.Status.KnowledgeWorkspace)
+	return uploadKnowledge(req, a.workspaceClient, req.PathValue("id"), new(v1.Agent))
 }
 
 func (a *AgentHandler) DeleteKnowledge(req api.Context) error {
-	var (
-		id       = req.Request.PathValue("id")
-		filename = req.Request.PathValue("file")
-		agent    v1.Agent
-	)
-
-	if err := req.Get(&agent, id); err != nil {
-		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
-	}
-
-	return deleteKnowledge(req, a.workspaceClient, &agent, &agent.Status.KnowledgeWorkspace, filename)
+	return deleteKnowledge(req, a.workspaceClient, req.PathValue("file"), req.PathValue("id"), new(v1.Agent))
 }
 
 func (a *AgentHandler) IngestKnowledge(req api.Context) error {
-	var (
-		id    = req.Request.PathValue("id")
-		agent v1.Agent
-	)
-	if err := req.Get(&agent, id); err != nil {
-		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
-	}
+	return ingestKnowledge(req, a.workspaceClient, req.PathValue("id"), new(v1.Agent))
+}
 
-	return ingestKnowlege(req, a.workspaceClient, &agent, &agent.Status.KnowledgeWorkspace)
+func (a *AgentHandler) CreateOnedriveLinks(req api.Context) error {
+	return createOneDriveLinks(req, req.PathValue("agent_id"), new(v1.Agent))
+}
+
+func (a *AgentHandler) UpdateOnedriveLinks(req api.Context) error {
+	return updateOneDriveLinks(req, req.PathValue("id"), req.PathValue("agent_id"), new(v1.Agent))
+}
+
+func (a *AgentHandler) ReSyncOnedriveLinks(req api.Context) error {
+	return reSyncOneDriveLinks(req, req.PathValue("id"), req.PathValue("agent_id"), new(v1.Agent))
+}
+
+func (a *AgentHandler) GetOnedriveLinks(req api.Context) error {
+	return getOneDriveLinksForParent(req, req.PathValue("agent_id"), new(v1.Agent))
+}
+
+func (a *AgentHandler) DeleteOnedriveLinks(req api.Context) error {
+	return deleteOneDriveLinks(req, req.PathValue("id"), req.PathValue("agent_id"), new(v1.Agent))
 }
 
 func (a *AgentHandler) Script(req api.Context) error {
 	var (
-		id    = req.Request.PathValue("id")
+		id    = req.PathValue("id")
 		agent v1.Agent
 	)
 	if err := req.Get(&agent, id); err != nil {

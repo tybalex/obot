@@ -21,6 +21,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const (
+	SystemToolKnowledge = "knowledge"
+	SystemToolOneDrive  = "onedrive"
+)
+
 type Config struct {
 	HTTPListenPort int  `usage:"HTTP port to listen on" default:"8080" name:"http-listen-port"`
 	DevMode        bool `usage:"Enable development mode" default:"false" name:"dev-mode" env:"OTTO_DEV_MODE"`
@@ -36,7 +41,7 @@ type Services struct {
 	APIServer       *api.Server
 	WorkspaceClient *wclient.Client
 	AIHelper        *aihelper.AIHelper
-	KnowledgeTool   string
+	SystemTools     map[string]string
 }
 
 func New(ctx context.Context, config Config) (*Services, error) {
@@ -79,8 +84,11 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		TokenServer:     tokenServer,
 		WorkspaceClient: workspaceClient,
 		Invoker:         invoke.NewInvoker(storageClient, c, tokenServer, workspaceClient, config.KnowledgeTool),
-		KnowledgeTool:   config.KnowledgeTool,
-		AIHelper:        aihelper.New(c, config.HelperModel),
+		SystemTools: map[string]string{
+			SystemToolKnowledge: config.KnowledgeTool,
+			SystemToolOneDrive:  config.OneDriveTool,
+		},
+		AIHelper: aihelper.New(c, config.HelperModel),
 	}, nil
 }
 

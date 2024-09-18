@@ -7,6 +7,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/runs"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/slugs"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/threads"
+	"github.com/gptscript-ai/otto/pkg/controller/handlers/uploads"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflowexecution"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflowstep"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workspace"
@@ -15,14 +16,15 @@ import (
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 )
 
-func routes(router *router.Router, services *services.Services) error {
-	workflowExecution := workflowexecution.New(services.WorkspaceClient)
-	workflowStep := workflowstep.New(services.Invoker)
-	ingester := knowledge.NewIngester(services.Invoker, services.KnowledgeTool)
-	agents := agents.New(services.WorkspaceClient, ingester, "directory", services.AIHelper)
-	threads := threads.New(services.WorkspaceClient, ingester)
-	workspace := workspace.New(services.WorkspaceClient, "directory")
-	knowledge := knowledgehandler.New(services.WorkspaceClient, ingester, "directory")
+func routes(router *router.Router, svcs *services.Services) error {
+	workflowExecution := workflowexecution.New(svcs.WorkspaceClient)
+	workflowStep := workflowstep.New(svcs.Invoker)
+	ingester := knowledge.NewIngester(svcs.Invoker, svcs.SystemTools[services.SystemToolKnowledge])
+	agents := agents.New(svcs.WorkspaceClient, ingester, "directory", svcs.AIHelper)
+	threads := threads.New(svcs.WorkspaceClient, ingester)
+	workspace := workspace.New(svcs.WorkspaceClient, "directory")
+	knowledge := knowledgehandler.New(svcs.WorkspaceClient, ingester, "directory")
+	uploads := uploads.New(svcs.Invoker, svcs.WorkspaceClient, "directory", svcs.SystemTools[services.SystemToolOneDrive])
 
 	root := router
 
@@ -68,6 +70,13 @@ func routes(router *router.Router, services *services.Services) error {
 	root.Type(&v1.Agent{}).HandlerFunc(workspace.CreateWorkspace)
 	root.Type(&v1.Agent{}).HandlerFunc(knowledge.CreateWorkspace)
 	root.Type(&v1.Agent{}).HandlerFunc(knowledge.IngestKnowledge)
+
+	// Uploads
+	root.Type(&v1.OneDriveLinks{}).HandlerFunc(uploads.CreateThread)
+	root.Type(&v1.OneDriveLinks{}).HandlerFunc(uploads.RunUpload)
+	root.Type(&v1.OneDriveLinks{}).HandlerFunc(uploads.HandleUploadRun)
+	root.Type(&v1.OneDriveLinks{}).HandlerFunc(uploads.GC)
+	root.Type(&v1.OneDriveLinks{}).FinalizeFunc(v1.OneDriveLinksFinalizer, uploads.Cleanup)
 
 	// Slugs
 	root.Type(&v1.Slug{}).HandlerFunc(slugs.SlugGC)

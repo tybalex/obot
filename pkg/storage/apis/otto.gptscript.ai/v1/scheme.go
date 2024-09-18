@@ -36,6 +36,8 @@ func AddToSchemeWithGV(scheme *runtime.Scheme, schemeGroupVersion schema.GroupVe
 		&WorkflowExecutionList{},
 		&WorkflowStep{},
 		&WorkflowStepList{},
+		&OneDriveLinks{},
+		&OneDriveLinksList{},
 	)
 
 	// Add common types
