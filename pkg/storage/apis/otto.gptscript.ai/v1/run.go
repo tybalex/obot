@@ -34,9 +34,19 @@ func (in *Run) GetConditions() *[]metav1.Condition {
 
 type Progress struct {
 	Content        string       `json:"content"`
+	Prompt         *Prompt      `json:"prompt,omitempty"`
 	Tool           ToolProgress `json:"tool"`
 	WaitingOnModel bool         `json:"waitingOnModel,omitempty"`
 	Error          string       `json:"error,omitempty"`
+}
+
+type Prompt struct {
+	ID        string            `json:"id,omitempty"`
+	Time      metav1.Time       `json:"time,omitempty"`
+	Message   string            `json:"message,omitempty"`
+	Fields    []string          `json:"fields,omitempty"`
+	Sensitive bool              `json:"sensitive,omitempty"`
+	Metadata  map[string]string `json:"metadata,omitempty"`
 }
 
 type ToolProgress struct {
@@ -49,15 +59,16 @@ type ToolProgress struct {
 }
 
 type RunSpec struct {
-	Background       bool     `json:"background,omitempty"`
-	ThreadName       string   `json:"threadName,omitempty"`
-	AgentName        string   `json:"agentName,omitempty"`
-	WorkflowName     string   `json:"workflowName,omitempty"`
-	WorkflowStepName string   `json:"workflowStepName,omitempty"`
-	PreviousRunName  string   `json:"previousRunName,omitempty"`
-	Input            string   `json:"input"`
-	Env              []string `json:"env,omitempty"`
-	Tool             string   `json:"tool,omitempty"`
+	Background           bool     `json:"background,omitempty"`
+	ThreadName           string   `json:"threadName,omitempty"`
+	AgentName            string   `json:"agentName,omitempty"`
+	WorkflowName         string   `json:"workflowName,omitempty"`
+	WorkflowStepName     string   `json:"workflowStepName,omitempty"`
+	PreviousRunName      string   `json:"previousRunName,omitempty"`
+	Input                string   `json:"input"`
+	Env                  []string `json:"env,omitempty"`
+	Tool                 string   `json:"tool,omitempty"`
+	CredentialContextIDs []string `json:"credentialContextIDs,omitempty"`
 }
 
 type RunStatus struct {

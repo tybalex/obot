@@ -22,10 +22,14 @@ func NewThreadHandler(wc *wclient.Client) *ThreadHandler {
 
 func convertThread(thread v1.Thread) types.Thread {
 	return types.Thread{
-		Metadata:      types.MetadataFrom(&thread),
-		Description:   thread.Status.Description,
+		Metadata: types.MetadataFrom(&thread),
+		ThreadManifest: v1.ThreadManifest{
+			Description: thread.Spec.Manifest.Description,
+			Tools:       thread.Spec.Manifest.Tools,
+		},
 		AgentID:       thread.Spec.AgentName,
-		LastRunName:   thread.Status.LastRunName,
+		WorkflowID:    thread.Spec.WorkflowName,
+		LastRunID:     thread.Status.LastRunName,
 		LastRunState:  thread.Status.LastRunState,
 		LastRunOutput: thread.Status.LastRunOutput,
 		LastRunError:  thread.Status.LastRunError,
@@ -42,6 +46,29 @@ func (a *ThreadHandler) Delete(req api.Context) error {
 			Namespace: req.Namespace(),
 		},
 	})
+}
+
+func (a *ThreadHandler) Update(req api.Context) error {
+	var (
+		id        = req.PathValue("id")
+		newThread v1.ThreadManifest
+		existing  v1.Thread
+	)
+
+	if err := req.Get(&existing, id); err != nil {
+		return fmt.Errorf("failed to get thread with id %s: %w", id, err)
+	}
+
+	if err := req.Read(&newThread); err != nil {
+		return err
+	}
+
+	existing.Spec.Manifest = newThread
+	if err := req.Update(&existing); err != nil {
+		return err
+	}
+
+	return req.Write(convertThread(existing))
 }
 
 func (a *ThreadHandler) List(req api.Context) error {

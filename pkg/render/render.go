@@ -48,6 +48,10 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, opts AgentOp
 	}
 	var otherTools []gptscript.ToolDef
 
+	if opts.Thread != nil {
+		mainTool.Tools = append(mainTool.Tools, opts.Thread.Spec.Manifest.Tools...)
+	}
+
 	if envs := agentKnowledgeEnv(agent, opts.Thread); len(envs) > 0 {
 		extraEnv = envs
 		if opts.KnowledgeTool != "" {

@@ -74,6 +74,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	// Threads
 	mux.Handle("GET /threads", w(threads.List))
 	mux.Handle("DELETE /threads/{id}", w(threads.Delete))
+	mux.Handle("PUT /threads/{id}", w(threads.Update))
 	mux.Handle("GET /agents/{agent}/threads", w(threads.List))
 
 	// Thread files
@@ -94,6 +95,16 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.Handle("GET /threads/{thread}/runs", w(runs.List))
 	mux.Handle("GET /agents/{agent}/runs", w(runs.List))
 	mux.Handle("GET /agents/{agent}/threads/{thread}/runs", w(runs.List))
+
+	// Credentials
+	mux.Handle("GET /threads/{context}/credentials", w(handlers.ListCredentials))
+	mux.Handle("GET /agents/{context}/credentials", w(handlers.ListCredentials))
+	mux.Handle("GET /workflows/{context}/credentials", w(handlers.ListCredentials))
+	mux.Handle("GET /credentials", w(handlers.ListCredentials))
+	mux.Handle("DELETE /threads/{context}/credentials/{id}", w(handlers.DeleteCredential))
+	mux.Handle("DELETE /agents/{context}/credentials/{id}", w(handlers.DeleteCredential))
+	mux.Handle("DELETE /workflows/{context}/credentials/{id}", w(handlers.DeleteCredential))
+	mux.Handle("DELETE /credentials/{id}", w(handlers.DeleteCredential))
 
 	return mux, nil
 }

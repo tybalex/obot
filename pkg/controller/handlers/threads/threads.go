@@ -70,7 +70,7 @@ func (t *ThreadHandler) Cleanup(req router.Request, resp router.Response) error 
 func (t *ThreadHandler) Description(req router.Request, resp router.Response) error {
 	thread := req.Object.(*v1.Thread)
 
-	if thread.Status.Description != "" || thread.Status.LastRunName == "" {
+	if thread.Spec.Manifest.Description != "" || thread.Status.LastRunName == "" {
 		return nil
 	}
 
@@ -91,8 +91,15 @@ func (t *ThreadHandler) Description(req router.Request, resp router.Response) er
 		}
 	}
 
-	return t.aihelper.GenerateObject(req.Ctx, &thread.Status.Description,
+	var desc string
+	err := t.aihelper.GenerateObject(req.Ctx, &desc,
 		"Given the following start of a conversation, generate a short title of the conversation",
 		fmt.Sprintf(`User: %s\n
 Assistant: %s\n`, run.Spec.Input, run.Status.Output))
+	if err != nil {
+		return err
+	}
+
+	thread.Spec.Manifest.Description = desc
+	return req.Client.Update(req.Ctx, thread)
 }

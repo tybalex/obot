@@ -41,16 +41,21 @@ func (in *Thread) GetConditions() *[]metav1.Condition {
 }
 
 type ThreadSpec struct {
-	AgentName             string `json:"agentName,omitempty"`
-	WorkflowName          string `json:"workflowName,omitempty"`
-	WorkflowExecutionName string `json:"workflowExecutionName,omitempty"`
-	WorkflowStepName      string `json:"workflowStepName,omitempty"`
-	WorkspaceID           string `json:"workspaceID,omitempty"`
-	KnowledgeWorkspaceID  string `json:"knowledgeWorkspaceID,omitempty"`
+	Manifest              ThreadManifest `json:"manifest,omitempty"`
+	AgentName             string         `json:"agentName,omitempty"`
+	WorkflowName          string         `json:"workflowName,omitempty"`
+	WorkflowExecutionName string         `json:"workflowExecutionName,omitempty"`
+	WorkflowStepName      string         `json:"workflowStepName,omitempty"`
+	WorkspaceID           string         `json:"workspaceID,omitempty"`
+	KnowledgeWorkspaceID  string         `json:"knowledgeWorkspaceID,omitempty"`
+}
+
+type ThreadManifest struct {
+	Tools       []string `json:"tools,omitempty"`
+	Description string   `json:"description,omitempty"`
 }
 
 type ThreadStatus struct {
-	Description        string                   `json:"description,omitempty"`
 	LastRunName        string                   `json:"lastRunName,omitempty"`
 	LastRunState       gptscriptclient.RunState `json:"lastRunState,omitempty"`
 	LastRunOutput      string                   `json:"lastRunOutput,omitempty"`

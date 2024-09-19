@@ -13,6 +13,7 @@ import (
 
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/mvl"
+	"k8s.io/utils/strings/slices"
 )
 
 var log = mvl.Package()
@@ -96,6 +97,20 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body io.Rea
 			Message: msg,
 		}
 	}
+	if log.IsDebug() && !slices.Contains(headerKV, "text/event-stream") {
+		var data string
+		dataBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, nil, err
+		}
+		if utf8.Valid(dataBytes) {
+			data = string(dataBytes)
+		} else {
+			data = fmt.Sprintf("[BINARY DATA len(%d)]", len(dataBytes))
+		}
+		log.Fields("method", method, "path", path, "body", data, "code", resp.StatusCode).Debugf("HTTP Response")
+		resp.Body = io.NopCloser(bytes.NewReader(dataBytes))
+	}
 	return req, resp, err
 }
 
@@ -108,8 +123,18 @@ func toStream[T any](resp *http.Response) chan T {
 		for lines.Scan() {
 			var obj T
 			if data, ok := strings.CutPrefix(lines.Text(), "data: "); ok {
+				if log.IsDebug() {
+					log.Fields("data", data).Debugf("Received data")
+				}
 				if err := json.Unmarshal([]byte(data), &obj); err == nil {
 					ch <- obj
+				} else {
+					errBytes, _ := json.Marshal(map[string]any{
+						"error": err.Error(),
+					})
+					if err := json.Unmarshal(errBytes, &obj); err == nil {
+						ch <- obj
+					}
 				}
 			}
 		}

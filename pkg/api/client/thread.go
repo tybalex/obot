@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/gptscript-ai/otto/pkg/api/types"
+	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 )
 
 func (c *Client) DeleteThread(ctx context.Context, id string) error {
@@ -20,6 +21,16 @@ func (c *Client) DeleteThread(ctx context.Context, id string) error {
 
 type ListThreadsOptions struct {
 	AgentID string
+}
+
+func (c *Client) UpdateThread(ctx context.Context, id string, thread v1.ThreadManifest) (*types.Thread, error) {
+	_, resp, err := c.putJSON(ctx, fmt.Sprintf("/threads/%s", id), thread)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return toObject(resp, &types.Thread{})
 }
 
 func (c *Client) ListThreads(ctx context.Context, opts ...ListThreadsOptions) (result types.ThreadList, err error) {

@@ -22,7 +22,7 @@ func (l *Invoke) GetQuiet() bool {
 	return *l.Quiet
 }
 
-func (l *Invoke) PersistentPre(cmd *cobra.Command, args []string) error {
+func (l *Invoke) Pre(cmd *cobra.Command, args []string) error {
 	if l.Quiet == nil && term.IsTerminal(int(os.Stdout.Fd())) {
 		l.Quiet = new(bool)
 	}

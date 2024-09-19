@@ -52,9 +52,10 @@ type WorkflowList List[Workflow]
 
 type Thread struct {
 	Metadata
-	Description   string                   `json:"description,omitempty"`
+	v1.ThreadManifest
 	AgentID       string                   `json:"agentID,omitempty"`
-	LastRunName   string                   `json:"lastRunName,omitempty"`
+	WorkflowID    string                   `json:"workflowID,omitempty"`
+	LastRunID     string                   `json:"lastRunID,omitempty"`
 	LastRunState  gptscriptclient.RunState `json:"lastRunState,omitempty"`
 	LastRunOutput string                   `json:"lastRunOutput,omitempty"`
 	LastRunError  string                   `json:"lastRunError,omitempty"`
@@ -82,6 +83,15 @@ type RunList List[Run]
 type RunDebug struct {
 	Frames map[string]gptscriptclient.CallFrame `json:"frames"`
 }
+
+type Credential struct {
+	ContextID string     `json:"contextID,omitempty"`
+	Name      string     `json:"name,omitempty"`
+	EnvVars   []string   `json:"envVars,omitempty"`
+	ExpiresAt *time.Time `json:"expiresAt,omitempty"`
+}
+
+type CredentialList List[Credential]
 
 type InvokeResponse struct {
 	Events   <-chan Progress

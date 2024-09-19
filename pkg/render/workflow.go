@@ -21,7 +21,8 @@ func Workflow(wf *v1.Workflow, opts WorkflowOptions) *v1.Agent {
 			Namespace: wf.Namespace,
 		},
 		Spec: v1.AgentSpec{
-			Manifest: agentManifest,
+			Manifest:            agentManifest,
+			CredentialContextID: wf.Name,
 		},
 		Status: v1.AgentStatus{
 			Workspace:          wf.Status.Workspace,

@@ -32,7 +32,8 @@ func (in *Agent) GetConditions() *[]metav1.Condition {
 }
 
 type AgentSpec struct {
-	Manifest AgentManifest `json:"manifest,omitempty"`
+	Manifest            AgentManifest `json:"manifest,omitempty"`
+	CredentialContextID string        `json:"credentialContextID,omitempty"`
 }
 
 type AgentStatus struct {

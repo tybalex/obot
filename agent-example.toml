@@ -1,7 +1,0 @@
-id = "bob"
-name = "bob"
-prompt = "Follow instructions"
-agents = ["alice"]
-
-[params]
-foo = "Something"

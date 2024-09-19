@@ -192,6 +192,14 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.Client, agent *v1.Agent, 
 		return nil, err
 	}
 
+	credContextIDs := []string{thread.Name}
+	if agent.Spec.CredentialContextID != "" {
+		credContextIDs = append(credContextIDs, agent.Spec.CredentialContextID)
+	} else if agent.Name != "" {
+		credContextIDs = append(credContextIDs, agent.Name)
+	}
+	credContextIDs = append(credContextIDs, agent.Namespace)
+
 	tools, extraEnv, err := render.Agent(ctx, c, agent, render.AgentOptions{
 		Thread:        thread,
 		KnowledgeTool: i.knowledgeTool,
@@ -210,22 +218,24 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.Client, agent *v1.Agent, 
 	}
 
 	return i.createRunFromTools(ctx, c, thread, tools, input, runOptions{
-		Background:       opt.Background,
-		AgentName:        agent.Name,
-		Env:              append(opt.Env, extraEnv...),
-		PreviousRunName:  opt.PreviousRunName,
-		WorkflowName:     opt.WorkflowName,
-		WorkflowStepName: opt.WorkflowStepName,
+		Background:           opt.Background,
+		AgentName:            agent.Name,
+		Env:                  append(opt.Env, extraEnv...),
+		PreviousRunName:      opt.PreviousRunName,
+		WorkflowName:         opt.WorkflowName,
+		WorkflowStepName:     opt.WorkflowStepName,
+		CredentialContextIDs: credContextIDs,
 	})
 }
 
 type runOptions struct {
-	AgentName        string
-	Background       bool
-	WorkflowName     string
-	WorkflowStepName string
-	PreviousRunName  string
-	Env              []string
+	AgentName            string
+	Background           bool
+	WorkflowName         string
+	WorkflowStepName     string
+	PreviousRunName      string
+	Env                  []string
+	CredentialContextIDs []string
 }
 
 func (i *Invoker) createRunFromTools(ctx context.Context, c kclient.Client, thread *v1.Thread, tools []gptscript.ToolDef, input string, opts runOptions) (*Response, error) {
@@ -256,15 +266,16 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 			Finalizers:   []string{v1.RunFinalizer},
 		},
 		Spec: v1.RunSpec{
-			Background:       opts.Background,
-			ThreadName:       thread.Name,
-			AgentName:        opts.AgentName,
-			WorkflowName:     opts.WorkflowName,
-			WorkflowStepName: opts.WorkflowStepName,
-			PreviousRunName:  previousRunName,
-			Input:            input,
-			Tool:             string(toolData),
-			Env:              opts.Env,
+			Background:           opts.Background,
+			ThreadName:           thread.Name,
+			AgentName:            opts.AgentName,
+			WorkflowName:         opts.WorkflowName,
+			WorkflowStepName:     opts.WorkflowStepName,
+			PreviousRunName:      previousRunName,
+			Input:                input,
+			Tool:                 string(toolData),
+			Env:                  opts.Env,
+			CredentialContextIDs: opts.CredentialContextIDs,
 		},
 	}
 
@@ -296,6 +307,9 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Threa
 		WorkflowStepID: run.Spec.WorkflowStepName,
 		Scope:          thread.Namespace,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	options := gptscript.Options{
 		GlobalOptions: gptscript.GlobalOptions{
@@ -308,11 +322,13 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Threa
 				"OTTO_AGENT_ID="+run.Spec.AgentName,
 			),
 		},
-		Input:           run.Spec.Input,
-		Workspace:       workspace.GetDir(thread.Spec.WorkspaceID),
-		ChatState:       chatState,
-		IncludeEvents:   true,
-		ForceSequential: true,
+		Input:              run.Spec.Input,
+		Workspace:          workspace.GetDir(thread.Spec.WorkspaceID),
+		CredentialContexts: run.Spec.CredentialContextIDs,
+		ChatState:          chatState,
+		IncludeEvents:      true,
+		ForceSequential:    true,
+		Prompt:             true,
 	}
 
 	if len(run.Spec.Tool) == 0 {
@@ -493,6 +509,11 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, events chan v1.P
 	)
 	defer func() {
 		retErr = i.saveState(ctx, c, thread, run, runResp, retErr)
+		if retErr != nil {
+			events <- v1.Progress{
+				Error: retErr.Error(),
+			}
+		}
 	}()
 
 	defer wg.Wait()
@@ -517,13 +538,59 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, events chan v1.P
 		lastPrint = map[string][]gptscript.Output{}
 	)
 
+	defer func() {
+		// drain the events in situation of an error
+		for range runEvent {
+		}
+	}()
+
+	runCtx, cancelRun := context.WithCancelCause(ctx)
+	defer cancelRun(nil)
+
+	abortTimeout := func() {}
+
 	for {
 		select {
-		case <-ctx.Done():
-			return nil
+		case <-runCtx.Done():
+			return context.Cause(runCtx)
 		case frame, ok := <-runEvent:
 			if !ok {
 				return runResp.Err()
+			}
+
+			if frame.Prompt != nil {
+				events <- v1.Progress{
+					Content: frame.Prompt.Message,
+					Prompt: &v1.Prompt{
+						ID:        frame.Prompt.ID,
+						Time:      metav1.NewTime(frame.Prompt.Time),
+						Message:   frame.Prompt.Message,
+						Fields:    frame.Prompt.Fields,
+						Sensitive: frame.Prompt.Sensitive,
+						Metadata:  frame.Prompt.Metadata,
+					},
+				}
+				if len(frame.Prompt.Fields) == 0 {
+					err := i.gptClient.PromptResponse(runCtx, gptscript.PromptResponse{
+						ID: frame.Prompt.ID,
+						Responses: map[string]string{
+							"handled": "true",
+						},
+					})
+					if err != nil {
+						return err
+					}
+				}
+				timeoutCtx, timoutCancel := context.WithCancel(ctx)
+				abortTimeout = timoutCancel
+				go func() {
+					defer timoutCancel()
+					select {
+					case <-timeoutCtx.Done():
+					case <-time.After(5 * time.Minute):
+						cancelRun(fmt.Errorf("timeout waiting for prompt response from user"))
+					}
+				}()
 			}
 
 			if frame.Call != nil {
@@ -540,6 +607,7 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, events chan v1.P
 					}
 				case gptscript.EventTypeCallProgress, gptscript.EventTypeCallFinish:
 					if frame.Call.ToolCategory == gptscript.NoCategory && frame.Call.Tool.Chat {
+						abortTimeout()
 						printCall(frame.Call, lastPrint, events)
 					}
 				}
