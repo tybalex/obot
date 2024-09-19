@@ -210,7 +210,7 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.Client, agent *v1.Agent, 
 	}
 
 	return i.createRunFromTools(ctx, c, thread, tools, input, runOptions{
-		Background:       true,
+		Background:       opt.Background,
 		AgentName:        agent.Name,
 		Env:              append(opt.Env, extraEnv...),
 		PreviousRunName:  opt.PreviousRunName,
