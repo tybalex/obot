@@ -113,6 +113,11 @@ func (u *UploadHandler) RunUpload(req router.Request, _ router.Response) error {
 		return err
 	}
 
+	go func() {
+		// Don't care about the events here, but we need to pull them out
+		r.Wait()
+	}()
+
 	oneDriveLinks.Status.RunName = r.Run.Name
 	return nil
 }

@@ -47,7 +47,7 @@ func (h *Handler) Resume(req router.Request, resp router.Response) error {
 	run := req.Object.(*v1.Run)
 	var thread v1.Thread
 
-	if run.Status.State.IsTerminal() || run.Status.State == gptscript.Continue {
+	if !run.Spec.Background || run.Status.State.IsTerminal() || run.Status.State == gptscript.Continue {
 		return nil
 	}
 
