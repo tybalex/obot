@@ -28,13 +28,22 @@ func NewIngester(invoker *invoke.Invoker, knowledgeTool string) *Ingester {
 	}
 }
 
-func (i *Ingester) IngestKnowledge(ctx context.Context, namespace, knowledgeWorkspaceID string) error {
+func (i *Ingester) IngestKnowledge(ctx context.Context, agentName, namespace, knowledgeWorkspaceID string) error {
 	knowledgeTool, tag, ok := strings.Cut(i.knowledgeTool, "@")
 	if ok {
 		tag = "@" + tag
 	}
 
-	run, err := i.invoker.SystemAction(ctx, "ingest-", namespace, knowledgeTool+"/ingest.gpt"+tag, workspace.GetDir(knowledgeWorkspaceID), "GPTSCRIPT_DATASET="+workspace.KnowledgeIDFromWorkspaceID(knowledgeWorkspaceID))
+	run, err := i.invoker.SystemAction(
+		ctx,
+		"ingest-",
+		agentName,
+		namespace,
+		knowledgeTool+"/ingest.gpt"+tag,
+		workspace.GetDir(knowledgeWorkspaceID),
+		// These are environment variables passed to the script
+		"GPTSCRIPT_DATASET="+workspace.KnowledgeIDFromWorkspaceID(knowledgeWorkspaceID),
+	)
 	if err != nil {
 		return err
 	}
@@ -46,13 +55,20 @@ func (i *Ingester) IngestKnowledge(ctx context.Context, namespace, knowledgeWork
 	return nil
 }
 
-func (i *Ingester) DeleteKnowledge(ctx context.Context, namespace, knowledgeWorkspaceID string) error {
+func (i *Ingester) DeleteKnowledge(ctx context.Context, agentName, namespace, knowledgeWorkspaceID string) error {
 	knowledgeTool, tag, ok := strings.Cut(i.knowledgeTool, "@")
 	if ok {
 		tag = "@" + tag
 	}
 
-	run, err := i.invoker.SystemAction(ctx, "ingest-delete-", namespace, knowledgeTool+"/delete.gpt"+tag, workspace.KnowledgeIDFromWorkspaceID(knowledgeWorkspaceID))
+	run, err := i.invoker.SystemAction(
+		ctx,
+		"ingest-delete-",
+		agentName,
+		namespace,
+		knowledgeTool+"/delete.gpt"+tag,
+		workspace.KnowledgeIDFromWorkspaceID(knowledgeWorkspaceID),
+	)
 	if err != nil {
 		return err
 	}

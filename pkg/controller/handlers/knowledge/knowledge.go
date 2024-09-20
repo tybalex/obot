@@ -3,6 +3,7 @@ package knowledge
 import (
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/otto/pkg/knowledge"
+	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 )
 
@@ -48,7 +49,15 @@ func (a *Handler) RemoveWorkspace(req router.Request, resp router.Response) erro
 	status := knowledged.GetKnowledgeWorkspaceStatus()
 
 	if status.HasKnowledge {
-		if err := a.ingester.DeleteKnowledge(req.Ctx, knowledged.GetNamespace(), status.KnowledgeWorkspaceID); err != nil {
+		var agentName string
+		switch obj := knowledged.(type) {
+		case *v1.Agent:
+			agentName = obj.Name
+		case *v1.Thread:
+			agentName = obj.Spec.AgentName
+		}
+
+		if err := a.ingester.DeleteKnowledge(req.Ctx, agentName, knowledged.GetNamespace(), status.KnowledgeWorkspaceID); err != nil {
 			return err
 		}
 	}
@@ -62,13 +71,21 @@ func (a *Handler) RemoveWorkspace(req router.Request, resp router.Response) erro
 
 // TODO(thedadams): add another handler that pulls the status logs off the run and stores them.
 func (a *Handler) IngestKnowledge(req router.Request, resp router.Response) error {
-	knowleged := req.Object.(knowledge.Knowledgeable)
-	status := knowleged.GetKnowledgeWorkspaceStatus()
+	knowledged := req.Object.(knowledge.Knowledgeable)
+	status := knowledged.GetKnowledgeWorkspaceStatus()
 	if status.KnowledgeGeneration == status.ObservedKnowledgeGeneration || !status.HasKnowledge {
 		return nil
 	}
 
-	if err := a.ingester.IngestKnowledge(req.Ctx, knowleged.GetNamespace(), status.KnowledgeWorkspaceID); err != nil {
+	var agentName string
+	switch obj := knowledged.(type) {
+	case *v1.Agent:
+		agentName = obj.Name
+	case *v1.Thread:
+		agentName = obj.Spec.AgentName
+	}
+
+	if err := a.ingester.IngestKnowledge(req.Ctx, agentName, knowledged.GetNamespace(), status.KnowledgeWorkspaceID); err != nil {
 		return err
 	}
 
