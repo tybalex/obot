@@ -4,10 +4,13 @@ import (
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/invoke"
+	"github.com/gptscript-ai/otto/pkg/mvl"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+var log = mvl.Package()
 
 type Handler struct {
 	invoker *invoke.Invoker
@@ -59,7 +62,9 @@ func (h *Handler) Resume(req router.Request, resp router.Response) error {
 		return err
 	}
 
-	runResp.Wait()
+	if err := runResp.Wait(); err != nil {
+		log.Errorf("run %s failed: %v", run.Name, err)
+	}
 
 	return nil
 }

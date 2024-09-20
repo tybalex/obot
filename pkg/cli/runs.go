@@ -46,7 +46,7 @@ func (l *Runs) printRuns(i iter.Seq[types.Run], flush bool) error {
 			agentWF = run.WorkflowID
 		}
 
-		w.WriteRow(run.ID, run.PreviousRunID, agentWF, run.ThreadID, string(run.State), run.Input, run.Output, humanize.Time(run.Created))
+		w.WriteRow(run.ID, run.PreviousRunID, agentWF, run.ThreadID, run.State, run.Input, run.Output, humanize.Time(run.Created))
 		if flush {
 			w.Flush()
 		}

@@ -50,12 +50,20 @@ type Response struct {
 	Events <-chan v1.Progress
 }
 
-func (r *Response) Wait() {
+func (r *Response) Wait() error {
 	if r.Events == nil {
-		return
+		return nil
 	}
-	for range r.Events {
+	var errString string
+	for e := range r.Events {
+		if e.Error != "" {
+			errString = e.Error
+		}
 	}
+	if errString != "" {
+		return errors.New(errString)
+	}
+	return nil
 }
 
 type Options struct {
@@ -481,6 +489,14 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, thread *v1.
 		}
 	}
 
+	if retErr != nil && !run.Status.State.IsTerminal() {
+		run.Status.State = gptscript.Error
+		if run.Status.Error == "" {
+			run.Status.Error = retErr.Error()
+		}
+		runChanged = true
+	}
+
 	if runChanged {
 		if err := c.Status().Update(ctx, run); err != nil {
 			return err
@@ -539,13 +555,14 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, events chan v1.P
 	)
 
 	defer func() {
+		_ = runResp.Close()
 		// drain the events in situation of an error
 		for range runEvent {
 		}
 	}()
 
 	runCtx, cancelRun := context.WithCancelCause(ctx)
-	defer cancelRun(nil)
+	defer cancelRun(retErr)
 
 	abortTimeout := func() {}
 
@@ -559,8 +576,12 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, events chan v1.P
 			}
 
 			if frame.Prompt != nil {
+				msg := "\n" + frame.Prompt.Message
+				if !strings.HasSuffix(msg, "\n") {
+					msg += "\n"
+				}
 				events <- v1.Progress{
-					Content: frame.Prompt.Message,
+					Content: msg,
 					Prompt: &v1.Prompt{
 						ID:        frame.Prompt.ID,
 						Time:      metav1.NewTime(frame.Prompt.Time),
