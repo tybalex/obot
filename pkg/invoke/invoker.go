@@ -544,7 +544,7 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, events chan v1.P
 			select {
 			case <-saveCtx.Done():
 				return
-			case <-time.After(1 * time.Second):
+			case <-time.After(time.Second):
 				_ = i.saveState(ctx, c, thread, run, runResp, nil)
 			}
 		}
