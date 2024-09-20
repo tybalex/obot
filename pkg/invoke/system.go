@@ -6,8 +6,9 @@ import (
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 )
 
-func (i *Invoker) SystemAction(ctx context.Context, generateName, namespace, tool, input string, env ...string) (*Response, error) {
+func (i *Invoker) SystemAction(ctx context.Context, generateName, agentName, namespace, tool, input string, env ...string) (*Response, error) {
 	thread, err := i.NewThread(ctx, i.uncached, namespace, NewThreadOptions{
+		AgentName:          agentName,
 		ThreadGenerateName: generateName,
 	})
 	if err != nil {
@@ -19,6 +20,7 @@ func (i *Invoker) SystemAction(ctx context.Context, generateName, namespace, too
 
 func (i *Invoker) SystemActionWithThread(ctx context.Context, thread *v1.Thread, tool, input string, env ...string) (*Response, error) {
 	return i.createRunFromRemoteTool(ctx, i.uncached, thread, tool, input, runOptions{
-		Env: env,
+		AgentName: thread.Spec.AgentName,
+		Env:       env,
 	})
 }
