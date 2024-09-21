@@ -28,6 +28,7 @@ type RunStateSpec struct {
 	Program    []byte `json:"program,omitempty"`
 	ChatState  []byte `json:"chatState,omitempty"`
 	CallFrame  []byte `json:"callFrame,omitempty"`
+	Done       bool   `json:"done,omitempty"`
 }
 
 type RunStateStatus struct {

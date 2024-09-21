@@ -12,6 +12,7 @@ import (
 type Invoke struct {
 	Thread string `usage:"Thread name to run the agent in." short:"t"`
 	Quiet  *bool  `usage:"Only print output characters" short:"q"`
+	Async  bool   `usage:"Run the agent asynchronously" short:"a"`
 	root   *Otto
 }
 
@@ -38,5 +39,6 @@ func (l *Invoke) Run(cmd *cobra.Command, args []string) error {
 	return invokeclient.Invoke(cmd.Context(), l.root.Client, args[0], strings.Join(args[1:], " "), invokeclient.Options{
 		ThreadID: l.Thread,
 		Quiet:    l.GetQuiet(),
+		Async:    l.Async,
 	})
 }

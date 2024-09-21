@@ -57,14 +57,5 @@ func (h *Handler) Resume(req router.Request, resp router.Response) error {
 		return err
 	}
 
-	runResp, err := h.invoker.Resume(req.Ctx, req.Client, &thread, run)
-	if err != nil {
-		return err
-	}
-
-	if err := runResp.Wait(); err != nil {
-		log.Errorf("run %s failed: %v", run.Name, err)
-	}
-
-	return nil
+	return h.invoker.Resume(req.Ctx, req.Client, &thread, run)
 }

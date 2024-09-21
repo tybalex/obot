@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/gptscript-ai/otto/pkg/api"
@@ -26,6 +27,7 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 		agent    v1.Agent
 		slug     v1.Slug
 		threadID = req.PathValue("thread")
+		async    = req.URL.Query().Get("async") == "true"
 	)
 
 	if threadID == "" {
@@ -52,6 +54,7 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 
 	resp, err := i.invoker.Agent(req.Context(), req.Storage, &agent, string(input), invoke.Options{
 		ThreadName: threadID,
+		Background: async,
 	})
 	if err != nil {
 		return err
@@ -59,6 +62,14 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 
 	req.ResponseWriter.Header().Set("X-Otto-Thread-Id", resp.Thread.Name)
 	req.ResponseWriter.Header().Set("X-Otto-Run-Id", resp.Run.Name)
+
+	if async {
+		req.WriteHeader(http.StatusCreated)
+		return req.Write(map[string]string{
+			"runID":    resp.Run.Name,
+			"threadID": resp.Thread.Name,
+		})
+	}
 
 	// Check if SSE is requested
 	sendEvents := req.IsStreamRequested()

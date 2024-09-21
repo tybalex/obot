@@ -22,17 +22,17 @@ type Thread struct {
 
 func (in *Thread) GetKnowledgeWorkspaceStatus() *KnowledgeWorkspaceStatus {
 	// This is crazy hack and may cause issues in the future. So if it does, find a better way. That's your problem.
-	if in.Spec.WorkspaceID != "" && in.Status.Workspace.WorkspaceID == "" {
-		in.Status.Workspace.WorkspaceID = in.Spec.WorkspaceID
+	if in.Spec.KnowledgeWorkspaceID != "" && in.Status.KnowledgeWorkspace.KnowledgeWorkspaceID == "" {
+		in.Status.KnowledgeWorkspace.KnowledgeWorkspaceID = in.Spec.KnowledgeWorkspaceID
 	}
 	return &in.Status.KnowledgeWorkspace
 }
 
 func (in *Thread) GetWorkspaceStatus() *WorkspaceStatus {
-	// This is crazy hack and may cause issues in the future. So if it does, find a better way. That's your problem.
-	if in.Spec.KnowledgeWorkspaceID != "" && in.Status.KnowledgeWorkspace.KnowledgeWorkspaceID == "" {
-		in.Status.KnowledgeWorkspace.KnowledgeWorkspaceID = in.Spec.KnowledgeWorkspaceID
+	if in.Spec.WorkspaceID != "" && in.Status.Workspace.WorkspaceID == "" {
+		in.Status.Workspace.WorkspaceID = in.Spec.WorkspaceID
 	}
+	// This is crazy hack and may cause issues in the future. So if it does, find a better way. That's your problem.
 	return &in.Status.Workspace
 }
 
@@ -58,8 +58,6 @@ type ThreadManifest struct {
 type ThreadStatus struct {
 	LastRunName        string                   `json:"lastRunName,omitempty"`
 	LastRunState       gptscriptclient.RunState `json:"lastRunState,omitempty"`
-	LastRunOutput      string                   `json:"lastRunOutput,omitempty"`
-	LastRunError       string                   `json:"lastRunError,omitempty"`
 	Conditions         []metav1.Condition       `json:"conditions,omitempty"`
 	Workspace          WorkspaceStatus          `json:"workspace,omitempty"`
 	KnowledgeWorkspace KnowledgeWorkspaceStatus `json:"knowledgeWorkspace,omitempty"`

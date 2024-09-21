@@ -12,8 +12,10 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/pkg/events"
 	"github.com/gptscript-ai/otto/pkg/gz"
 	"github.com/gptscript-ai/otto/pkg/jwt"
+	"github.com/gptscript-ai/otto/pkg/mvl"
 	"github.com/gptscript-ai/otto/pkg/render"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/system"
@@ -24,21 +26,25 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+var log = mvl.Package()
+
 type Invoker struct {
 	gptClient               *gptscript.GPTScript
 	uncached                kclient.Client
 	tokenService            *jwt.TokenService
 	workspaceClient         *wclient.Client
+	events                  *events.Emitter
 	threadWorkspaceProvider string
 	knowledgeTool           string
 }
 
-func NewInvoker(c kclient.Client, gptClient *gptscript.GPTScript, tokenService *jwt.TokenService, workspaceClient *wclient.Client, knowledgeTool string) *Invoker {
+func NewInvoker(c kclient.Client, gptClient *gptscript.GPTScript, tokenService *jwt.TokenService, workspaceClient *wclient.Client, events *events.Emitter, knowledgeTool string) *Invoker {
 	return &Invoker{
 		uncached:                c,
 		gptClient:               gptClient,
 		tokenService:            tokenService,
 		workspaceClient:         workspaceClient,
+		events:                  events,
 		threadWorkspaceProvider: "directory",
 		knowledgeTool:           knowledgeTool,
 	}
@@ -298,13 +304,33 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 		}, nil
 	}
 
-	return i.Resume(ctx, c, thread, &run)
-}
-
-func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Thread, run *v1.Run) (*Response, error) {
-	chatState, err := i.getChatState(ctx, c, run)
+	events, err := i.events.Watch(ctx, thread, events.WatchOptions{
+		Run: &run,
+	})
 	if err != nil {
 		return nil, err
+	}
+
+	go i.Resume(ctx, c, thread, &run)
+
+	return &Response{
+		Run:    &run,
+		Thread: thread,
+		Events: events,
+	}, nil
+}
+
+func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Thread, run *v1.Run) error {
+	defer func() {
+		i.events.Done(run)
+		time.AfterFunc(5*time.Minute, func() {
+			i.events.ClearProgress(run)
+		})
+	}()
+
+	chatState, err := i.getChatState(ctx, c, run)
+	if err != nil {
+		return err
 	}
 
 	token, err := i.tokenService.NewToken(jwt.TokenContext{
@@ -316,7 +342,7 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Threa
 		Scope:          thread.Namespace,
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	options := gptscript.Options{
@@ -340,7 +366,7 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Threa
 	}
 
 	if len(run.Spec.Tool) == 0 {
-		return nil, fmt.Errorf("no tool specified")
+		return fmt.Errorf("no tool specified")
 	}
 
 	var (
@@ -352,40 +378,33 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Threa
 	switch run.Spec.Tool[0] {
 	case '"':
 		if err := json.Unmarshal([]byte(run.Spec.Tool), &toolString); err != nil {
-			return nil, fmt.Errorf("invalid tool definition: %s: %w", run.Spec.Tool, err)
+			return fmt.Errorf("invalid tool definition: %s: %w", run.Spec.Tool, err)
 		}
 		runResp, err = i.gptClient.Run(ctx, toolString, options)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	case '[':
 		if err := json.Unmarshal([]byte(run.Spec.Tool), &toolDefs); err != nil {
-			return nil, fmt.Errorf("invalid tool definition: %s: %w", run.Spec.Tool, err)
+			return fmt.Errorf("invalid tool definition: %s: %w", run.Spec.Tool, err)
 		}
 		runResp, err = i.gptClient.Evaluate(ctx, options, toolDefs...)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	case '{':
 		if err := json.Unmarshal([]byte(run.Spec.Tool), &toolDef); err != nil {
-			return nil, fmt.Errorf("invalid tool definition: %s: %w", run.Spec.Tool, err)
+			return fmt.Errorf("invalid tool definition: %s: %w", run.Spec.Tool, err)
 		}
 		runResp, err = i.gptClient.Evaluate(ctx, options, toolDef)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	default:
-		return nil, fmt.Errorf("invalid tool definition: %s", run.Spec.Tool)
+		return fmt.Errorf("invalid tool definition: %s", run.Spec.Tool)
 	}
 
-	var events = make(chan v1.Progress)
-	go i.stream(ctx, c, events, thread, run, runResp)
-
-	return &Response{
-		Run:    run,
-		Thread: thread,
-		Events: events,
-	}, nil
+	return i.stream(ctx, c, thread, run, runResp)
 }
 
 func (i *Invoker) saveState(ctx context.Context, c kclient.Client, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run, retErr error) error {
@@ -401,6 +420,9 @@ func (i *Invoker) saveState(ctx context.Context, c kclient.Client, thread *v1.Th
 		if err := c.Get(ctx, router.Key(run.Namespace, run.Name), run); err != nil {
 			return errors.Join(err, retErr)
 		}
+		if err := c.Get(ctx, router.Key(thread.Namespace, thread.Name), thread); err != nil {
+			return errors.Join(err, retErr)
+		}
 		time.Sleep(500 * time.Millisecond)
 	}
 	return fmt.Errorf("failed to save state after 3 retries: %w", retErr)
@@ -414,6 +436,7 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, thread *v1.
 	)
 
 	runStateSpec.ThreadName = run.Spec.ThreadName
+	runStateSpec.Done = runResp.State().IsTerminal() || runResp.State() == gptscript.Continue
 
 	if prg := runResp.Program(); prg != nil {
 		runStateSpec.Program, err = gz.Compress(prg)
@@ -450,7 +473,9 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, thread *v1.
 		return err
 	} else {
 		if !bytes.Equal(runState.Spec.CallFrame, runStateSpec.CallFrame) ||
-			!bytes.Equal(runState.Spec.ChatState, runStateSpec.ChatState) {
+			!bytes.Equal(runState.Spec.ChatState, runStateSpec.ChatState) ||
+			runState.Spec.Done != runStateSpec.Done {
+			runState.Spec = runStateSpec
 			if err := i.uncached.Update(ctx, &runState); err != nil {
 				return err
 			}
@@ -506,8 +531,6 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, thread *v1.
 	if final && thread.Status.LastRunName != run.Name {
 		thread.Status.LastRunName = run.Name
 		thread.Status.LastRunState = run.Status.State
-		thread.Status.LastRunOutput = run.Status.Output
-		thread.Status.LastRunError = run.Status.Error
 		if err := c.Status().Update(ctx, thread); err != nil {
 			return err
 		}
@@ -516,19 +539,21 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, thread *v1.
 	return retErr
 }
 
-func (i *Invoker) stream(ctx context.Context, c kclient.Client, events chan v1.Progress, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run) (retErr error) {
-	defer close(events)
-
+func (i *Invoker) stream(ctx context.Context, c kclient.Client, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run) (retErr error) {
 	var (
 		runEvent = runResp.Events()
 		wg       sync.WaitGroup
 	)
 	defer func() {
+		// Don't use parent context because it may be canceled and we still want to save the state
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
 		retErr = i.saveState(ctx, c, thread, run, runResp, retErr)
 		if retErr != nil {
-			events <- v1.Progress{
+			log.Errorf("failed to save state: %v", retErr)
+			i.events.SubmitProgress(run, v1.Progress{
 				Error: retErr.Error(),
-			}
+			})
 		}
 	}()
 
@@ -550,10 +575,6 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, events chan v1.P
 		}
 	}()
 
-	var (
-		lastPrint = map[string][]gptscript.Output{}
-	)
-
 	defer func() {
 		_ = runResp.Close()
 		// drain the events in situation of an error
@@ -564,7 +585,10 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, events chan v1.P
 	runCtx, cancelRun := context.WithCancelCause(ctx)
 	defer cancelRun(retErr)
 
-	abortTimeout := func() {}
+	var (
+		abortTimeout = func() {}
+		prg          *gptscript.Program
+	)
 
 	for {
 		select {
@@ -575,12 +599,18 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, events chan v1.P
 				return runResp.Err()
 			}
 
+			if frame.Run != nil {
+				if frame.Run.Type == gptscript.EventTypeRunStart {
+					prg = &frame.Run.Program
+				}
+			}
+
 			if frame.Prompt != nil {
 				msg := "\n" + frame.Prompt.Message
 				if !strings.HasSuffix(msg, "\n") {
 					msg += "\n"
 				}
-				events <- v1.Progress{
+				i.events.SubmitProgress(run, v1.Progress{
 					Content: msg,
 					Prompt: &v1.Prompt{
 						ID:        frame.Prompt.ID,
@@ -590,7 +620,7 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, events chan v1.P
 						Sensitive: frame.Prompt.Sensitive,
 						Metadata:  frame.Prompt.Metadata,
 					},
-				}
+				})
 				if len(frame.Prompt.Fields) == 0 {
 					err := i.gptClient.PromptResponse(runCtx, gptscript.PromptResponse{
 						ID: frame.Prompt.ID,
@@ -616,75 +646,13 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, events chan v1.P
 
 			if frame.Call != nil {
 				switch frame.Call.Type {
-				case gptscript.EventTypeCallStart:
-					if frame.Call.ToolCategory == gptscript.NoCategory && !frame.Call.Tool.Chat {
-						events <- v1.Progress{
-							Tool: v1.ToolProgress{
-								Name:        frame.Call.Tool.Name,
-								Description: frame.Call.Tool.Description,
-								Input:       frame.Call.Input,
-							},
-						}
-					}
 				case gptscript.EventTypeCallProgress, gptscript.EventTypeCallFinish:
-					if frame.Call.ToolCategory == gptscript.NoCategory && frame.Call.Tool.Chat {
-						abortTimeout()
-						printCall(frame.Call, lastPrint, events)
-					}
+					abortTimeout()
+					fallthrough
+				case gptscript.EventTypeCallStart:
+					i.events.Submit(run, prg, runResp.Calls())
 				}
 			}
 		}
 	}
-}
-
-func printString(out chan v1.Progress, last, current string) {
-	toPrint := current
-	if strings.HasPrefix(current, last) {
-		toPrint = current[len(last):]
-	}
-
-	toPrint, waitingOnModel := strings.CutPrefix(toPrint, "Waiting for model response...")
-	toPrint, toolPrint, isToolCall := strings.Cut(toPrint, "<tool call> ")
-	toolName := ""
-
-	if isToolCall {
-		toolName = strings.Split(toolPrint, " ->")[0]
-	} else {
-		_, wasToolPrint, wasToolCall := strings.Cut(current, "<tool call> ")
-		if wasToolCall {
-			toolName = strings.Split(wasToolPrint, " ->")[0]
-			toolPrint = toPrint
-			toPrint = ""
-		}
-	}
-
-	toolPrint = strings.TrimPrefix(toolPrint, toolName+" -> ")
-
-	out <- v1.Progress{
-		Content: toPrint,
-		Tool: v1.ToolProgress{
-			GeneratingInputForName: toolName,
-			GeneratingInput:        isToolCall,
-			PartialInput:           toolPrint,
-		},
-		WaitingOnModel: waitingOnModel,
-	}
-}
-
-func printCall(call *gptscript.CallFrame, lastPrint map[string][]gptscript.Output, out chan v1.Progress) {
-	lastOutputs := lastPrint[call.ID]
-	for i, currentOutput := range call.Output {
-		for i >= len(lastOutputs) {
-			lastOutputs = append(lastOutputs, gptscript.Output{})
-		}
-		last := lastOutputs[i]
-
-		if last.Content != currentOutput.Content {
-			printString(out, last.Content, currentOutput.Content)
-			last.Content = currentOutput.Content
-		}
-		lastOutputs[i] = currentOutput
-	}
-
-	lastPrint[call.ID] = lastOutputs
 }

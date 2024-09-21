@@ -39,7 +39,7 @@ func routes(router *router.Router, svcs *services.Services) error {
 	root.Type(&v1.Thread{}).FinalizeFunc(v1.ThreadFinalizer, workspace.RemoveWorkspace)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.Cleanup)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.Description)
-	root.Type(&v1.Thread{}).HandlerFunc(knowledge.IngestKnowledge)
+	root.Type(&v1.Thread{}).Middleware(threads.HasKnowledge).HandlerFunc(knowledge.IngestKnowledge)
 
 	// Workflows
 	root.Type(&v1.Workflow{}).FinalizeFunc(v1.WorkflowFinalizer, workspace.RemoveWorkspace)

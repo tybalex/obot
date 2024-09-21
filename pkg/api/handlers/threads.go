@@ -27,12 +27,10 @@ func convertThread(thread v1.Thread) types.Thread {
 			Description: thread.Spec.Manifest.Description,
 			Tools:       thread.Spec.Manifest.Tools,
 		},
-		AgentID:       thread.Spec.AgentName,
-		WorkflowID:    thread.Spec.WorkflowName,
-		LastRunID:     thread.Status.LastRunName,
-		LastRunState:  thread.Status.LastRunState,
-		LastRunOutput: thread.Status.LastRunOutput,
-		LastRunError:  thread.Status.LastRunError,
+		AgentID:      thread.Spec.AgentName,
+		WorkflowID:   thread.Spec.WorkflowName,
+		LastRunID:    thread.Status.LastRunName,
+		LastRunState: thread.Status.LastRunState,
 	}
 }
 

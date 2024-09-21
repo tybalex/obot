@@ -8,8 +8,10 @@ import (
 	"github.com/acorn-io/baaah/pkg/leader"
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/gptscript/pkg/sdkserver"
 	"github.com/gptscript-ai/otto/pkg/aihelper"
 	"github.com/gptscript-ai/otto/pkg/api"
+	"github.com/gptscript-ai/otto/pkg/events"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	"github.com/gptscript-ai/otto/pkg/jwt"
 	"github.com/gptscript-ai/otto/pkg/storage"
@@ -45,6 +47,31 @@ type Services struct {
 	SystemTools     map[string]string
 }
 
+func newGPTScript(ctx context.Context) (*gptscript.GPTScript, error) {
+	if os.Getenv("GPTSCRIPT_URL") != "" || os.Getenv("GPTSCRIPT_BIN") != "" {
+		return gptscript.NewGPTScript(gptscript.GlobalOptions{
+			URL: os.Getenv("GPTSCRIPT_URL"),
+		})
+	}
+
+	url, err := sdkserver.EmbeddedStart(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := os.Setenv("GPTSCRIPT_URL", url); err != nil {
+		return nil, err
+	}
+
+	if err := os.Setenv("GPTSCRIPT_DISABLE_SERVER", "true"); err != nil {
+		return nil, err
+	}
+
+	return gptscript.NewGPTScript(gptscript.GlobalOptions{
+		URL: url,
+	})
+}
+
 func New(ctx context.Context, config Config) (*Services, error) {
 	system.SetBinToSelf()
 
@@ -59,7 +86,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		startDevMode(ctx, storageClient)
 	}
 
-	c, err := gptscript.NewGPTScript()
+	c, err := newGPTScript(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -73,9 +100,11 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		return nil, err
 	}
 
-	tokenServer := &jwt.TokenService{}
-
-	workspaceClient := wclient.New()
+	var (
+		tokenServer     = &jwt.TokenService{}
+		workspaceClient = wclient.New()
+		events          = events.NewEmitter(storageClient)
+	)
 
 	return &Services{
 		StorageClient:   storageClient,
@@ -84,7 +113,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		APIServer:       api.NewServer(storageClient, c, tokenServer),
 		TokenServer:     tokenServer,
 		WorkspaceClient: workspaceClient,
-		Invoker:         invoke.NewInvoker(storageClient, c, tokenServer, workspaceClient, config.KnowledgeTool),
+		Invoker:         invoke.NewInvoker(storageClient, c, tokenServer, workspaceClient, events, config.KnowledgeTool),
 		SystemTools: map[string]string{
 			SystemToolKnowledge: config.KnowledgeTool,
 			SystemToolOneDrive:  config.OneDriveTool,

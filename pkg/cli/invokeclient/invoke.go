@@ -17,9 +17,9 @@ type inputter interface {
 }
 
 type Options struct {
-	ThreadID   string
-	Quiet      bool
-	EmptyInput bool
+	ThreadID string
+	Quiet    bool
+	Async    bool
 }
 
 func Invoke(ctx context.Context, c *client.Client, id, input string, opts Options) (err error) {
@@ -28,6 +28,7 @@ func Invoke(ctx context.Context, c *client.Client, id, input string, opts Option
 		inputter inputter        = VerboseInputter{
 			client: c,
 		}
+		threadID = opts.ThreadID
 	)
 	if opts.Quiet {
 		printer = &Quiet{}
@@ -44,10 +45,22 @@ func Invoke(ctx context.Context, c *client.Client, id, input string, opts Option
 
 	for {
 		resp, err := c.Invoke(ctx, id, input, client.InvokeOptions{
-			ThreadID: opts.ThreadID,
+			ThreadID: threadID,
+			Async:    opts.Async,
 		})
 		if err != nil {
 			return err
+		}
+
+		threadID = resp.ThreadID
+
+		if opts.Async {
+			if opts.Quiet {
+				fmt.Println(resp.RunID)
+			} else {
+				fmt.Printf("Run ID: %s\n", resp.RunID)
+			}
+			return nil
 		}
 
 		if err := printer.Print(input, resp); err != nil {

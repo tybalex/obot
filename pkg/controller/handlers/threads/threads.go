@@ -67,6 +67,22 @@ func (t *ThreadHandler) Cleanup(req router.Request, resp router.Response) error 
 	return nil
 }
 
+// HasKnowledge is a dumb optimazation to avoid updating the status of the thread because when you read
+// the knowledge status of the thread, we copy it from the spec to the status. This causes a write when there
+// before this knowledge, and we just don't need that.
+func (t *ThreadHandler) HasKnowledge(handler router.Handler) router.Handler {
+	return router.HandlerFunc(func(req router.Request, resp router.Response) error {
+		if req.Object == nil {
+			return nil
+		}
+		thread := req.Object.(*v1.Thread)
+		if thread.Status.KnowledgeWorkspace.HasKnowledge {
+			return handler.Handle(req, resp)
+		}
+		return nil
+	})
+}
+
 func (t *ThreadHandler) Description(req router.Request, resp router.Response) error {
 	thread := req.Object.(*v1.Thread)
 

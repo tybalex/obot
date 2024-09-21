@@ -53,12 +53,10 @@ type WorkflowList List[Workflow]
 type Thread struct {
 	Metadata
 	v1.ThreadManifest
-	AgentID       string                   `json:"agentID,omitempty"`
-	WorkflowID    string                   `json:"workflowID,omitempty"`
-	LastRunID     string                   `json:"lastRunID,omitempty"`
-	LastRunState  gptscriptclient.RunState `json:"lastRunState,omitempty"`
-	LastRunOutput string                   `json:"lastRunOutput,omitempty"`
-	LastRunError  string                   `json:"lastRunError,omitempty"`
+	AgentID      string                   `json:"agentID,omitempty"`
+	WorkflowID   string                   `json:"workflowID,omitempty"`
+	LastRunID    string                   `json:"lastRunID,omitempty"`
+	LastRunState gptscriptclient.RunState `json:"lastRunState,omitempty"`
 }
 
 type ThreadList List[Thread]
