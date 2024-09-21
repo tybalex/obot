@@ -437,6 +437,9 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, thread *v1.
 
 	runStateSpec.ThreadName = run.Spec.ThreadName
 	runStateSpec.Done = runResp.State().IsTerminal() || runResp.State() == gptscript.Continue
+	if retErr != nil {
+		runStateSpec.Error = retErr.Error()
+	}
 
 	if prg := runResp.Program(); prg != nil {
 		runStateSpec.Program, err = gz.Compress(prg)
@@ -474,7 +477,8 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, thread *v1.
 	} else {
 		if !bytes.Equal(runState.Spec.CallFrame, runStateSpec.CallFrame) ||
 			!bytes.Equal(runState.Spec.ChatState, runStateSpec.ChatState) ||
-			runState.Spec.Done != runStateSpec.Done {
+			runState.Spec.Done != runStateSpec.Done ||
+			runState.Spec.Error != runStateSpec.Error {
 			runState.Spec = runStateSpec
 			if err := i.uncached.Update(ctx, &runState); err != nil {
 				return err
@@ -596,6 +600,9 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, thread *v1.Threa
 			return context.Cause(runCtx)
 		case frame, ok := <-runEvent:
 			if !ok {
+				if errOut := runResp.ErrorOutput(); errOut != "" {
+					return errors.New(errOut)
+				}
 				return runResp.Err()
 			}
 

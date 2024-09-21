@@ -2,11 +2,13 @@ package events
 
 import (
 	"context"
+	"errors"
 	"maps"
 	"slices"
 	"strings"
 	"sync"
 
+	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/gz"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
@@ -86,11 +88,11 @@ func (e *Emitter) Watch(ctx context.Context, thread *v1.Thread, opts WatchOption
 	if opts.Run != nil {
 		run = *opts.Run
 	} else if opts.LastRunName != "" {
-		if err := e.client.Get(ctx, kclient.ObjectKey{Namespace: thread.Namespace, Name: opts.LastRunName}, &run); err != nil {
+		if err := e.client.Get(ctx, router.Key(thread.Namespace, opts.LastRunName), &run); err != nil {
 			return nil, err
 		}
 	} else {
-		if err := e.client.Get(ctx, kclient.ObjectKey{Namespace: thread.Namespace, Name: thread.Status.LastRunName}, &run); err != nil {
+		if err := e.client.Get(ctx, router.Key(thread.Namespace, thread.Status.LastRunName), &run); err != nil {
 			return nil, err
 		}
 	}
@@ -203,6 +205,9 @@ func (e *Emitter) printRun(ctx context.Context, state printState, run v1.Run, re
 			e.callsToEvents(&prg, callFrames, state, result)
 
 			if runState.Spec.Done {
+				if runState.Spec.Error != "" {
+					return errors.New(runState.Spec.Error)
+				}
 				return nil
 			}
 		}

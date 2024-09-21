@@ -1200,6 +1200,12 @@ func schema_storage_apis_ottogptscriptai_v1_RunStateSpec(ref common.ReferenceCal
 							Format: "",
 						},
 					},
+					"error": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
