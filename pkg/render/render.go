@@ -21,13 +21,13 @@ type AgentOptions struct {
 }
 
 func agentKnowledgeEnv(agent *v1.Agent, thread *v1.Thread) (envs []string) {
-	if agent.GetKnowledgeWorkspaceStatus().HasKnowledge {
+	if agent.KnowledgeWorkspaceStatus().HasKnowledge {
 		envs = append(envs,
-			fmt.Sprintf("GPTSCRIPT_SCRIPT_ID=%s", workspace.KnowledgeIDFromWorkspaceID(agent.GetKnowledgeWorkspaceStatus().KnowledgeWorkspaceID)),
+			fmt.Sprintf("GPTSCRIPT_SCRIPT_ID=%s", workspace.KnowledgeIDFromWorkspaceID(agent.KnowledgeWorkspaceStatus().KnowledgeWorkspaceID)),
 		)
-		if thread != nil && thread.GetKnowledgeWorkspaceStatus().HasKnowledge {
+		if thread != nil && thread.KnowledgeWorkspaceStatus().HasKnowledge {
 			envs = append(envs,
-				fmt.Sprintf("GPTSCRIPT_THREAD_ID=%s", workspace.KnowledgeIDFromWorkspaceID(thread.GetKnowledgeWorkspaceStatus().KnowledgeWorkspaceID)),
+				fmt.Sprintf("GPTSCRIPT_THREAD_ID=%s", workspace.KnowledgeIDFromWorkspaceID(thread.KnowledgeWorkspaceStatus().KnowledgeWorkspaceID)),
 			)
 		}
 	}

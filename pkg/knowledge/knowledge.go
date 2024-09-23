@@ -13,7 +13,10 @@ import (
 
 type Knowledgeable interface {
 	client.Object
-	GetKnowledgeWorkspaceStatus() *v1.KnowledgeWorkspaceStatus
+	KnowledgeWorkspaceStatus() *v1.KnowledgeWorkspaceStatus
+	AgentName() string
+	WorkflowName() string
+	ThreadName() string
 }
 
 type Ingester struct {
@@ -28,54 +31,36 @@ func NewIngester(invoker *invoke.Invoker, knowledgeTool string) *Ingester {
 	}
 }
 
-func (i *Ingester) IngestKnowledge(ctx context.Context, agentName, namespace, knowledgeWorkspaceID string) error {
-	knowledgeTool, tag, ok := strings.Cut(i.knowledgeTool, "@")
-	if ok {
-		tag = "@" + tag
-	}
-
-	run, err := i.invoker.SystemAction(
+func (i *Ingester) IngestKnowledge(ctx context.Context, agentName, namespace, knowledgeWorkspaceID string) (*invoke.Response, error) {
+	return i.invoker.SystemAction(
 		ctx,
 		"ingest-",
 		agentName,
 		namespace,
-		knowledgeTool+"/ingest.gpt"+tag,
+		fullKnowledgeTool(i.knowledgeTool, "ingest.gpt"),
 		workspace.GetDir(knowledgeWorkspaceID),
-		// These are environment variables passed to the script
+		// Below are environment variables used by the ingest tool
 		"GPTSCRIPT_DATASET="+workspace.KnowledgeIDFromWorkspaceID(knowledgeWorkspaceID),
+		"KNOW_JSON=true",
 	)
-	if err != nil {
-		return err
-	}
-
-	run.Wait()
-	if run.Run.Status.Error != "" {
-		return fmt.Errorf("failed to ingest knowledge: %s", run.Run.Status.Error)
-	}
-	return nil
 }
 
-func (i *Ingester) DeleteKnowledge(ctx context.Context, agentName, namespace, knowledgeWorkspaceID string) error {
-	knowledgeTool, tag, ok := strings.Cut(i.knowledgeTool, "@")
-	if ok {
-		tag = "@" + tag
-	}
-
-	run, err := i.invoker.SystemAction(
+func (i *Ingester) DeleteKnowledge(ctx context.Context, agentName, namespace, knowledgeWorkspaceID string) (*invoke.Response, error) {
+	return i.invoker.SystemAction(
 		ctx,
 		"ingest-delete-",
 		agentName,
 		namespace,
-		knowledgeTool+"/delete.gpt"+tag,
+		fullKnowledgeTool(i.knowledgeTool, "delete.gpt"),
 		workspace.KnowledgeIDFromWorkspaceID(knowledgeWorkspaceID),
 	)
-	if err != nil {
-		return err
+}
+
+func fullKnowledgeTool(knowledgeTool, subTool string) string {
+	knowledgeTool, tag, ok := strings.Cut(knowledgeTool, "@")
+	if ok {
+		tag = "@" + tag
 	}
 
-	run.Wait()
-	if run.Run.Status.Error != "" {
-		return fmt.Errorf("failed to delete knowledge: %s", run.Run.Status.Error)
-	}
-	return nil
+	return fmt.Sprintf("%s/%s%s", knowledgeTool, subTool, tag)
 }

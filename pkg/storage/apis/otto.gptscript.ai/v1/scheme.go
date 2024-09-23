@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/acorn-io/baaah/pkg/fields"
 	otto_gptscript_ai "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -19,7 +20,7 @@ func AddToScheme(scheme *runtime.Scheme) error {
 }
 
 func AddToSchemeWithGV(scheme *runtime.Scheme, schemeGroupVersion schema.GroupVersion) error {
-	scheme.AddKnownTypes(schemeGroupVersion,
+	if err := fields.AddKnownTypesWithFieldConversion(scheme, schemeGroupVersion,
 		&Agent{},
 		&AgentList{},
 		&Run{},
@@ -38,7 +39,11 @@ func AddToSchemeWithGV(scheme *runtime.Scheme, schemeGroupVersion schema.GroupVe
 		&WorkflowStepList{},
 		&OneDriveLinks{},
 		&OneDriveLinksList{},
-	)
+		&KnowledgeFile{},
+		&KnowledgeFileList{},
+	); err != nil {
+		return err
+	}
 
 	// Add common types
 	scheme.AddKnownTypes(schemeGroupVersion, &metav1.Status{})

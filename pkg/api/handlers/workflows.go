@@ -75,7 +75,6 @@ func (a *WorkflowHandler) Create(req api.Context) error {
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: system.WorkflowPrefix,
 			Namespace:    req.Namespace(),
-			Finalizers:   []string{v1.WorkflowFinalizer},
 		},
 		Spec: v1.WorkflowSpec{
 			Manifest: manifest,
@@ -150,13 +149,17 @@ func (a *WorkflowHandler) UploadFile(req api.Context) error {
 		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
 	}
 
-	return uploadFile(req.Context(), req, a.workspaceClient, workflow.Status.Workspace.WorkspaceID)
+	if err := uploadFile(req.Context(), req, a.workspaceClient, workflow.Status.Workspace.WorkspaceID); err != nil {
+		return err
+	}
+
+	req.WriteHeader(http.StatusCreated)
+	return nil
 }
 
 func (a *WorkflowHandler) DeleteFile(req api.Context) error {
 	var (
 		id       = req.PathValue("id")
-		filename = req.PathValue("file")
 		workflow v1.Workflow
 	)
 
@@ -164,19 +167,11 @@ func (a *WorkflowHandler) DeleteFile(req api.Context) error {
 		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
 	}
 
-	return deleteFile(req.Context(), req, a.workspaceClient, workflow.Status.Workspace.WorkspaceID, filename)
+	return deleteFile(req.Context(), req, a.workspaceClient, workflow.Status.Workspace.WorkspaceID)
 }
 
 func (a *WorkflowHandler) Knowledge(req api.Context) error {
-	var (
-		id       = req.PathValue("id")
-		workflow v1.Workflow
-	)
-	if err := req.Get(&workflow, id); err != nil {
-		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
-	}
-
-	return listFiles(req.Context(), req, a.workspaceClient, workflow.Status.KnowledgeWorkspace.KnowledgeWorkspaceID)
+	return listKnowledgeFiles(req, new(v1.Workflow))
 }
 
 func (a *WorkflowHandler) UploadKnowledge(req api.Context) error {
@@ -184,7 +179,7 @@ func (a *WorkflowHandler) UploadKnowledge(req api.Context) error {
 }
 
 func (a *WorkflowHandler) DeleteKnowledge(req api.Context) error {
-	return deleteKnowledge(req, a.workspaceClient, req.PathValue("file"), req.PathValue("id"), new(v1.Workflow))
+	return deleteKnowledge(req, req.PathValue("file"), req.PathValue("id"), new(v1.Workflow))
 }
 
 func (a *WorkflowHandler) IngestKnowledge(req api.Context) error {

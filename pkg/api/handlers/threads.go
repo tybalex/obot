@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
@@ -136,33 +137,29 @@ func (a *ThreadHandler) UploadFile(req api.Context) error {
 		return fmt.Errorf("failed to get thread with id %s: %w", id, err)
 	}
 
-	return uploadFile(req.Context(), req, a.workspaceClient, thread.Spec.WorkspaceID)
+	if err := uploadFile(req.Context(), req, a.workspaceClient, thread.Spec.WorkspaceID); err != nil {
+		return err
+	}
+
+	req.WriteHeader(http.StatusCreated)
+	return nil
 }
 
 func (a *ThreadHandler) DeleteFile(req api.Context) error {
 	var (
-		id       = req.PathValue("id")
-		filename = req.PathValue("file")
-		thread   v1.Thread
-	)
-
-	if err := req.Get(&thread, id); err != nil {
-		return fmt.Errorf("failed to get thread with id %s: %w", id, err)
-	}
-
-	return deleteFile(req.Context(), req, a.workspaceClient, thread.Spec.WorkspaceID, filename)
-}
-
-func (a *ThreadHandler) Knowledge(req api.Context) error {
-	var (
 		id     = req.PathValue("id")
 		thread v1.Thread
 	)
+
 	if err := req.Get(&thread, id); err != nil {
 		return fmt.Errorf("failed to get thread with id %s: %w", id, err)
 	}
 
-	return listFiles(req.Context(), req, a.workspaceClient, thread.Spec.KnowledgeWorkspaceID)
+	return deleteFile(req.Context(), req, a.workspaceClient, thread.Spec.WorkspaceID)
+}
+
+func (a *ThreadHandler) Knowledge(req api.Context) error {
+	return listKnowledgeFiles(req, new(v1.Thread))
 }
 
 func (a *ThreadHandler) UploadKnowledge(req api.Context) error {
@@ -170,7 +167,7 @@ func (a *ThreadHandler) UploadKnowledge(req api.Context) error {
 }
 
 func (a *ThreadHandler) DeleteKnowledge(req api.Context) error {
-	return deleteKnowledge(req, a.workspaceClient, req.PathValue("file"), req.PathValue("id"), new(v1.Thread))
+	return deleteKnowledge(req, req.PathValue("file"), req.PathValue("id"), new(v1.Thread))
 }
 
 func (a *ThreadHandler) IngestKnowledge(req api.Context) error {

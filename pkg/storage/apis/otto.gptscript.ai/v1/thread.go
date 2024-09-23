@@ -20,19 +20,23 @@ type Thread struct {
 	Status ThreadStatus `json:"status,omitempty"`
 }
 
-func (in *Thread) GetKnowledgeWorkspaceStatus() *KnowledgeWorkspaceStatus {
-	// This is crazy hack and may cause issues in the future. So if it does, find a better way. That's your problem.
-	if in.Spec.KnowledgeWorkspaceID != "" && in.Status.KnowledgeWorkspace.KnowledgeWorkspaceID == "" {
-		in.Status.KnowledgeWorkspace.KnowledgeWorkspaceID = in.Spec.KnowledgeWorkspaceID
-	}
+func (in *Thread) AgentName() string {
+	return in.Spec.AgentName
+}
+
+func (in *Thread) WorkflowName() string {
+	return in.Spec.WorkflowName
+}
+
+func (in *Thread) ThreadName() string {
+	return in.Name
+}
+
+func (in *Thread) KnowledgeWorkspaceStatus() *KnowledgeWorkspaceStatus {
 	return &in.Status.KnowledgeWorkspace
 }
 
-func (in *Thread) GetWorkspaceStatus() *WorkspaceStatus {
-	if in.Spec.WorkspaceID != "" && in.Status.Workspace.WorkspaceID == "" {
-		in.Status.Workspace.WorkspaceID = in.Spec.WorkspaceID
-	}
-	// This is crazy hack and may cause issues in the future. So if it does, find a better way. That's your problem.
+func (in *Thread) WorkspaceStatus() *WorkspaceStatus {
 	return &in.Status.Workspace
 }
 

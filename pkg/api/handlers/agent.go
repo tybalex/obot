@@ -71,7 +71,6 @@ func (a *AgentHandler) Create(req api.Context) error {
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: system.AgentPrefix,
 			Namespace:    req.Namespace(),
-			Finalizers:   []string{v1.AgentFinalizer},
 		},
 		Spec: v1.AgentSpec{
 			Manifest: manifest,
@@ -146,33 +145,29 @@ func (a *AgentHandler) UploadFile(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return uploadFile(req.Context(), req, a.workspaceClient, agent.Status.Workspace.WorkspaceID)
+	if err := uploadFile(req.Context(), req, a.workspaceClient, agent.Status.Workspace.WorkspaceID); err != nil {
+		return err
+	}
+
+	req.WriteHeader(http.StatusCreated)
+	return nil
 }
 
 func (a *AgentHandler) DeleteFile(req api.Context) error {
 	var (
-		id       = req.PathValue("id")
-		filename = req.PathValue("file")
-		agent    v1.Agent
-	)
-
-	if err := req.Get(&agent, id); err != nil {
-		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
-	}
-
-	return deleteFile(req.Context(), req, a.workspaceClient, agent.Status.Workspace.WorkspaceID, filename)
-}
-
-func (a *AgentHandler) Knowledge(req api.Context) error {
-	var (
 		id    = req.PathValue("id")
 		agent v1.Agent
 	)
+
 	if err := req.Get(&agent, id); err != nil {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return listFiles(req.Context(), req, a.workspaceClient, agent.Status.KnowledgeWorkspace.KnowledgeWorkspaceID)
+	return deleteFile(req.Context(), req, a.workspaceClient, agent.Status.Workspace.WorkspaceID)
+}
+
+func (a *AgentHandler) Knowledge(req api.Context) error {
+	return listKnowledgeFiles(req, new(v1.Agent))
 }
 
 func (a *AgentHandler) UploadKnowledge(req api.Context) error {
@@ -180,7 +175,7 @@ func (a *AgentHandler) UploadKnowledge(req api.Context) error {
 }
 
 func (a *AgentHandler) DeleteKnowledge(req api.Context) error {
-	return deleteKnowledge(req, a.workspaceClient, req.PathValue("file"), req.PathValue("id"), new(v1.Agent))
+	return deleteKnowledge(req, req.PathValue("file"), req.PathValue("id"), new(v1.Agent))
 }
 
 func (a *AgentHandler) IngestKnowledge(req api.Context) error {

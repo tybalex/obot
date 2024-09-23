@@ -134,7 +134,6 @@ func (i *Invoker) NewThread(ctx context.Context, c kclient.Client, namespace str
 			Name:         createName,
 			GenerateName: system.ThreadPrefix,
 			Namespace:    namespace,
-			Finalizers:   []string{v1.ThreadFinalizer},
 		},
 		Spec: v1.ThreadSpec{
 			AgentName:             opt.AgentName,
@@ -426,8 +425,9 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Threa
 }
 
 func (i *Invoker) saveState(ctx context.Context, c kclient.Client, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run, retErr error) error {
+	var err error
 	for j := 0; j < 3; j++ {
-		err := i.doSaveState(ctx, c, thread, run, runResp, retErr)
+		err = i.doSaveState(ctx, c, thread, run, runResp, retErr)
 		if err == nil {
 			return retErr
 		}
@@ -435,15 +435,15 @@ func (i *Invoker) saveState(ctx context.Context, c kclient.Client, thread *v1.Th
 			return errors.Join(err, retErr)
 		}
 		// reload
-		if err := c.Get(ctx, router.Key(run.Namespace, run.Name), run); err != nil {
+		if err = c.Get(ctx, router.Key(run.Namespace, run.Name), run); err != nil {
 			return errors.Join(err, retErr)
 		}
-		if err := c.Get(ctx, router.Key(thread.Namespace, thread.Name), thread); err != nil {
+		if err = c.Get(ctx, router.Key(thread.Namespace, thread.Name), thread); err != nil {
 			return errors.Join(err, retErr)
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
-	return fmt.Errorf("failed to save state after 3 retries: %w", retErr)
+	return fmt.Errorf("failed to save state after 3 retries: %w", errors.Join(err, retErr))
 }
 
 func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run, retErr error) error {

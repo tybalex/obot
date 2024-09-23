@@ -35,14 +35,20 @@ type OnedriveLinksSpec struct {
 }
 
 type OnedriveLinksStatus struct {
-	Conditions         []metav1.Condition     `json:"conditions,omitempty"`
-	ThreadName         string                 `json:"threadName,omitempty"`
-	RunName            string                 `json:"runName,omitempty"`
-	ObservedGeneration int64                  `json:"observedGeneration,omitempty"`
-	Status             string                 `json:"output,omitempty"`
-	Error              string                 `json:"error,omitempty"`
-	Files              map[string]FileDetails `json:"files,omitempty"`
-	Folders            FolderSet              `json:"folders,omitempty"`
+	Conditions         []metav1.Condition `json:"conditions,omitempty"`
+	ThreadName         string             `json:"threadName,omitempty"`
+	RunName            string             `json:"runName,omitempty"`
+	ObservedGeneration int64              `json:"observedGeneration,omitempty"`
+	Status             string             `json:"output,omitempty"`
+	Error              string             `json:"error,omitempty"`
+	Folders            FolderSet          `json:"folders,omitempty"`
+}
+
+type OneDriveLinksConnectorStatus struct {
+	Status  string                 `json:"output,omitempty"`
+	Error   string                 `json:"error,omitempty"`
+	Files   map[string]FileDetails `json:"files,omitempty"`
+	Folders FolderSet              `json:"folders,omitempty"`
 }
 
 type FileDetails struct {

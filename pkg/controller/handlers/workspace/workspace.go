@@ -21,12 +21,12 @@ func New(wc *wclient.Client, wp string) *Handler {
 
 type workspaceable interface {
 	kclient.Object
-	GetWorkspaceStatus() *v1.WorkspaceStatus
+	WorkspaceStatus() *v1.WorkspaceStatus
 }
 
-func (a *Handler) CreateWorkspace(req router.Request, resp router.Response) error {
+func (a *Handler) CreateWorkspace(req router.Request, _ router.Response) error {
 	workspaced := req.Object.(workspaceable)
-	status := workspaced.GetWorkspaceStatus()
+	status := workspaced.WorkspaceStatus()
 	if status.WorkspaceID != "" {
 		return nil
 	}
@@ -46,15 +46,14 @@ func (a *Handler) CreateWorkspace(req router.Request, resp router.Response) erro
 	return nil
 }
 
-func (a *Handler) RemoveWorkspace(req router.Request, resp router.Response) error {
+func (a *Handler) RemoveWorkspace(req router.Request, _ router.Response) error {
 	workspaced := req.Object.(workspaceable)
-	status := workspaced.GetWorkspaceStatus()
+	status := workspaced.WorkspaceStatus()
 	if status.WorkspaceID != "" {
 		if err := a.workspaceClient.Rm(req.Ctx, status.WorkspaceID); err != nil {
 			return err
 		}
 	}
 
-	status.WorkspaceID = ""
 	return nil
 }

@@ -11,11 +11,15 @@ var (
 )
 
 const (
-	AgentFinalizer             = "otto.gptscript.ai/agent"
+	AgentWorkspaceFinalizer    = "otto.gptscript.ai/agent-workspace"
+	AgentKnowledgeFinalizer    = "otto.gptscript.ai/agent-knowledge"
 	RunFinalizer               = "otto.gptscript.ai/run"
-	ThreadFinalizer            = "otto.gptscript.ai/thread"
+	ThreadWorkspaceFinalizer   = "otto.gptscript.ai/thread-workspace"
+	ThreadKnowledgeFinalizer   = "otto.gptscript.ai/thread-knowledge"
 	WorkflowExecutionFinalizer = "otto.gptscript.ai/workflow-execution"
-	WorkflowFinalizer          = "otto.gptscript.ai/workflow"
+	WorkflowWorkspaceFinalizer = "otto.gptscript.ai/workflow-workspace"
+	WorkflowKnowledgeFinalizer = "otto.gptscript.ai/workflow-knowledge"
+	KnowledgeFileFinalizer     = "otto.gptscript.ai/knowledge-file"
 )
 
 const (

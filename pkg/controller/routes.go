@@ -36,15 +36,16 @@ func routes(router *router.Router, svcs *services.Services) error {
 	root.Type(&v1.Run{}).HandlerFunc(runs.Resume)
 
 	// Threads
-	root.Type(&v1.Thread{}).FinalizeFunc(v1.ThreadFinalizer, knowledge.RemoveWorkspace)
-	root.Type(&v1.Thread{}).FinalizeFunc(v1.ThreadFinalizer, workspace.RemoveWorkspace)
+	root.Type(&v1.Thread{}).FinalizeFunc(v1.ThreadWorkspaceFinalizer, knowledge.RemoveWorkspace)
+	root.Type(&v1.Thread{}).FinalizeFunc(v1.ThreadKnowledgeFinalizer, workspace.RemoveWorkspace)
+	root.Type(&v1.Thread{}).HandlerFunc(threads.MoveWorkspacesToStatus)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.Cleanup)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.Description)
 	root.Type(&v1.Thread{}).Middleware(threads.HasKnowledge).HandlerFunc(knowledge.IngestKnowledge)
 
 	// Workflows
-	root.Type(&v1.Workflow{}).FinalizeFunc(v1.WorkflowFinalizer, workspace.RemoveWorkspace)
-	root.Type(&v1.Workflow{}).FinalizeFunc(v1.WorkflowFinalizer, knowledge.RemoveWorkspace)
+	root.Type(&v1.Workflow{}).FinalizeFunc(v1.WorkflowWorkspaceFinalizer, workspace.RemoveWorkspace)
+	root.Type(&v1.Workflow{}).FinalizeFunc(v1.WorkflowKnowledgeFinalizer, knowledge.RemoveWorkspace)
 	root.Type(&v1.Workflow{}).HandlerFunc(workspace.CreateWorkspace)
 	root.Type(&v1.Workflow{}).HandlerFunc(knowledge.CreateWorkspace)
 
@@ -64,8 +65,8 @@ func routes(router *router.Router, svcs *services.Services) error {
 	running.HandlerFunc(workflowStep.RunSubflow)
 
 	// Agents
-	root.Type(&v1.Agent{}).FinalizeFunc(v1.AgentFinalizer, workspace.RemoveWorkspace)
-	root.Type(&v1.Agent{}).FinalizeFunc(v1.AgentFinalizer, knowledge.RemoveWorkspace)
+	root.Type(&v1.Agent{}).FinalizeFunc(v1.AgentWorkspaceFinalizer, workspace.RemoveWorkspace)
+	root.Type(&v1.Agent{}).FinalizeFunc(v1.AgentKnowledgeFinalizer, knowledge.RemoveWorkspace)
 	root.Type(&v1.Agent{}).HandlerFunc(agents.Suggestion)
 	root.Type(&v1.Agent{}).HandlerFunc(workspace.CreateWorkspace)
 	root.Type(&v1.Agent{}).HandlerFunc(knowledge.CreateWorkspace)
@@ -85,6 +86,10 @@ func routes(router *router.Router, svcs *services.Services) error {
 
 	// Workflows
 	root.Type(&v1.Workflow{}).HandlerFunc(workflow.EnsureIDs)
+
+	// Knowledge files
+	root.Type(&v1.KnowledgeFile{}).HandlerFunc(knowledge.GCFile)
+	root.Type(&v1.KnowledgeFile{}).FinalizeFunc(v1.KnowledgeFileFinalizer, knowledge.CleanupFile)
 
 	return nil
 }
