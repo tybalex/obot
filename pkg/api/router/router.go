@@ -97,6 +97,8 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.Handle("GET /threads/{thread}/runs", w(runs.List))
 	mux.Handle("GET /agents/{agent}/runs", w(runs.List))
 	mux.Handle("GET /agents/{agent}/threads/{thread}/runs", w(runs.List))
+	mux.Handle("GET /workflows/{workflow}/runs", w(runs.List))
+	mux.Handle("GET /workflows/{workflow}/threads/{thread}/runs", w(runs.List))
 
 	// Credentials
 	mux.Handle("GET /threads/{context}/credentials", w(handlers.ListCredentials))
