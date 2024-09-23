@@ -3,10 +3,12 @@ package services
 import (
 	"context"
 	"os"
+	"path/filepath"
 
 	"github.com/acorn-io/baaah"
 	"github.com/acorn-io/baaah/pkg/leader"
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/adrg/xdg"
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/gptscript/pkg/sdkserver"
 	"github.com/gptscript-ai/otto/pkg/aihelper"
@@ -103,8 +105,10 @@ func New(ctx context.Context, config Config) (*Services, error) {
 
 	var (
 		tokenServer     = &jwt.TokenService{}
-		workspaceClient = wclient.New()
-		events          = events.NewEmitter(storageClient)
+		workspaceClient = wclient.New(wclient.Options{
+			DirectoryDataHome: filepath.Join(xdg.DataHome, "otto", "workspaces"),
+		})
+		events = events.NewEmitter(storageClient)
 	)
 
 	return &Services{
