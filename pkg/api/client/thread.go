@@ -19,6 +19,24 @@ func (c *Client) DeleteThread(ctx context.Context, id string) error {
 	return nil
 }
 
+type ThreadEventsOptions struct {
+	Follow bool
+}
+
+func (c *Client) ThreadEvents(ctx context.Context, threadID string, opts ThreadEventsOptions) (result <-chan types.Progress, err error) {
+	path := fmt.Sprintf("/threads/%s/events", threadID)
+	if opts.Follow {
+		path += "?follow=true"
+	}
+
+	_, resp, err := c.doStream(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return
+	}
+
+	return toStream[types.Progress](resp), nil
+}
+
 type ListThreadsOptions struct {
 	AgentID string
 }

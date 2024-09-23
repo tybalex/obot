@@ -6,11 +6,8 @@ import (
 
 	"github.com/gptscript-ai/otto/pkg/api/client"
 	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/pkg/cli/events"
 )
-
-type responsePrinter interface {
-	Print(input string, resp *types.InvokeResponse) error
-}
 
 type inputter interface {
 	Next(ctx context.Context, previous string, resp *types.InvokeResponse) (string, bool, error)
@@ -24,14 +21,13 @@ type Options struct {
 
 func Invoke(ctx context.Context, c *client.Client, id, input string, opts Options) (err error) {
 	var (
-		printer  responsePrinter = &Verbose{}
-		inputter inputter        = VerboseInputter{
+		printer           = events.NewPrinter(opts.Quiet)
+		inputter inputter = VerboseInputter{
 			client: c,
 		}
 		threadID = opts.ThreadID
 	)
 	if opts.Quiet {
-		printer = &Quiet{}
 		inputter = QuietInputter{}
 	}
 
@@ -56,14 +52,14 @@ func Invoke(ctx context.Context, c *client.Client, id, input string, opts Option
 
 		if opts.Async {
 			if opts.Quiet {
-				fmt.Println(resp.RunID)
+				fmt.Println(threadID)
 			} else {
-				fmt.Printf("Run ID: %s\n", resp.RunID)
+				fmt.Printf("Thread ID: %s\n", threadID)
 			}
 			return nil
 		}
 
-		if err := printer.Print(input, resp); err != nil {
+		if err := printer.Print(input, resp.Events); err != nil {
 			return err
 		}
 

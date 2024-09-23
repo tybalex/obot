@@ -73,12 +73,14 @@ func (r *Response) Wait() error {
 }
 
 type Options struct {
-	Background       bool
-	ThreadName       string
-	PreviousRunName  string
-	WorkflowName     string
-	WorkflowStepName string
-	Env              []string
+	Background            bool
+	ThreadName            string
+	PreviousRunName       string
+	WorkflowName          string
+	WorkflowExecutionName string
+	WorkflowStepName      string
+	WorkflowStepID        string
+	Env                   []string
 }
 
 type NewThreadOptions struct {
@@ -232,24 +234,28 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.Client, agent *v1.Agent, 
 	}
 
 	return i.createRunFromTools(ctx, c, thread, tools, input, runOptions{
-		Background:           opt.Background,
-		AgentName:            agent.Name,
-		Env:                  append(opt.Env, extraEnv...),
-		PreviousRunName:      opt.PreviousRunName,
-		WorkflowName:         opt.WorkflowName,
-		WorkflowStepName:     opt.WorkflowStepName,
-		CredentialContextIDs: credContextIDs,
+		Background:            opt.Background,
+		AgentName:             agent.Name,
+		Env:                   append(opt.Env, extraEnv...),
+		PreviousRunName:       opt.PreviousRunName,
+		WorkflowName:          opt.WorkflowName,
+		WorkflowExecutionName: opt.WorkflowExecutionName,
+		WorkflowStepName:      opt.WorkflowStepName,
+		WorkflowStepID:        opt.WorkflowStepID,
+		CredentialContextIDs:  credContextIDs,
 	})
 }
 
 type runOptions struct {
-	AgentName            string
-	Background           bool
-	WorkflowName         string
-	WorkflowStepName     string
-	PreviousRunName      string
-	Env                  []string
-	CredentialContextIDs []string
+	AgentName             string
+	Background            bool
+	WorkflowName          string
+	WorkflowExecutionName string
+	WorkflowStepName      string
+	WorkflowStepID        string
+	PreviousRunName       string
+	Env                   []string
+	CredentialContextIDs  []string
 }
 
 func (i *Invoker) createRunFromTools(ctx context.Context, c kclient.Client, thread *v1.Thread, tools []gptscript.ToolDef, input string, opts runOptions) (*Response, error) {
@@ -277,20 +283,32 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: system.RunPrefix,
 			Namespace:    thread.Namespace,
-			Finalizers:   []string{v1.RunFinalizer},
+			Labels: map[string]string{
+				v1.PreviousRunNameLabel: previousRunName,
+			},
+			Finalizers: []string{v1.RunFinalizer},
 		},
 		Spec: v1.RunSpec{
-			Background:           opts.Background,
-			ThreadName:           thread.Name,
-			AgentName:            opts.AgentName,
-			WorkflowName:         opts.WorkflowName,
-			WorkflowStepName:     opts.WorkflowStepName,
-			PreviousRunName:      previousRunName,
-			Input:                input,
-			Tool:                 string(toolData),
-			Env:                  opts.Env,
-			CredentialContextIDs: opts.CredentialContextIDs,
+			Background:            opts.Background,
+			ThreadName:            thread.Name,
+			AgentName:             opts.AgentName,
+			WorkflowName:          opts.WorkflowName,
+			WorkflowExecutionName: opts.WorkflowExecutionName,
+			WorkflowStepName:      opts.WorkflowStepName,
+			WorkflowStepID:        opts.WorkflowStepID,
+			WorkspaceID:           thread.Spec.WorkspaceID,
+			PreviousRunName:       previousRunName,
+			Input:                 input,
+			Tool:                  string(toolData),
+			Env:                   opts.Env,
+			CredentialContextIDs:  opts.CredentialContextIDs,
 		},
+	}
+
+	if previousRunName != "" {
+		run.Labels = map[string]string{
+			v1.PreviousRunNameLabel: previousRunName,
+		}
 	}
 
 	if err := c.Create(ctx, &run); err != nil {
@@ -304,7 +322,7 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 		}, nil
 	}
 
-	events, err := i.events.Watch(ctx, thread, events.WatchOptions{
+	events, err := i.events.Watch(ctx, thread.Namespace, events.WatchOptions{
 		Run: &run,
 	})
 	if err != nil {
@@ -338,7 +356,7 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Threa
 		ThreadID:       thread.Name,
 		AgentID:        run.Spec.AgentName,
 		WorkflowID:     run.Spec.WorkflowName,
-		WorkflowStepID: run.Spec.WorkflowStepName,
+		WorkflowStepID: run.Spec.WorkflowStepID,
 		Scope:          thread.Namespace,
 	})
 	if err != nil {
@@ -352,12 +370,12 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Threa
 				"OTTO_RUN_ID="+run.Name,
 				"OTTO_THREAD_ID="+thread.Name,
 				"OTTO_WORKFLOW_ID="+run.Spec.WorkflowName,
-				"OTTO_WORKFLOW_STEP_ID="+run.Spec.WorkflowStepName,
+				"OTTO_WORKFLOW_STEP_ID="+run.Spec.WorkflowStepID,
 				"OTTO_AGENT_ID="+run.Spec.AgentName,
 			),
 		},
 		Input:              run.Spec.Input,
-		Workspace:          workspace.GetDir(thread.Spec.WorkspaceID),
+		Workspace:          workspace.GetDir(run.Spec.WorkspaceID),
 		CredentialContexts: run.Spec.CredentialContextIDs,
 		ChatState:          chatState,
 		IncludeEvents:      true,

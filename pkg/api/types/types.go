@@ -93,7 +93,6 @@ type CredentialList List[Credential]
 
 type InvokeResponse struct {
 	Events   <-chan Progress
-	RunID    string
 	ThreadID string
 }
 

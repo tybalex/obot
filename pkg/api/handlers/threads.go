@@ -5,6 +5,7 @@ import (
 
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/pkg/events"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,11 +13,13 @@ import (
 
 type ThreadHandler struct {
 	workspaceClient *wclient.Client
+	events          *events.Emitter
 }
 
-func NewThreadHandler(wc *wclient.Client) *ThreadHandler {
+func NewThreadHandler(wc *wclient.Client, events *events.Emitter) *ThreadHandler {
 	return &ThreadHandler{
 		workspaceClient: wc,
+		events:          events,
 	}
 }
 
@@ -32,6 +35,29 @@ func convertThread(thread v1.Thread) types.Thread {
 		LastRunID:    thread.Status.LastRunName,
 		LastRunState: thread.Status.LastRunState,
 	}
+}
+
+func (a *ThreadHandler) Events(req api.Context) error {
+	var (
+		id     = req.PathValue("id")
+		follow = req.URL.Query().Get("follow") == "true"
+		thread v1.Thread
+	)
+
+	if err := req.Get(&thread, id); err != nil {
+		return err
+	}
+
+	events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
+		Follow:     follow,
+		History:    true,
+		ThreadName: thread.Name,
+	})
+	if err != nil {
+		return err
+	}
+
+	return req.WriteEvents(events)
 }
 
 func (a *ThreadHandler) Delete(req api.Context) error {

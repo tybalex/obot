@@ -131,7 +131,7 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 			Spec: v1.WorkflowStepSpec{
 				AfterWorkflowStepName: lastStepName,
 				Step: v1.Step{
-					Input: we.Status.WorkflowManifest.Output,
+					Step: we.Status.WorkflowManifest.Output,
 				},
 				Path:                  []string{"output"},
 				WorkflowName:          we.Spec.WorkflowName,

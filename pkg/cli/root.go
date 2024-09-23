@@ -38,9 +38,9 @@ func New() *cobra.Command {
 		&Update{root: root},
 		&Delete{root: root},
 		&Invoke{root: root},
-		&Threads{root: root},
+		cmd.Command(&Threads{root: root}, &ThreadPrint{root: root}),
 		cmd.Command(&Credentials{root: root}, &CredentialsRm{root: root}),
-		cmd.Command(&Runs{root: root}, &Debug{root: root}),
+		cmd.Command(&Runs{root: root}, &Debug{root: root}, &RunPrint{root: root}),
 		&Server{})
 }
 

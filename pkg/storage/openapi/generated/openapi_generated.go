@@ -788,9 +788,20 @@ func schema_storage_apis_ottogptscriptai_v1_Progress(ref common.ReferenceCallbac
 							Format:  "",
 						},
 					},
+					"input": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"prompt": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Prompt"),
+						},
+					},
+					"step": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step"),
 						},
 					},
 					"tool": {
@@ -816,7 +827,7 @@ func schema_storage_apis_ottogptscriptai_v1_Progress(ref common.ReferenceCallbac
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Prompt", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolProgress"},
+			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Prompt", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolProgress"},
 	}
 }
 
@@ -1010,7 +1021,25 @@ func schema_storage_apis_ottogptscriptai_v1_RunSpec(ref common.ReferenceCallback
 							Format: "",
 						},
 					},
+					"workflowExecutionName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"workflowStepName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"workflowStepID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"workspaceID": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -1437,6 +1466,12 @@ func schema_storage_apis_ottogptscriptai_v1_Step(ref common.ReferenceCallback) c
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
+					"id": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"name": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -1459,7 +1494,7 @@ func schema_storage_apis_ottogptscriptai_v1_Step(ref common.ReferenceCallback) c
 							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.While"),
 						},
 					},
-					"input": {
+					"step": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",

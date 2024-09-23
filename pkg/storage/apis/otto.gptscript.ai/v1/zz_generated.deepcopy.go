@@ -390,6 +390,11 @@ func (in *Progress) DeepCopyInto(out *Progress) {
 		*out = new(Prompt)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.Step != nil {
+		in, out := &in.Step, &out.Step
+		*out = new(Step)
+		(*in).DeepCopyInto(*out)
+	}
 	out.Tool = in.Tool
 }
 

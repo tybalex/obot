@@ -18,6 +18,10 @@ const (
 	WorkflowFinalizer          = "otto.gptscript.ai/workflow"
 )
 
+const (
+	PreviousRunNameLabel = "otto.gptscript.ai/previous-run-name"
+)
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type Run struct {
@@ -34,7 +38,9 @@ func (in *Run) GetConditions() *[]metav1.Condition {
 
 type Progress struct {
 	Content        string       `json:"content"`
+	Input          string       `json:"input,omitempty"`
 	Prompt         *Prompt      `json:"prompt,omitempty"`
+	Step           *Step        `json:"step,omitempty"`
 	Tool           ToolProgress `json:"tool"`
 	WaitingOnModel bool         `json:"waitingOnModel,omitempty"`
 	Error          string       `json:"error,omitempty"`
@@ -59,16 +65,19 @@ type ToolProgress struct {
 }
 
 type RunSpec struct {
-	Background           bool     `json:"background,omitempty"`
-	ThreadName           string   `json:"threadName,omitempty"`
-	AgentName            string   `json:"agentName,omitempty"`
-	WorkflowName         string   `json:"workflowName,omitempty"`
-	WorkflowStepName     string   `json:"workflowStepName,omitempty"`
-	PreviousRunName      string   `json:"previousRunName,omitempty"`
-	Input                string   `json:"input"`
-	Env                  []string `json:"env,omitempty"`
-	Tool                 string   `json:"tool,omitempty"`
-	CredentialContextIDs []string `json:"credentialContextIDs,omitempty"`
+	Background            bool     `json:"background,omitempty"`
+	ThreadName            string   `json:"threadName,omitempty"`
+	AgentName             string   `json:"agentName,omitempty"`
+	WorkflowName          string   `json:"workflowName,omitempty"`
+	WorkflowExecutionName string   `json:"workflowExecutionName,omitempty"`
+	WorkflowStepName      string   `json:"workflowStepName,omitempty"`
+	WorkflowStepID        string   `json:"workflowStepID,omitempty"`
+	WorkspaceID           string   `json:"workspaceID,omitempty"`
+	PreviousRunName       string   `json:"previousRunName,omitempty"`
+	Input                 string   `json:"input"`
+	Env                   []string `json:"env,omitempty"`
+	Tool                  string   `json:"tool,omitempty"`
+	CredentialContextIDs  []string `json:"credentialContextIDs,omitempty"`
 }
 
 type RunStatus struct {

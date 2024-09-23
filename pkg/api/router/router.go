@@ -14,8 +14,8 @@ func Router(services *services.Services) (http.Handler, error) {
 	agents := handlers.NewAgentHandler(services.WorkspaceClient, "directory")
 	workflows := handlers.NewWorkflowHandler(services.WorkspaceClient, "directory")
 	invoker := handlers.NewInvokeHandler(services.Invoker)
-	threads := handlers.NewThreadHandler(services.WorkspaceClient)
-	runs := handlers.NewRunHandler()
+	threads := handlers.NewThreadHandler(services.WorkspaceClient, services.Events)
+	runs := handlers.NewRunHandler(services.Events)
 
 	// Agents
 	mux.Handle("GET /agents", w(agents.List))
@@ -68,11 +68,12 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.Handle("DELETE /workflows/{workflow_id}/onedrive-links/{id}", w(workflows.DeleteOnedriveLinks))
 
 	// Invoker
-	mux.Handle("POST /invoke/{agent}", w(invoker.Invoke))
-	mux.Handle("POST /invoke/{agent}/threads/{thread}", w(invoker.Invoke))
+	mux.Handle("POST /invoke/{id}", w(invoker.Invoke))
+	mux.Handle("POST /invoke/{id}/threads/{thread}", w(invoker.Invoke))
 
 	// Threads
 	mux.Handle("GET /threads", w(threads.List))
+	mux.Handle("GET /threads/{id}/events", w(threads.Events))
 	mux.Handle("DELETE /threads/{id}", w(threads.Delete))
 	mux.Handle("PUT /threads/{id}", w(threads.Update))
 	mux.Handle("GET /agents/{agent}/threads", w(threads.List))
@@ -92,6 +93,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.Handle("GET /runs", w(runs.List))
 	mux.Handle("GET /runs/{id}", w(runs.ByID))
 	mux.Handle("GET /runs/{id}/debug", w(runs.Debug))
+	mux.Handle("GET /runs/{id}/events", w(runs.Events))
 	mux.Handle("GET /threads/{thread}/runs", w(runs.List))
 	mux.Handle("GET /agents/{agent}/runs", w(runs.List))
 	mux.Handle("GET /agents/{agent}/threads/{thread}/runs", w(runs.List))

@@ -7,6 +7,7 @@ import (
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflow"
 	"github.com/gptscript-ai/otto/pkg/render"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/system"
@@ -29,7 +30,7 @@ func NewWorkflowHandler(wc *client.Client, wp string) *WorkflowHandler {
 func (a *WorkflowHandler) Update(req api.Context) error {
 	var (
 		id       = req.PathValue("id")
-		workflow v1.Workflow
+		wf       v1.Workflow
 		manifest v1.WorkflowManifest
 	)
 
@@ -37,16 +38,18 @@ func (a *WorkflowHandler) Update(req api.Context) error {
 		return err
 	}
 
-	if err := req.Get(&workflow, id); err != nil {
+	manifest = workflow.PopulateIDs(manifest)
+
+	if err := req.Get(&wf, id); err != nil {
 		return err
 	}
 
-	workflow.Spec.Manifest = manifest
-	if err := req.Update(&workflow); err != nil {
+	wf.Spec.Manifest = manifest
+	if err := req.Update(&wf); err != nil {
 		return err
 	}
 
-	return req.Write(convertWorkflow(workflow, api.GetURLPrefix(req)))
+	return req.Write(convertWorkflow(wf, api.GetURLPrefix(req)))
 }
 
 func (a *WorkflowHandler) Delete(req api.Context) error {
@@ -67,6 +70,7 @@ func (a *WorkflowHandler) Create(req api.Context) error {
 	if err := req.Read(&manifest); err != nil {
 		return err
 	}
+	manifest = workflow.PopulateIDs(manifest)
 	workflow := v1.Workflow{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: system.WorkflowPrefix,

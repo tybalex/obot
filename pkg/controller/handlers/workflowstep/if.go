@@ -113,7 +113,9 @@ func (h *Handler) defineCondition(step, afterStep *v1.WorkflowStep, pathName str
 		afterStepName = afterStep.Name
 	}
 
-	condition := "false"
+	var (
+		condition = "false"
+	)
 	if step.Spec.Step.If != nil {
 		condition = step.Spec.Step.If.Condition
 	} else if step.Spec.Step.While != nil {
@@ -129,7 +131,8 @@ func (h *Handler) defineCondition(step, afterStep *v1.WorkflowStep, pathName str
 			ParentWorkflowStepName: step.Spec.ParentWorkflowStepName,
 			AfterWorkflowStepName:  afterStepName,
 			Step: v1.Step{
-				Input: toStepCondition(condition),
+				ID:   step.Spec.Step.ID,
+				Step: toStepCondition(condition),
 			},
 			Path:                  stepPath,
 			WorkflowName:          step.Spec.WorkflowName,

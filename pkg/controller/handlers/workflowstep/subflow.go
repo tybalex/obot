@@ -40,7 +40,7 @@ func (h *Handler) RunSubflow(req router.Request, resp router.Response) error {
 			Namespace: step.Namespace,
 		},
 		Spec: v1.WorkflowExecutionSpec{
-			Input:                 step.Spec.Step.Input,
+			Input:                 step.Spec.Step.Step,
 			WorkflowName:          wf.Name,
 			AfterWorkflowStepName: step.Spec.AfterWorkflowStepName,
 			WorkspaceID:           wf.Status.Workspace.WorkspaceID,
@@ -69,7 +69,7 @@ func (h *Handler) RunSubflow(req router.Request, resp router.Response) error {
 				WorkflowExecutionName:  step.Spec.WorkflowExecutionName,
 				ThreadName:             step.Spec.ThreadName,
 				Step: v1.Step{
-					Input: out,
+					Step: out,
 				},
 			},
 		}

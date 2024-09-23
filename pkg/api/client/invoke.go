@@ -42,14 +42,12 @@ func (c *Client) Invoke(ctx context.Context, agentID string, input string, opt .
 		_, _ = io.Copy(io.Discard, resp.Body)
 		resp.Body.Close()
 		return &types.InvokeResponse{
-			RunID:    resp.Header.Get("X-Otto-Run-Id"),
 			ThreadID: resp.Header.Get("X-Otto-Thread-Id"),
 		}, nil
 	}
 
 	return &types.InvokeResponse{
 		Events:   toStream[types.Progress](resp),
-		RunID:    resp.Header.Get("X-Otto-Run-Id"),
 		ThreadID: resp.Header.Get("X-Otto-Thread-Id"),
 	}, nil
 }

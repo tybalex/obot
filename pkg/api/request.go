@@ -7,10 +7,12 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/storage"
+	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,7 +31,51 @@ type Context struct {
 }
 
 func (r *Context) IsStreamRequested() bool {
-	return slices.Contains(r.Request.Header.Values("Accept"), "text/event-stream")
+	return r.Accepts("text/event-stream")
+}
+
+func (r *Context) Accepts(contentType string) bool {
+	return slices.Contains(r.Request.Header.Values("Accept"), contentType)
+}
+
+func (r *Context) WriteEvents(events <-chan v1.Progress) error {
+	// Check if SSE is requested
+	sendEvents := r.IsStreamRequested()
+
+	sendJSON := r.Accepts("application/json")
+	if sendEvents {
+		r.ResponseWriter.Header().Set("Content-Type", "text/event-stream")
+	}
+
+	var (
+		lastFlush time.Time
+		toWrite   []v1.Progress
+	)
+	for event := range events {
+		if sendEvents {
+			if err := r.WriteDataEvent(event); err != nil {
+				return err
+			}
+		} else if sendJSON {
+			toWrite = append(toWrite, event)
+		} else {
+			if err := r.Write([]byte(event.Content)); err != nil {
+				return err
+			}
+			if lastFlush.IsZero() || time.Since(lastFlush) > 500*time.Millisecond {
+				r.Flush()
+				lastFlush = time.Now()
+			}
+		}
+	}
+
+	if sendJSON {
+		return r.Write(map[string]any{
+			"items": toWrite,
+		})
+	}
+
+	return nil
 }
 
 func (r *Context) Read(obj any) error {

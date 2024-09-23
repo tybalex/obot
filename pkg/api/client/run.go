@@ -16,6 +16,15 @@ type ListRunsOptions struct {
 	ThreadID string
 }
 
+func (c *Client) RunEvents(ctx context.Context, runID string) (result <-chan types.Progress, err error) {
+	_, resp, err := c.doStream(ctx, http.MethodGet, fmt.Sprintf("/runs/%s/events", runID), nil)
+	if err != nil {
+		return
+	}
+
+	return toStream[types.Progress](resp), nil
+}
+
 func (c *Client) DebugRun(ctx context.Context, runID string) (result types.RunDebug, err error) {
 	_, resp, err := c.doRequest(ctx, http.MethodGet, fmt.Sprintf("/runs/%s/debug", runID), nil)
 	if err != nil {

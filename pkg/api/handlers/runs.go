@@ -4,15 +4,19 @@ import (
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/pkg/events"
 	"github.com/gptscript-ai/otto/pkg/gz"
 	"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 )
 
 type RunHandler struct {
+	events *events.Emitter
 }
 
-func NewRunHandler() *RunHandler {
-	return &RunHandler{}
+func NewRunHandler(events *events.Emitter) *RunHandler {
+	return &RunHandler{
+		events: events,
+	}
 }
 
 func convertRun(run v1.Run) types.Run {
@@ -55,6 +59,21 @@ func (a *RunHandler) Debug(req api.Context) error {
 	}
 
 	return req.Write(calls)
+}
+
+func (a *RunHandler) Events(req api.Context) error {
+	var (
+		runID = req.PathValue("id")
+	)
+
+	events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
+		LastRunName: runID,
+	})
+	if err != nil {
+		return err
+	}
+
+	return req.WriteEvents(events)
 }
 
 func (a *RunHandler) stream(req api.Context, criteria func(*v1.Run) bool) error {

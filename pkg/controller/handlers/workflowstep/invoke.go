@@ -13,38 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (h *Handler) toAgent(req router.Request, step *v1.WorkflowStep) (v1.Agent, error) {
-	var (
-		wf v1.Workflow
-		we v1.WorkflowExecution
-	)
-	if err := req.Get(&wf, step.Namespace, step.Spec.WorkflowName); err != nil {
-		return v1.Agent{}, err
-	}
-	if err := req.Get(&we, step.Namespace, step.Spec.WorkflowExecutionName); err != nil {
-		return v1.Agent{}, err
-	}
-	agent := v1.Agent{
-		ObjectMeta: metav1.ObjectMeta{
-			Namespace: wf.Namespace,
-		},
-		Spec: v1.AgentSpec{
-			Manifest: we.Status.WorkflowManifest.AgentManifest,
-		},
-		Status: v1.AgentStatus{
-			Workspace:          wf.Status.Workspace,
-			KnowledgeWorkspace: wf.Status.KnowledgeWorkspace,
-		},
-	}
-	if step.Spec.Step.Cache != nil {
-		agent.Spec.Manifest.Cache = step.Spec.Step.Cache
-	}
-	if step.Spec.Step.Temperature != nil {
-		agent.Spec.Manifest.Temperature = step.Spec.Step.Temperature
-	}
-	return agent, nil
-}
-
 func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {
 	var (
 		ctx         = req.Ctx
@@ -70,22 +38,8 @@ func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {
 
 	var run v1.Run
 	if step.Status.FirstRunName == "" {
-		agent, err := h.toAgent(req, step)
-		if err != nil {
-			return err
-		}
-
-		input, err := h.getInput(step)
-		if err != nil {
-			return err
-		}
-
-		invokeResp, err := h.invoker.Agent(ctx, req.Client, &agent, input, invoke.Options{
-			Background:       true,
-			ThreadName:       step.Spec.ThreadName,
-			PreviousRunName:  lastRunName,
-			WorkflowName:     step.Spec.WorkflowName,
-			WorkflowStepName: step.Name,
+		invokeResp, err := h.invoker.Step(ctx, req.Client, step, invoke.StepOptions{
+			PreviousRunName: lastRunName,
 		})
 		if err != nil {
 			return err
@@ -160,7 +114,7 @@ func (h *Handler) processTailCall(req router.Request, resp router.Response, step
 			ParentWorkflowStepName: step.Name,
 			AfterWorkflowStepName:  step.Spec.AfterWorkflowStepName,
 			Step: v1.Step{
-				Input: inputString,
+				Step: inputString,
 			},
 			SubFlow: &v1.SubFlow{
 				Workflow: call.Workflow,

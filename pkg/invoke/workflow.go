@@ -1,0 +1,85 @@
+package invoke
+
+import (
+	"context"
+
+	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/pkg/events"
+	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/system"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kclient "sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+type WorkflowOptions struct {
+	ThreadName string
+}
+
+func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Workflow, input string, opt WorkflowOptions) (*Response, error) {
+	if opt.ThreadName != "" {
+		agent, err := i.toAgent(wf, wf.Spec.Manifest)
+		if err != nil {
+			return nil, err
+		}
+
+		return i.Agent(ctx, c, &agent, input, Options{
+			ThreadName: opt.ThreadName,
+		})
+	}
+
+	wfe := &v1.WorkflowExecution{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: system.WorkflowExecutionPrefix,
+		},
+		Spec: v1.WorkflowExecutionSpec{
+			Input:        input,
+			WorkflowName: wf.Name,
+		},
+		Status: v1.WorkflowExecutionStatus{},
+	}
+
+	if err := c.Create(ctx, wfe); err != nil {
+		return nil, err
+	}
+
+	w, err := c.Watch(ctx, &v1.WorkflowExecutionList{}, kclient.InNamespace(wfe.Namespace), kclient.MatchingFields{"metadata.name": wfe.Name})
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		w.Stop()
+		for range w.ResultChan() {
+		}
+	}()
+
+	watching := false
+	for event := range w.ResultChan() {
+		wfe, ok := event.Object.(*v1.WorkflowExecution)
+		if !ok {
+			continue
+		}
+
+		if !watching && wfe.Status.External.ThreadID != "" {
+			resp, err := i.events.Watch(ctx, wfe.Namespace, events.WatchOptions{
+				History:    true,
+				ThreadName: wfe.Status.External.ThreadID,
+				Follow:     true,
+			})
+			if err != nil {
+				continue
+			}
+			var thread v1.Thread
+			if err := c.Get(ctx, router.Key(wfe.Namespace, wfe.Status.External.ThreadID), &thread); err != nil {
+				return nil, err
+			}
+			return &Response{
+				Thread: &thread,
+				Events: resp,
+			}, nil
+		}
+	}
+
+	return nil, nil
+}

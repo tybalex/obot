@@ -36,6 +36,7 @@ type Config struct {
 }
 
 type Services struct {
+	Events          *events.Emitter
 	StorageClient   storage.Client
 	Router          *router.Router
 	GPTClient       *gptscript.GPTScript
@@ -107,6 +108,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 	)
 
 	return &Services{
+		Events:          events,
 		StorageClient:   storageClient,
 		Router:          r,
 		GPTClient:       c,

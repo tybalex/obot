@@ -1,4 +1,4 @@
-package invokeclient
+package events
 
 import (
 	"fmt"
@@ -15,9 +15,9 @@ var log = mvl.Package()
 type Quiet struct {
 }
 
-func (q *Quiet) Print(input string, resp *types.InvokeResponse) error {
+func (q *Quiet) Print(input string, events <-chan types.Progress) error {
 	var lastContent string
-	for event := range resp.Events {
+	for event := range events {
 		if event.Error != "" {
 			return fmt.Errorf("%s", event.Error)
 		}
@@ -35,61 +35,67 @@ func (q *Quiet) Print(input string, resp *types.InvokeResponse) error {
 type Verbose struct {
 }
 
-func (v *Verbose) Print(input string, resp *types.InvokeResponse) error {
+func (v *Verbose) Print(input string, events <-chan types.Progress) error {
 	var (
 		spinner              = textio.NewSpinnerPrinter()
 		printGeneratingInput bool
+		lastType             string
 	)
 	spinner.Start()
 	defer spinner.Stop()
-
-	spinner.Print(fmt.Sprintf("> Input: %s\n", input))
-	spinner.EnsureNewline()
 
 outer:
 	for {
 		select {
 		case <-time.After(100 * time.Millisecond):
 			spinner.Tick()
-		case event, ok := <-resp.Events:
+		case event, ok := <-events:
 			if !ok {
 				break outer
 			}
 
-			if event.WaitingOnModel {
+			if event.Step != nil {
+				lastType = "step"
+				spinner.EnsureNewline()
+				spinner.Print("\n")
+				spinner.Print(event.Step.Display())
+			} else if event.Input != "" {
+				if lastType != "step" {
+					spinner.Print("\n")
+				}
+				lastType = "input"
+				spinner.EnsureNewline()
+				spinner.Print(fmt.Sprintf("> Input: %s\n", event.Input))
+			} else if event.WaitingOnModel {
+				lastType = "waiting"
 				spinner.EnsureNewline()
 				spinner.Print("> Waiting for model... \n")
-			}
-
-			if event.Error != "" {
+			} else if event.Error != "" {
+				lastType = "error"
 				spinner.EnsureNewline()
 				spinner.Stop()
 				log.Errorf("%s", event.Error)
 				spinner.Start()
-			}
-
-			if event.Tool.PartialInput != "" {
+			} else if event.Tool.PartialInput != "" {
+				lastType = "tool"
 				if !printGeneratingInput {
 					spinner.Print(fmt.Sprintf("> Generating tool input for (%s)...  ", event.Tool.GeneratingInputForName))
 					printGeneratingInput = true
 				}
 				spinner.Print(event.Tool.PartialInput)
-			}
-
-			if event.Content != "" {
-				if printGeneratingInput {
-					spinner.Print("\n")
-					printGeneratingInput = false
-				}
-				spinner.Print(event.Content)
-			}
-
-			if event.Tool.Name != "" {
+			} else if event.Tool.Name != "" {
+				lastType = "tool"
 				if printGeneratingInput {
 					spinner.Print("\n")
 					printGeneratingInput = false
 				}
 				spinner.Print(fmt.Sprintf("> Running tool (%s): %s\n", event.Tool.Name, event.Tool.Input))
+			} else if event.Content != "" {
+				lastType = "content"
+				if printGeneratingInput {
+					spinner.Print("\n")
+				}
+				spinner.Print(event.Content)
 			}
 		}
 	}

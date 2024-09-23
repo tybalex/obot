@@ -13,7 +13,7 @@ type Workflows struct {
 }
 
 func (l *Workflows) Customize(cmd *cobra.Command) {
-	cmd.Aliases = []string{"workflow", "wf"}
+	cmd.Aliases = []string{"workflow", "wf", "w"}
 }
 
 func (l *Workflows) Run(cmd *cobra.Command, args []string) error {

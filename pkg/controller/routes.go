@@ -8,6 +8,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/slugs"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/threads"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/uploads"
+	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflow"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflowexecution"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflowstep"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workspace"
@@ -81,6 +82,9 @@ func routes(router *router.Router, svcs *services.Services) error {
 	root.Type(&v1.Slug{}).HandlerFunc(slugs.SlugGC)
 	root.Type(&v1.Agent{}).HandlerFunc(slugs.AssociateWithSlug)
 	root.Type(&v1.Workflow{}).HandlerFunc(slugs.AssociateWithSlug)
+
+	// Workflows
+	root.Type(&v1.Workflow{}).HandlerFunc(workflow.EnsureIDs)
 
 	return nil
 }
