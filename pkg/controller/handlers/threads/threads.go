@@ -25,7 +25,17 @@ func New(workspace *wclient.Client, ingester *knowledge.Ingester, aihelper *aihe
 	}
 }
 
-func (t *ThreadHandler) Cleanup(req router.Request, resp router.Response) error {
+func (t *ThreadHandler) MoveWorkspacesToStatus(req router.Request, _ router.Response) error {
+	thread := req.Object.(*v1.Thread)
+	if thread.Status.Workspace.WorkspaceID == "" || thread.Status.KnowledgeWorkspace.KnowledgeWorkspaceID == "" {
+		thread.Status.Workspace.WorkspaceID = thread.Spec.WorkspaceID
+		thread.Status.KnowledgeWorkspace.KnowledgeWorkspaceID = thread.Spec.KnowledgeWorkspaceID
+	}
+
+	return nil
+}
+
+func (t *ThreadHandler) Cleanup(req router.Request, _ router.Response) error {
 	thread := req.Object.(*v1.Thread)
 
 	if thread.Spec.AgentName != "" {
@@ -83,7 +93,7 @@ func (t *ThreadHandler) HasKnowledge(handler router.Handler) router.Handler {
 	})
 }
 
-func (t *ThreadHandler) Description(req router.Request, resp router.Response) error {
+func (t *ThreadHandler) Description(req router.Request, _ router.Response) error {
 	thread := req.Object.(*v1.Thread)
 
 	if thread.Spec.Manifest.Description != "" || thread.Status.LastRunName == "" {

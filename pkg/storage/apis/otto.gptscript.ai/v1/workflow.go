@@ -19,11 +19,23 @@ type Workflow struct {
 	Status WorkflowStatus `json:"status,omitempty"`
 }
 
-func (in *Workflow) GetKnowledgeWorkspaceStatus() *KnowledgeWorkspaceStatus {
+func (in *Workflow) AgentName() string {
+	return ""
+}
+
+func (in *Workflow) WorkflowName() string {
+	return in.Name
+}
+
+func (in *Workflow) ThreadName() string {
+	return ""
+}
+
+func (in *Workflow) KnowledgeWorkspaceStatus() *KnowledgeWorkspaceStatus {
 	return &in.Status.KnowledgeWorkspace
 }
 
-func (in *Workflow) GetWorkspaceStatus() *WorkspaceStatus {
+func (in *Workflow) WorkspaceStatus() *WorkspaceStatus {
 	return &in.Status.Workspace
 }
 

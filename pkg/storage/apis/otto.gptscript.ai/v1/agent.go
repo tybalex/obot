@@ -19,11 +19,23 @@ type Agent struct {
 	Status AgentStatus `json:"status,omitempty"`
 }
 
-func (in *Agent) GetKnowledgeWorkspaceStatus() *KnowledgeWorkspaceStatus {
+func (in *Agent) AgentName() string {
+	return in.Name
+}
+
+func (in *Agent) WorkflowName() string {
+	return ""
+}
+
+func (in *Agent) ThreadName() string {
+	return ""
+}
+
+func (in *Agent) KnowledgeWorkspaceStatus() *KnowledgeWorkspaceStatus {
 	return &in.Status.KnowledgeWorkspace
 }
 
-func (in *Agent) GetWorkspaceStatus() *WorkspaceStatus {
+func (in *Agent) WorkspaceStatus() *WorkspaceStatus {
 	return &in.Status.Workspace
 }
 
@@ -58,6 +70,7 @@ type KnowledgeWorkspaceStatus struct {
 	KnowledgeGeneration         int64  `json:"knowledgeGeneration,omitempty"`
 	ObservedKnowledgeGeneration int64  `json:"observedKnowledgeGeneration,omitempty"`
 	KnowledgeWorkspaceID        string `json:"knowledgeWorkspaceID,omitempty"`
+	IngestionRunName            string `json:"ingestionRunName,omitempty"`
 }
 
 type AgentExternalStatus struct {
