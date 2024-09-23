@@ -10,7 +10,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
 	github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240920232051-64eaa0ac8caf
-	github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240920000035-8ecad90f7ca2
+	github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240923185736-32e544c993c7
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/pterm/pterm v0.12.79
 	github.com/rs/cors v1.11.1

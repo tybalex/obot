@@ -308,8 +308,8 @@ github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a h1:LX7AOcbBoTnUk/
 github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a/go.mod h1:DJAo1xTht1LDkNYFNydVjTHd576TC7MlpsVRl3oloVw=
 github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240920232051-64eaa0ac8caf h1:3uBPUYBuCIWgUxQPD3d3bHHr/0zgCsdzk628FJZCmno=
 github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240920232051-64eaa0ac8caf/go.mod h1:/FVuLwhz+sIfsWUgUHWKi32qT0i6+IXlUlzs70KKt/Q=
-github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240920000035-8ecad90f7ca2 h1:C6JtwdHh6ALfmain5rW2kD9fkl1WnFfh5jJIDZ7xQPo=
-github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240920000035-8ecad90f7ca2/go.mod h1:GMpZ8Qp14HPqvTA5HQKjGkNVvyK0jwUvN45jez9/Rw0=
+github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240923185736-32e544c993c7 h1:e5qVrhsxGopIHYq3KkjM6ZAqVmzh5vncHBhd2fP4MbU=
+github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240923185736-32e544c993c7/go.mod h1:GMpZ8Qp14HPqvTA5HQKjGkNVvyK0jwUvN45jez9/Rw0=
 github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 h1:pdN6V1QBWetyv/0+wjACpqVH+eVULgEjkurDLq3goeM=
 github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7/go.mod h1:FecbI9+v66THATjSRHfNgh1IVFe/9kFxbXtjV0ctIMA=
 github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 h1:UH//fgunKIs4JdUbpDl1VZCDaL56wXCB/5+wF6uHfaI=

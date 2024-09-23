@@ -81,6 +81,7 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 	} else {
 		resp, err = i.invoker.Workflow(req.Context(), req.Storage, &wf, string(input), invoke.WorkflowOptions{
 			ThreadName: threadID,
+			Background: async,
 		})
 		if err != nil {
 			return err

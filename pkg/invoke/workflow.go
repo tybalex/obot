@@ -2,6 +2,7 @@ package invoke
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/otto/pkg/events"
@@ -13,6 +14,7 @@ import (
 
 type WorkflowOptions struct {
 	ThreadName string
+	Background bool
 }
 
 func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Workflow, input string, opt WorkflowOptions) (*Response, error) {
@@ -31,6 +33,7 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: system.WorkflowExecutionPrefix,
+			Namespace:    wf.Namespace,
 		},
 		Spec: v1.WorkflowExecutionSpec{
 			Input:        input,
@@ -54,14 +57,23 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 		}
 	}()
 
-	watching := false
 	for event := range w.ResultChan() {
 		wfe, ok := event.Object.(*v1.WorkflowExecution)
 		if !ok {
 			continue
 		}
 
-		if !watching && wfe.Status.External.ThreadID != "" {
+		if wfe.Status.External.ThreadID != "" {
+			var thread v1.Thread
+			if err := c.Get(ctx, router.Key(wfe.Namespace, wfe.Status.External.ThreadID), &thread); err != nil {
+				return nil, err
+			}
+			if opt.Background {
+				return &Response{
+					Thread: &thread,
+				}, nil
+			}
+
 			resp, err := i.events.Watch(ctx, wfe.Namespace, events.WatchOptions{
 				History:    true,
 				ThreadName: wfe.Status.External.ThreadID,
@@ -70,10 +82,6 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 			if err != nil {
 				continue
 			}
-			var thread v1.Thread
-			if err := c.Get(ctx, router.Key(wfe.Namespace, wfe.Status.External.ThreadID), &thread); err != nil {
-				return nil, err
-			}
 			return &Response{
 				Thread: &thread,
 				Events: resp,
@@ -81,5 +89,5 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 		}
 	}
 
-	return nil, nil
+	return nil, fmt.Errorf("workflow did not start")
 }

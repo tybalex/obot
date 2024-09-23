@@ -308,13 +308,12 @@ func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOption
 			return err
 		}
 
-		if !opts.Follow {
-			return nil
-		}
-
-		nextRun, err := e.findNextRun(ctx, run)
+		nextRun, err := e.findNextRun(ctx, run, opts.Follow)
 		if err != nil {
 			return err
+		}
+		if nextRun == nil {
+			return nil
 		}
 
 		// don't tail history again
@@ -323,7 +322,46 @@ func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOption
 	}
 }
 
-func (e *Emitter) findNextRun(ctx context.Context, run v1.Run) (*v1.Run, error) {
+func (e *Emitter) isWorkflowDone(ctx context.Context, run v1.Run, follow bool) (chan struct{}, func(), error) {
+	if run.Spec.WorkflowExecutionName == "" {
+		return nil, func() {}, nil
+	}
+	if follow {
+		// In follow mode we never consider if the workflow is done or failed
+		return nil, func() {}, nil
+	}
+	w, err := e.client.Watch(ctx, &v1.WorkflowExecutionList{}, kclient.InNamespace(run.Namespace), &kclient.MatchingFields{
+		"metadata.name": run.Spec.WorkflowExecutionName,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	result := make(chan struct{})
+	cancel := func() {
+		w.Stop()
+		go func() {
+			for range w.ResultChan() {
+			}
+		}()
+	}
+
+	go func() {
+		defer cancel()
+		for event := range w.ResultChan() {
+			if wfe, ok := event.Object.(*v1.WorkflowExecution); ok {
+				if wfe.Status.External.State == v1.WorkflowStateComplete || wfe.Status.External.State == v1.WorkflowStateError {
+					close(result)
+					return
+				}
+			}
+		}
+	}()
+
+	return result, cancel, nil
+}
+
+func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1.Run, error) {
 	var (
 		runs     v1.RunList
 		criteria = []kclient.ListOption{
@@ -331,6 +369,16 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run) (*v1.Run, error) 
 			kclient.MatchingLabels{v1.PreviousRunNameLabel: run.Name},
 		}
 	)
+
+	if !follow && run.Spec.WorkflowExecutionName == "" {
+		// If this isn't a workflow we are done at this point if follow is requested
+		return nil, nil
+	}
+
+	if run.Spec.WorkflowExecutionName != "" && !follow {
+		return nil, nil
+	}
+
 	if err := e.client.List(ctx, &runs, criteria...); err != nil {
 		return nil, err
 	}
@@ -352,13 +400,26 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run) (*v1.Run, error) 
 		}
 	}()
 
-	for event := range w.ResultChan() {
-		if run, ok := event.Object.(*v1.Run); ok {
-			return run, nil
+	isWorkflowDone, cancel, err := e.isWorkflowDone(ctx, run, follow)
+	if err != nil {
+		return nil, err
+	}
+	defer cancel()
+
+	for {
+		select {
+		case event, ok := <-w.ResultChan():
+			if !ok {
+				return nil, fmt.Errorf("failed to find next run after: %s", run.Name)
+			}
+			if run, ok := event.Object.(*v1.Run); ok {
+				return run, nil
+			}
+		case <-isWorkflowDone:
+			return nil, nil
 		}
 	}
 
-	return nil, fmt.Errorf("failed to find next run after: %s", run.Name)
 }
 
 func callToEvents(prg *gptscript.Program, frames Frames, printed *printState, out chan v1.Progress) {
