@@ -78,6 +78,9 @@ func (i *Invoker) toAgent(wf *v1.Workflow, manifest v1.WorkflowManifest) (v1.Age
 
 func (i *Invoker) getInput(step *v1.WorkflowStep) (string, error) {
 	var content []string
+	if step.Spec.Input != "" {
+		content = append(content, step.Spec.Input)
+	}
 	if step.Spec.Step.Step != "" {
 		content = append(content, step.Spec.Step.Step)
 	}

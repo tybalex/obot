@@ -32,6 +32,7 @@ type WorkflowStepSpec struct {
 	WorkflowName           string   `json:"workflowName,omitempty"`
 	WorkflowExecutionName  string   `json:"workflowExecutionName,omitempty"`
 	ThreadName             string   `json:"threadName,omitempty"`
+	Input                  string   `json:"input,omitempty"`
 	SubFlow                *SubFlow `json:"subFlow,omitempty"`
 }
 

@@ -2920,6 +2920,12 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStepSpec(ref common.Referenc
 							Format: "",
 						},
 					},
+					"input": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"subFlow": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SubFlow"),

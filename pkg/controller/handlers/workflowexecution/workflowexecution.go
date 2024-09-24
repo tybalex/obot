@@ -103,7 +103,12 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 	)
 
 	for i, step := range we.Status.WorkflowManifest.Steps {
-		var ()
+		var (
+			input string
+		)
+		if i == 0 {
+			input = we.Spec.Input
+		}
 		steps = append(steps, &v1.WorkflowStep{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name.SafeHashConcatName(we.Name, fmt.Sprint(i)),
@@ -116,6 +121,7 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 				WorkflowName:          we.Spec.WorkflowName,
 				WorkflowExecutionName: we.Name,
 				ThreadName:            we.Status.External.ThreadID,
+				Input:                 input,
 			},
 		})
 
