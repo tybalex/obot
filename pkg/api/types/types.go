@@ -100,26 +100,25 @@ type Progress v1.Progress
 
 type KnowledgeFile struct {
 	FileName        string             `json:"fileName"`
-	AgentName       string             `json:"agentName,omitempty"`
-	WorkflowName    string             `json:"workflowName,omitempty"`
-	ThreadName      string             `json:"threadName,omitempty"`
-	UploadName      string             `json:"uploadName,omitempty"`
+	AgentID         string             `json:"agentID,omitempty"`
+	WorkflowID      string             `json:"workflowID,omitempty"`
+	ThreadID        string             `json:"threadID,omitempty"`
+	UploadID        string             `json:"uploadID,omitempty"`
 	IngestionStatus v1.IngestionStatus `json:"ingestionStatus,omitempty"`
 	FileDetails     v1.FileDetails     `json:"fileDetails,omitempty"`
-	UploadID        string             `json:"uploadID,omitempty"`
 }
 
 type KnowledgeFileList List[KnowledgeFile]
 
 type OneDriveLinks struct {
-	AgentName    string       `json:"agentName,omitempty"`
-	WorkflowName string       `json:"workflowName,omitempty"`
-	SharedLinks  []string     `json:"sharedLinks,omitempty"`
-	ThreadName   string       `json:"threadName,omitempty"`
-	RunName      string       `json:"runName,omitempty"`
-	Status       string       `json:"output,omitempty"`
-	Error        string       `json:"error,omitempty"`
-	Folders      v1.FolderSet `json:"folders,omitempty"`
+	AgentID     string       `json:"agentID,omitempty"`
+	WorkflowID  string       `json:"workflowID,omitempty"`
+	SharedLinks []string     `json:"sharedLinks,omitempty"`
+	ThreadID    string       `json:"threadID,omitempty"`
+	RunID       string       `json:"runID,omitempty"`
+	Status      string       `json:"output,omitempty"`
+	Error       string       `json:"error,omitempty"`
+	Folders     v1.FolderSet `json:"folders,omitempty"`
 }
 
 type OneDriveLinksList List[OneDriveLinks]

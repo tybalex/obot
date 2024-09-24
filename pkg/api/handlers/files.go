@@ -99,13 +99,12 @@ func uploadKnowledge(req api.Context, workspaceClient *wclient.Client, parentNam
 func convertKnowledgeFile(file v1.KnowledgeFile) types.KnowledgeFile {
 	return types.KnowledgeFile{
 		FileName:        file.Spec.FileName,
-		AgentName:       file.Spec.AgentName,
-		WorkflowName:    file.Spec.WorkflowName,
-		ThreadName:      file.Spec.ThreadName,
-		UploadName:      file.Spec.UploadName,
+		AgentID:         file.Spec.AgentName,
+		WorkflowID:      file.Spec.WorkflowName,
+		ThreadID:        file.Spec.ThreadName,
 		IngestionStatus: file.Status.IngestionStatus,
 		FileDetails:     file.Status.FileDetails,
-		UploadID:        file.Status.UploadID,
+		UploadID:        file.Spec.UploadName,
 	}
 }
 
