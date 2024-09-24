@@ -99,6 +99,7 @@ type InvokeResponse struct {
 type Progress v1.Progress
 
 type KnowledgeFile struct {
+	Metadata
 	FileName        string             `json:"fileName"`
 	AgentID         string             `json:"agentID,omitempty"`
 	WorkflowID      string             `json:"workflowID,omitempty"`
@@ -111,6 +112,7 @@ type KnowledgeFile struct {
 type KnowledgeFileList List[KnowledgeFile]
 
 type OneDriveLinks struct {
+	Metadata
 	AgentID     string       `json:"agentID,omitempty"`
 	WorkflowID  string       `json:"workflowID,omitempty"`
 	SharedLinks []string     `json:"sharedLinks,omitempty"`
