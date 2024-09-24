@@ -48,7 +48,12 @@ func listKnowledgeFiles(req api.Context, parentObj knowledge.Knowledgeable) erro
 		return err
 	}
 
-	return req.Write(files)
+	resp := make([]types.KnowledgeFile, 0, len(files.Items))
+	for _, file := range files.Items {
+		resp = append(resp, convertKnowledgeFile(file))
+	}
+
+	return req.Write(types.KnowledgeFileList{Items: resp})
 }
 
 func uploadKnowledge(req api.Context, workspaceClient *wclient.Client, parentName string, toUpdate knowledge.Knowledgeable) error {
@@ -62,7 +67,7 @@ func uploadKnowledge(req api.Context, workspaceClient *wclient.Client, parentNam
 	}
 
 	filename := req.PathValue("file")
-	file := &v1.KnowledgeFile{
+	file := v1.KnowledgeFile{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: v1.ObjectNameFromAbsolutePath(
 				filepath.Join(workspace.GetDir(status.KnowledgeWorkspaceID), filename),
@@ -77,7 +82,7 @@ func uploadKnowledge(req api.Context, workspaceClient *wclient.Client, parentNam
 		},
 	}
 
-	if err := req.Storage.Create(req.Context(), file); err != nil && !apierrors.IsAlreadyExists(err) {
+	if err := req.Storage.Create(req.Context(), &file); err != nil && !apierrors.IsAlreadyExists(err) {
 		_ = deleteFile(req.Context(), req, workspaceClient, status.KnowledgeWorkspaceID)
 		return err
 	}
@@ -88,7 +93,20 @@ func uploadKnowledge(req api.Context, workspaceClient *wclient.Client, parentNam
 		return err
 	}
 
-	return req.Write(file)
+	return req.Write(convertKnowledgeFile(file))
+}
+
+func convertKnowledgeFile(file v1.KnowledgeFile) types.KnowledgeFile {
+	return types.KnowledgeFile{
+		FileName:        file.Spec.FileName,
+		AgentName:       file.Spec.AgentName,
+		WorkflowName:    file.Spec.WorkflowName,
+		ThreadName:      file.Spec.ThreadName,
+		UploadName:      file.Spec.UploadName,
+		IngestionStatus: file.Status.IngestionStatus,
+		FileDetails:     file.Status.FileDetails,
+		UploadID:        file.Status.UploadID,
+	}
 }
 
 func uploadFile(ctx context.Context, req api.Context, wc *wclient.Client, workspaceID string) error {
