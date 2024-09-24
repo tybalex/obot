@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/acorn-io/baaah v0.0.0-20240912163758-8f7c537609d1
-	github.com/acorn-io/mink v0.0.0-20240905175847-47ca8045831c
+	github.com/acorn-io/mink v0.0.0-20240924215355-6b3069de5d2f
 	github.com/adrg/xdg v0.5.0
 	github.com/dustin/go-humanize v1.0.1
 	github.com/getkin/kin-openapi v0.124.0

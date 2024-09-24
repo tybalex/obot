@@ -90,7 +90,7 @@ func uploadKnowledge(req api.Context, workspaceClient *wclient.Client, parentNam
 
 	// We retry on conflict here to avoid race conditions. If a user is uploading multiple files, then the status of the
 	// parent object could be changing in the controller. Here we want to make sure that the new file is picked up in an ingestion.
-	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+	if err := retry.RetryOnConflict(retry.DefaultBackoff, func() error {
 		if err := req.Get(toUpdate, parentName); err != nil {
 			return err
 		}
