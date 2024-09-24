@@ -148,6 +148,7 @@ func deleteOneDriveLinks(req api.Context, linksID, parentName string, parentObj 
 
 func convertOneDriveLinks(oneDriveLink v1.OneDriveLinks) types.OneDriveLinks {
 	return types.OneDriveLinks{
+		Metadata:    types.MetadataFrom(&oneDriveLink),
 		AgentID:     oneDriveLink.Spec.AgentName,
 		WorkflowID:  oneDriveLink.Spec.WorkflowName,
 		SharedLinks: oneDriveLink.Spec.SharedLinks,

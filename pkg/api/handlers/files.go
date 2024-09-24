@@ -98,6 +98,7 @@ func uploadKnowledge(req api.Context, workspaceClient *wclient.Client, parentNam
 
 func convertKnowledgeFile(file v1.KnowledgeFile) types.KnowledgeFile {
 	return types.KnowledgeFile{
+		Metadata:        types.MetadataFrom(&file),
 		FileName:        file.Spec.FileName,
 		AgentID:         file.Spec.AgentName,
 		WorkflowID:      file.Spec.WorkflowName,
