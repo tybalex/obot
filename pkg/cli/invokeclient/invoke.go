@@ -17,12 +17,13 @@ type inputter interface {
 type Options struct {
 	ThreadID string
 	Quiet    bool
+	Details  bool
 	Async    bool
 }
 
 func Invoke(ctx context.Context, c *client.Client, id, input string, opts Options) (err error) {
 	var (
-		printer           = events.NewPrinter(opts.Quiet)
+		printer           = events.NewPrinter(opts.Quiet, opts.Details)
 		inputter inputter = VerboseInputter{
 			client: c,
 		}

@@ -53,10 +53,11 @@ type WorkflowList List[Workflow]
 type Thread struct {
 	Metadata
 	v1.ThreadManifest
-	AgentID      string                   `json:"agentID,omitempty"`
-	WorkflowID   string                   `json:"workflowID,omitempty"`
-	LastRunID    string                   `json:"lastRunID,omitempty"`
-	LastRunState gptscriptclient.RunState `json:"lastRunState,omitempty"`
+	AgentID          string                   `json:"agentID,omitempty"`
+	WorkflowID       string                   `json:"workflowID,omitempty"`
+	LastRunID        string                   `json:"lastRunID,omitempty"`
+	LastRunState     gptscriptclient.RunState `json:"lastRunState,omitempty"`
+	PreviousThreadID string                   `json:"previousThreadID,omitempty"`
 }
 
 type ThreadList List[Thread]
@@ -64,21 +65,24 @@ type ThreadList List[Thread]
 type FileList List[string]
 
 type Run struct {
-	ID            string    `json:"id,omitempty"`
-	Created       time.Time `json:"created,omitempty"`
-	ThreadID      string    `json:"threadID,omitempty"`
-	AgentID       string    `json:"agentID,omitempty"`
-	WorkflowID    string    `json:"workflowID,omitempty"`
-	PreviousRunID string    `json:"previousRunID,omitempty"`
-	Input         string    `json:"input"`
-	State         string    `json:"state,omitempty"`
-	Output        string    `json:"output,omitempty"`
-	Error         string    `json:"error,omitempty"`
+	ID             string    `json:"id,omitempty"`
+	Created        time.Time `json:"created,omitempty"`
+	ThreadID       string    `json:"threadID,omitempty"`
+	AgentID        string    `json:"agentID,omitempty"`
+	WorkflowID     string    `json:"workflowID,omitempty"`
+	WorkflowStepID string    `json:"workflowStepID,omitempty"`
+	PreviousRunID  string    `json:"previousRunID,omitempty"`
+	Input          string    `json:"input"`
+	State          string    `json:"state,omitempty"`
+	Output         string    `json:"output,omitempty"`
+	Error          string    `json:"error,omitempty"`
 }
 
 type RunList List[Run]
 
 type RunDebug struct {
+	Spec   v1.RunSpec                           `json:"spec"`
+	Status v1.RunStatus                         `json:"status"`
 	Frames map[string]gptscriptclient.CallFrame `json:"frames"`
 }
 

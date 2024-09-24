@@ -88,11 +88,11 @@ func (a *AgentHandler) Create(req api.Context) error {
 func convertAgent(agent v1.Agent, prefix string) *types.Agent {
 	var links []string
 	if prefix != "" {
-		slug := agent.Name
-		if agent.Status.External.SlugAssigned && agent.Spec.Manifest.Slug != "" {
-			slug = agent.Spec.Manifest.Slug
+		refName := agent.Name
+		if agent.Status.External.RefNameAssigned && agent.Spec.Manifest.RefName != "" {
+			refName = agent.Spec.Manifest.RefName
 		}
-		links = []string{"invoke", prefix + "/invoke/" + slug}
+		links = []string{"invoke", prefix + "/invoke/" + refName}
 	}
 	return &types.Agent{
 		Metadata:            types.MetadataFrom(&agent, links...),

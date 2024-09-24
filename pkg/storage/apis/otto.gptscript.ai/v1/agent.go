@@ -74,7 +74,7 @@ type KnowledgeWorkspaceStatus struct {
 }
 
 type AgentExternalStatus struct {
-	SlugAssigned bool `json:"slugAssigned,omitempty"`
+	RefNameAssigned bool `json:"refNameAssigned,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

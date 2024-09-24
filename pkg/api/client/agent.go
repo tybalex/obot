@@ -40,7 +40,7 @@ func (c *Client) CreateAgent(ctx context.Context, agent v1.AgentManifest) (*type
 }
 
 type ListAgentsOptions struct {
-	Slug string
+	RefName string
 }
 
 func (c *Client) ListAgents(ctx context.Context, opts ...ListAgentsOptions) (result types.AgentList, err error) {
@@ -52,8 +52,8 @@ func (c *Client) ListAgents(ctx context.Context, opts ...ListAgentsOptions) (res
 
 	var opt ListAgentsOptions
 	for _, o := range opts {
-		if o.Slug != "" {
-			opt.Slug = o.Slug
+		if o.RefName != "" {
+			opt.RefName = o.RefName
 		}
 	}
 
@@ -68,10 +68,10 @@ func (c *Client) ListAgents(ctx context.Context, opts ...ListAgentsOptions) (res
 		return result, err
 	}
 
-	if opt.Slug != "" {
+	if opt.RefName != "" {
 		var filtered types.AgentList
 		for _, agent := range result.Items {
-			if agent.Slug == opt.Slug && agent.SlugAssigned {
+			if agent.RefName == opt.RefName && agent.RefNameAssigned {
 				filtered.Items = append(filtered.Items, agent)
 			}
 		}

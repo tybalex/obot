@@ -2,12 +2,10 @@ package client
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"sort"
 
-	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/api/types"
 )
 
@@ -25,16 +23,14 @@ func (c *Client) RunEvents(ctx context.Context, runID string) (result <-chan typ
 	return toStream[types.Progress](resp), nil
 }
 
-func (c *Client) DebugRun(ctx context.Context, runID string) (result types.RunDebug, err error) {
+func (c *Client) DebugRun(ctx context.Context, runID string) (result *types.RunDebug, err error) {
 	_, resp, err := c.doRequest(ctx, http.MethodGet, fmt.Sprintf("/runs/%s/debug", runID), nil)
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
 
-	result.Frames = map[string]gptscript.CallFrame{}
-	err = json.NewDecoder(resp.Body).Decode(&result.Frames)
-	return
+	return toObject(resp, &types.RunDebug{})
 }
 
 func (c *Client) StreamRuns(ctx context.Context, opts ...ListRunsOptions) (result <-chan types.Run, err error) {
@@ -55,6 +51,16 @@ func (c *Client) GetRun(ctx context.Context, id string) (result *types.Run, err 
 	defer resp.Body.Close()
 
 	return toObject(resp, &types.Run{})
+}
+
+func (c *Client) DeleteRun(ctx context.Context, id string) error {
+	_, resp, err := c.doRequest(ctx, http.MethodDelete, fmt.Sprintf("/runs/"+id), nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	return nil
 }
 
 func (c *Client) ListRuns(ctx context.Context, opts ...ListRunsOptions) (result types.RunList, err error) {

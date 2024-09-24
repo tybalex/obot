@@ -2,12 +2,9 @@ package workflowstep
 
 import (
 	"fmt"
-	"slices"
 
-	"github.com/acorn-io/baaah/pkg/name"
 	"github.com/acorn-io/baaah/pkg/router"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -37,7 +34,7 @@ func (h *Handler) RunWhile(req router.Request, resp router.Response) error {
 			break
 		}
 
-		conditionStep := h.defineCondition(step, lastStep, fmt.Sprintf("while-%02d", i))
+		conditionStep := h.defineCondition(step, lastStep, i)
 		resp.Objects(conditionStep)
 
 		runName, conditionResult, wait, err := h.conditionResult(req.Ctx, req.Client, conditionStep)
@@ -95,29 +92,14 @@ func (h *Handler) defineWhile(groupIndex int, conditionStep, step *v1.WorkflowSt
 	)
 
 	for i, loopStep := range steps {
-		stepPath := append(step.Spec.Path, fmt.Sprint(groupIndex), fmt.Sprint(i))
-		stepName := name.SafeHashConcatName(slices.Concat([]string{step.Spec.WorkflowExecutionName}, stepPath)...)
 		afterStepName := conditionStep.Name
 		if i > 0 {
 			afterStepName = lastStepName
 		}
-		result = append(result, &v1.WorkflowStep{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      stepName,
-				Namespace: step.Namespace,
-			},
-			Spec: v1.WorkflowStepSpec{
-				ParentWorkflowStepName: step.Name,
-				AfterWorkflowStepName:  afterStepName,
-				Step:                   loopStep,
-				Path:                   stepPath,
-				WorkflowName:           step.Spec.WorkflowName,
-				WorkflowExecutionName:  step.Spec.WorkflowExecutionName,
-				ThreadName:             step.Spec.ThreadName,
-			},
-		})
-
-		lastStepName = stepName
+		loopStep.ID = fmt.Sprintf("%s{index=%d}", loopStep.ID, groupIndex)
+		newStep := NewStep(step.Namespace, step.Spec.WorkflowExecutionName, afterStepName, loopStep)
+		result = append(result, newStep)
+		lastStepName = newStep.Name
 	}
 
 	return result, nil

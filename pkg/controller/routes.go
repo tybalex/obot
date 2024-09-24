@@ -3,9 +3,10 @@ package controller
 import (
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/agents"
+	"github.com/gptscript-ai/otto/pkg/controller/handlers/cleanup"
 	knowledgehandler "github.com/gptscript-ai/otto/pkg/controller/handlers/knowledge"
+	"github.com/gptscript-ai/otto/pkg/controller/handlers/reference"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/runs"
-	"github.com/gptscript-ai/otto/pkg/controller/handlers/slugs"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/threads"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/uploads"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflow"
@@ -32,14 +33,14 @@ func routes(router *router.Router, svcs *services.Services) error {
 
 	// Runs
 	root.Type(&v1.Run{}).FinalizeFunc(v1.RunFinalizer, runs.DeleteRunState)
-	root.Type(&v1.Run{}).HandlerFunc(runs.Cleanup)
+	root.Type(&v1.Run{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.Run{}).HandlerFunc(runs.Resume)
 
 	// Threads
 	root.Type(&v1.Thread{}).FinalizeFunc(v1.ThreadWorkspaceFinalizer, knowledge.RemoveWorkspace)
 	root.Type(&v1.Thread{}).FinalizeFunc(v1.ThreadKnowledgeFinalizer, workspace.RemoveWorkspace)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.MoveWorkspacesToStatus)
-	root.Type(&v1.Thread{}).HandlerFunc(threads.Cleanup)
+	root.Type(&v1.Thread{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.Description)
 	root.Type(&v1.Thread{}).Middleware(threads.HasKnowledge).HandlerFunc(knowledge.IngestKnowledge)
 
@@ -50,19 +51,20 @@ func routes(router *router.Router, svcs *services.Services) error {
 	root.Type(&v1.Workflow{}).HandlerFunc(knowledge.CreateWorkspace)
 
 	// WorkflowExecutions
-	root.Type(&v1.WorkflowExecution{}).HandlerFunc(workflowExecution.Cleanup)
+	root.Type(&v1.WorkflowExecution{}).FinalizeFunc(v1.WorkflowExecutionFinalizer, workflowExecution.Cleanup)
+	root.Type(&v1.WorkflowExecution{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.WorkflowExecution{}).HandlerFunc(workflowExecution.Run)
 
 	// WorkflowSteps
 	steps := root.Type(&v1.WorkflowStep{})
 	steps.HandlerFunc(workflowStep.SetRunning)
-	steps.HandlerFunc(workflowStep.Cleanup)
+	steps.HandlerFunc(cleanup.Cleanup)
 
 	running := steps.Middleware(workflowstep.Running)
 	running.HandlerFunc(workflowStep.RunInvoke)
 	running.HandlerFunc(workflowStep.RunIf)
 	running.HandlerFunc(workflowStep.RunWhile)
-	running.HandlerFunc(workflowStep.RunSubflow)
+	steps.HandlerFunc(workflowStep.RunSubflow)
 
 	// Agents
 	root.Type(&v1.Agent{}).FinalizeFunc(v1.AgentWorkspaceFinalizer, workspace.RemoveWorkspace)
@@ -79,10 +81,10 @@ func routes(router *router.Router, svcs *services.Services) error {
 	root.Type(&v1.OneDriveLinks{}).HandlerFunc(uploads.GC)
 	root.Type(&v1.OneDriveLinks{}).FinalizeFunc(v1.OneDriveLinksFinalizer, uploads.Cleanup)
 
-	// Slugs
-	root.Type(&v1.Slug{}).HandlerFunc(slugs.SlugGC)
-	root.Type(&v1.Agent{}).HandlerFunc(slugs.AssociateWithSlug)
-	root.Type(&v1.Workflow{}).HandlerFunc(slugs.AssociateWithSlug)
+	// Reference
+	root.Type(&v1.Reference{}).HandlerFunc(cleanup.Cleanup)
+	root.Type(&v1.Agent{}).HandlerFunc(reference.AssociateWithReference)
+	root.Type(&v1.Workflow{}).HandlerFunc(reference.AssociateWithReference)
 
 	// Workflows
 	root.Type(&v1.Workflow{}).HandlerFunc(workflow.EnsureIDs)

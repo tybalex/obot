@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,26 +14,54 @@ import (
 	"github.com/gptscript-ai/otto/pkg/cli/textio"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/spf13/cobra"
-	"sigs.k8s.io/yaml"
+	yamlv3 "gopkg.in/yaml.v3"
 )
 
 type Create struct {
 	Quiet            bool              `usage:"Only print ID after successful creation." short:"q"`
 	Name             string            `usage:"Name of the agent."`
 	Description      string            `usage:"Description of the agent."`
-	Slug             string            `usage:"The path segment of the agent in the published URL (defaults to ID of agent)."`
+	Ref              string            `usage:"The path segment of the agent in the published URL (defaults to ID of agent)."`
 	Tools            []string          `usage:"List of tools the agent can use."`
 	CodeDependencies string            `usage:"The code dependencies content for the agent if it using JavaScript (package.json) or Python (requirements.txt)."`
 	Steps            []string          `usage:"The steps for a workflow."`
 	Output           string            `usage:"The output for a workflow."`
 	Params           map[string]string `usage:"The parameters for the agent." hidden:"true"`
 	File             string            `usage:"The file to read the agent manifest from." short:"f"`
-	ReplaceBySlug    bool              `usage:"If loading from file, replace the agent with the same slug if it exists." short:"r"`
+	Replace          bool              `usage:"If loading from file, replace the agent with the same refName if it exists." short:"r"`
 	root             *Otto
 }
 
 func (l *Create) Customize(cmd *cobra.Command) {
 	cmd.Use = "create [flags]"
+}
+
+func parseManifests(data []byte) (result []v1.WorkflowManifest, _ error) {
+	var (
+		dec = yamlv3.NewDecoder(bytes.NewReader(data))
+	)
+	for {
+		parsed := map[string]any{}
+		if err := dec.Decode(&parsed); err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+
+		jsonData, err := json.Marshal(parsed)
+		if err != nil {
+			return nil, err
+		}
+
+		var manifest v1.WorkflowManifest
+		if err := json.Unmarshal(jsonData, &manifest); err != nil {
+			return nil, err
+		}
+		result = append(result, manifest)
+	}
+
+	return
 }
 
 func (l *Create) loadFromFile(ctx context.Context) error {
@@ -56,58 +86,60 @@ func (l *Create) loadFromFile(ctx context.Context) error {
 		}
 	}
 
-	var newManifest v1.WorkflowManifest
-	if err := yaml.Unmarshal(data, &newManifest); err != nil {
+	manifests, err := parseManifests(data)
+	if err != nil {
 		return err
 	}
 
-	if len(newManifest.Steps) > 0 || newManifest.Output != "" {
-		if l.ReplaceBySlug && l.Slug != "" {
-			workflows, err := l.root.Client.ListWorkflows(ctx, client.ListWorkflowsOptions{
-				Slug: l.Slug,
-			})
+	for _, newManifest := range manifests {
+		if len(newManifest.Steps) > 0 || newManifest.Output != "" {
+			if l.Replace && l.Ref != "" {
+				workflows, err := l.root.Client.ListWorkflows(ctx, client.ListWorkflowsOptions{
+					RefName: l.Ref,
+				})
+				if err != nil {
+					return err
+				}
+				if len(workflows.Items) > 0 {
+					_, err = l.root.Client.UpdateWorkflow(ctx, workflows.Items[0].ID, newManifest)
+					return err
+				}
+			}
+
+			workflow, err := l.root.Client.CreateWorkflow(ctx, newManifest)
 			if err != nil {
 				return err
 			}
-			if len(workflows.Items) > 0 {
-				_, err = l.root.Client.UpdateWorkflow(ctx, workflows.Items[0].ID, newManifest)
-				return err
+
+			if l.Quiet {
+				fmt.Println(workflow.ID)
+			} else {
+				fmt.Printf("Workflow created: %s\n", workflow.ID)
 			}
-		}
-
-		workflow, err := l.root.Client.CreateWorkflow(ctx, newManifest)
-		if err != nil {
-			return err
-		}
-
-		if l.Quiet {
-			fmt.Println(workflow.ID)
 		} else {
-			fmt.Printf("Workflow created: %s\n", workflow.ID)
-		}
-	} else {
-		if l.ReplaceBySlug && l.Slug != "" {
-			agents, err := l.root.Client.ListAgents(ctx, client.ListAgentsOptions{
-				Slug: l.Slug,
-			})
+			if l.Replace && l.Ref != "" {
+				agents, err := l.root.Client.ListAgents(ctx, client.ListAgentsOptions{
+					RefName: l.Ref,
+				})
+				if err != nil {
+					return err
+				}
+				if len(agents.Items) > 0 {
+					_, err = l.root.Client.UpdateAgent(ctx, agents.Items[0].ID, newManifest.AgentManifest)
+					return err
+				}
+			}
+
+			agent, err := l.root.Client.CreateAgent(ctx, newManifest.AgentManifest)
 			if err != nil {
 				return err
 			}
-			if len(agents.Items) > 0 {
-				_, err = l.root.Client.UpdateAgent(ctx, agents.Items[0].ID, newManifest.AgentManifest)
-				return err
+
+			if l.Quiet {
+				fmt.Println(agent.ID)
+			} else {
+				fmt.Printf("Agent created: %s\n", agent.ID)
 			}
-		}
-
-		agent, err := l.root.Client.CreateAgent(ctx, newManifest.AgentManifest)
-		if err != nil {
-			return err
-		}
-
-		if l.Quiet {
-			fmt.Println(agent.ID)
-		} else {
-			fmt.Printf("Agent created: %s\n", agent.ID)
 		}
 	}
 
@@ -137,7 +169,7 @@ func (l *Create) Run(cmd *cobra.Command, args []string) error {
 	agentManifest := v1.AgentManifest{
 		Name:             l.Name,
 		Description:      l.Description,
-		Slug:             l.Slug,
+		RefName:          l.Ref,
 		Prompt:           v1.Body(prompt),
 		Tools:            l.Tools,
 		CodeDependencies: l.CodeDependencies,

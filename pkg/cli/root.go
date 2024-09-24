@@ -3,10 +3,12 @@ package cli
 import (
 	"os"
 
+	"github.com/fatih/color"
 	"github.com/gptscript-ai/cmd"
 	"github.com/gptscript-ai/otto/pkg/api/client"
 	"github.com/gptscript-ai/otto/pkg/mvl"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 var log = mvl.Package()
@@ -17,6 +19,10 @@ type Otto struct {
 }
 
 func (a *Otto) PersistentPre(cmd *cobra.Command, args []string) error {
+	if os.Getenv("NO_COLOR") != "" || !term.IsTerminal(int(os.Stdout.Fd())) {
+		color.NoColor = true
+	}
+
 	if a.Debug {
 		mvl.SetDebug()
 	}

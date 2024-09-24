@@ -31,19 +31,6 @@ func (*Handler) DeleteRunState(req router.Request, resp router.Response) error {
 	}))
 }
 
-func (*Handler) Cleanup(req router.Request, resp router.Response) error {
-	run := req.Object.(*v1.Run)
-	var thread v1.Thread
-
-	if err := req.Get(&thread, run.Namespace, run.Spec.ThreadName); apierrors.IsNotFound(err) {
-		return req.Delete(run)
-	} else if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (h *Handler) Resume(req router.Request, resp router.Response) error {
 	run := req.Object.(*v1.Run)
 	var thread v1.Thread

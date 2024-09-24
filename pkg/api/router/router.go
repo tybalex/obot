@@ -92,6 +92,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	// Runs
 	mux.Handle("GET /runs", w(runs.List))
 	mux.Handle("GET /runs/{id}", w(runs.ByID))
+	mux.Handle("DELETE /runs/{id}", w(runs.Delete))
 	mux.Handle("GET /runs/{id}/debug", w(runs.Debug))
 	mux.Handle("GET /runs/{id}/events", w(runs.Events))
 	mux.Handle("GET /threads/{thread}/runs", w(runs.List))

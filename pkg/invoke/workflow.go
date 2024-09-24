@@ -34,6 +34,7 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: system.WorkflowExecutionPrefix,
 			Namespace:    wf.Namespace,
+			Finalizers:   []string{v1.WorkflowExecutionFinalizer},
 		},
 		Spec: v1.WorkflowExecutionSpec{
 			Input:        input,
@@ -63,9 +64,9 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 			continue
 		}
 
-		if wfe.Status.External.ThreadID != "" {
+		if wfe.Status.ThreadName != "" {
 			var thread v1.Thread
-			if err := c.Get(ctx, router.Key(wfe.Namespace, wfe.Status.External.ThreadID), &thread); err != nil {
+			if err := c.Get(ctx, router.Key(wfe.Namespace, wfe.Status.ThreadName), &thread); err != nil {
 				return nil, err
 			}
 			if opt.Background {
@@ -76,7 +77,7 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 
 			resp, err := i.events.Watch(ctx, wfe.Namespace, events.WatchOptions{
 				History:    true,
-				ThreadName: wfe.Status.External.ThreadID,
+				ThreadName: wfe.Status.ThreadName,
 			})
 			if err != nil {
 				continue

@@ -2,10 +2,9 @@ package workflowexecution
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/acorn-io/baaah/pkg/name"
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflowstep"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	"github.com/gptscript-ai/otto/pkg/mvl"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
@@ -30,33 +29,22 @@ func New(wc *wclient.Client, invoker *invoke.Invoker) *Handler {
 }
 
 func (h *Handler) Cleanup(req router.Request, resp router.Response) error {
-	var (
-		we       = req.Object.(*v1.WorkflowExecution)
-		workflow v1.Workflow
-		thread   v1.Thread
-	)
-
-	if we.Status.External.ThreadID != "" {
-		if err := req.Get(&thread, we.Namespace, we.Status.External.ThreadID); apierror.IsNotFound(err) {
-			return req.Delete(we)
-		} else if err != nil {
-			return err
-		}
+	we := req.Object.(*v1.WorkflowExecution)
+	if we.Status.ThreadName != "" {
+		return req.Delete(&v1.Thread{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      we.Status.ThreadName,
+				Namespace: we.Namespace,
+			},
+		})
 	}
-
-	if err := req.Get(&workflow, we.Namespace, we.Spec.WorkflowName); apierror.IsNotFound(err) {
-		return req.Delete(we)
-	} else if err != nil {
-		return err
-	}
-
 	return nil
 }
 
 func (h *Handler) Run(req router.Request, resp router.Response) error {
 	we := req.Object.(*v1.WorkflowExecution)
 
-	switch we.Status.External.State {
+	switch we.Status.State {
 	case v1.WorkflowStateError, v1.WorkflowStateComplete:
 		resp.DisablePrune()
 		return nil
@@ -73,8 +61,8 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 		return nil
 	}
 
-	if we.Status.External.State != v1.WorkflowStateRunning {
-		we.Status.External.State = v1.WorkflowStateRunning
+	if we.Status.State != v1.WorkflowStateRunning {
+		we.Status.State = v1.WorkflowStateRunning
 		if err := req.Client.Status().Update(req.Ctx, we); err != nil {
 			return err
 		}
@@ -86,11 +74,11 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 	}
 	//}
 
-	if we.Status.External.ThreadID == "" {
+	if we.Status.ThreadName == "" {
 		if t, err := h.newThread(req.Ctx, req.Client, &wf, we); err != nil {
 			return err
 		} else {
-			we.Status.External.ThreadID = t.Name
+			we.Status.ThreadName = t.Name
 			if err := req.Client.Status().Update(req.Ctx, we); err != nil {
 				return err
 			}
@@ -103,48 +91,20 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 	)
 
 	for i, step := range we.Status.WorkflowManifest.Steps {
-		var (
-			input string
-		)
+		newStep := workflowstep.NewStep(we.Namespace, we.Name, lastStepName, step)
 		if i == 0 {
-			input = we.Spec.Input
+			newStep.Spec.Input = we.Spec.Input
 		}
-		steps = append(steps, &v1.WorkflowStep{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name.SafeHashConcatName(we.Name, fmt.Sprint(i)),
-				Namespace: we.Namespace,
-			},
-			Spec: v1.WorkflowStepSpec{
-				AfterWorkflowStepName: lastStepName,
-				Step:                  step,
-				Path:                  []string{fmt.Sprint(i)},
-				WorkflowName:          we.Spec.WorkflowName,
-				WorkflowExecutionName: we.Name,
-				ThreadName:            we.Status.External.ThreadID,
-				Input:                 input,
-			},
-		})
-
-		lastStepName = steps[len(steps)-1].(*v1.WorkflowStep).Name
+		steps = append(steps, newStep)
+		lastStepName = newStep.Name
 	}
 
 	if we.Status.WorkflowManifest.Output != "" {
-		steps = append(steps, &v1.WorkflowStep{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name.SafeHashConcatName(we.Name, "output"),
-				Namespace: we.Namespace,
-			},
-			Spec: v1.WorkflowStepSpec{
-				AfterWorkflowStepName: lastStepName,
-				Step: v1.Step{
-					Step: we.Status.WorkflowManifest.Output,
-				},
-				Path:                  []string{"output"},
-				WorkflowName:          we.Spec.WorkflowName,
-				WorkflowExecutionName: we.Name,
-				ThreadName:            we.Status.External.ThreadID,
-			},
+		newStep := workflowstep.NewStep(we.Namespace, we.Name, lastStepName, v1.Step{
+			ID:   "output",
+			Step: we.Status.WorkflowManifest.Output,
 		})
+		steps = append(steps, newStep)
 	}
 
 	output, newState, err := h.getState(req.Ctx, req.Client, steps)
@@ -152,9 +112,9 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 		return err
 	}
 
-	we.Status.External.State = newState
+	we.Status.State = newState
 	if we.Status.WorkflowManifest.Output != "" {
-		we.Status.External.Output = output
+		we.Status.Output = output
 	}
 	resp.Objects(steps...)
 	return nil

@@ -2,15 +2,13 @@ package workflowstep
 
 import (
 	"encoding/json"
-	"slices"
+	"fmt"
+	"strings"
 
-	"github.com/acorn-io/baaah/pkg/name"
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {
@@ -21,7 +19,7 @@ func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {
 		lastRunName string
 	)
 
-	if step.Spec.Step.If != nil || step.Spec.Step.While != nil || step.Spec.SubFlow != nil {
+	if step.Spec.Step.If != nil || step.Spec.Step.While != nil {
 		return nil
 	}
 
@@ -30,14 +28,14 @@ func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {
 		if err := client.Get(ctx, router.Key(step.Namespace, step.Spec.AfterWorkflowStepName), &previousStep); err != nil {
 			return err
 		}
-		lastRunName = previousStep.Status.LastRunName
-		if lastRunName == "" {
-			lastRunName = previousStep.Status.FirstRunName
+		if previousStep.Status.LastRunName == "" {
+			return fmt.Errorf("previous step %s has no last run name", previousStep.Name)
 		}
+		lastRunName = previousStep.Status.LastRunName
 	}
 
 	var run v1.Run
-	if step.Status.FirstRunName == "" {
+	if len(step.Status.RunNames) == 0 {
 		invokeResp, err := h.invoker.Step(ctx, req.Client, step, invoke.StepOptions{
 			PreviousRunName: lastRunName,
 		})
@@ -46,28 +44,32 @@ func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {
 		}
 
 		step.Status.ThreadName = invokeResp.Thread.Name
-		step.Status.FirstRunName = invokeResp.Run.Name
+		step.Status.RunNames = []string{invokeResp.Run.Name}
 
 		// Ignored error updating
 		_ = client.Status().Update(ctx, step)
-		invokeResp.Wait()
 
 		run = *invokeResp.Run
 	} else {
-		if err := req.Get(&run, step.Namespace, step.Status.FirstRunName); err != nil {
+		if err := req.Get(&run, step.Namespace, step.Status.RunNames[0]); err != nil {
 			return err
 		}
 	}
 
 	switch run.Status.State {
 	case gptscript.Continue, gptscript.Finished:
-		var err error
-		step.Status.LastRunName, step.Status.State, err = h.processTailCall(req, resp, step, run.Status.Output)
-		if err != nil {
-			return err
+		if subCall, ok := h.toSubCall(run.Status.Output); ok {
+			step.Status.State = v1.WorkflowStepStateSubCall
+			step.Status.SubCalls = []v1.SubCall{subCall}
+		} else {
+			step.Status.State = v1.WorkflowStepStateComplete
+			step.Status.LastRunName = step.Status.RunNames[0]
+			step.Status.SubCalls = nil
 		}
+		step.Status.Error = ""
 	case gptscript.Error:
 		step.Status.State = v1.WorkflowStepStateError
+		step.Status.LastRunName = step.Status.RunNames[0]
 		step.Status.Error = run.Status.Error
 	}
 
@@ -80,14 +82,11 @@ type call struct {
 	Input    any    `json:"input,omitempty"`
 }
 
-func (h *Handler) processTailCall(req router.Request, resp router.Response, step *v1.WorkflowStep, output string) (string, v1.WorkflowStepState, error) {
+func (h *Handler) toSubCall(output string) (v1.SubCall, bool) {
 	var call call
-	if err := json.Unmarshal([]byte(output), &call); err != nil || call.Type != "OttoSubFlow" || call.Workflow == "" {
-		return step.Status.FirstRunName, v1.WorkflowStepStateComplete, nil
+	if err := json.Unmarshal([]byte(strings.TrimSpace(output)), &call); err != nil || call.Type != "OttoSubFlow" || call.Workflow == "" {
+		return v1.SubCall{}, false
 	}
-
-	stepPath := append(step.Spec.Path, "subcall")
-	stepName := name.SafeHashConcatName(slices.Concat([]string{step.Spec.WorkflowExecutionName}, stepPath)...)
 
 	var inputString string
 	switch v := call.Input.(type) {
@@ -96,7 +95,7 @@ func (h *Handler) processTailCall(req router.Request, resp router.Response, step
 	default:
 		inputBytes, err := json.Marshal(v)
 		if err != nil {
-			return "", "", err
+			panic(err)
 		}
 		inputString = string(inputBytes)
 	}
@@ -105,43 +104,9 @@ func (h *Handler) processTailCall(req router.Request, resp router.Response, step
 		inputString = ""
 	}
 
-	subCall := &v1.WorkflowStep{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      stepName,
-			Namespace: step.Namespace,
-		},
-		Spec: v1.WorkflowStepSpec{
-			ParentWorkflowStepName: step.Name,
-			AfterWorkflowStepName:  step.Spec.AfterWorkflowStepName,
-			Step: v1.Step{
-				Step: inputString,
-			},
-			SubFlow: &v1.SubFlow{
-				Workflow: call.Workflow,
-			},
-			Path:                  stepPath,
-			WorkflowName:          step.Spec.WorkflowName,
-			WorkflowExecutionName: step.Spec.WorkflowExecutionName,
-			ThreadName:            step.Spec.ThreadName,
-		},
-	}
-
-	resp.Objects(subCall)
-
-	var checkState v1.WorkflowStep
-	if err := req.Get(&checkState, subCall.Namespace, subCall.Name); apierrors.IsNotFound(err) {
-		return "", v1.WorkflowStepStateRunning, nil
-	} else if err != nil {
-		return "", "", err
-	}
-
-	if checkState.Status.State == v1.WorkflowStepStateError {
-		return "", v1.WorkflowStepStateError, nil
-	}
-
-	if checkState.Status.State == v1.WorkflowStepStateComplete {
-		return checkState.Status.LastRunName, v1.WorkflowStepStateComplete, nil
-	}
-
-	return "", v1.WorkflowStepStateRunning, nil
+	return v1.SubCall{
+		Type:     call.Type,
+		Workflow: call.Workflow,
+		Input:    inputString,
+	}, true
 }

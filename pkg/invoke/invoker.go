@@ -159,35 +159,35 @@ func (i *Invoker) NewThread(ctx context.Context, c kclient.Client, namespace str
 	return &thread, nil
 }
 
-func (i *Invoker) getChatState(ctx context.Context, c kclient.Client, run *v1.Run) (result string, _ error) {
+func (i *Invoker) getChatState(ctx context.Context, c kclient.Client, run *v1.Run) (result, lastThreadName string, _ error) {
 	if run.Spec.PreviousRunName == "" {
-		return "", nil
+		return "", "", nil
 	}
 
 	for {
 		// look for the last valid state
 		var previousRun v1.Run
 		if err := c.Get(ctx, router.Key(run.Namespace, run.Spec.PreviousRunName), &previousRun); err != nil {
-			return "", err
+			return "", "", err
 		}
 		if previousRun.Status.State == gptscript.Continue {
 			break
 		}
 		if previousRun.Spec.PreviousRunName == "" {
-			return "", nil
+			return "", "", nil
 		}
 		run = &previousRun
 	}
 
 	var lastRun v1.RunState
 	if err := c.Get(ctx, router.Key(run.Namespace, run.Spec.PreviousRunName), &lastRun); apierror.IsNotFound(err) {
-		return "", nil
+		return "", "", nil
 	} else if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	err := gz.Decompress(&result, lastRun.Spec.ChatState)
-	return result, err
+	return result, lastRun.Spec.ThreadName, err
 }
 
 func (i *Invoker) Agent(ctx context.Context, c kclient.Client, agent *v1.Agent, input string, opt Options) (*Response, error) {
@@ -282,10 +282,7 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: system.RunPrefix,
 			Namespace:    thread.Namespace,
-			Labels: map[string]string{
-				v1.PreviousRunNameLabel: previousRunName,
-			},
-			Finalizers: []string{v1.RunFinalizer},
+			Finalizers:   []string{v1.RunFinalizer},
 		},
 		Spec: v1.RunSpec{
 			Background:            opts.Background,
@@ -345,7 +342,7 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Threa
 		})
 	}()
 
-	chatState, err := i.getChatState(ctx, c, run)
+	chatState, prevThreadName, err := i.getChatState(ctx, c, run)
 	if err != nil {
 		return err
 	}
@@ -421,13 +418,13 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Threa
 		return fmt.Errorf("invalid tool definition: %s", run.Spec.Tool)
 	}
 
-	return i.stream(ctx, c, thread, run, runResp)
+	return i.stream(ctx, c, prevThreadName, thread, run, runResp)
 }
 
-func (i *Invoker) saveState(ctx context.Context, c kclient.Client, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run, retErr error) error {
+func (i *Invoker) saveState(ctx context.Context, c kclient.Client, prevThreadName string, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run, retErr error) error {
 	var err error
 	for j := 0; j < 3; j++ {
-		err = i.doSaveState(ctx, c, thread, run, runResp, retErr)
+		err = i.doSaveState(ctx, c, prevThreadName, thread, run, runResp, retErr)
 		if err == nil {
 			return retErr
 		}
@@ -449,7 +446,7 @@ func (i *Invoker) saveState(ctx context.Context, c kclient.Client, thread *v1.Th
 	return retErr
 }
 
-func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run, retErr error) error {
+func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, prevThreadName string, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run, retErr error) error {
 	var (
 		runStateSpec v1.RunStateSpec
 		runChanged   bool
@@ -554,6 +551,9 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, thread *v1.
 	}
 
 	if final && thread.Status.LastRunName != run.Name {
+		if prevThreadName != "" && prevThreadName != thread.Name {
+			thread.Status.PreviousThreadName = prevThreadName
+		}
 		thread.Status.LastRunName = run.Name
 		thread.Status.LastRunState = run.Status.State
 		if err := c.Status().Update(ctx, thread); err != nil {
@@ -564,7 +564,7 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, thread *v1.
 	return retErr
 }
 
-func (i *Invoker) stream(ctx context.Context, c kclient.Client, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run) (retErr error) {
+func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName string, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run) (retErr error) {
 	var (
 		runEvent = runResp.Events()
 		wg       sync.WaitGroup
@@ -573,7 +573,7 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, thread *v1.Threa
 		// Don't use parent context because it may be canceled and we still want to save the state
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 		defer cancel()
-		retErr = i.saveState(ctx, c, thread, run, runResp, retErr)
+		retErr = i.saveState(ctx, c, prevThreadName, thread, run, runResp, retErr)
 		if retErr != nil {
 			log.Errorf("failed to save state: %v", retErr)
 			i.events.SubmitProgress(run, v1.Progress{
@@ -596,7 +596,7 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, thread *v1.Threa
 			case <-saveCtx.Done():
 				return
 			case <-time.After(time.Second):
-				_ = i.saveState(ctx, c, thread, run, runResp, nil)
+				_ = i.saveState(ctx, c, prevThreadName, thread, run, runResp, nil)
 			}
 		}
 	}()

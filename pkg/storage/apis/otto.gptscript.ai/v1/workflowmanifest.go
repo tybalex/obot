@@ -54,6 +54,7 @@ func (s Step) Display() string {
 }
 
 type SubFlow struct {
+	Input    string `json:"input,omitempty"`
 	Workflow string `json:"workflow,omitempty"`
 }
 

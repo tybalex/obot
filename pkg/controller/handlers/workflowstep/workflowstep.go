@@ -2,11 +2,16 @@ package workflowstep
 
 import (
 	"context"
+	"regexp"
+	"strings"
 
+	"github.com/acorn-io/baaah/pkg/name"
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/system"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -18,43 +23,6 @@ func New(invoker *invoke.Invoker) *Handler {
 	return &Handler{
 		invoker: invoker,
 	}
-}
-
-func (h *Handler) Cleanup(req router.Request, resp router.Response) error {
-	var (
-		step              = req.Object.(*v1.WorkflowStep)
-		workflowExecution v1.WorkflowExecution
-		parentStep        v1.WorkflowStep
-		thread            v1.Thread
-		run               v1.Run
-	)
-	if err := req.Get(&workflowExecution, step.Namespace, step.Spec.WorkflowExecutionName); apierrors.IsNotFound(err) {
-		return req.Delete(step)
-	} else if err != nil {
-		return err
-	}
-	if step.Spec.ThreadName != "" {
-		if err := req.Get(&thread, step.Namespace, step.Spec.ThreadName); apierrors.IsNotFound(err) {
-			return req.Delete(step)
-		} else if err != nil {
-			return err
-		}
-	}
-	if step.Spec.ParentWorkflowStepName != "" {
-		if err := req.Get(&parentStep, step.Namespace, step.Spec.ParentWorkflowStepName); apierrors.IsNotFound(err) {
-			return req.Delete(step)
-		} else if err != nil {
-			return err
-		}
-	}
-	if step.Status.LastRunName != "" {
-		if err := req.Get(&run, step.Namespace, step.Status.LastRunName); apierrors.IsNotFound(err) {
-			return req.Delete(step)
-		} else if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (h *Handler) SetRunning(req router.Request, resp router.Response) error {
@@ -71,12 +39,12 @@ func (h *Handler) SetRunning(req router.Request, resp router.Response) error {
 			return err
 		}
 
-		if !step.Spec.NoWaitForAfterComplete && parent.Status.State != v1.WorkflowStepStateComplete {
+		if parent.Status.State != v1.WorkflowStepStateComplete {
 			return nil
 		}
 	}
 
-	if step.Status.State != v1.WorkflowStepStateRunning {
+	if step.Status.State != v1.WorkflowStepStateRunning && step.Status.State != v1.WorkflowStepStateSubCall {
 		step.Status.State = v1.WorkflowStepStateRunning
 		if err := req.Client.Status().Update(req.Ctx, step); err != nil {
 			return err
@@ -122,4 +90,30 @@ func Running(handler router.Handler) router.Handler {
 		}
 		return nil
 	})
+}
+
+var replaceRegexp = regexp.MustCompile(`[{},=]+`)
+
+func NewStep(namespace, workflowExecutionName string, afterStepName string, step v1.Step) *v1.WorkflowStep {
+	if step.ID == "" {
+		panic("step ID is required")
+	}
+
+	newID := replaceRegexp.ReplaceAllString(step.ID, "-")
+	stepName := name.SafeConcatName(system.WorkflowStepPrefix+strings.TrimPrefix(workflowExecutionName, system.WorkflowExecutionPrefix), newID)
+	stepName = strings.Trim(stepName, "-")
+	stepName = strings.ReplaceAll(stepName, "--", "-")
+
+	return &v1.WorkflowStep{
+		TypeMeta: metav1.TypeMeta{},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      stepName,
+			Namespace: namespace,
+		},
+		Spec: v1.WorkflowStepSpec{
+			AfterWorkflowStepName: afterStepName,
+			Step:                  step,
+			WorkflowExecutionName: workflowExecutionName,
+		},
+	}
 }

@@ -6,37 +6,41 @@ import (
 )
 
 var (
-	_ conditions.Conditions = (*Slug)(nil)
+	_ conditions.Conditions = (*Reference)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-type Slug struct {
+type Reference struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   SlugSpec   `json:"spec,omitempty"`
-	Status SlugStatus `json:"status,omitempty"`
+	Spec   ReferenceSpec   `json:"spec,omitempty"`
+	Status ReferenceStatus `json:"status,omitempty"`
 }
 
-func (in *Slug) GetConditions() *[]metav1.Condition {
+func (in *Reference) GetConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
 }
 
-type SlugSpec struct {
+type ReferenceSpec struct {
 	AgentName    string `json:"agentName,omitempty"`
 	WorkflowName string `json:"workflowName,omitempty"`
 }
 
-type SlugStatus struct {
+func (in *Reference) DeleteRefs() []Ref {
+	return []Ref{}
+}
+
+type ReferenceStatus struct {
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
-type SlugList struct {
+type ReferenceList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 
-	Items []Slug `json:"items"`
+	Items []Reference `json:"items"`
 }

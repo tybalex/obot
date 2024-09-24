@@ -1,6 +1,8 @@
 package workflow
 
 import (
+	"strings"
+
 	"github.com/acorn-io/baaah/pkg/randomtoken"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 )
@@ -18,7 +20,13 @@ func FindStep(manifest *v1.WorkflowManifest, id string) *v1.Step {
 	if manifest == nil || id == "" {
 		return nil
 	}
-	return findInSteps(manifest.Steps, id)
+	lookupID, _, _ := strings.Cut(id, "{")
+	found := findInSteps(manifest.Steps, lookupID)
+	if found != nil && found.ID != id {
+		found = found.DeepCopy()
+		found.ID = id
+	}
+	return found
 }
 
 func findInSteps(steps []v1.Step, id string) *v1.Step {

@@ -46,6 +46,10 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, opts AgentOp
 		Cache:        agent.Spec.Manifest.Cache,
 		Type:         "agent",
 	}
+
+	if mainTool.Instructions == "" {
+		mainTool.Instructions = v1.DefaultAgentPrompt
+	}
 	var otherTools []gptscript.ToolDef
 
 	if opts.Thread != nil {
@@ -115,6 +119,7 @@ func manifestToTool(manifest v1.AgentManifest, agentType, ref, id string) gptscr
 		}
 	}
 	toolDef.Instructions = fmt.Sprintf(`#!/bin/bash
+#OTTO_SUBFLOW: ID: %s
 INPUT=$(${GPTSCRIPT_BIN} getenv GPTSCRIPT_INPUT)
 if echo "${INPUT}" | grep -q '^{'; then
 	echo '{"%s":"%s","type":"OttoSubFlow",'
@@ -123,7 +128,7 @@ if echo "${INPUT}" | grep -q '^{'; then
 else
 	${GPTSCRIPT_BIN} sys.chat.finish "${INPUT}"
 fi
-`, agentType, id)
+`, id, agentType, id)
 	return toolDef
 }
 
@@ -146,8 +151,8 @@ func agentsByName(ctx context.Context, db kclient.Client, namespace string) (map
 	}
 
 	for _, agent := range agents.Items {
-		if agent.Spec.Manifest.Slug != "" {
-			result[agent.Spec.Manifest.Slug] = agent
+		if agent.Spec.Manifest.RefName != "" {
+			result[agent.Spec.Manifest.RefName] = agent
 		}
 	}
 
@@ -179,8 +184,8 @@ func WorkflowByName(ctx context.Context, db kclient.Client, namespace string) (m
 	}
 
 	for _, workflow := range workflows.Items {
-		if workflow.Spec.Manifest.Slug != "" {
-			result[workflow.Spec.Manifest.Slug] = workflow
+		if workflow.Spec.Manifest.RefName != "" {
+			result[workflow.Spec.Manifest.RefName] = workflow
 		}
 	}
 

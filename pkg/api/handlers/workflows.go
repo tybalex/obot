@@ -92,11 +92,11 @@ func (a *WorkflowHandler) Create(req api.Context) error {
 func convertWorkflow(workflow v1.Workflow, prefix string) *types.Workflow {
 	var links []string
 	if prefix != "" {
-		slug := workflow.Name
-		if workflow.Status.External.SlugAssigned && workflow.Spec.Manifest.Slug != "" {
-			slug = workflow.Spec.Manifest.Slug
+		refName := workflow.Name
+		if workflow.Status.External.RefNameAssigned && workflow.Spec.Manifest.RefName != "" {
+			refName = workflow.Spec.Manifest.RefName
 		}
-		links = []string{"invoke", prefix + "/invoke/" + slug}
+		links = []string{"invoke", prefix + "/invoke/" + refName}
 	}
 	return &types.Workflow{
 		Metadata:               types.MetadataFrom(&workflow, links...),

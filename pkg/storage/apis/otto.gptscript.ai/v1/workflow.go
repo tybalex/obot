@@ -48,7 +48,7 @@ type WorkflowSpec struct {
 }
 
 type WorkflowExternalStatus struct {
-	SlugAssigned bool `json:"slugAssigned,omitempty"`
+	RefNameAssigned bool `json:"refNameAssigned,omitempty"`
 }
 
 type WorkflowStatus struct {

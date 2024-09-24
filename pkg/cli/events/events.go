@@ -6,9 +6,11 @@ type Printer interface {
 	Print(input string, events <-chan types.Progress) error
 }
 
-func NewPrinter(quiet bool) Printer {
+func NewPrinter(quiet, details bool) Printer {
 	if quiet {
 		return &Quiet{}
 	}
-	return &Verbose{}
+	return &Verbose{
+		Details: details,
+	}
 }

@@ -54,6 +54,10 @@ type ThreadSpec struct {
 	KnowledgeWorkspaceID  string         `json:"knowledgeWorkspaceID,omitempty"`
 }
 
+func (in *Thread) DeleteRefs() []Ref {
+	return []Ref{}
+}
+
 type ThreadManifest struct {
 	Tools       []string `json:"tools,omitempty"`
 	Description string   `json:"description,omitempty"`
@@ -62,6 +66,7 @@ type ThreadManifest struct {
 type ThreadStatus struct {
 	LastRunName        string                   `json:"lastRunName,omitempty"`
 	LastRunState       gptscriptclient.RunState `json:"lastRunState,omitempty"`
+	PreviousThreadName string                   `json:"previousThreadName,omitempty"`
 	Conditions         []metav1.Condition       `json:"conditions,omitempty"`
 	Workspace          WorkspaceStatus          `json:"workspace,omitempty"`
 	KnowledgeWorkspace KnowledgeWorkspaceStatus `json:"knowledgeWorkspace,omitempty"`

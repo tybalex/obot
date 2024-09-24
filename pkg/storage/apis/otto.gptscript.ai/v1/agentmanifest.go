@@ -10,8 +10,10 @@ import (
 )
 
 const (
-	JavascriptHeader = "!javascript\n"
-	PythonHeader     = "!python\n"
+	JavascriptHeader           = "!javascript\n"
+	PythonHeader               = "!python\n"
+	DefaultAgentPrompt         = "You are a helpful assistant."
+	DefaultWorkflowAgentPrompt = "You are a helpful assistant, precisely follow the given instructions."
 )
 
 type AgentManifest struct {
@@ -19,7 +21,7 @@ type AgentManifest struct {
 	Description      string            `json:"description"`
 	Temperature      *float32          `json:"temperature"`
 	Cache            *bool             `json:"cache"`
-	Slug             string            `json:"slug"`
+	RefName          string            `json:"refName"`
 	Prompt           Body              `json:"prompt"`
 	Agents           []string          `json:"agents"`
 	Workflows        []string          `json:"workflows,omitempty"`

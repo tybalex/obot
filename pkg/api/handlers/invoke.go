@@ -27,7 +27,7 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 		wfID     string
 		agent    v1.Agent
 		wf       v1.Workflow
-		slug     v1.Slug
+		ref      v1.Reference
 		threadID = req.PathValue("thread")
 		async    = req.URL.Query().Get("async") == "true"
 	)
@@ -41,13 +41,13 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 	} else if system.IsWorkflowID(id) {
 		wfID = id
 	} else {
-		if err := req.Get(&slug, id); apierrors.IsNotFound(err) {
+		if err := req.Get(&ref, id); apierrors.IsNotFound(err) {
 		} else if err != nil {
 			return err
-		} else if slug.Spec.AgentName != "" {
-			agentID = slug.Spec.AgentName
-		} else if slug.Spec.WorkflowName != "" {
-			wfID = slug.Spec.WorkflowName
+		} else if ref.Spec.AgentName != "" {
+			agentID = ref.Spec.AgentName
+		} else if ref.Spec.WorkflowName != "" {
+			wfID = ref.Spec.WorkflowName
 		}
 	}
 

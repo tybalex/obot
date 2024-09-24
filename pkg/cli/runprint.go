@@ -6,8 +6,9 @@ import (
 )
 
 type RunPrint struct {
-	root  *Otto
-	Quiet bool `usage:"Only print the response content of the runs" short:"q"`
+	root    *Otto
+	Quiet   bool `usage:"Only print the response content of the runs" short:"q"`
+	Verbose bool `usage:"Print more information" short:"v"`
 }
 
 func (l *RunPrint) Customize(cmd *cobra.Command) {
@@ -21,6 +22,6 @@ func (l *RunPrint) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	printer := events.NewPrinter(l.Quiet)
+	printer := events.NewPrinter(l.Quiet, l.Verbose)
 	return printer.Print("", debug)
 }

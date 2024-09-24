@@ -19,21 +19,39 @@ type WorkflowStep struct {
 	Status WorkflowStepStatus `json:"status,omitempty"`
 }
 
+func (in *WorkflowStep) GetColumns() [][]string {
+	return [][]string{
+		{"Name", "Name"},
+		{"State", "Status.State"},
+		{"After", "Spec.AfterWorkflowStepName"},
+		{"Runs", "{{ .Status.RunNames | arrayNoSpace }}"},
+		{"LastRun", "Status.LastRunName"},
+		{"StepID", "Spec.Step.ID"},
+		{"WFE", "Spec.WorkflowExecutionName"},
+		{"Created", "{{ago .CreationTimestamp}}"},
+	}
+}
+
 func (in *WorkflowStep) GetConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
 }
 
 type WorkflowStepSpec struct {
-	ParentWorkflowStepName string   `json:"parentWorkflowStepName,omitempty"`
-	AfterWorkflowStepName  string   `json:"afterWorkflowStepName,omitempty"`
-	NoWaitForAfterComplete bool     `json:"noWaitForAfterComplete,omitempty"`
-	Step                   Step     `json:"step,omitempty"`
-	Path                   []string `json:"path,omitempty"`
-	WorkflowName           string   `json:"workflowName,omitempty"`
-	WorkflowExecutionName  string   `json:"workflowExecutionName,omitempty"`
-	ThreadName             string   `json:"threadName,omitempty"`
-	Input                  string   `json:"input,omitempty"`
-	SubFlow                *SubFlow `json:"subFlow,omitempty"`
+	AfterWorkflowStepName string `json:"afterWorkflowStepName,omitempty"`
+	Step                  Step   `json:"step,omitempty"`
+	WorkflowExecutionName string `json:"workflowExecutionName,omitempty"`
+	Input                 string `json:"input,omitempty"`
+}
+
+func (in *WorkflowStep) DeleteRefs() []Ref {
+	refs := []Ref{
+		{ObjType: &WorkflowExecution{}, Name: in.Spec.WorkflowExecutionName},
+		{ObjType: &Run{}, Name: in.Status.LastRunName},
+	}
+	for _, run := range in.Status.RunNames {
+		refs = append(refs, Ref{ObjType: &Run{}, Name: run})
+	}
+	return refs
 }
 
 type WorkflowStepState string
@@ -43,15 +61,23 @@ const (
 	WorkflowStepStateRunning  WorkflowStepState = "Running"
 	WorkflowStepStateError    WorkflowStepState = "Error"
 	WorkflowStepStateComplete WorkflowStepState = "Complete"
+	WorkflowStepStateSubCall  WorkflowStepState = "SubCall"
 )
 
 type WorkflowStepStatus struct {
-	State        WorkflowStepState  `json:"state,omitempty"`
-	Error        string             `json:"message,omitempty"`
-	ThreadName   string             `json:"threadName,omitempty"`
-	FirstRunName string             `json:"firstRunName,omitempty"`
-	LastRunName  string             `json:"lastRunName,omitempty"`
-	Conditions   []metav1.Condition `json:"conditions,omitempty"`
+	State       WorkflowStepState  `json:"state,omitempty"`
+	SubCalls    []SubCall          `json:"subCalls,omitempty"`
+	Error       string             `json:"message,omitempty"`
+	ThreadName  string             `json:"threadName,omitempty"`
+	RunNames    []string           `json:"runNames,omitempty"`
+	LastRunName string             `json:"lastRunName,omitempty"`
+	Conditions  []metav1.Condition `json:"conditions,omitempty"`
+}
+
+type SubCall struct {
+	Type     string `json:"type,omitempty"`
+	Workflow string `json:"workflow,omitempty"`
+	Input    string `json:"input,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

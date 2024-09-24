@@ -15,6 +15,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflow"
 	"github.com/gptscript-ai/otto/pkg/gz"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -276,16 +277,21 @@ func (e *Emitter) printParent(ctx context.Context, state *printState, run v1.Run
 		return nil
 	}
 
-	var parent v1.Run
+	var (
+		parent      v1.Run
+		errNotFound error
+	)
 	if err := e.client.Get(ctx, kclient.ObjectKey{Namespace: run.Namespace, Name: run.Spec.PreviousRunName}, &parent); err != nil {
 		return err
 	} else {
-		if err := e.printParent(ctx, state, parent, result); err != nil {
+		if err := e.printParent(ctx, state, parent, result); apierrors.IsNotFound(err) {
+			errNotFound = err
+		} else if err != nil {
 			return err
 		}
 	}
 
-	return e.printRun(ctx, state, parent, result)
+	return errors.Join(errNotFound, e.printRun(ctx, state, parent, result))
 }
 
 func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOptions, result chan v1.Progress) (retErr error) {
@@ -303,8 +309,8 @@ func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOption
 		state := newPrintState()
 
 		if opts.History {
-			if err := e.printParent(ctx, state, run, result); err != nil {
-				return
+			if err := e.printParent(ctx, state, run, result); !apierrors.IsNotFound(err) && err != nil {
+				return err
 			}
 		}
 
@@ -354,7 +360,7 @@ func (e *Emitter) isWorkflowDone(ctx context.Context, run v1.Run, follow bool) (
 		defer cancel()
 		for event := range w.ResultChan() {
 			if wfe, ok := event.Object.(*v1.WorkflowExecution); ok {
-				if wfe.Status.External.State == v1.WorkflowStateComplete || wfe.Status.External.State == v1.WorkflowStateError {
+				if wfe.Status.State == v1.WorkflowStateComplete || wfe.Status.State == v1.WorkflowStateError {
 					close(result)
 					return
 				}
@@ -471,7 +477,7 @@ func printCall(runID string, prg *gptscript.Program, call *gptscript.CallFrame, 
 				if tool, ok := prg.ToolSet[subCall.ToolID]; ok {
 					out <- v1.Progress{
 						RunID: runID,
-						Tool: v1.ToolProgress{
+						ToolCall: &v1.ToolCall{
 							Name:        tool.Name,
 							Description: tool.Description,
 							Input:       subCall.Input,
@@ -496,9 +502,13 @@ func printString(runID string, out chan v1.Progress, last, current string) strin
 		return last
 	}
 
+	var (
+		toolName  string
+		toolInput *v1.ToolInput
+	)
+
 	toPrint, waitingOnModel := strings.CutPrefix(toPrint, "Waiting for model response...")
 	toPrint, toolPrint, isToolCall := strings.Cut(toPrint, "<tool call> ")
-	toolName := ""
 
 	if isToolCall {
 		toolName = strings.Split(toolPrint, " ->")[0]
@@ -513,14 +523,17 @@ func printString(runID string, out chan v1.Progress, last, current string) strin
 
 	toolPrint = strings.TrimPrefix(toolPrint, toolName+" -> ")
 
+	if isToolCall {
+		toolInput = &v1.ToolInput{
+			Content:          toolPrint,
+			InternalToolName: toolName,
+		}
+	}
+
 	out <- v1.Progress{
-		RunID:   runID,
-		Content: toPrint,
-		Tool: v1.ToolProgress{
-			GeneratingInputForName: toolName,
-			GeneratingInput:        isToolCall,
-			PartialInput:           toolPrint,
-		},
+		RunID:          runID,
+		Content:        toPrint,
+		ToolInput:      toolInput,
 		WaitingOnModel: waitingOnModel,
 	}
 

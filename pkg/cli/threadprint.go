@@ -7,9 +7,10 @@ import (
 )
 
 type ThreadPrint struct {
-	root   *Otto
-	Quiet  bool `usage:"Only print response content of threads" short:"q"`
-	Follow bool `usage:"Follow the thread events" short:"f"`
+	root    *Otto
+	Quiet   bool `usage:"Only print response content of threads" short:"q"`
+	Verbose bool `usage:"Print more information" short:"v"`
+	Follow  bool `usage:"Follow the thread events" short:"f"`
 }
 
 func (l *ThreadPrint) Customize(cmd *cobra.Command) {
@@ -19,7 +20,7 @@ func (l *ThreadPrint) Customize(cmd *cobra.Command) {
 
 func (l *ThreadPrint) Run(cmd *cobra.Command, args []string) error {
 	var (
-		printer = events.NewPrinter(l.Quiet)
+		printer = events.NewPrinter(l.Quiet, l.Verbose)
 	)
 
 	events, err := l.root.Client.ThreadEvents(cmd.Context(), args[0], client.ThreadEventsOptions{

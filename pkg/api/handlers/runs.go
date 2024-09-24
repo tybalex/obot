@@ -7,6 +7,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/events"
 	"github.com/gptscript-ai/otto/pkg/gz"
 	"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type RunHandler struct {
@@ -30,16 +31,17 @@ func convertRun(run v1.Run) types.Run {
 		state = "error"
 	}
 	return types.Run{
-		ID:            run.Name,
-		Created:       run.CreationTimestamp.Time,
-		ThreadID:      run.Spec.ThreadName,
-		AgentID:       run.Spec.AgentName,
-		WorkflowID:    run.Spec.WorkflowName,
-		PreviousRunID: run.Spec.PreviousRunName,
-		Input:         run.Spec.Input,
-		State:         state,
-		Output:        run.Status.Output,
-		Error:         run.Status.Error,
+		ID:             run.Name,
+		Created:        run.CreationTimestamp.Time,
+		ThreadID:       run.Spec.ThreadName,
+		AgentID:        run.Spec.AgentName,
+		WorkflowID:     run.Spec.WorkflowName,
+		WorkflowStepID: run.Spec.WorkflowStepID,
+		PreviousRunID:  run.Spec.PreviousRunName,
+		Input:          run.Spec.Input,
+		State:          state,
+		Output:         run.Status.Output,
+		Error:          run.Status.Error,
 	}
 }
 
@@ -48,17 +50,27 @@ func (a *RunHandler) Debug(req api.Context) error {
 		runID = req.PathValue("id")
 	)
 
-	var run v1.RunState
+	var (
+		runState v1.RunState
+		run      v1.Run
+	)
+	if err := req.Get(&runState, runID); err != nil {
+		return err
+	}
 	if err := req.Get(&run, runID); err != nil {
 		return err
 	}
 
-	calls := map[string]any{}
-	if err := gz.Decompress(&calls, run.Spec.CallFrame); err != nil {
+	frames := map[string]any{}
+	if err := gz.Decompress(&frames, runState.Spec.CallFrame); err != nil {
 		return err
 	}
 
-	return req.Write(calls)
+	return req.Write(map[string]any{
+		"spec":   run.Spec,
+		"frames": frames,
+		"status": run.Status,
+	})
 }
 
 func (a *RunHandler) Events(req api.Context) error {
@@ -121,6 +133,19 @@ func (a *RunHandler) ByID(req api.Context) error {
 	}
 
 	return req.Write(convertRun(run))
+}
+
+func (a *RunHandler) Delete(req api.Context) error {
+	var (
+		runID = req.PathValue("id")
+	)
+
+	return req.Delete(&v1.Run{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      runID,
+			Namespace: req.Namespace(),
+		},
+	})
 }
 
 func (a *RunHandler) List(req api.Context) error {

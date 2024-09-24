@@ -8,6 +8,7 @@ const (
 	RunPrefix               = "r1"
 	WorkflowPrefix          = "w1"
 	WorkflowExecutionPrefix = "we1"
+	WorkflowStepPrefix      = "ws1"
 )
 
 var typePrefixes = []string{
@@ -16,6 +17,7 @@ var typePrefixes = []string{
 	RunPrefix,
 	WorkflowPrefix,
 	WorkflowExecutionPrefix,
+	WorkflowStepPrefix,
 }
 
 func IsThreadID(id string) bool {
@@ -36,6 +38,10 @@ func IsWorkflowID(id string) bool {
 
 func IsWorkflowExecutionID(id string) bool {
 	return strings.HasPrefix(id, WorkflowExecutionPrefix)
+}
+
+func IsWorkflowStepID(id string) bool {
+	return strings.HasPrefix(id, WorkflowStepPrefix)
 }
 
 func IsSystemID(id string) bool {

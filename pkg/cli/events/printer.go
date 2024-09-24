@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/gptscript-ai/otto/pkg/api/types"
 	"github.com/gptscript-ai/otto/pkg/cli/textio"
 	"github.com/gptscript-ai/otto/pkg/mvl"
@@ -33,81 +34,76 @@ func (q *Quiet) Print(input string, events <-chan types.Progress) error {
 }
 
 type Verbose struct {
+	Details bool
 }
 
 func (v *Verbose) Print(input string, events <-chan types.Progress) error {
 	var (
-		spinner              = textio.NewSpinnerPrinter()
-		printGeneratingInput bool
-		lastType             string
-		lastRunID            string
+		out       = textio.NewSpinnerPrinter()
+		lastType  string
+		lastRunID string
 	)
-	spinner.Start()
-	defer spinner.Stop()
+	out.Start()
+	defer out.Stop()
 
 outer:
 	for {
 		select {
 		case <-time.After(100 * time.Millisecond):
-			spinner.Tick()
+			out.Tick()
 		case event, ok := <-events:
 			if !ok {
 				break outer
 			}
 
-			if event.RunID != lastRunID {
+			if event.RunID != "" && event.RunID != lastRunID && v.Details {
 				lastType = "run"
-				spinner.EnsureNewline()
-				spinner.Print(fmt.Sprintf("\n> Run ID: %s\n", event.RunID))
+				out.EnsureNewline()
+				out.Print(fmt.Sprintf("\n> Run ID: %s\n", event.RunID))
 				lastRunID = event.RunID
 			}
 
-			if event.Step != nil {
+			if event.Step != nil && v.Details {
 				lastType = "step"
-				spinner.EnsureNewline()
-				spinner.Print("\n")
-				spinner.Print(event.Step.Display())
+				out.EnsureNewline()
+				out.Print(event.Step.Display())
 			} else if event.Input != "" {
-				if lastType != "step" && lastType != "run" {
-					spinner.Print("\n")
+				out.EnsureNewline()
+				if lastType == "content" {
+					out.Print("\n")
 				}
 				lastType = "input"
-				spinner.EnsureNewline()
-				spinner.Print(fmt.Sprintf("> Input: %s\n", event.Input))
+				out.Print(fmt.Sprintf("> %s\n", color.GreenString(event.Input)))
 			} else if event.WaitingOnModel {
 				lastType = "waiting"
-				spinner.EnsureNewline()
-				spinner.Print("> Waiting for model... \n")
+				out.EnsureNewline()
+				out.Print("> Waiting for model... \n")
 			} else if event.Error != "" {
 				lastType = "error"
-				spinner.EnsureNewline()
-				spinner.Stop()
+				out.EnsureNewline()
+				out.Stop()
 				log.Errorf("%s", event.Error)
-				spinner.Start()
-			} else if event.Tool.PartialInput != "" {
-				lastType = "tool"
-				if !printGeneratingInput {
-					spinner.Print(fmt.Sprintf("> Generating tool input for (%s)...  ", event.Tool.GeneratingInputForName))
-					printGeneratingInput = true
+				out.Start()
+			} else if event.ToolInput != nil {
+				if lastType != "toolInput" {
+					out.Print(fmt.Sprintf("> Generating tool input for (%s)...  ", event.ToolInput.InternalToolName))
 				}
-				spinner.Print(event.Tool.PartialInput)
-			} else if event.Tool.Name != "" {
-				lastType = "tool"
-				if printGeneratingInput {
-					spinner.Print("\n")
-					printGeneratingInput = false
-				}
-				spinner.Print(fmt.Sprintf("> Running tool (%s): %s\n", event.Tool.Name, event.Tool.Input))
+				lastType = "toolInput"
+				out.Print(event.ToolInput.Content)
+			} else if event.ToolCall != nil {
+				out.EnsureNewline()
+				out.Print(fmt.Sprintf("> Running tool (%s): %s\n", color.MagentaString(event.ToolCall.Name), color.MagentaString(event.ToolCall.Input)))
 			} else if event.Content != "" {
-				lastType = "content"
-				if printGeneratingInput {
-					spinner.Print("\n")
+				if lastType != "content" {
+					out.EnsureNewline()
+					out.Print("\n")
 				}
-				spinner.Print(event.Content)
+				lastType = "content"
+				out.Print(color.CyanString(event.Content))
 			}
 		}
 	}
 
-	spinner.EnsureNewline()
+	out.EnsureNewline()
 	return nil
 }

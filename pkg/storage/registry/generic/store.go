@@ -3,10 +3,21 @@ package generic
 import (
 	"github.com/acorn-io/mink/pkg/db"
 	"github.com/acorn-io/mink/pkg/stores"
+	"github.com/acorn-io/mink/pkg/strategy"
 	"github.com/gptscript-ai/otto/pkg/storage/scheme"
+	"github.com/gptscript-ai/otto/pkg/storage/tables"
 	"k8s.io/apiserver/pkg/registry/rest"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+type withTable struct {
+	strategy.CompleteStrategy
+	*strategy.TableAdapter
+}
+
+type hasColumns interface {
+	GetColumns() [][]string
+}
 
 func NewStore(db *db.Factory, obj kclient.Object) (rest.Storage, rest.Storage, error) {
 	storage, err := db.NewDBStrategy(obj)
@@ -14,5 +25,18 @@ func NewStore(db *db.Factory, obj kclient.Object) (rest.Storage, rest.Storage, e
 		return nil, nil, err
 	}
 
-	return stores.NewComplete(scheme.Scheme, storage), stores.NewStatus(scheme.Scheme, storage), err
+	var tableStrategy any
+	if obj, ok := obj.(hasColumns); ok {
+		tableStrategy, err = tables.NewConverter(obj.GetColumns())
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+
+	newStorage := withTable{
+		CompleteStrategy: storage,
+		TableAdapter:     strategy.NewTable(tableStrategy),
+	}
+
+	return stores.NewComplete(scheme.Scheme, newStorage), stores.NewStatus(scheme.Scheme, storage), err
 }

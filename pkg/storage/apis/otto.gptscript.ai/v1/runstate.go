@@ -32,6 +32,10 @@ type RunStateSpec struct {
 	Error      string `json:"error,omitempty"`
 }
 
+func (in *RunState) DeleteRefs() []Ref {
+	return []Ref{}
+}
+
 type RunStateStatus struct {
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }

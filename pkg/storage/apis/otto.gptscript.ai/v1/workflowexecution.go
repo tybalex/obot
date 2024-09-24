@@ -19,6 +19,17 @@ type WorkflowExecution struct {
 	Status WorkflowExecutionStatus `json:"status,omitempty"`
 }
 
+func (in *WorkflowExecution) GetColumns() [][]string {
+	return [][]string{
+		{"Name", "Name"},
+		{"State", "Status.State"},
+		{"Thread", "Status.ThreadName"},
+		{"Workflow", "Spec.WorkflowName"},
+		{"After", "Spec.AfterWorkflowStepName"},
+		{"Created", "{{ago .CreationTimestamp}}"},
+	}
+}
+
 func (in *WorkflowExecution) GetConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
 }
@@ -30,6 +41,12 @@ type WorkflowExecutionSpec struct {
 	WorkspaceID           string `json:"workspaceID,omitempty"`
 }
 
+func (in *WorkflowExecution) DeleteRefs() []Ref {
+	return []Ref{
+		{ObjType: &Thread{}, Name: in.Status.ThreadName},
+	}
+}
+
 type WorkflowState string
 
 const (
@@ -39,16 +56,12 @@ const (
 	WorkflowStateComplete WorkflowState = "Complete"
 )
 
-type WorkflowExecutionExternalStatus struct {
-	State    WorkflowState `json:"state,omitempty"`
-	Output   string        `json:"output,omitempty"`
-	ThreadID string        `json:"threadID,omitempty"`
-}
-
 type WorkflowExecutionStatus struct {
-	External         WorkflowExecutionExternalStatus `json:"external,omitempty"`
-	WorkflowManifest *WorkflowManifest               `json:"workflowManifest,omitempty"`
-	Conditions       []metav1.Condition              `json:"conditions,omitempty"`
+	State            WorkflowState      `json:"state,omitempty"`
+	Output           string             `json:"output,omitempty"`
+	ThreadName       string             `json:"threadName,omitempty"`
+	WorkflowManifest *WorkflowManifest  `json:"workflowManifest,omitempty"`
+	Conditions       []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

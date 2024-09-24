@@ -8,7 +8,6 @@ import (
 	"github.com/gptscript-ai/otto/pkg/knowledge"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
 type ThreadHandler struct {
@@ -30,48 +29,6 @@ func (t *ThreadHandler) MoveWorkspacesToStatus(req router.Request, _ router.Resp
 	if thread.Status.Workspace.WorkspaceID == "" || thread.Status.KnowledgeWorkspace.KnowledgeWorkspaceID == "" {
 		thread.Status.Workspace.WorkspaceID = thread.Spec.WorkspaceID
 		thread.Status.KnowledgeWorkspace.KnowledgeWorkspaceID = thread.Spec.KnowledgeWorkspaceID
-	}
-
-	return nil
-}
-
-func (t *ThreadHandler) Cleanup(req router.Request, _ router.Response) error {
-	thread := req.Object.(*v1.Thread)
-
-	if thread.Spec.AgentName != "" {
-		var agent v1.Agent
-		if err := req.Get(&agent, thread.Namespace, thread.Spec.AgentName); apierrors.IsNotFound(err) {
-			return req.Delete(thread)
-		} else if err != nil {
-			return err
-		}
-	}
-
-	if thread.Spec.WorkflowName != "" {
-		var wf v1.Workflow
-		if err := req.Get(&wf, thread.Namespace, thread.Spec.WorkflowName); apierrors.IsNotFound(err) {
-			return req.Delete(thread)
-		} else if err != nil {
-			return err
-		}
-	}
-
-	if thread.Spec.WorkflowStepName != "" {
-		var step v1.WorkflowStep
-		if err := req.Get(&step, thread.Namespace, thread.Spec.WorkflowStepName); apierrors.IsNotFound(err) {
-			return req.Delete(thread)
-		} else if err != nil {
-			return err
-		}
-	}
-
-	if thread.Spec.WorkflowExecutionName != "" {
-		var we v1.WorkflowExecution
-		if err := req.Get(&we, thread.Namespace, thread.Spec.WorkflowExecutionName); apierrors.IsNotFound(err) {
-			return req.Delete(thread)
-		} else if err != nil {
-			return err
-		}
 	}
 
 	return nil

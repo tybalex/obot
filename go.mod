@@ -2,11 +2,14 @@ module github.com/gptscript-ai/otto
 
 go 1.23.0
 
+replace github.com/acorn-io/mink => ../mink
+
 require (
 	github.com/acorn-io/baaah v0.0.0-20240912163758-8f7c537609d1
 	github.com/acorn-io/mink v0.0.0-20240924215355-6b3069de5d2f
 	github.com/adrg/xdg v0.5.0
 	github.com/dustin/go-humanize v1.0.1
+	github.com/fatih/color v1.17.0
 	github.com/getkin/kin-openapi v0.124.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
@@ -19,6 +22,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/thedadams/workspace-provider v0.0.0-20240912195139-5dc37cf34474
 	golang.org/x/term v0.22.0
+	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.29.0
 	k8s.io/apimachinery v0.29.0
 	k8s.io/apiserver v0.29.0
@@ -78,7 +82,6 @@ require (
 	github.com/evanphx/json-patch v5.7.0+incompatible // indirect
 	github.com/evanphx/json-patch/v5 v5.7.0 // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
-	github.com/fatih/color v1.17.0 // indirect
 	github.com/felixge/httpsnoop v1.0.3 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
@@ -221,7 +224,6 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.0.7 // indirect
 	gorm.io/driver/mysql v1.3.2 // indirect
 	gorm.io/driver/sqlite v1.3.1 // indirect

@@ -3,14 +3,11 @@ package workflowstep
 import (
 	"context"
 	"fmt"
-	"slices"
 	"strings"
 
-	"github.com/acorn-io/baaah/pkg/name"
 	"github.com/acorn-io/baaah/pkg/router"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -21,7 +18,7 @@ func (h *Handler) RunIf(req router.Request, resp router.Response) error {
 		return nil
 	}
 
-	conditionStep := h.defineCondition(step, nil, "if")
+	conditionStep := h.defineCondition(step, nil, 0)
 	resp.Objects(conditionStep)
 
 	conditionRunName, conditionResult, wait, err := h.conditionResult(req.Ctx, req.Client, conditionStep)
@@ -105,9 +102,7 @@ func toStepCondition(s string) string {
 	return input
 }
 
-func (h *Handler) defineCondition(step, afterStep *v1.WorkflowStep, pathName string) *v1.WorkflowStep {
-	stepPath := append(step.Spec.Path, pathName)
-	stepName := name.SafeHashConcatName(slices.Concat([]string{step.Spec.WorkflowExecutionName}, stepPath)...)
+func (h *Handler) defineCondition(step, afterStep *v1.WorkflowStep, iteration int) *v1.WorkflowStep {
 	afterStepName := step.Spec.AfterWorkflowStepName
 	if afterStep != nil {
 		afterStepName = afterStep.Name
@@ -115,31 +110,21 @@ func (h *Handler) defineCondition(step, afterStep *v1.WorkflowStep, pathName str
 
 	var (
 		condition = "false"
+		suffix    string
 	)
 	if step.Spec.Step.If != nil {
 		condition = step.Spec.Step.If.Condition
+		suffix = "{condition}"
 	} else if step.Spec.Step.While != nil {
 		condition = step.Spec.Step.While.Condition
+		suffix = fmt.Sprintf("{condition,index=%d}", iteration)
 	}
 
-	return &v1.WorkflowStep{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      stepName,
-			Namespace: step.Namespace,
-		},
-		Spec: v1.WorkflowStepSpec{
-			ParentWorkflowStepName: step.Spec.ParentWorkflowStepName,
-			AfterWorkflowStepName:  afterStepName,
-			Step: v1.Step{
-				ID:   step.Spec.Step.ID,
-				Step: toStepCondition(condition),
-			},
-			Path:                  stepPath,
-			WorkflowName:          step.Spec.WorkflowName,
-			WorkflowExecutionName: step.Spec.WorkflowExecutionName,
-			ThreadName:            step.Spec.ThreadName,
-		},
-	}
+	newStep := NewStep(step.Namespace, step.Spec.WorkflowExecutionName, afterStepName, v1.Step{
+		ID:   step.Spec.Step.ID + suffix,
+		Step: toStepCondition(condition),
+	})
+	return newStep
 }
 
 func (h *Handler) defineIf(step *v1.WorkflowStep, conditionStep *v1.WorkflowStep, conditionResult bool) (result []kclient.Object, _ error) {
@@ -152,28 +137,13 @@ func (h *Handler) defineIf(step *v1.WorkflowStep, conditionStep *v1.WorkflowStep
 
 	var lastStepName string
 	for i, ifStep := range steps {
-		stepPath := append(step.Spec.Path, fmt.Sprint(i))
-		stepName := name.SafeHashConcatName(slices.Concat([]string{step.Spec.WorkflowExecutionName}, stepPath)...)
 		afterStepName := conditionStep.Name
 		if i > 0 {
 			afterStepName = lastStepName
 		}
-		result = append(result, &v1.WorkflowStep{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      stepName,
-				Namespace: step.Namespace,
-			},
-			Spec: v1.WorkflowStepSpec{
-				ParentWorkflowStepName: step.Name,
-				AfterWorkflowStepName:  afterStepName,
-				Step:                   ifStep,
-				Path:                   stepPath,
-				WorkflowName:           step.Spec.WorkflowName,
-				WorkflowExecutionName:  step.Spec.WorkflowExecutionName,
-				ThreadName:             step.Spec.ThreadName,
-			},
-		})
-		lastStepName = stepName
+		newStep := NewStep(step.Namespace, step.Spec.WorkflowExecutionName, afterStepName, ifStep)
+		result = append(result, newStep)
+		lastStepName = newStep.Name
 	}
 
 	return result, nil

@@ -35,9 +35,9 @@ func (l *Runs) printRunsQuiet(i iter.Seq[types.Run]) error {
 func (l *Runs) printRuns(i iter.Seq[types.Run], flush bool) error {
 	w := newTable("ID", "PREV", "AGENT/WF", "THREAD", "STATE", "INPUT", "OUTPUT", "CREATED")
 	for run := range i {
-		run.Input = truncate(strings.Split(run.Input, "\n")[0], l.Wide)
-		run.Output = truncate(strings.Split(run.Output, "\n")[0], l.Wide)
-		run.Error = truncate(strings.Split(run.Error, "\n")[0], l.Wide)
+		run.Input = truncate(run.Input, l.Wide)
+		run.Output = truncate(run.Output, l.Wide)
+		run.Error = truncate(run.Error, l.Wide)
 		if run.Error != "" {
 			run.Output = run.Error
 		}
@@ -123,6 +123,7 @@ func truncate(text string, wide bool) string {
 	if wide {
 		return text
 	}
+	text = strings.Split(text, "\n")[0]
 	maxLength := pterm.GetTerminalWidth() / 3
 	if len(text) > maxLength {
 		return text[:maxLength] + "..."
