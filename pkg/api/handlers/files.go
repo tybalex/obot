@@ -19,6 +19,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -87,9 +88,18 @@ func uploadKnowledge(req api.Context, workspaceClient *wclient.Client, parentNam
 		return err
 	}
 
-	status.KnowledgeGeneration++
-	status.HasKnowledge = true
-	if err := req.Storage.Status().Update(req.Context(), toUpdate); err != nil {
+	// We retry on conflict here to avoid race conditions. If a user is uploading multiple files, then the status of the
+	// parent object could be changing in the controller. Here we want to make sure that the new file is picked up in an ingestion.
+	if err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		if err := req.Get(toUpdate, parentName); err != nil {
+			return err
+		}
+
+		status := toUpdate.KnowledgeWorkspaceStatus()
+		status.KnowledgeGeneration++
+		status.HasKnowledge = true
+		return req.Storage.Status().Update(req.Context(), toUpdate)
+	}); err != nil {
 		return err
 	}
 
