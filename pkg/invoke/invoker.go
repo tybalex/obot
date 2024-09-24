@@ -443,7 +443,10 @@ func (i *Invoker) saveState(ctx context.Context, c kclient.Client, thread *v1.Th
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
-	return fmt.Errorf("failed to save state after 3 retries: %w", errors.Join(err, retErr))
+	if combinedError := errors.Join(err, retErr); combinedError != nil {
+		return fmt.Errorf("failed to save state after 3 retries: %w", combinedError)
+	}
+	return retErr
 }
 
 func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run, retErr error) error {

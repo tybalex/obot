@@ -1,10 +1,12 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gptscript-ai/otto/pkg/cli/edit"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/system"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 )
@@ -19,15 +21,50 @@ func (l *Edit) Customize(cmd *cobra.Command) {
 }
 
 func (l *Edit) Run(cmd *cobra.Command, args []string) error {
-	agent, err := l.root.Client.GetAgent(cmd.Context(), args[0])
+	id := args[0]
+	if system.IsAgentID(id) {
+		return l.editAgent(cmd.Context(), id)
+	}
+	return l.editWorkflow(cmd.Context(), id)
+}
+
+func (l *Edit) editWorkflow(ctx context.Context, id string) error {
+	workflow, err := l.root.Client.GetWorkflow(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	data, err := yaml.Marshal(workflow.WorkflowManifest)
+	if err != nil {
+		return err
+	}
+
+	err = edit.Edit(ctx, data, ".yaml", func(data []byte) error {
+		var newManifest v1.WorkflowManifest
+		if err := yaml.Unmarshal(data, &newManifest); err != nil {
+			return err
+		}
+
+		_, err := l.root.Client.UpdateWorkflow(ctx, workflow.ID, newManifest)
+		return err
+	})
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Workflow updated: %s\n", workflow.ID)
+	return nil
+}
+
+func (l *Edit) editAgent(ctx context.Context, id string) error {
+	agent, err := l.root.Client.GetAgent(ctx, id)
 	if err != nil {
 		return err
 	}
 
 	if l.Prompt {
-		err = edit.Edit(cmd.Context(), []byte(agent.Prompt), ".txt", func(data []byte) error {
+		err = edit.Edit(ctx, []byte(agent.Prompt), ".txt", func(data []byte) error {
 			agent.Prompt = v1.Body(data)
-			_, err := l.root.Client.UpdateAgent(cmd.Context(), agent.ID, agent.AgentManifest)
+			_, err := l.root.Client.UpdateAgent(ctx, agent.ID, agent.AgentManifest)
 			return err
 		})
 		if err != nil {
@@ -42,13 +79,13 @@ func (l *Edit) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = edit.Edit(cmd.Context(), data, ".yaml", func(data []byte) error {
+	err = edit.Edit(ctx, data, ".yaml", func(data []byte) error {
 		var newManifest v1.AgentManifest
 		if err := yaml.Unmarshal(data, &newManifest); err != nil {
 			return err
 		}
 
-		_, err := l.root.Client.UpdateAgent(cmd.Context(), agent.ID, newManifest)
+		_, err := l.root.Client.UpdateAgent(ctx, agent.ID, newManifest)
 		return err
 	})
 	if err != nil {

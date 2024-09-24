@@ -40,6 +40,7 @@ func (v *Verbose) Print(input string, events <-chan types.Progress) error {
 		spinner              = textio.NewSpinnerPrinter()
 		printGeneratingInput bool
 		lastType             string
+		lastRunID            string
 	)
 	spinner.Start()
 	defer spinner.Stop()
@@ -54,13 +55,20 @@ outer:
 				break outer
 			}
 
+			if event.RunID != lastRunID {
+				lastType = "run"
+				spinner.EnsureNewline()
+				spinner.Print(fmt.Sprintf("\n> Run ID: %s\n", event.RunID))
+				lastRunID = event.RunID
+			}
+
 			if event.Step != nil {
 				lastType = "step"
 				spinner.EnsureNewline()
 				spinner.Print("\n")
 				spinner.Print(event.Step.Display())
 			} else if event.Input != "" {
-				if lastType != "step" {
+				if lastType != "step" && lastType != "run" {
 					spinner.Print("\n")
 				}
 				lastType = "input"

@@ -7,6 +7,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/api/client"
 	"github.com/gptscript-ai/otto/pkg/api/types"
 	"github.com/gptscript-ai/otto/pkg/cli/events"
+	"github.com/gptscript-ai/otto/pkg/system"
 )
 
 type inputter interface {
@@ -31,12 +32,15 @@ func Invoke(ctx context.Context, c *client.Client, id, input string, opts Option
 		inputter = QuietInputter{}
 	}
 
-	input, ok, err := inputter.Next(ctx, input, nil)
-	if err != nil {
-		return err
-	}
-	if !ok {
-		return fmt.Errorf("no input provided")
+	if !system.IsWorkflowID(id) {
+		var ok bool
+		input, ok, err = inputter.Next(ctx, input, nil)
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return fmt.Errorf("no input provided")
+		}
 	}
 
 	for {

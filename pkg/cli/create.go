@@ -22,6 +22,8 @@ type Create struct {
 	Slug             string            `usage:"The path segment of the agent in the published URL (defaults to ID of agent)."`
 	Tools            []string          `usage:"List of tools the agent can use."`
 	CodeDependencies string            `usage:"The code dependencies content for the agent if it using JavaScript (package.json) or Python (requirements.txt)."`
+	Steps            []string          `usage:"The steps for a workflow."`
+	Output           string            `usage:"The output for a workflow."`
 	Params           map[string]string `usage:"The parameters for the agent." hidden:"true"`
 	File             string            `usage:"The file to read the agent manifest from." short:"f"`
 	ReplaceBySlug    bool              `usage:"If loading from file, replace the agent with the same slug if it exists." short:"r"`
@@ -54,33 +56,59 @@ func (l *Create) loadFromFile(ctx context.Context) error {
 		}
 	}
 
-	var newManifest v1.AgentManifest
+	var newManifest v1.WorkflowManifest
 	if err := yaml.Unmarshal(data, &newManifest); err != nil {
 		return err
 	}
 
-	if l.ReplaceBySlug && l.Slug != "" {
-		agents, err := l.root.Client.ListAgents(ctx, client.ListAgentsOptions{
-			Slug: l.Slug,
-		})
+	if len(newManifest.Steps) > 0 || newManifest.Output != "" {
+		if l.ReplaceBySlug && l.Slug != "" {
+			workflows, err := l.root.Client.ListWorkflows(ctx, client.ListWorkflowsOptions{
+				Slug: l.Slug,
+			})
+			if err != nil {
+				return err
+			}
+			if len(workflows.Items) > 0 {
+				_, err = l.root.Client.UpdateWorkflow(ctx, workflows.Items[0].ID, newManifest)
+				return err
+			}
+		}
+
+		workflow, err := l.root.Client.CreateWorkflow(ctx, newManifest)
 		if err != nil {
 			return err
 		}
-		if len(agents.Items) > 0 {
-			_, err = l.root.Client.UpdateAgent(ctx, agents.Items[0].ID, newManifest)
+
+		if l.Quiet {
+			fmt.Println(workflow.ID)
+		} else {
+			fmt.Printf("Workflow created: %s\n", workflow.ID)
+		}
+	} else {
+		if l.ReplaceBySlug && l.Slug != "" {
+			agents, err := l.root.Client.ListAgents(ctx, client.ListAgentsOptions{
+				Slug: l.Slug,
+			})
+			if err != nil {
+				return err
+			}
+			if len(agents.Items) > 0 {
+				_, err = l.root.Client.UpdateAgent(ctx, agents.Items[0].ID, newManifest.AgentManifest)
+				return err
+			}
+		}
+
+		agent, err := l.root.Client.CreateAgent(ctx, newManifest.AgentManifest)
+		if err != nil {
 			return err
 		}
-	}
 
-	agent, err := l.root.Client.CreateAgent(ctx, newManifest)
-	if err != nil {
-		return err
-	}
-
-	if l.Quiet {
-		fmt.Println(agent.ID)
-	} else {
-		fmt.Printf("Agent created: %s\n", agent.ID)
+		if l.Quiet {
+			fmt.Println(agent.ID)
+		} else {
+			fmt.Printf("Agent created: %s\n", agent.ID)
+		}
 	}
 
 	return nil
@@ -106,7 +134,7 @@ func (l *Create) Run(cmd *cobra.Command, args []string) error {
 		prompt = result
 	}
 
-	agent, err := l.root.Client.CreateAgent(cmd.Context(), v1.AgentManifest{
+	agentManifest := v1.AgentManifest{
 		Name:             l.Name,
 		Description:      l.Description,
 		Slug:             l.Slug,
@@ -114,23 +142,47 @@ func (l *Create) Run(cmd *cobra.Command, args []string) error {
 		Tools:            l.Tools,
 		CodeDependencies: l.CodeDependencies,
 		Params:           l.Params,
-	})
-	if err != nil {
-		return err
 	}
+
+	var (
+		id, link string
+	)
+	if l.Output != "" || len(l.Steps) > 0 {
+		wf := v1.WorkflowManifest{
+			AgentManifest: agentManifest,
+			Output:        l.Output,
+		}
+		for _, step := range l.Steps {
+			wf.Steps = append(wf.Steps, v1.Step{
+				Step: step,
+			})
+		}
+		workflow, err := l.root.Client.CreateWorkflow(cmd.Context(), wf)
+		if err != nil {
+			return err
+		}
+		id, link = workflow.ID, workflow.Links["invoke"]
+	} else {
+		agent, err := l.root.Client.CreateAgent(cmd.Context(), agentManifest)
+		if err != nil {
+			return err
+		}
+		id, link = agent.ID, agent.Links["invoke"]
+	}
+
 	if l.Quiet {
-		fmt.Println(agent.ID)
+		fmt.Println(id)
 	} else {
 		fmt.Println()
 		textio.Info(fmt.Sprintf("Agent created."))
 		textio.Info(fmt.Sprintf(""))
-		textio.Info(fmt.Sprintf("ID: %s", agent.ID))
-		textio.Info(fmt.Sprintf("URL: %s", agent.Links["invoke"]))
+		textio.Info(fmt.Sprintf("ID: %s", id))
+		textio.Info(fmt.Sprintf("URL: %s", link))
 		fmt.Println()
 		textio.Print(fmt.Sprintf("You can now interact with your new agent by running:"))
 		fmt.Println()
-		fmt.Printf("CLI:  otto invoke --chat %s Hello\n", agent.ID)
-		fmt.Printf("cURL: curl -d Hello %s\n", agent.Links["invoke"])
+		fmt.Printf("CLI:  otto invoke %s Hello\n", id)
+		fmt.Printf("cURL: curl -d Hello %s\n", link)
 	}
 	return nil
 }
