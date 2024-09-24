@@ -148,13 +148,13 @@ func deleteOneDriveLinks(req api.Context, linksID, parentName string, parentObj 
 
 func convertOneDriveLinks(oneDriveLink v1.OneDriveLinks) types.OneDriveLinks {
 	return types.OneDriveLinks{
-		AgentName:    oneDriveLink.Spec.AgentName,
-		WorkflowName: oneDriveLink.Spec.WorkflowName,
-		SharedLinks:  oneDriveLink.Spec.SharedLinks,
-		ThreadName:   oneDriveLink.Status.ThreadName,
-		RunName:      oneDriveLink.Status.RunName,
-		Status:       oneDriveLink.Status.Status,
-		Error:        oneDriveLink.Status.Error,
-		Folders:      oneDriveLink.Status.Folders,
+		AgentID:     oneDriveLink.Spec.AgentName,
+		WorkflowID:  oneDriveLink.Spec.WorkflowName,
+		SharedLinks: oneDriveLink.Spec.SharedLinks,
+		ThreadID:    oneDriveLink.Status.ThreadName,
+		RunID:       oneDriveLink.Status.RunName,
+		Status:      oneDriveLink.Status.Status,
+		Error:       oneDriveLink.Status.Error,
+		Folders:     oneDriveLink.Status.Folders,
 	}
 }
