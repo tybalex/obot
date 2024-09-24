@@ -1111,6 +1111,12 @@ func schema_storage_apis_ottogptscriptai_v1_Progress(ref common.ReferenceCallbac
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
+					"runID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"content": {
 						SchemaProps: spec.SchemaProps{
 							Default: "",

@@ -574,6 +574,7 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, thread *v1.Threa
 		if retErr != nil {
 			log.Errorf("failed to save state: %v", retErr)
 			i.events.SubmitProgress(run, v1.Progress{
+				RunID: run.Name,
 				Error: retErr.Error(),
 			})
 		}
@@ -636,6 +637,7 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, thread *v1.Threa
 					msg += "\n"
 				}
 				i.events.SubmitProgress(run, v1.Progress{
+					RunID:   run.Name,
 					Content: msg,
 					Prompt: &v1.Prompt{
 						ID:        frame.Prompt.ID,

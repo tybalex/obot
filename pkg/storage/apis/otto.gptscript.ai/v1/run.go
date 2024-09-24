@@ -41,6 +41,7 @@ func (in *Run) GetConditions() *[]metav1.Condition {
 }
 
 type Progress struct {
+	RunID          string       `json:"runID,omitempty"`
 	Content        string       `json:"content"`
 	Input          string       `json:"input,omitempty"`
 	Prompt         *Prompt      `json:"prompt,omitempty"`

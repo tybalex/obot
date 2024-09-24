@@ -171,7 +171,8 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 		}
 		step := workflow.FindStep(wfe.Status.WorkflowManifest, run.Spec.WorkflowStepID)
 		result <- v1.Progress{
-			Step: step,
+			RunID: run.Name,
+			Step:  step,
 		}
 		state.lastStepPrinted = run.Spec.WorkflowStepID
 	}
@@ -232,7 +233,7 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 				if toPrint.Progress != nil {
 					result <- *toPrint.Progress
 				} else {
-					callToEvents(toPrint.Prg, toPrint.Frames, state, result)
+					callToEvents(run.Name, toPrint.Prg, toPrint.Frames, state, result)
 				}
 			}
 		case event, ok := <-w.ResultChan():
@@ -258,7 +259,7 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 			if err := gz.Decompress(&callFrames, runState.Spec.CallFrame); err != nil {
 				return err
 			}
-			callToEvents(&prg, callFrames, state, result)
+			callToEvents(run.Name, &prg, callFrames, state, result)
 
 			if runState.Spec.Done {
 				if runState.Spec.Error != "" {
@@ -291,7 +292,10 @@ func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOption
 	defer close(result)
 	defer func() {
 		if retErr != nil {
-			result <- v1.Progress{Error: retErr.Error()}
+			result <- v1.Progress{
+				RunID: run.Name,
+				Error: retErr.Error(),
+			}
 		}
 	}()
 
@@ -422,7 +426,7 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1
 
 }
 
-func callToEvents(prg *gptscript.Program, frames Frames, printed *printState, out chan v1.Progress) {
+func callToEvents(runID string, prg *gptscript.Program, frames Frames, printed *printState, out chan v1.Progress) {
 	var (
 		parent gptscript.CallFrame
 	)
@@ -435,15 +439,16 @@ func callToEvents(prg *gptscript.Program, frames Frames, printed *printState, ou
 	if parent.ID == "" {
 		return
 	}
-	printCall(prg, &parent, printed, out)
+	printCall(runID, prg, &parent, printed, out)
 }
 
-func printCall(prg *gptscript.Program, call *gptscript.CallFrame, lastPrint *printState, out chan v1.Progress) {
+func printCall(runID string, prg *gptscript.Program, call *gptscript.CallFrame, lastPrint *printState, out chan v1.Progress) {
 	printed := lastPrint.frames[call.ID]
 	lastOutputs := printed.Outputs
 
 	if call.Input != "" && !printed.InputPrinted {
 		out <- v1.Progress{
+			RunID:   runID,
 			Content: "\n",
 			Input:   call.Input,
 		}
@@ -457,7 +462,7 @@ func printCall(prg *gptscript.Program, call *gptscript.CallFrame, lastPrint *pri
 		last := lastOutputs[i]
 
 		if last.Content != currentOutput.Content {
-			currentOutput.Content = printString(out, last.Content, currentOutput.Content)
+			currentOutput.Content = printString(runID, out, last.Content, currentOutput.Content)
 		}
 
 		for _, callID := range slices.Sorted(maps.Keys(currentOutput.SubCalls)) {
@@ -465,6 +470,7 @@ func printCall(prg *gptscript.Program, call *gptscript.CallFrame, lastPrint *pri
 			if _, ok := last.SubCalls[callID]; !ok {
 				if tool, ok := prg.ToolSet[subCall.ToolID]; ok {
 					out <- v1.Progress{
+						RunID: runID,
 						Tool: v1.ToolProgress{
 							Name:        tool.Name,
 							Description: tool.Description,
@@ -482,7 +488,7 @@ func printCall(prg *gptscript.Program, call *gptscript.CallFrame, lastPrint *pri
 	lastPrint.frames[call.ID] = printed
 }
 
-func printString(out chan v1.Progress, last, current string) string {
+func printString(runID string, out chan v1.Progress, last, current string) string {
 	toPrint := current
 	if strings.HasPrefix(current, last) {
 		toPrint = current[len(last):]
@@ -508,6 +514,7 @@ func printString(out chan v1.Progress, last, current string) string {
 	toolPrint = strings.TrimPrefix(toolPrint, toolName+" -> ")
 
 	out <- v1.Progress{
+		RunID:   runID,
 		Content: toPrint,
 		Tool: v1.ToolProgress{
 			GeneratingInputForName: toolName,
