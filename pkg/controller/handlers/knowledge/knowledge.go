@@ -154,6 +154,15 @@ func compileFileStatuses(ctx context.Context, client kclient.Client, knowledged 
 func (a *Handler) GCFile(req router.Request, _ router.Response) error {
 	kFile := req.Object.(*v1.KnowledgeFile)
 
+	if kFile.Spec.UploadName != "" {
+		var upload v1.OneDriveLinks
+		if err := req.Get(&upload, kFile.Namespace, kFile.Spec.UploadName); apierrors.IsNotFound(err) || !upload.GetDeletionTimestamp().IsZero() {
+			return kclient.IgnoreNotFound(req.Delete(kFile))
+		} else if err != nil {
+			return err
+		}
+	}
+
 	if parent, err := knowledgeFileParent(req.Ctx, req.Client, kFile); apierrors.IsNotFound(err) || !parent.GetDeletionTimestamp().IsZero() {
 		return kclient.IgnoreNotFound(req.Delete(kFile))
 	} else if err != nil {

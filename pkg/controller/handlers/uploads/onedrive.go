@@ -89,18 +89,13 @@ func (u *UploadHandler) RunUpload(req router.Request, _ router.Response) error {
 		return err
 	}
 
-	parentObj, status, err := parentObjAndStatus(req, oneDriveLinks)
-	if err != nil {
-		return err
-	}
-
-	files, err := knowledgeFilesForParent(req, parentObj)
+	files, err := knowledgeFilesForUploadName(req, oneDriveLinks.Namespace, oneDriveLinks.Name)
 	if err != nil {
 		return err
 	}
 
 	output := map[string]any{
-		"files":   compileKnowledgeFilesForOneDriveConnector(files, oneDriveLinks.Name),
+		"files":   compileKnowledgeFilesForOneDriveConnector(files),
 		"folders": oneDriveLinks.Status.Folders,
 		"status":  oneDriveLinks.Status.Status,
 		"error":   oneDriveLinks.Status.Error,
@@ -109,6 +104,11 @@ func (u *UploadHandler) RunUpload(req router.Request, _ router.Response) error {
 	writer, err := u.workspaceClient.WriteFile(req.Ctx, thread.Spec.WorkspaceID, ".metadata.json")
 	if err != nil {
 		return fmt.Errorf("failed to create metadata file: %w", err)
+	}
+
+	_, status, err := parentObjAndStatus(req, oneDriveLinks)
+	if err != nil {
+		return fmt.Errorf("failed to get parent status: %w", err)
 	}
 
 	b, err := json.Marshal(map[string]any{
@@ -185,7 +185,7 @@ func (u *UploadHandler) HandleUploadRun(req router.Request, _ router.Response) e
 		return err
 	}
 
-	if err = deleteKnowledgeFilesNotIncluded(req.Ctx, req.Client, oneDriveLinks.Name, parentObj, knowledgeFileNamesFromOutput); err != nil {
+	if err = deleteKnowledgeFilesNotIncluded(req.Ctx, req.Client, oneDriveLinks.Namespace, oneDriveLinks.Name, knowledgeFileNamesFromOutput); err != nil {
 		return err
 	}
 
@@ -310,11 +310,11 @@ func parentObjAndStatus(req router.Request, onedriveLinks *v1.OneDriveLinks) (kn
 	return nil, nil, fmt.Errorf("no parent object found for onedrive link %q", onedriveLinks.Name)
 }
 
-func knowledgeFilesForParent(req router.Request, parentObj knowledge.Knowledgeable) (v1.KnowledgeFileList, error) {
+func knowledgeFilesForUploadName(req router.Request, namespace, name string) (v1.KnowledgeFileList, error) {
 	var files v1.KnowledgeFileList
 	return files, req.List(&files, &client.ListOptions{
-		FieldSelector: fieldSelectorForFiles(parentObj),
-		Namespace:     parentObj.GetNamespace(),
+		FieldSelector: fields.SelectorFromSet(map[string]string{"spec.uploadName": name}),
+		Namespace:     namespace,
 	})
 }
 
@@ -379,18 +379,18 @@ func compileKnowledgeFilesFromOneDriveConnector(ctx context.Context, c client.Cl
 	return fileMetadata, knowledgeFileNamesFromOutput, nil
 }
 
-func deleteKnowledgeFilesNotIncluded(ctx context.Context, c client.Client, uploadName string, parentObj knowledge.Knowledgeable, filenames map[string]struct{}) error {
+func deleteKnowledgeFilesNotIncluded(ctx context.Context, c client.Client, namespace, name string, filenames map[string]struct{}) error {
 	var knowledgeFiles v1.KnowledgeFileList
 	if err := c.List(ctx, uncached.List(&knowledgeFiles), &client.ListOptions{
-		Namespace:     parentObj.GetNamespace(),
-		FieldSelector: fieldSelectorForFiles(parentObj),
+		Namespace:     namespace,
+		FieldSelector: fields.SelectorFromSet(map[string]string{"spec.uploadName": name}),
 	}); err != nil {
 		return fmt.Errorf("failed to list knowledge files: %w", err)
 	}
 
 	var errs []error
 	for _, knowledgeFile := range knowledgeFiles.Items {
-		if _, exists := filenames[knowledgeFile.Name]; !exists && knowledgeFile.Spec.UploadName == uploadName {
+		if _, exists := filenames[knowledgeFile.Name]; !exists {
 			if err := c.Delete(ctx, &knowledgeFile); err != nil {
 				errs = append(errs, fmt.Errorf("failed to delete knowledge file %q: %w", knowledgeFile.Name, err))
 			}
@@ -400,29 +400,10 @@ func deleteKnowledgeFilesNotIncluded(ctx context.Context, c client.Client, uploa
 	return errors.Join(errs...)
 }
 
-func fieldSelectorForFiles(parentObj knowledge.Knowledgeable) fields.Selector {
-	fieldSelector := make(map[string]string)
-	if threadName := parentObj.ThreadName(); threadName != "" {
-		fieldSelector["spec.threadName"] = threadName
-	}
-
-	if agentName := parentObj.AgentName(); agentName != "" && len(fieldSelector) == 0 {
-		fieldSelector["spec.agentName"] = agentName
-	}
-
-	if workflowName := parentObj.WorkflowName(); workflowName != "" && len(fieldSelector) == 0 {
-		fieldSelector["spec.workflowName"] = workflowName
-	}
-
-	return fields.SelectorFromSet(fieldSelector)
-}
-
-func compileKnowledgeFilesForOneDriveConnector(files v1.KnowledgeFileList, uploadName string) map[string]v1.FileDetails {
+func compileKnowledgeFilesForOneDriveConnector(files v1.KnowledgeFileList) map[string]v1.FileDetails {
 	knowledgeFileStatuses := make(map[string]v1.FileDetails, len(files.Items))
 	for _, file := range files.Items {
-		if file.Spec.UploadName == uploadName {
-			knowledgeFileStatuses[file.Status.UploadID] = file.Status.FileDetails
-		}
+		knowledgeFileStatuses[file.Status.UploadID] = file.Status.FileDetails
 	}
 
 	return knowledgeFileStatuses
