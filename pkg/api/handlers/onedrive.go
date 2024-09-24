@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/gptscript-ai/otto/pkg/api"
+	"github.com/gptscript-ai/otto/pkg/api/types"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -45,9 +45,7 @@ func createOneDriveLinks(req api.Context, parentName string, parentObj client.Ob
 		return fmt.Errorf("failed to create OneDrive links: %w", err)
 	}
 
-	req.WriteHeader(http.StatusCreated)
-
-	return nil
+	return req.Write(convertOneDriveLinks(*oneDriveLinks))
 }
 
 func updateOneDriveLinks(req api.Context, linksID, parentName string, parentObj client.Object) error {
@@ -112,14 +110,14 @@ func getOneDriveLinksForParent(req api.Context, parentName string, parentObj cli
 		return fmt.Errorf("failed to get OneDrive links with id %s: %w", parentName, err)
 	}
 
-	var resp v1.OneDriveLinksList
+	resp := make([]types.OneDriveLinks, 0, len(oneDriveLinks.Items))
 	for _, link := range oneDriveLinks.Items {
 		if link.Spec.WorkflowName == parentName || link.Spec.AgentName == parentName {
-			resp.Items = append(resp.Items, link)
+			resp = append(resp, convertOneDriveLinks(link))
 		}
 	}
 
-	return req.Write(&resp)
+	return req.Write(types.OneDriveLinksList{Items: resp})
 }
 
 func deleteOneDriveLinks(req api.Context, linksID, parentName string, parentObj client.Object) error {
@@ -146,4 +144,17 @@ func deleteOneDriveLinks(req api.Context, linksID, parentName string, parentObj 
 	}
 
 	return nil
+}
+
+func convertOneDriveLinks(oneDriveLink v1.OneDriveLinks) types.OneDriveLinks {
+	return types.OneDriveLinks{
+		AgentName:    oneDriveLink.Spec.AgentName,
+		WorkflowName: oneDriveLink.Spec.WorkflowName,
+		SharedLinks:  oneDriveLink.Spec.SharedLinks,
+		ThreadName:   oneDriveLink.Status.ThreadName,
+		RunName:      oneDriveLink.Status.RunName,
+		Status:       oneDriveLink.Status.Status,
+		Error:        oneDriveLink.Status.Error,
+		Folders:      oneDriveLink.Status.Folders,
+	}
 }

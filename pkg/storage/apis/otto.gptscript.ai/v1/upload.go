@@ -52,9 +52,9 @@ type OneDriveLinksConnectorStatus struct {
 }
 
 type FileDetails struct {
-	FilePath  string `json:"filePath"`
-	URL       string `json:"url"`
-	UpdatedAt string `json:"updatedAt"`
+	FilePath  string `json:"filePath,omitempty"`
+	URL       string `json:"url,omitempty"`
+	UpdatedAt string `json:"updatedAt,omitempty"`
 }
 
 type FolderSet map[string]Item
