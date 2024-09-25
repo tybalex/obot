@@ -136,8 +136,7 @@ func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions
 				return nil, err
 			}
 			run = *runForThread
-		}
-		if err := e.client.Get(ctx, router.Key(namespace, thread.Status.LastRunName), &run); err != nil {
+		} else if err := e.client.Get(ctx, router.Key(namespace, thread.Status.LastRunName), &run); err != nil {
 			return nil, err
 		}
 	}
