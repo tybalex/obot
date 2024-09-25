@@ -13,6 +13,7 @@ import (
 	"github.com/gptscript-ai/gptscript/pkg/sdkserver"
 	"github.com/gptscript-ai/otto/pkg/aihelper"
 	"github.com/gptscript-ai/otto/pkg/api"
+	"github.com/gptscript-ai/otto/pkg/cookie"
 	"github.com/gptscript-ai/otto/pkg/events"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	"github.com/gptscript-ai/otto/pkg/jwt"
@@ -20,9 +21,11 @@ import (
 	"github.com/gptscript-ai/otto/pkg/storage/scheme"
 	"github.com/gptscript-ai/otto/pkg/storage/services"
 	"github.com/gptscript-ai/otto/pkg/system"
+	"github.com/gptscript-ai/otto/pkg/webhook"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 	coordinationv1 "k8s.io/api/coordination/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apiserver/pkg/authentication/authenticator"
 )
 
 const (
@@ -31,9 +34,10 @@ const (
 )
 
 type Config struct {
-	HTTPListenPort int    `usage:"HTTP port to listen on" default:"8080" name:"http-listen-port"`
-	DevMode        bool   `usage:"Enable development mode" default:"false" name:"dev-mode" env:"OTTO_DEV_MODE"`
-	AllowedOrigin  string `usage:"Allowed origin for CORS"`
+	HTTPListenPort  int    `usage:"HTTP port to listen on" default:"8080" name:"http-listen-port"`
+	DevMode         bool   `usage:"Enable development mode" default:"false" name:"dev-mode" env:"OTTO_DEV_MODE"`
+	AllowedOrigin   string `usage:"Allowed origin for CORS"`
+	TokenWebhookURL string `usage:"The url for the token webhook"`
 	services.Config
 }
 
@@ -103,6 +107,15 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		return nil, err
 	}
 
+	var wh authenticator.Request
+	if config.TokenWebhookURL != "" {
+		wh, err = webhook.New(scheme.Scheme, config.TokenWebhookURL)
+		if err != nil {
+			return nil, err
+		}
+		wh = cookie.New(wh)
+	}
+
 	var (
 		tokenServer     = &jwt.TokenService{}
 		workspaceClient = wclient.New(wclient.Options{
@@ -116,7 +129,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		StorageClient:   storageClient,
 		Router:          r,
 		GPTClient:       c,
-		APIServer:       api.NewServer(storageClient, c, tokenServer),
+		APIServer:       api.NewServer(storageClient, c, tokenServer, wh),
 		TokenServer:     tokenServer,
 		WorkspaceClient: workspaceClient,
 		Invoker:         invoke.NewInvoker(storageClient, c, tokenServer, workspaceClient, events, config.KnowledgeTool),

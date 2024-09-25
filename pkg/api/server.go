@@ -9,21 +9,24 @@ import (
 	"github.com/gptscript-ai/otto/pkg/jwt"
 	"github.com/gptscript-ai/otto/pkg/storage"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apiserver/pkg/authentication/authenticator"
 	user2 "k8s.io/apiserver/pkg/authentication/user"
 	"k8s.io/apiserver/pkg/endpoints/request"
 )
 
 type Server struct {
-	client       storage.Client
-	gptClient    *gptscript.GPTScript
-	tokenService *jwt.TokenService
+	client        storage.Client
+	gptClient     *gptscript.GPTScript
+	tokenService  *jwt.TokenService
+	authenticator authenticator.Request
 }
 
-func NewServer(client storage.Client, gptClient *gptscript.GPTScript, tokenService *jwt.TokenService) *Server {
+func NewServer(client storage.Client, gptClient *gptscript.GPTScript, tokenService *jwt.TokenService, authn authenticator.Request) *Server {
 	return &Server{
-		client:       client,
-		gptClient:    gptClient,
-		tokenService: tokenService,
+		client:        client,
+		gptClient:     gptClient,
+		tokenService:  tokenService,
+		authenticator: authn,
 	}
 }
 
@@ -44,6 +47,17 @@ func (s *Server) Wrap(f HandlerFunc) http.Handler {
 						"otto:agentID":  {tokenContext.AgentID},
 					},
 				}
+			} else if s.authenticator != nil {
+				resp, ok, err := s.authenticator.AuthenticateRequest(req)
+				if err != nil {
+					http.Error(rw, err.Error(), http.StatusUnauthorized)
+					return
+				} else if !ok {
+					http.Error(rw, "Unauthorized", http.StatusUnauthorized)
+					return
+				}
+
+				user = resp.User
 			} else {
 				user = &user2.DefaultInfo{}
 			}
