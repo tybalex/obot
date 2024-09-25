@@ -2,8 +2,6 @@ module github.com/gptscript-ai/otto
 
 go 1.23.0
 
-replace github.com/acorn-io/mink => ../mink
-
 require (
 	github.com/acorn-io/baaah v0.0.0-20240912163758-8f7c537609d1
 	github.com/acorn-io/mink v0.0.0-20240924215355-6b3069de5d2f
@@ -21,6 +19,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
 	github.com/thedadams/workspace-provider v0.0.0-20240912195139-5dc37cf34474
+	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
 	golang.org/x/term v0.22.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/api v0.29.0
@@ -205,7 +204,6 @@ require (
 	go.uber.org/zap v1.26.0 // indirect
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/crypto v0.25.0 // indirect
-	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc // indirect
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.27.0 // indirect
 	golang.org/x/oauth2 v0.12.0 // indirect
