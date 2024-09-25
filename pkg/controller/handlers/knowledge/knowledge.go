@@ -120,17 +120,18 @@ func compileFileStatuses(ctx context.Context, client kclient.Client, knowledged 
 				continue
 			}
 
-			var file v1.KnowledgeFile
-			if err := client.Get(ctx, router.Key(knowledged.GetNamespace(), v1.ObjectNameFromAbsolutePath(ingestionStatus.Filepath)), &file); err != nil {
-				logger.Errorf("failed to get file: %s", err)
-				continue
-			}
+			if err := retry.RetryOnConflict(retry.DefaultBackoff, func() error {
+				var file v1.KnowledgeFile
+				if err := client.Get(ctx, router.Key(knowledged.GetNamespace(), v1.ObjectNameFromAbsolutePath(ingestionStatus.Filepath)), &file); apierrors.IsNotFound(err) {
+					// Don't error if the file is not found. It may have been deleted, and the next ingestion will pick that up.
+					return nil
+				} else if err != nil {
+					return err
+				}
 
-			if err := json.Unmarshal([]byte(line), &file.Status.IngestionStatus); err != nil {
-				logger.Errorf("failed to into file status: %s", err)
-			}
-
-			if err := client.Status().Update(ctx, &file); err != nil {
+				file.Status.IngestionStatus = ingestionStatus
+				return client.Status().Update(ctx, &file)
+			}); err != nil {
 				logger.Errorf("failed to update file: %s", err)
 			}
 		}
