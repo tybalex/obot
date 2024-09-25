@@ -5,25 +5,59 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/otto/pkg/aihelper"
-	"github.com/gptscript-ai/otto/pkg/knowledge"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
-	wclient "github.com/thedadams/workspace-provider/pkg/client"
+	"github.com/gptscript-ai/otto/pkg/system"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type AgentHandler struct {
-	workspaceClient   *wclient.Client
-	ingester          *knowledge.Ingester
-	workspaceProvider string
-	aihelper          *aihelper.AIHelper
+	aihelper *aihelper.AIHelper
 }
 
-func New(wc *wclient.Client, ingester *knowledge.Ingester, wp string, aihelper *aihelper.AIHelper) *AgentHandler {
+func New(aihelper *aihelper.AIHelper) *AgentHandler {
 	return &AgentHandler{
-		workspaceClient:   wc,
-		ingester:          ingester,
-		workspaceProvider: wp,
-		aihelper:          aihelper,
+		aihelper: aihelper,
 	}
+}
+
+func (a *AgentHandler) WorkspaceObjects(req router.Request, _ router.Response) error {
+	agent := req.Object.(*v1.Agent)
+	if agent.Status.WorkspaceName == "" {
+		ws := &v1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace:    req.Namespace,
+				GenerateName: system.WorkspacePrefix,
+			},
+			Spec: v1.WorkspaceSpec{
+				AgentName: agent.Name,
+			},
+		}
+		if err := req.Client.Create(req.Ctx, ws); err != nil {
+			return err
+		}
+
+		agent.Status.WorkspaceName = ws.Name
+	}
+
+	if agent.Status.KnowledgeWorkspaceName == "" {
+		ws := &v1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace:    req.Namespace,
+				GenerateName: system.WorkspacePrefix,
+			},
+			Spec: v1.WorkspaceSpec{
+				AgentName:   agent.Name,
+				IsKnowledge: true,
+			},
+		}
+		if err := req.Client.Create(req.Ctx, ws); err != nil {
+			return err
+		}
+
+		agent.Status.KnowledgeWorkspaceName = ws.Name
+	}
+
+	return nil
 }
 
 const nameDescriptionPrompt = `

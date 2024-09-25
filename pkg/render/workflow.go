@@ -25,8 +25,8 @@ func Workflow(wf *v1.Workflow, opts WorkflowOptions) *v1.Agent {
 			CredentialContextID: wf.Name,
 		},
 		Status: v1.AgentStatus{
-			Workspace:          wf.Status.Workspace,
-			KnowledgeWorkspace: wf.Status.KnowledgeWorkspace,
+			WorkspaceName:          wf.Status.WorkspaceName,
+			KnowledgeWorkspaceName: wf.Status.KnowledgeWorkspaceName,
 		},
 	}
 

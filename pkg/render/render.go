@@ -8,6 +8,7 @@ import (
 	"github.com/gptscript-ai/go-gptscript"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/workspace"
+	"k8s.io/apimachinery/pkg/fields"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -20,18 +21,40 @@ type AgentOptions struct {
 	KnowledgeTool string
 }
 
-func agentKnowledgeEnv(agent *v1.Agent, thread *v1.Thread) (envs []string) {
-	if agent.KnowledgeWorkspaceStatus().HasKnowledge {
+func agentKnowledgeEnv(ctx context.Context, db kclient.Client, agent *v1.Agent, thread *v1.Thread) (envs []string, _ error) {
+	var ws v1.Workspace
+	err := db.Get(ctx, kclient.ObjectKey{Namespace: agent.Namespace, Name: agent.Status.KnowledgeWorkspaceName}, &ws)
+	if err != nil {
+		return nil, err
+	}
+	if ws.Status.HasKnowledge {
 		envs = append(envs,
-			fmt.Sprintf("GPTSCRIPT_SCRIPT_ID=%s", workspace.KnowledgeIDFromWorkspaceID(agent.KnowledgeWorkspaceStatus().KnowledgeWorkspaceID)),
+			fmt.Sprintf("GPTSCRIPT_SCRIPT_ID=%s", workspace.KnowledgeIDFromWorkspaceID(ws.Status.WorkspaceID)),
 		)
-		if thread != nil && thread.KnowledgeWorkspaceStatus().HasKnowledge {
-			envs = append(envs,
-				fmt.Sprintf("GPTSCRIPT_THREAD_ID=%s", workspace.KnowledgeIDFromWorkspaceID(thread.KnowledgeWorkspaceStatus().KnowledgeWorkspaceID)),
-			)
+	}
+
+	if thread != nil {
+		var workspaces v1.WorkspaceList
+		err = db.List(ctx, &workspaces, &kclient.ListOptions{
+			Namespace: thread.Namespace,
+			FieldSelector: fields.SelectorFromSet(map[string]string{
+				"spec.threadName": thread.Name,
+			}),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, w := range workspaces.Items {
+			if w.Status.HasKnowledge {
+				envs = append(envs,
+					fmt.Sprintf("GPTSCRIPT_THREAD_ID=%s", workspace.KnowledgeIDFromWorkspaceID(w.Status.WorkspaceID)),
+				)
+			}
 		}
 	}
-	return envs
+
+	return envs, nil
 }
 
 func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, opts AgentOptions) (_ []gptscript.ToolDef, extraEnv []string, _ error) {
@@ -57,7 +80,9 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, opts AgentOp
 		mainTool.Tools = append(mainTool.Tools, opts.Thread.Spec.Manifest.Tools...)
 	}
 
-	if envs := agentKnowledgeEnv(agent, opts.Thread); len(envs) > 0 {
+	if envs, err := agentKnowledgeEnv(ctx, db, agent, opts.Thread); err != nil {
+		return nil, nil, err
+	} else if len(envs) > 0 {
 		extraEnv = envs
 		if opts.KnowledgeTool != "" {
 			mainTool.Tools = append(mainTool.Tools, opts.KnowledgeTool)

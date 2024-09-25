@@ -23,9 +23,9 @@ func routes(router *router.Router, svcs *services.Services) error {
 	workflowExecution := workflowexecution.New(svcs.WorkspaceClient, svcs.Invoker)
 	workflowStep := workflowstep.New(svcs.Invoker)
 	ingester := knowledge.NewIngester(svcs.Invoker, svcs.SystemTools[services.SystemToolKnowledge])
-	agents := agents.New(svcs.WorkspaceClient, ingester, "directory", svcs.AIHelper)
+	agents := agents.New(svcs.AIHelper)
 	toolRef := toolreference.New(svcs.GPTClient)
-	threads := threads.New(svcs.WorkspaceClient, ingester, svcs.AIHelper)
+	threads := threads.New(svcs.AIHelper)
 	workspace := workspace.New(svcs.WorkspaceClient, "directory")
 	knowledge := knowledgehandler.New(svcs.WorkspaceClient, ingester, "directory")
 	uploads := uploads.New(svcs.Invoker, svcs.WorkspaceClient, "directory", svcs.SystemTools[services.SystemToolOneDrive])
@@ -39,18 +39,13 @@ func routes(router *router.Router, svcs *services.Services) error {
 	root.Type(&v1.Run{}).HandlerFunc(runs.Resume)
 
 	// Threads
-	root.Type(&v1.Thread{}).FinalizeFunc(v1.ThreadWorkspaceFinalizer, knowledge.RemoveWorkspace)
-	root.Type(&v1.Thread{}).FinalizeFunc(v1.ThreadKnowledgeFinalizer, workspace.RemoveWorkspace)
-	root.Type(&v1.Thread{}).HandlerFunc(threads.MoveWorkspacesToStatus)
 	root.Type(&v1.Thread{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.Description)
-	root.Type(&v1.Thread{}).Middleware(threads.HasKnowledge).HandlerFunc(knowledge.IngestKnowledge)
+	root.Type(&v1.Thread{}).HandlerFunc(threads.CreateWorkspaces)
 
 	// Workflows
-	root.Type(&v1.Workflow{}).FinalizeFunc(v1.WorkflowWorkspaceFinalizer, workspace.RemoveWorkspace)
-	root.Type(&v1.Workflow{}).FinalizeFunc(v1.WorkflowKnowledgeFinalizer, knowledge.RemoveWorkspace)
-	root.Type(&v1.Workflow{}).HandlerFunc(workspace.CreateWorkspace)
-	root.Type(&v1.Workflow{}).HandlerFunc(knowledge.CreateWorkspace)
+	root.Type(&v1.Workflow{}).HandlerFunc(workflow.WorkspaceObjects)
+	root.Type(&v1.Workflow{}).HandlerFunc(workflow.EnsureIDs)
 
 	// WorkflowExecutions
 	root.Type(&v1.WorkflowExecution{}).FinalizeFunc(v1.WorkflowExecutionFinalizer, workflowExecution.Cleanup)
@@ -69,19 +64,18 @@ func routes(router *router.Router, svcs *services.Services) error {
 	steps.HandlerFunc(workflowStep.RunSubflow)
 
 	// Agents
-	root.Type(&v1.Agent{}).FinalizeFunc(v1.AgentWorkspaceFinalizer, workspace.RemoveWorkspace)
-	root.Type(&v1.Agent{}).FinalizeFunc(v1.AgentKnowledgeFinalizer, knowledge.RemoveWorkspace)
 	root.Type(&v1.Agent{}).HandlerFunc(agents.Suggestion)
-	root.Type(&v1.Agent{}).HandlerFunc(workspace.CreateWorkspace)
-	root.Type(&v1.Agent{}).HandlerFunc(knowledge.CreateWorkspace)
-	root.Type(&v1.Agent{}).HandlerFunc(knowledge.IngestKnowledge)
+	root.Type(&v1.Agent{}).HandlerFunc(agents.WorkspaceObjects)
 
 	// Uploads
 	root.Type(&v1.OneDriveLinks{}).HandlerFunc(uploads.CreateThread)
 	root.Type(&v1.OneDriveLinks{}).HandlerFunc(uploads.RunUpload)
 	root.Type(&v1.OneDriveLinks{}).HandlerFunc(uploads.HandleUploadRun)
-	root.Type(&v1.OneDriveLinks{}).HandlerFunc(uploads.GC)
+	root.Type(&v1.OneDriveLinks{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.OneDriveLinks{}).FinalizeFunc(v1.OneDriveLinksFinalizer, uploads.Cleanup)
+
+	// ReSync requests
+	root.Type(&v1.SyncUploadRequest{}).HandlerFunc(uploads.CleanupSyncRequests)
 
 	// ToolReference
 	root.Type(&v1.ToolReference{}).HandlerFunc(toolRef.Populate)
@@ -91,12 +85,18 @@ func routes(router *router.Router, svcs *services.Services) error {
 	root.Type(&v1.Agent{}).HandlerFunc(reference.AssociateWithReference)
 	root.Type(&v1.Workflow{}).HandlerFunc(reference.AssociateWithReference)
 
-	// Workflows
-	root.Type(&v1.Workflow{}).HandlerFunc(workflow.EnsureIDs)
-
 	// Knowledge files
-	root.Type(&v1.KnowledgeFile{}).HandlerFunc(knowledge.GCFile)
+	root.Type(&v1.KnowledgeFile{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.KnowledgeFile{}).FinalizeFunc(v1.KnowledgeFileFinalizer, knowledge.CleanupFile)
+
+	// ReIngest requests
+	root.Type(&v1.IngestKnowledgeRequest{}).HandlerFunc(knowledge.CleanupIngestRequests)
+
+	// Workspaces
+	root.Type(&v1.Workspace{}).FinalizeFunc(v1.WorkspaceFinalizer, workspace.RemoveWorkspace)
+	root.Type(&v1.Workspace{}).HandlerFunc(workspace.CreateWorkspace)
+	root.Type(&v1.Workspace{}).HandlerFunc(knowledge.IngestKnowledge)
+	root.Type(&v1.Workspace{}).HandlerFunc(cleanup.Cleanup)
 
 	return nil
 }

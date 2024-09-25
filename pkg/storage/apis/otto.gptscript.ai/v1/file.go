@@ -18,6 +18,13 @@ type KnowledgeFile struct {
 	Status KnowledgeFileStatus `json:"status,omitempty"`
 }
 
+func (k *KnowledgeFile) DeleteRefs() []Ref {
+	return []Ref{
+		{ObjType: new(Workspace), Name: k.Spec.WorkspaceName},
+		{ObjType: new(OneDriveLinks), Name: k.Spec.UploadName},
+	}
+}
+
 func (k *KnowledgeFile) Has(field string) bool {
 	return k.Get(field) != ""
 }
@@ -28,12 +35,8 @@ func (k *KnowledgeFile) Get(field string) string {
 	}
 
 	switch field {
-	case "spec.agentName":
-		return k.Spec.AgentName
-	case "spec.workflowName":
-		return k.Spec.WorkflowName
-	case "spec.threadName":
-		return k.Spec.ThreadName
+	case "spec.workspaceName":
+		return k.Spec.WorkspaceName
 	case "spec.uploadName":
 		return k.Spec.UploadName
 	}
@@ -42,17 +45,15 @@ func (k *KnowledgeFile) Get(field string) string {
 }
 
 func (*KnowledgeFile) FieldNames() []string {
-	return []string{"spec.agentName", "spec.workflowName", "spec.threadName", "spec.uploadName"}
+	return []string{"spec.workspaceName", "spec.uploadName"}
 }
 
 var _ fields.Fields = (*KnowledgeFile)(nil)
 
 type KnowledgeFileSpec struct {
-	FileName     string `json:"fileName"`
-	AgentName    string `json:"agentName,omitempty"`
-	WorkflowName string `json:"workflowName,omitempty"`
-	ThreadName   string `json:"threadName,omitempty"`
-	UploadName   string `json:"uploadName,omitempty"`
+	FileName      string `json:"fileName"`
+	WorkspaceName string `json:"workspaceName,omitempty"`
+	UploadName    string `json:"uploadName,omitempty"`
 }
 
 type KnowledgeFileStatus struct {

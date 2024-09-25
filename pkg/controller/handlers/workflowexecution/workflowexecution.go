@@ -56,8 +56,8 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 	}
 
 	// Wait for workspaces
-	if wf.Status.KnowledgeWorkspace.KnowledgeWorkspaceID == "" ||
-		wf.Status.Workspace.WorkspaceID == "" {
+	if wf.Status.KnowledgeWorkspaceName == "" ||
+		wf.Status.WorkspaceName == "" {
 		return nil
 	}
 
@@ -155,14 +155,27 @@ func (h *Handler) loadManifest(req router.Request, we *v1.WorkflowExecution) err
 }
 
 func (h *Handler) newThread(ctx context.Context, c kclient.Client, wf *v1.Workflow, we *v1.WorkflowExecution) (*v1.Thread, error) {
-	workspaceID := we.Spec.WorkspaceID
-	if workspaceID == "" {
-		workspaceID = wf.Status.Workspace.WorkspaceID
+	workspaceName := we.Spec.WorkspaceName
+	if workspaceName == "" {
+		workspaceName = wf.Status.WorkspaceName
 	}
+
+	var ws v1.Workspace
+	if workspaceName == "" {
+		if err := c.Get(ctx, router.Key(wf.Namespace, wf.Status.WorkspaceName), &ws); err != nil {
+			return nil, err
+		}
+	}
+
+	var knowledgWs v1.Workspace
+	if err := c.Get(ctx, router.Key(wf.Namespace, wf.Status.KnowledgeWorkspaceName), &knowledgWs); err != nil {
+		return nil, err
+	}
+
 	return h.invoker.NewThread(ctx, c, wf.Namespace, invoke.NewThreadOptions{
 		WorkflowName:          we.Spec.WorkflowName,
 		WorkflowExecutionName: we.Name,
-		WorkspaceIDs:          []string{workspaceID},
-		KnowledgeWorkspaceIDs: []string{wf.Status.KnowledgeWorkspace.KnowledgeWorkspaceID},
+		WorkspaceIDs:          []string{ws.Status.WorkspaceID},
+		KnowledgeWorkspaceIDs: []string{knowledgWs.Status.WorkspaceID},
 	})
 }

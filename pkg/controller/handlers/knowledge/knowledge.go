@@ -7,14 +7,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/acorn-io/baaah/pkg/apply"
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	"github.com/gptscript-ai/otto/pkg/knowledge"
 	"github.com/gptscript-ai/otto/pkg/mvl"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/storage/selectors"
+	"github.com/gptscript-ai/otto/pkg/system"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/client-go/util/retry"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -32,58 +36,57 @@ func New(wc *wclient.Client, ingester *knowledge.Ingester, wp string) *Handler {
 	}
 }
 
-func (a *Handler) CreateWorkspace(req router.Request, resp router.Response) error {
-	knowledged := req.Object.(knowledge.Knowledgeable)
-	status := knowledged.KnowledgeWorkspaceStatus()
-	if status.KnowledgeWorkspaceID != "" {
+func (a *Handler) IngestKnowledge(req router.Request, _ router.Response) error {
+	ws := req.Object.(*v1.Workspace)
+	if !ws.Spec.IsKnowledge {
 		return nil
 	}
 
-	knowledgeWorkspaceID, err := a.workspaceClient.Create(req.Ctx, a.workspaceProvider)
-	if err != nil {
-		_ = a.workspaceClient.Rm(req.Ctx, knowledgeWorkspaceID)
-		return err
-	}
-
-	status.KnowledgeWorkspaceID = knowledgeWorkspaceID
-
-	if err := req.Client.Status().Update(req.Ctx, knowledged); err != nil {
-		_ = a.workspaceClient.Rm(req.Ctx, knowledgeWorkspaceID)
-		return err
-	}
-
-	return nil
-}
-
-func (a *Handler) RemoveWorkspace(req router.Request, _ router.Response) error {
-	knowledged := req.Object.(knowledge.Knowledgeable)
-	status := knowledged.KnowledgeWorkspaceStatus()
-
-	if status.HasKnowledge {
-		run, err := a.ingester.DeleteKnowledge(req.Ctx, knowledged.AgentName(), knowledged.GetNamespace(), status.KnowledgeWorkspaceID)
-		if err != nil {
+	if ws.Status.IngestionRunName != "" {
+		// Check to see if the run is still running
+		var run v1.Run
+		if err := req.Get(&run, ws.Namespace, ws.Status.IngestionRunName); err != nil && !apierrors.IsNotFound(err) {
 			return err
-		}
-
-		run.Wait()
-		if run.Run.Status.Error != "" {
-			return fmt.Errorf("failed to delete knowledge: %s", run.Run.Status.Error)
+		} else if err == nil && !run.Status.State.IsTerminal() {
+			// The run hasn't completed, so don't create another one.
+			return nil
 		}
 	}
 
-	if status.KnowledgeWorkspaceID != "" {
-		return a.workspaceClient.Rm(req.Ctx, status.KnowledgeWorkspaceID)
+	// Get the reIngestRequests for this workspace
+	var reIngestRequests v1.IngestKnowledgeRequestList
+	if err := req.List(&reIngestRequests, &kclient.ListOptions{
+		FieldSelector: fields.SelectorFromSet(selectors.RemoveEmpty(map[string]string{
+			"spec.workspaceName": ws.Name,
+		})),
+		Namespace: ws.Namespace,
+	}); err != nil {
+		return err
 	}
 
-	return nil
-}
+	if len(reIngestRequests.Items) == 0 {
+		return nil
+	}
 
-func (a *Handler) IngestKnowledge(req router.Request, _ router.Response) error {
-	knowledged := req.Object.(knowledge.Knowledgeable)
-	status := knowledged.KnowledgeWorkspaceStatus()
-	if status.KnowledgeGeneration == status.ObservedKnowledgeGeneration || status.IngestionRunName != "" {
-		// If the RunName is set, then there is an ingestion in progress.
-		// Wait for it to complete before starting another.
+	var needsIngestion, hasKnowledge bool
+	for _, r := range reIngestRequests.Items {
+		if ws.Status.LastIngestionRunStarted.Before(&r.CreationTimestamp) {
+			needsIngestion = true
+			if r.Spec.HasKnowledge {
+				hasKnowledge = true
+				break
+			}
+		}
+	}
+
+	if !needsIngestion {
+		return nil
+	}
+
+	if !hasKnowledge {
+		ws.Status.HasKnowledge = false
+		// Set the last ingestion time so that the re-ingestion requests get cleaned up.
+		ws.Status.LastIngestionRunStarted = metav1.Now()
 		return nil
 	}
 
@@ -91,23 +94,23 @@ func (a *Handler) IngestKnowledge(req router.Request, _ router.Response) error {
 		run *invoke.Response
 		err error
 	)
-
-	run, err = a.ingester.IngestKnowledge(req.Ctx, knowledged.AgentName(), knowledged.GetNamespace(), status.KnowledgeWorkspaceID)
+	run, err = a.ingester.IngestKnowledge(req.Ctx, ws.Spec.AgentName, ws.GetNamespace(), ws.Status.WorkspaceID)
 	if err != nil {
 		return err
 	}
 
-	go compileFileStatuses(req.Ctx, req.Client, knowledged, run, mvl.Package())
+	go compileFileStatuses(req.Ctx, req.Client, ws, run, mvl.Package())
 
-	status.ObservedKnowledgeGeneration = status.KnowledgeGeneration
-	status.IngestionRunName = run.Run.Name
+	ws.Status.IngestionRunName = run.Run.Name
+	ws.Status.LastIngestionRunStarted = metav1.Now()
+	ws.Status.HasKnowledge = true
 	return nil
 }
 
-func compileFileStatuses(ctx context.Context, client kclient.Client, knowledged knowledge.Knowledgeable, run *invoke.Response, logger mvl.Logger) {
+func compileFileStatuses(ctx context.Context, client kclient.Client, ws *v1.Workspace, run *invoke.Response, logger mvl.Logger) {
 	for e := range run.Events {
 		for _, line := range strings.Split(e.Content, "\n") {
-			if line == "" || line[0] != '{' {
+			if line == "" || line[0] != '{' || line[len(line)-1] != '}' {
 				continue
 			}
 			var ingestionStatus v1.IngestionStatus
@@ -120,74 +123,39 @@ func compileFileStatuses(ctx context.Context, client kclient.Client, knowledged 
 				continue
 			}
 
-			if err := retry.RetryOnConflict(retry.DefaultBackoff, func() error {
-				var file v1.KnowledgeFile
-				if err := client.Get(ctx, router.Key(knowledged.GetNamespace(), v1.ObjectNameFromAbsolutePath(ingestionStatus.Filepath)), &file); apierrors.IsNotFound(err) {
-					// Don't error if the file is not found. It may have been deleted, and the next ingestion will pick that up.
-					return nil
-				} else if err != nil {
-					return err
-				}
+			var file v1.KnowledgeFile
+			if err := client.Get(ctx, router.Key(ws.GetNamespace(), v1.ObjectNameFromAbsolutePath(ingestionStatus.Filepath)), &file); apierrors.IsNotFound(err) {
+				// Don't error if the file is not found. It may have been deleted, and the next ingestion will pick that up.
+				continue
+			} else if err != nil {
+				logger.Errorf("failed to get knowledge file: %s", err)
+			}
 
-				file.Status.IngestionStatus = ingestionStatus
-				return client.Status().Update(ctx, &file)
-			}); err != nil {
-				logger.Errorf("failed to update file: %s", err)
+			file.Status.IngestionStatus = ingestionStatus
+			if err := client.Status().Update(ctx, &file); err != nil {
+				logger.Errorf("failed to update knowledge file: %s", err)
 			}
 		}
 	}
 
-	if err := retry.OnError(retry.DefaultRetry, func(err error) bool {
-		return !apierrors.IsNotFound(err)
-	}, func() error {
-		if err := client.Get(ctx, router.Key(knowledged.GetNamespace(), knowledged.GetName()), knowledged); err != nil {
-			return err
-		}
-
-		newStatus := knowledged.KnowledgeWorkspaceStatus()
-		newStatus.IngestionRunName = ""
-		return client.Status().Update(ctx, knowledged)
-	}); err != nil {
-		logger.Errorf("failed to update status: %s", err)
+	ws.Status.IngestionRunName = ""
+	if err := client.Status().Update(ctx, ws); err != nil {
+		logger.Errorf("failed to update workspace: %s", err)
 	}
 }
 
-func (a *Handler) GCFile(req router.Request, _ router.Response) error {
+func (a *Handler) CleanupFile(req router.Request, resp router.Response) error {
 	kFile := req.Object.(*v1.KnowledgeFile)
 
-	if kFile.Spec.UploadName != "" {
-		var upload v1.OneDriveLinks
-		if err := req.Get(&upload, kFile.Namespace, kFile.Spec.UploadName); apierrors.IsNotFound(err) || !upload.GetDeletionTimestamp().IsZero() {
-			return kclient.IgnoreNotFound(req.Delete(kFile))
-		} else if err != nil {
-			return err
-		}
-	}
-
-	if parent, err := knowledgeFileParent(req.Ctx, req.Client, kFile); apierrors.IsNotFound(err) || !parent.GetDeletionTimestamp().IsZero() {
-		return kclient.IgnoreNotFound(req.Delete(kFile))
+	var ws v1.Workspace
+	if err := req.Get(&ws, kFile.Namespace, kFile.Spec.WorkspaceName); apierrors.IsNotFound(err) {
+		// If the workspace object is not found, then the workspaces will be deleted and nothing needs to happen here.
+		return nil
 	} else if err != nil {
 		return err
 	}
 
-	return nil
-}
-
-func (a *Handler) CleanupFile(req router.Request, _ router.Response) error {
-	kFile := req.Object.(*v1.KnowledgeFile)
-
-	parent, err := knowledgeFileParent(req.Ctx, req.Client, kFile)
-	if apierrors.IsNotFound(err) {
-		// If the parent object is not found, then the workspaces will be deleted and nothing needs to happen here.
-		return nil
-	}
-	if err != nil {
-		return err
-	}
-
-	status := parent.KnowledgeWorkspaceStatus()
-
-	if err = a.workspaceClient.DeleteFile(req.Ctx, status.KnowledgeWorkspaceID, kFile.Spec.FileName); err != nil {
+	if err := a.workspaceClient.DeleteFile(req.Ctx, ws.Status.WorkspaceID, kFile.Spec.FileName); err != nil {
 		if errors.As(err, new(wclient.FileNotFoundError)) {
 			// It is important to return nil here and not move forward because when bulk deleting files from a remote provider
 			// (like OneDrive), the connector will remove the files from the local disk and the controller will remove the
@@ -197,30 +165,28 @@ func (a *Handler) CleanupFile(req router.Request, _ router.Response) error {
 		return err
 	}
 
-	files, err := a.workspaceClient.Ls(req.Ctx, status.KnowledgeWorkspaceID)
+	files, err := a.workspaceClient.Ls(req.Ctx, ws.Status.WorkspaceID)
 	if err != nil {
-		return fmt.Errorf("failed to list files in workspace %s: %w", status.KnowledgeWorkspaceID, err)
+		return fmt.Errorf("failed to list files in workspace %s: %w", ws.Status.WorkspaceID, err)
 	}
 
-	status.KnowledgeGeneration++
-	status.HasKnowledge = len(files) > 0
-	return req.Client.Status().Update(req.Ctx, parent)
-}
+	// Create object to re-ingest knowledge
+	resp.Objects(
+		&v1.IngestKnowledgeRequest{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: system.IngestRequestPrefix,
+				Namespace:    req.Namespace,
+				Annotations: map[string]string{
+					// Don't prune because the cleanup handler will do that.
+					apply.AnnotationPrune: "false",
+				},
+			},
+			Spec: v1.IngestKnowledgeRequestSpec{
+				WorkspaceName: ws.Name,
+				HasKnowledge:  len(files) > 0,
+			},
+		},
+	)
 
-func knowledgeFileParent(ctx context.Context, client kclient.Client, kFile *v1.KnowledgeFile) (knowledge.Knowledgeable, error) {
-	switch {
-	case kFile.Spec.ThreadName != "":
-		var thread v1.Thread
-		return &thread, client.Get(ctx, router.Key(kFile.Namespace, kFile.Spec.ThreadName), &thread)
-
-	case kFile.Spec.AgentName != "":
-		var agent v1.Agent
-		return &agent, client.Get(ctx, router.Key(kFile.Namespace, kFile.Spec.AgentName), &agent)
-
-	case kFile.Spec.WorkflowName != "":
-		var workflow v1.Workflow
-		return &workflow, client.Get(ctx, router.Key(kFile.Namespace, kFile.Spec.WorkflowName), &workflow)
-	}
-
-	return nil, fmt.Errorf("unable to find parent for knowledge file %s", kFile.Name)
+	return nil
 }

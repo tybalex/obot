@@ -20,26 +20,6 @@ type Thread struct {
 	Status ThreadStatus `json:"status,omitempty"`
 }
 
-func (in *Thread) AgentName() string {
-	return in.Spec.AgentName
-}
-
-func (in *Thread) WorkflowName() string {
-	return in.Spec.WorkflowName
-}
-
-func (in *Thread) ThreadName() string {
-	return in.Name
-}
-
-func (in *Thread) KnowledgeWorkspaceStatus() *KnowledgeWorkspaceStatus {
-	return &in.Status.KnowledgeWorkspace
-}
-
-func (in *Thread) WorkspaceStatus() *WorkspaceStatus {
-	return &in.Status.Workspace
-}
-
 func (in *Thread) GetConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
 }
@@ -68,8 +48,6 @@ type ThreadStatus struct {
 	LastRunState       gptscriptclient.RunState `json:"lastRunState,omitempty"`
 	PreviousThreadName string                   `json:"previousThreadName,omitempty"`
 	Conditions         []metav1.Condition       `json:"conditions,omitempty"`
-	Workspace          WorkspaceStatus          `json:"workspace,omitempty"`
-	KnowledgeWorkspace KnowledgeWorkspaceStatus `json:"knowledgeWorkspace,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

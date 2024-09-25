@@ -51,7 +51,7 @@ func (h *Handler) RunSubflow(req router.Request, resp router.Response) error {
 				Input:                 subCall.Input,
 				WorkflowName:          wf.Name,
 				AfterWorkflowStepName: step.Spec.AfterWorkflowStepName,
-				WorkspaceID:           wf.Status.Workspace.WorkspaceID,
+				WorkspaceName:         wf.Status.WorkspaceName,
 			},
 		}
 		resp.Objects(wfe)

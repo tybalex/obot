@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/acorn-io/baaah/pkg/apply"
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/acorn-io/baaah/pkg/uncached"
 	"github.com/gptscript-ai/otto/pkg/invoke"
-	"github.com/gptscript-ai/otto/pkg/knowledge"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/system"
 	"github.com/gptscript-ai/otto/pkg/workspace"
@@ -39,9 +39,54 @@ func New(invoker *invoke.Invoker, wc *wclient.Client, workspaceProvider, onedriv
 	}
 }
 
+// CreateThread will create a thread for the upload. This is needed so that we can supply the metadata file to the
+// connector. This will check to ensure an ingestion is not currently running to avoid adding files to a directory that
+// is currently being ingested.
 func (u *UploadHandler) CreateThread(req router.Request, _ router.Response) error {
 	oneDriveLinks := req.Object.(*v1.OneDriveLinks)
-	if oneDriveLinks.Status.ThreadName != "" || oneDriveLinks.Generation == oneDriveLinks.Status.ObservedGeneration {
+	if oneDriveLinks.Status.ThreadName != "" {
+		return nil
+	}
+
+	ws, err := knowledgeWorkspaceFromParent(req, oneDriveLinks)
+	if apierrors.IsNotFound(err) {
+		// A not found error indicates that things are getting cleaned up.
+		// Ignore it because the cleanup handler will ensure this object is deleted.
+		return nil
+	} else if err != nil {
+		return fmt.Errorf("failed to get parent status: %w", err)
+	}
+
+	if ws.Status.IngestionRunName != "" {
+		// Check to see if the ingestion run is still running.
+		var run v1.Run
+		if err := req.Get(&run, ws.Namespace, ws.Status.IngestionRunName); err != nil && !apierrors.IsNotFound(err) {
+			return err
+		} else if err == nil && !run.Status.State.IsTerminal() {
+			// An ingestion is running. Don't download files while that is happening because it may corrupt things.
+			return nil
+		}
+	}
+
+	var reSyncRequests v1.SyncUploadRequestList
+	if err := req.List(&reSyncRequests, &client.ListOptions{
+		Namespace: oneDriveLinks.Namespace,
+		FieldSelector: fields.SelectorFromSet(map[string]string{
+			"spec.uploadName": oneDriveLinks.Name,
+		}),
+	}); err != nil {
+		return err
+	}
+
+	var reSyncNeeded bool
+	for _, reSyncRequest := range reSyncRequests.Items {
+		if reSyncRequest.CreationTimestamp.After(oneDriveLinks.Status.LastReSyncStarted.Time) {
+			reSyncNeeded = true
+			break
+		}
+	}
+
+	if !reSyncNeeded {
 		return nil
 	}
 
@@ -74,10 +119,12 @@ func (u *UploadHandler) CreateThread(req router.Request, _ router.Response) erro
 	return nil
 }
 
+// RunUpload will run the tool for getting the files. It will only run if the thread has been created and set on the status.
 func (u *UploadHandler) RunUpload(req router.Request, _ router.Response) error {
 	oneDriveLinks := req.Object.(*v1.OneDriveLinks)
 
-	if oneDriveLinks.Status.ThreadName == "" || oneDriveLinks.Status.RunName != "" || oneDriveLinks.Generation == oneDriveLinks.Status.ObservedGeneration {
+	if oneDriveLinks.Status.ThreadName == "" || oneDriveLinks.Status.RunName != "" {
+		// If the thread hasn't been set, or there is already a run in progress, don't do anything.
 		return nil
 	}
 
@@ -94,6 +141,7 @@ func (u *UploadHandler) RunUpload(req router.Request, _ router.Response) error {
 		return err
 	}
 
+	// This gets set as the "output" field in the metadata file. It should be the same as what came out of the last run, if any.
 	output := map[string]any{
 		"files":   compileKnowledgeFilesForOneDriveConnector(files),
 		"folders": oneDriveLinks.Status.Folders,
@@ -106,7 +154,7 @@ func (u *UploadHandler) RunUpload(req router.Request, _ router.Response) error {
 		return fmt.Errorf("failed to create metadata file: %w", err)
 	}
 
-	_, status, err := parentObjAndStatus(req, oneDriveLinks)
+	ws, err := knowledgeWorkspaceFromParent(req, oneDriveLinks)
 	if err != nil {
 		return fmt.Errorf("failed to get parent status: %w", err)
 	}
@@ -114,7 +162,7 @@ func (u *UploadHandler) RunUpload(req router.Request, _ router.Response) error {
 	b, err := json.Marshal(map[string]any{
 		"input": map[string]any{
 			"sharedLinks": oneDriveLinks.Spec.SharedLinks,
-			"outputDir":   filepath.Join(workspace.GetDir(status.KnowledgeWorkspaceID), oneDriveLinks.Name),
+			"outputDir":   filepath.Join(workspace.GetDir(ws.Status.WorkspaceID), oneDriveLinks.Name),
 		},
 		"output": output,
 	})
@@ -137,13 +185,17 @@ func (u *UploadHandler) RunUpload(req router.Request, _ router.Response) error {
 	}()
 
 	oneDriveLinks.Status.RunName = r.Run.Name
+	oneDriveLinks.Status.LastReSyncStarted = metav1.Now()
 	return nil
 }
 
-func (u *UploadHandler) HandleUploadRun(req router.Request, _ router.Response) error {
+// HandleUploadRun will read the output metadata from the connector tool once the run is finished. It will populate the
+// FileDetails for each file downloaded, and create or update the knowledge metadata file in the parent's knowledge
+// workspace. It will only process if the run has been created and set on the status.
+func (u *UploadHandler) HandleUploadRun(req router.Request, resp router.Response) error {
 	oneDriveLinks := req.Object.(*v1.OneDriveLinks)
 
-	if oneDriveLinks.Status.RunName == "" || oneDriveLinks.Generation == oneDriveLinks.Status.ObservedGeneration {
+	if oneDriveLinks.Status.RunName == "" {
 		return nil
 	}
 
@@ -160,7 +212,7 @@ func (u *UploadHandler) HandleUploadRun(req router.Request, _ router.Response) e
 		return err
 	}
 
-	parentObj, status, err := parentObjAndStatus(req, oneDriveLinks)
+	ws, err := knowledgeWorkspaceFromParent(req, oneDriveLinks)
 	if err != nil {
 		return err
 	}
@@ -180,7 +232,7 @@ func (u *UploadHandler) HandleUploadRun(req router.Request, _ router.Response) e
 		return fmt.Errorf("failed to close metadata file: %w", err)
 	}
 
-	fileMetadata, knowledgeFileNamesFromOutput, err := compileKnowledgeFilesFromOneDriveConnector(req.Ctx, req.Client, oneDriveLinks, output["output"].Files, status)
+	fileMetadata, knowledgeFileNamesFromOutput, err := compileKnowledgeFilesFromOneDriveConnector(req.Ctx, req.Client, oneDriveLinks, output["output"].Files, ws)
 	if err != nil {
 		return err
 	}
@@ -190,7 +242,7 @@ func (u *UploadHandler) HandleUploadRun(req router.Request, _ router.Response) e
 	}
 
 	// Put the metadata file in the agent knowledge workspace
-	writer, err := u.workspaceClient.WriteFile(req.Ctx, status.KnowledgeWorkspaceID, filepath.Join(oneDriveLinks.Name, ".knowledge.json"))
+	writer, err := u.workspaceClient.WriteFile(req.Ctx, ws.Status.WorkspaceID, filepath.Join(oneDriveLinks.Name, ".knowledge.json"))
 	if err != nil {
 		return fmt.Errorf("failed to create knowledge metadata file: %w", err)
 	}
@@ -201,33 +253,37 @@ func (u *UploadHandler) HandleUploadRun(req router.Request, _ router.Response) e
 		return fmt.Errorf("failed to close metadata file: %w", err)
 	}
 
-	// Reset the agent knowledge generation so that ingestion kicks off again.
-	status.KnowledgeGeneration++
-	if err = req.Client.Status().Update(req.Ctx, parentObj); err != nil {
-		return fmt.Errorf("failed to update agent observed knowledge generation: %w", err)
-	}
-
 	oneDriveLinks.Status.Error = output["output"].Error
 	oneDriveLinks.Status.Status = output["output"].Status
 	oneDriveLinks.Status.Folders = output["output"].Folders
 
-	// Reset thread name and observed generation so future ingests will create a new thread
+	// Reset run name to indicate that the run is no longer running
 	oneDriveLinks.Status.ThreadName = ""
 	oneDriveLinks.Status.RunName = ""
-	oneDriveLinks.Status.ObservedGeneration = oneDriveLinks.Generation
+
+	// Create object to re-ingest knowledge
+	resp.Objects(
+		&v1.IngestKnowledgeRequest{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: system.IngestRequestPrefix,
+				Namespace:    req.Namespace,
+				Annotations: map[string]string{
+					// Don't prune because the cleanup handler will do that.
+					apply.AnnotationPrune: "false",
+				},
+			},
+			Spec: v1.IngestKnowledgeRequestSpec{
+				WorkspaceName: ws.Name,
+				HasKnowledge:  len(fileMetadata) > 0,
+			},
+		},
+	)
 
 	return nil
 }
 
-func (u *UploadHandler) Cleanup(req router.Request, _ router.Response) error {
+func (u *UploadHandler) Cleanup(req router.Request, resp router.Response) error {
 	onedriveLinks := req.Object.(*v1.OneDriveLinks)
-	parentObj, status, err := parentObjAndStatus(req, onedriveLinks)
-	if apierrors.IsNotFound(err) {
-		// If the parent object is gone, then other handlers will ensure things are cleaned up.
-		return nil
-	} else if err != nil {
-		return err
-	}
 
 	// Delete the threads associated with the onedrive links. The runs will be cleaned up by their cleanup handler.
 	var threads v1.ThreadList
@@ -246,68 +302,64 @@ func (u *UploadHandler) Cleanup(req router.Request, _ router.Response) error {
 		}
 	}
 
+	ws, err := knowledgeWorkspaceFromParent(req, onedriveLinks)
+	if apierrors.IsNotFound(err) {
+		// If the parent object is gone, then other handlers will ensure things are cleaned up.
+		return nil
+	} else if err != nil {
+		return err
+	}
+
 	// Delete the directory in the workspace for this onedrive link.
-	if err := u.workspaceClient.RmDir(req.Ctx, status.KnowledgeWorkspaceID, onedriveLinks.Name); err != nil {
-		return fmt.Errorf("failed to delete directory %q in workspace %s: %w", onedriveLinks.Name, status.KnowledgeWorkspaceID, err)
+	if err := u.workspaceClient.RmDir(req.Ctx, ws.Status.WorkspaceID, onedriveLinks.Name); err != nil {
+		return fmt.Errorf("failed to delete directory %q in workspace %s: %w", onedriveLinks.Name, ws.Status.WorkspaceID, err)
 	}
 
-	files, err := u.workspaceClient.Ls(req.Ctx, status.KnowledgeWorkspaceID)
+	files, err := u.workspaceClient.Ls(req.Ctx, ws.Status.WorkspaceID)
 	if err != nil {
-		return fmt.Errorf("failed to list files in workspace %s: %w", status.KnowledgeWorkspaceID, err)
+		return fmt.Errorf("failed to list files in workspace %s: %w", ws.Status.WorkspaceID, err)
 	}
 
-	// Reset the agent knowledge generation so that ingestion kicks off again.
-	status.KnowledgeGeneration++
-	status.HasKnowledge = len(files) > 0
-	if err = req.Client.Status().Update(req.Ctx, parentObj); err != nil {
-		return fmt.Errorf("failed to update agent observed knowledge generation: %w", err)
-	}
+	resp.Objects(
+		&v1.IngestKnowledgeRequest{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: system.IngestRequestPrefix,
+				Namespace:    req.Namespace,
+				Annotations: map[string]string{
+					// Don't prune because the cleanup handler will do that.
+					apply.AnnotationPrune: "false",
+				},
+			},
+			Spec: v1.IngestKnowledgeRequestSpec{
+				WorkspaceName: ws.Name,
+				HasKnowledge:  len(files) > 0,
+			},
+		},
+	)
 
 	return nil
 }
 
-func (u *UploadHandler) GC(req router.Request, _ router.Response) error {
-	onedriveLinks := req.Object.(*v1.OneDriveLinks)
-
-	if onedriveLinks.Spec.AgentName != "" {
-		var agent v1.Agent
-		err := req.Get(&agent, onedriveLinks.Namespace, onedriveLinks.Spec.AgentName)
-		if apierrors.IsNotFound(err) {
-			return client.IgnoreNotFound(req.Delete(onedriveLinks))
-		}
-
-		return err
-	} else if onedriveLinks.Spec.WorkflowName != "" {
-		var workflow v1.Workflow
-		err := req.Get(&workflow, onedriveLinks.Namespace, onedriveLinks.Spec.WorkflowName)
-		if apierrors.IsNotFound(err) {
-			return client.IgnoreNotFound(req.Delete(onedriveLinks))
-		}
-
-		return err
-	}
-
-	return nil
-}
-
-func parentObjAndStatus(req router.Request, onedriveLinks *v1.OneDriveLinks) (knowledge.Knowledgeable, *v1.KnowledgeWorkspaceStatus, error) {
+func knowledgeWorkspaceFromParent(req router.Request, onedriveLinks *v1.OneDriveLinks) (*v1.Workspace, error) {
 	if onedriveLinks.Spec.AgentName != "" {
 		var agent v1.Agent
 		if err := req.Get(&agent, onedriveLinks.Namespace, onedriveLinks.Spec.AgentName); err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		return &agent, &agent.Status.KnowledgeWorkspace, nil
+		var ws v1.Workspace
+		return &ws, req.Get(&ws, agent.Namespace, agent.Status.KnowledgeWorkspaceName)
 	} else if onedriveLinks.Spec.WorkflowName != "" {
 		var workflow v1.Workflow
 		if err := req.Get(&workflow, onedriveLinks.Namespace, onedriveLinks.Spec.WorkflowName); err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		return &workflow, &workflow.Status.KnowledgeWorkspace, nil
+		var ws v1.Workspace
+		return &ws, req.Get(&ws, workflow.Namespace, workflow.Status.KnowledgeWorkspaceName)
 	}
 
-	return nil, nil, fmt.Errorf("no parent object found for onedrive link %q", onedriveLinks.Name)
+	return nil, fmt.Errorf("no parent object found for onedrive link %q", onedriveLinks.Name)
 }
 
 func knowledgeFilesForUploadName(req router.Request, namespace, name string) (v1.KnowledgeFileList, error) {
@@ -318,12 +370,12 @@ func knowledgeFilesForUploadName(req router.Request, namespace, name string) (v1
 	})
 }
 
-func compileKnowledgeFilesFromOneDriveConnector(ctx context.Context, c client.Client, oneDriveLinks *v1.OneDriveLinks, files map[string]v1.FileDetails, status *v1.KnowledgeWorkspaceStatus) (map[string]any, map[string]struct{}, error) {
+func compileKnowledgeFilesFromOneDriveConnector(ctx context.Context, c client.Client, oneDriveLinks *v1.OneDriveLinks, files map[string]v1.FileDetails, ws *v1.Workspace) (map[string]any, map[string]struct{}, error) {
 	var (
 		errs []error
 		// fileMetadata is the metadata for the knowledge tool, translated from the connector output.
 		fileMetadata                 = make(map[string]any, len(files))
-		outputDir                    = workspace.GetDir(status.KnowledgeWorkspaceID)
+		outputDir                    = workspace.GetDir(ws.Status.WorkspaceID)
 		knowledgeFileNamesFromOutput = make(map[string]struct{}, len(files))
 	)
 	for id, v := range files {
@@ -344,19 +396,20 @@ func compileKnowledgeFilesFromOneDriveConnector(ctx context.Context, c client.Cl
 				Namespace: oneDriveLinks.Namespace,
 			},
 			Spec: v1.KnowledgeFileSpec{
-				AgentName:    oneDriveLinks.Spec.AgentName,
-				WorkflowName: oneDriveLinks.Spec.WorkflowName,
-				FileName:     fileRelPath,
-				UploadName:   oneDriveLinks.Name,
+				WorkspaceName: ws.Name,
+				FileName:      fileRelPath,
+				UploadName:    oneDriveLinks.Name,
 			},
 		}
 		if err := c.Create(ctx, newKnowledgeFile); err == nil || apierrors.IsAlreadyExists(err) {
 			// If the file was created or already existed, ensure it has the latest details from the metadata.
-			if err := retry.OnError(retry.DefaultRetry, func(err error) bool {
-				return !apierrors.IsNotFound(err)
-			}, func() error {
+			if err = retry.RetryOnConflict(retry.DefaultBackoff, func() error {
 				if err := c.Get(ctx, router.Key(newKnowledgeFile.Namespace, newKnowledgeFile.Name), uncached.Get(newKnowledgeFile)); err != nil {
 					return err
+				}
+				if newKnowledgeFile.Status.UploadID == id && newKnowledgeFile.Status.FileDetails == v {
+					// The file has the correct details, no need to update.
+					return nil
 				}
 
 				newKnowledgeFile.Status.FileDetails = v
@@ -368,8 +421,6 @@ func compileKnowledgeFilesFromOneDriveConnector(ctx context.Context, c client.Cl
 		} else if err != nil {
 			errs = append(errs, err)
 		}
-
-		status.HasKnowledge = true
 	}
 
 	if len(errs) > 0 {

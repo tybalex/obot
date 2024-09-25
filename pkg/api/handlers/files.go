@@ -11,145 +11,162 @@ import (
 
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
-	"github.com/gptscript-ai/otto/pkg/knowledge"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/storage/selectors"
+	"github.com/gptscript-ai/otto/pkg/system"
 	"github.com/gptscript-ai/otto/pkg/workspace"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func listFiles(ctx context.Context, req api.Context, wc *wclient.Client, workspaceID string) error {
-	files, err := wc.Ls(ctx, workspaceID)
+func listFiles(ctx context.Context, req api.Context, wc *wclient.Client, workspaceName string) error {
+	var ws v1.Workspace
+	if err := req.Get(&ws, workspaceName); err != nil {
+		return err
+	}
+
+	return listFileFromWorkspace(ctx, req, wc, ws)
+}
+
+func listFileFromWorkspace(ctx context.Context, req api.Context, wc *wclient.Client, ws v1.Workspace) error {
+	files, err := wc.Ls(ctx, ws.Status.WorkspaceID)
 	if err != nil {
-		return fmt.Errorf("failed to list files in workspace %q: %w", workspaceID, err)
+		return fmt.Errorf("failed to list files in workspace %q: %w", ws.Status.WorkspaceID, err)
 	}
 
 	return req.Write(types.FileList{Items: files})
 }
 
-func listKnowledgeFiles(req api.Context, parentObj knowledge.Knowledgeable) error {
-	if err := req.Get(parentObj, req.PathValue("id")); err != nil {
-		return fmt.Errorf("failed to get the parent object: %w", err)
+func listKnowledgeFiles(req api.Context, workspaceName string) error {
+	var ws v1.Workspace
+	if err := req.Get(&ws, workspaceName); err != nil {
+		return err
 	}
 
+	return listKnowledgeFilesFromWorkspace(req, ws)
+}
+
+func listKnowledgeFilesFromWorkspace(req api.Context, ws v1.Workspace) error {
 	var files v1.KnowledgeFileList
 	if err := req.Storage.List(req.Context(), &files, &client.ListOptions{
 		FieldSelector: fields.SelectorFromSet(selectors.RemoveEmpty(map[string]string{
-			"spec.agentName":    parentObj.AgentName(),
-			"spec.workflowName": parentObj.WorkflowName(),
-			"spec.threadName":   parentObj.ThreadName(),
+			"spec.workspaceName": ws.Name,
 		})),
-		Namespace: parentObj.GetNamespace(),
+		Namespace: ws.Namespace,
 	}); err != nil {
 		return err
 	}
 
 	resp := make([]types.KnowledgeFile, 0, len(files.Items))
 	for _, file := range files.Items {
-		resp = append(resp, convertKnowledgeFile(file))
+		resp = append(resp, convertKnowledgeFile(file, ws))
 	}
 
 	return req.Write(types.KnowledgeFileList{Items: resp})
 }
 
-func uploadKnowledge(req api.Context, workspaceClient *wclient.Client, parentName string, toUpdate knowledge.Knowledgeable) error {
-	if err := req.Get(toUpdate, parentName); err != nil {
-		return fmt.Errorf("failed to get parent with id %s: %w", req.PathValue("id"), err)
-	}
-
-	status := toUpdate.KnowledgeWorkspaceStatus()
-	if err := uploadFile(req.Context(), req, workspaceClient, status.KnowledgeWorkspaceID); err != nil {
+func uploadKnowledge(req api.Context, wc *wclient.Client, workspaceName string) error {
+	var ws v1.Workspace
+	if err := req.Get(&ws, workspaceName); err != nil {
 		return err
 	}
 
+	return uploadKnowledgeToWorkspace(req, wc, ws)
+}
+
+func uploadKnowledgeToWorkspace(req api.Context, wc *wclient.Client, ws v1.Workspace) error {
 	filename := req.PathValue("file")
+
+	if err := uploadFileToWorkspace(req.Context(), req, wc, ws); err != nil {
+		return err
+	}
+
 	file := v1.KnowledgeFile{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: v1.ObjectNameFromAbsolutePath(
-				filepath.Join(workspace.GetDir(status.KnowledgeWorkspaceID), filename),
+				filepath.Join(workspace.GetDir(ws.Status.WorkspaceID), filename),
 			),
-			Namespace: toUpdate.GetNamespace(),
+			Namespace: ws.Namespace,
 		},
 		Spec: v1.KnowledgeFileSpec{
-			FileName:     filename,
-			AgentName:    toUpdate.AgentName(),
-			WorkflowName: toUpdate.WorkflowName(),
-			ThreadName:   toUpdate.ThreadName(),
+			FileName:      filename,
+			WorkspaceName: ws.Name,
 		},
 	}
 
 	if err := req.Storage.Create(req.Context(), &file); err != nil && !apierrors.IsAlreadyExists(err) {
-		_ = deleteFile(req.Context(), req, workspaceClient, status.KnowledgeWorkspaceID)
+		_ = deleteFile(req.Context(), req, wc, ws.Status.WorkspaceID)
 		return err
 	}
 
-	// We retry on conflict here to avoid race conditions. If a user is uploading multiple files, then the status of the
-	// parent object could be changing in the controller. Here we want to make sure that the new file is picked up in an ingestion.
-	if err := retry.RetryOnConflict(retry.DefaultBackoff, func() error {
-		if err := req.Get(toUpdate, parentName); err != nil {
-			return err
-		}
-
-		status := toUpdate.KnowledgeWorkspaceStatus()
-		status.KnowledgeGeneration++
-		status.HasKnowledge = true
-		return req.Storage.Status().Update(req.Context(), toUpdate)
-	}); err != nil {
+	if err := createIngestionRequestForWorkspace(req, ws); err != nil {
 		return err
 	}
 
-	return req.Write(convertKnowledgeFile(file))
+	return req.Write(convertKnowledgeFile(file, ws))
 }
 
-func convertKnowledgeFile(file v1.KnowledgeFile) types.KnowledgeFile {
+func convertKnowledgeFile(file v1.KnowledgeFile, ws v1.Workspace) types.KnowledgeFile {
 	return types.KnowledgeFile{
 		Metadata:        types.MetadataFrom(&file),
 		FileName:        file.Spec.FileName,
-		AgentID:         file.Spec.AgentName,
-		WorkflowID:      file.Spec.WorkflowName,
-		ThreadID:        file.Spec.ThreadName,
+		AgentID:         ws.Spec.AgentName,
+		WorkflowID:      ws.Spec.WorkflowName,
+		ThreadID:        ws.Spec.ThreadName,
 		IngestionStatus: file.Status.IngestionStatus,
 		FileDetails:     file.Status.FileDetails,
 		UploadID:        file.Spec.UploadName,
 	}
 }
 
-func uploadFile(ctx context.Context, req api.Context, wc *wclient.Client, workspaceID string) error {
+func uploadFile(ctx context.Context, req api.Context, wc *wclient.Client, workspaceName string) error {
+	var ws v1.Workspace
+	if err := req.Get(&ws, workspaceName); err != nil {
+		return fmt.Errorf("failed to get workspace with id %s: %w", workspaceName, err)
+	}
+
+	return uploadFileToWorkspace(ctx, req, wc, ws)
+}
+
+func uploadFileToWorkspace(ctx context.Context, req api.Context, wc *wclient.Client, ws v1.Workspace) error {
 	file := req.PathValue("file")
 	if file == "" {
 		return fmt.Errorf("file path parameter is required")
 	}
 
-	writer, err := wc.WriteFile(ctx, workspaceID, file)
+	writer, err := wc.WriteFile(ctx, ws.Status.WorkspaceID, file)
 	if err != nil {
-		return fmt.Errorf("failed to upload file %q to workspace %q: %w", file, workspaceID, err)
+		return fmt.Errorf("failed to upload file %q to workspace %q: %w", file, ws.Status.WorkspaceID, err)
 	}
 
 	_, err = io.Copy(writer, req.Request.Body)
 	if err != nil {
-		return fmt.Errorf("failed to write file %q to workspace %q: %w", file, workspaceID, err)
+		return fmt.Errorf("failed to write file %q to workspace %q: %w", file, ws.Status.WorkspaceID, err)
 	}
+
+	req.WriteHeader(http.StatusCreated)
 
 	return nil
 }
 
-func deleteKnowledge(req api.Context, filename, parentName string, toUpdate knowledge.Knowledgeable) error {
-	if err := req.Get(toUpdate, parentName); err != nil {
-		return fmt.Errorf("failed to get parent with id %s: %w", parentName, err)
+func deleteKnowledge(req api.Context, filename, workspaceName string) error {
+	var ws v1.Workspace
+	if err := req.Get(&ws, workspaceName); err != nil {
+		return fmt.Errorf("failed to get workspace with id %s: %w", workspaceName, err)
 	}
 
-	fileObjectName := v1.ObjectNameFromAbsolutePath(
-		filepath.Join(workspace.GetDir(toUpdate.KnowledgeWorkspaceStatus().KnowledgeWorkspaceID), filename),
-	)
+	return deleteKnowledgeFromWorkspace(req, filename, ws)
+}
+
+func deleteKnowledgeFromWorkspace(req api.Context, filename string, ws v1.Workspace) error {
+	fileObjectName := v1.ObjectNameFromAbsolutePath(filepath.Join(workspace.GetDir(ws.Status.WorkspaceID), filename))
 
 	if err := req.Storage.Delete(req.Context(), &v1.KnowledgeFile{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: toUpdate.GetNamespace(),
+			Namespace: ws.Namespace,
 			Name:      fileObjectName,
 		},
 	}); err != nil {
@@ -165,7 +182,16 @@ func deleteKnowledge(req api.Context, filename, parentName string, toUpdate know
 	return nil
 }
 
-func deleteFile(ctx context.Context, req api.Context, wc *wclient.Client, workspaceID string) error {
+func deleteFile(ctx context.Context, req api.Context, wc *wclient.Client, workspaceName string) error {
+	var ws v1.Workspace
+	if err := req.Get(&ws, workspaceName); err != nil {
+		return err
+	}
+
+	return deleteFileFromWorkspaceID(ctx, req, wc, ws.Status.WorkspaceID)
+}
+
+func deleteFileFromWorkspaceID(ctx context.Context, req api.Context, wc *wclient.Client, workspaceID string) error {
 	filename := req.PathValue("file")
 	if err := wc.DeleteFile(ctx, workspaceID, filename); err != nil {
 		return fmt.Errorf("failed to delete file %q from workspace %q: %w", filename, workspaceID, err)
@@ -176,23 +202,47 @@ func deleteFile(ctx context.Context, req api.Context, wc *wclient.Client, worksp
 	return nil
 }
 
-func ingestKnowledge(req api.Context, workspaceClient *wclient.Client, parentName string, toUpdate knowledge.Knowledgeable) error {
-	if err := req.Get(toUpdate, parentName); err != nil {
-		return fmt.Errorf("failed to get parent with id %s: %w", req.PathValue("id"), err)
+func ingestKnowledge(req api.Context, wc *wclient.Client, workspaceName string) error {
+	var ws v1.Workspace
+	if err := req.Get(&ws, workspaceName); err != nil {
+		return fmt.Errorf("failed to get workspace with id %s: %w", req.PathValue("id"), err)
 	}
 
-	status := toUpdate.KnowledgeWorkspaceStatus()
-	files, err := workspaceClient.Ls(req.Context(), status.KnowledgeWorkspaceID)
+	return ingestKnowledgeInWorkspace(req, wc, ws)
+}
+
+func ingestKnowledgeInWorkspace(req api.Context, wc *wclient.Client, ws v1.Workspace) error {
+	files, err := wc.Ls(req.Context(), ws.Status.WorkspaceID)
 	if err != nil {
+		return fmt.Errorf("failed to list files in workspace %q: %w", ws.Status.WorkspaceID, err)
+	}
+
+	if len(files) == 0 && !ws.Status.HasKnowledge {
+		req.WriteHeader(http.StatusNoContent)
+		return nil
+	}
+
+	if err = createIngestionRequestForWorkspace(req, ws); err != nil {
 		return err
 	}
 
 	req.WriteHeader(http.StatusNoContent)
+	return nil
+}
 
-	if len(files) == 0 && !status.HasKnowledge {
-		return nil
+func createIngestionRequestForWorkspace(req api.Context, ws v1.Workspace) error {
+	if err := req.Storage.Create(req.Context(), &v1.IngestKnowledgeRequest{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: system.IngestRequestPrefix,
+			Namespace:    ws.Namespace,
+		},
+		Spec: v1.IngestKnowledgeRequestSpec{
+			WorkspaceName: ws.Name,
+			HasKnowledge:  true,
+		},
+	}); err != nil {
+		return fmt.Errorf("failed to create ingest request: %w", err)
 	}
 
-	status.KnowledgeGeneration++
-	return req.Storage.Status().Update(req.Context(), toUpdate)
+	return nil
 }

@@ -51,6 +51,7 @@ func NewInvoker(c kclient.Client, gptClient *gptscript.GPTScript, tokenService *
 }
 
 type Response struct {
+	cancel context.CancelFunc
 	Run    *v1.Run
 	Thread *v1.Thread
 	Events <-chan v1.Progress
@@ -195,11 +196,19 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.Client, agent *v1.Agent, 
 		AgentName:  agent.Name,
 		ThreadName: opt.ThreadName,
 	}
-	if agent.Status.Workspace.WorkspaceID != "" {
-		threadOpt.WorkspaceIDs = append(threadOpt.WorkspaceIDs, agent.Status.Workspace.WorkspaceID)
+	if agent.Status.WorkspaceName != "" {
+		var ws v1.Workspace
+		if err := c.Get(ctx, kclient.ObjectKey{Namespace: agent.Namespace, Name: agent.Status.WorkspaceName}, &ws); err != nil {
+			return nil, err
+		}
+		threadOpt.WorkspaceIDs = append(threadOpt.WorkspaceIDs, ws.Status.WorkspaceID)
 	}
-	if agent.Status.KnowledgeWorkspace.KnowledgeWorkspaceID != "" {
-		threadOpt.KnowledgeWorkspaceIDs = append(threadOpt.KnowledgeWorkspaceIDs, agent.Status.KnowledgeWorkspace.KnowledgeWorkspaceID)
+	if agent.Status.KnowledgeWorkspaceName != "" {
+		var ws v1.Workspace
+		if err := c.Get(ctx, kclient.ObjectKey{Namespace: agent.Namespace, Name: agent.Status.KnowledgeWorkspaceName}, &ws); err != nil {
+			return nil, err
+		}
+		threadOpt.KnowledgeWorkspaceIDs = append(threadOpt.KnowledgeWorkspaceIDs, ws.Status.WorkspaceID)
 	}
 
 	thread, err := i.NewThread(ctx, c, agent.Namespace, threadOpt)
