@@ -62,7 +62,11 @@ type Thread struct {
 
 type ThreadList List[Thread]
 
-type FileList List[string]
+type File struct {
+	Name string `json:"name,omitempty"`
+}
+
+type FileList List[File]
 
 type Run struct {
 	ID             string    `json:"id,omitempty"`
