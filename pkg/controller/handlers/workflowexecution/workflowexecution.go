@@ -161,10 +161,8 @@ func (h *Handler) newThread(ctx context.Context, c kclient.Client, wf *v1.Workfl
 	}
 
 	var ws v1.Workspace
-	if workspaceName == "" {
-		if err := c.Get(ctx, router.Key(wf.Namespace, wf.Status.WorkspaceName), &ws); err != nil {
-			return nil, err
-		}
+	if err := c.Get(ctx, router.Key(wf.Namespace, workspaceName), &ws); err != nil {
+		return nil, err
 	}
 
 	var knowledgWs v1.Workspace
