@@ -5,12 +5,14 @@ import (
 	"os"
 
 	"github.com/gptscript-ai/otto/apiclient/types"
+	"github.com/gptscript-ai/otto/pkg/system"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 )
 
 type Update struct {
-	root *Otto
+	root  *Otto
+	Quiet bool `usage:"Only print IDs of updated agent/workflow" short:"q"`
 }
 
 func (l *Update) Customize(cmd *cobra.Command) {
@@ -25,16 +27,32 @@ func (l *Update) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	var newManifest types.AgentManifest
+	var newManifest types.WorkflowManifest
 	if err := yaml.Unmarshal(data, &newManifest); err != nil {
-
-	}
-
-	agent, err := l.root.Client.UpdateAgent(cmd.Context(), id, newManifest)
-	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Agent updated: %s invoke: %s\n", agent.ID, agent.Links["invoke"])
+	if system.IsWorkflowID(id) {
+		wf, err := l.root.Client.UpdateWorkflow(cmd.Context(), id, newManifest)
+		if err != nil {
+			return err
+		}
+		if l.Quiet {
+			fmt.Println(wf.ID)
+			return nil
+		}
+		fmt.Printf("Workflow updated: %s\n", wf.ID)
+		return nil
+	}
+
+	agent, err := l.root.Client.UpdateAgent(cmd.Context(), id, newManifest.AgentManifest)
+	if err != nil {
+		return err
+	}
+	if l.Quiet {
+		fmt.Println(agent.ID)
+		return nil
+	}
+	fmt.Printf("Agent updated: %s\n", agent.ID)
 	return nil
 }
