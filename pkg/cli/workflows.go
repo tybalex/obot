@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 
+	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 )
 
@@ -29,9 +30,9 @@ func (l *Workflows) Run(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	w := newTable("ID", "NAME", "DESCRIPTION", "INVOKE")
+	w := newTable("ID", "NAME", "DESCRIPTION", "INVOKE", "CREATED")
 	for _, wf := range wfs.Items {
-		w.WriteRow(wf.ID, wf.Name, truncate(wf.Description, l.Wide), wf.Links["invoke"])
+		w.WriteRow(wf.ID, wf.Name, truncate(wf.Description, l.Wide), wf.Links["invoke"], humanize.Time(wf.Created))
 	}
 
 	return w.Err()

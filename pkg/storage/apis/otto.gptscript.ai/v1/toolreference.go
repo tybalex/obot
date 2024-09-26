@@ -1,0 +1,67 @@
+package v1
+
+import (
+	"github.com/acorn-io/baaah/pkg/conditions"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+)
+
+var (
+	_ conditions.Conditions = (*ToolReference)(nil)
+)
+
+type ToolReferenceType string
+
+const (
+	ToolReferenceTypeTool         ToolReferenceType = "tool"
+	ToolReferenceTypeStepTemplate ToolReferenceType = "stepTemplate"
+)
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+type ToolReference struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	Spec   ToolReferenceSpec   `json:"spec,omitempty"`
+	Status ToolReferenceStatus `json:"status,omitempty"`
+}
+
+func (in *ToolReference) GetColumns() [][]string {
+	return [][]string{
+		{"Name", "Name"},
+		{"Reference", "Spec.Reference"},
+		{"Error", "Status.Error"},
+		{"Created", "{{ago .CreationTimestamp}}"},
+	}
+}
+
+func (in *ToolReference) GetConditions() *[]metav1.Condition {
+	return &in.Status.Conditions
+}
+
+type ToolReferenceSpec struct {
+	Type      ToolReferenceType `json:"type,omitempty"`
+	Reference string            `json:"reference,omitempty"`
+}
+
+type ToolShortDescription struct {
+	Name        string            `json:"name,omitempty"`
+	Description string            `json:"description,omitempty"`
+	Params      map[string]string `json:"params,omitempty"`
+}
+
+type ToolReferenceStatus struct {
+	ObservedGeneration int64                 `json:"observedGeneration,omitempty"`
+	Tool               *ToolShortDescription `json:"tool,omitempty"`
+	Error              string                `json:"error,omitempty"`
+	Conditions         []metav1.Condition    `json:"conditions,omitempty"`
+}
+
+// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
+
+type ToolReferenceList struct {
+	metav1.TypeMeta `json:",inline"`
+	metav1.ListMeta `json:"metadata,omitempty"`
+
+	Items []ToolReference `json:"items"`
+}

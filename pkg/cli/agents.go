@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 
+	"github.com/dustin/go-humanize"
 	"github.com/spf13/cobra"
 )
 
@@ -29,9 +30,9 @@ func (l *Agents) Run(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	w := newTable("ID", "NAME", "DESCRIPTION", "INVOKE")
+	w := newTable("ID", "NAME", "DESCRIPTION", "INVOKE", "CREATED")
 	for _, agent := range agents.Items {
-		w.WriteRow(agent.ID, agent.Name, truncate(agent.Description, l.Wide), agent.Links["invoke"])
+		w.WriteRow(agent.ID, agent.Name, truncate(agent.Description, l.Wide), agent.Links["invoke"], humanize.Time(agent.Created))
 	}
 
 	return w.Err()

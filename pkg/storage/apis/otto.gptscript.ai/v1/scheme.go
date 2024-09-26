@@ -41,6 +41,8 @@ func AddToSchemeWithGV(scheme *runtime.Scheme, schemeGroupVersion schema.GroupVe
 		&OneDriveLinksList{},
 		&KnowledgeFile{},
 		&KnowledgeFileList{},
+		&ToolReference{},
+		&ToolReferenceList{},
 	); err != nil {
 		return err
 	}

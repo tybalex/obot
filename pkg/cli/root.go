@@ -45,8 +45,12 @@ func New() *cobra.Command {
 		&Delete{root: root},
 		&Invoke{root: root},
 		cmd.Command(&Threads{root: root}, &ThreadPrint{root: root}),
-		cmd.Command(&Credentials{root: root}, &CredentialsRm{root: root}),
+		cmd.Command(&Credentials{root: root}, &CredentialsDelete{root: root}),
 		cmd.Command(&Runs{root: root}, &Debug{root: root}, &RunPrint{root: root}),
+		cmd.Command(&StepTemplates{root: root},
+			&StepTemplatesDelete{root: root},
+			&StepTemplateCreate{root: root},
+			&StepTemplateUpdate{root: root}),
 		&Server{})
 }
 

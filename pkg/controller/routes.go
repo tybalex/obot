@@ -8,6 +8,7 @@ import (
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/reference"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/runs"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/threads"
+	"github.com/gptscript-ai/otto/pkg/controller/handlers/toolreference"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/uploads"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflow"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflowexecution"
@@ -23,6 +24,7 @@ func routes(router *router.Router, svcs *services.Services) error {
 	workflowStep := workflowstep.New(svcs.Invoker)
 	ingester := knowledge.NewIngester(svcs.Invoker, svcs.SystemTools[services.SystemToolKnowledge])
 	agents := agents.New(svcs.WorkspaceClient, ingester, "directory", svcs.AIHelper)
+	toolRef := toolreference.New(svcs.GPTClient)
 	threads := threads.New(svcs.WorkspaceClient, ingester, svcs.AIHelper)
 	workspace := workspace.New(svcs.WorkspaceClient, "directory")
 	knowledge := knowledgehandler.New(svcs.WorkspaceClient, ingester, "directory")
@@ -80,6 +82,9 @@ func routes(router *router.Router, svcs *services.Services) error {
 	root.Type(&v1.OneDriveLinks{}).HandlerFunc(uploads.HandleUploadRun)
 	root.Type(&v1.OneDriveLinks{}).HandlerFunc(uploads.GC)
 	root.Type(&v1.OneDriveLinks{}).FinalizeFunc(v1.OneDriveLinksFinalizer, uploads.Cleanup)
+
+	// ToolReference
+	root.Type(&v1.ToolReference{}).HandlerFunc(toolRef.Populate)
 
 	// Reference
 	root.Type(&v1.Reference{}).HandlerFunc(cleanup.Cleanup)

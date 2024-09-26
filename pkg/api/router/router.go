@@ -16,6 +16,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	invoker := handlers.NewInvokeHandler(services.Invoker)
 	threads := handlers.NewThreadHandler(services.WorkspaceClient, services.Events)
 	runs := handlers.NewRunHandler(services.Events)
+	toolRefs := handlers.NewToolReferenceHandler(services.WorkspaceClient)
 
 	// Agents
 	mux.Handle("GET /agents", w(agents.List))
@@ -88,6 +89,12 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.Handle("POST /threads/{id}/knowledge", w(threads.IngestKnowledge))
 	mux.Handle("POST /threads/{id}/knowledge/{file}", w(threads.UploadKnowledge))
 	mux.Handle("DELETE /threads/{id}/knowledge/{file...}", w(threads.DeleteKnowledge))
+
+	// ToolRefs
+	mux.Handle("GET /toolreferences", w(toolRefs.List))
+	mux.Handle("POST /toolreferences", w(toolRefs.Create))
+	mux.Handle("DELETE /toolreferences/{id}", w(toolRefs.Delete))
+	mux.Handle("PUT /toolreferences/{id}", w(toolRefs.Update))
 
 	// Runs
 	mux.Handle("GET /runs", w(runs.List))

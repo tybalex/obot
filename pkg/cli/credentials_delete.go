@@ -9,19 +9,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type CredentialsRm struct {
-	root   *Otto
-	Wide   bool `usage:"Print more information" short:"w"`
-	Quiet  bool `usage:"Only print IDs of credentials" short:"q"`
-	Follow bool `usage:"Follow the output of credentials" short:"f"`
+type CredentialsDelete struct {
+	root  *Otto
+	Quiet bool `usage:"Only print IDs of credentials" short:"q"`
 }
 
-func (l *CredentialsRm) Customize(cmd *cobra.Command) {
-	cmd.Use = "rm [flags] [CRED_NAME...]"
-	cmd.Aliases = []string{"delete", "del", "d"}
+func (l *CredentialsDelete) Customize(cmd *cobra.Command) {
+	cmd.Use = "delete [flags] [CRED_NAME...]"
+	cmd.Aliases = []string{"rm", "del", "d"}
 }
 
-func (l *CredentialsRm) Run(cmd *cobra.Command, args []string) error {
+func (l *CredentialsDelete) Run(cmd *cobra.Command, args []string) error {
 	for _, arg := range args {
 		opt := client.DeleteCredentialsOptions{}
 		scope, name, ok := strings.Cut(arg, "::")
@@ -37,8 +35,10 @@ func (l *CredentialsRm) Run(cmd *cobra.Command, args []string) error {
 		if err := l.root.Client.DeleteCredential(cmd.Context(), name, opt); err != nil {
 			return err
 		}
-		if !l.Quiet {
-			fmt.Printf("Credential %s deleted\n", arg)
+		if l.Quiet {
+			fmt.Println(name)
+		} else {
+			fmt.Printf("Credential %s deleted\n", name)
 		}
 	}
 	return nil
