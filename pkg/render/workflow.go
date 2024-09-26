@@ -6,7 +6,7 @@ import (
 )
 
 type WorkflowOptions struct {
-	Step             *v1.WorkflowStep
+	Step             *v1.Step
 	ManifestOverride *v1.WorkflowManifest
 }
 
@@ -31,12 +31,23 @@ func Workflow(wf *v1.Workflow, opts WorkflowOptions) *v1.Agent {
 	}
 
 	if step := opts.Step; step != nil {
-		if step.Spec.Step.Cache != nil {
-			agent.Spec.Manifest.Cache = step.Spec.Step.Cache
+		if step.Cache != nil {
+			agent.Spec.Manifest.Cache = step.Cache
 		}
-		if step.Spec.Step.Temperature != nil {
-			agent.Spec.Manifest.Temperature = step.Spec.Step.Temperature
+		if step.Temperature != nil {
+			agent.Spec.Manifest.Temperature = step.Temperature
 		}
+
+		agent.Spec.Manifest.Tools = append(agent.Spec.Manifest.Tools, step.Tools...)
+		agent.Spec.Manifest.Agents = append(agent.Spec.Manifest.Agents, step.Agents...)
+		agent.Spec.Manifest.Workflows = append(agent.Spec.Manifest.Workflows, step.Workflows...)
+		if step.Template != nil && step.Template.Name != "" {
+			agent.Spec.InputFilters = append(agent.Spec.InputFilters, step.Template.Name)
+		}
+	}
+
+	if agent.Spec.Manifest.Prompt == "" {
+		agent.Spec.Manifest.Prompt = v1.DefaultWorkflowAgentPrompt
 	}
 
 	return &agent

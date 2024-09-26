@@ -208,14 +208,18 @@ func (a *WorkflowHandler) DeleteOnedriveLinks(req api.Context) error {
 
 func (a *WorkflowHandler) Script(req api.Context) error {
 	var (
-		id       = req.Request.PathValue("id")
-		workflow v1.Workflow
+		id     = req.Request.PathValue("id")
+		stepID = req.Request.URL.Query().Get("step")
+		wf     v1.Workflow
 	)
-	if err := req.Get(&workflow, id); err != nil {
+	if err := req.Get(&wf, id); err != nil {
 		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
 	}
 
-	agent := render.Workflow(&workflow, render.WorkflowOptions{})
+	step := workflow.FindStep(&wf.Spec.Manifest, stepID)
+	agent := render.Workflow(&wf, render.WorkflowOptions{
+		Step: step,
+	})
 
 	tools, _, err := render.Agent(req.Context(), req.Storage, agent, render.AgentOptions{})
 	if err != nil {

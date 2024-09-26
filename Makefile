@@ -7,6 +7,7 @@ GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 BINARY_NAME=bin/otto
+UI_BINARY_NAME=bin/otto-ui
 BINARY_UNIX=$(BINARY_NAME)_unix
 
 default: build
@@ -17,6 +18,12 @@ all: test build
 # Build the project
 build:
 	$(GOBUILD) -o $(BINARY_NAME) -v
+
+build-ui:
+	$(GOBUILD) -o $(UI_BINARY_NAME) -v ./ui
+
+gen-ui:
+	templ generate
 
 # Run tests
 test:
@@ -31,10 +38,6 @@ clean:
 # Run the project
 run:
 	$(GOBUILD) -o $(BINARY_NAME) -v ./...
-	./$(BINARY_NAME)
+	./$(BINARY_NAME) server
 
-# Cross compilation for Linux
-build-linux:
-	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_UNIX) -v
-
-.PHONY: all build clean test run deps build-linux
+.PHONY: all build build-ui clean test run build-linux

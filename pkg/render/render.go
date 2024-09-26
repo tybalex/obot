@@ -41,6 +41,7 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, opts AgentOp
 		Chat:         true,
 		Tools:        agent.Spec.Manifest.Tools,
 		Instructions: agent.Spec.Manifest.Prompt.Instructions(),
+		InputFilters: agent.Spec.InputFilters,
 		MetaData:     agent.Spec.Manifest.Prompt.Metadata(agent.Spec.Manifest.CodeDependencies),
 		Temperature:  agent.Spec.Manifest.Temperature,
 		Cache:        agent.Spec.Manifest.Cache,

@@ -19,7 +19,7 @@ type WorkflowOptions struct {
 
 func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Workflow, input string, opt WorkflowOptions) (*Response, error) {
 	if opt.ThreadName != "" {
-		agent, err := i.toAgent(wf, wf.Spec.Manifest)
+		agent, err := i.toAgent(wf, &v1.WorkflowStep{}, wf.Spec.Manifest)
 		if err != nil {
 			return nil, err
 		}

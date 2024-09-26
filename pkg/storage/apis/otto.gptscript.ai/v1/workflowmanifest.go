@@ -11,15 +11,24 @@ type WorkflowManifest struct {
 }
 
 type Step struct {
-	ID          string `json:"id,omitempty"`
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	If          *If    `json:"if,omitempty"`
-	While       *While `json:"while,omitempty"`
+	ID          string    `json:"id,omitempty"`
+	Name        string    `json:"name,omitempty"`
+	Description string    `json:"description,omitempty"`
+	If          *If       `json:"if,omitempty"`
+	While       *While    `json:"while,omitempty"`
+	Template    *Template `json:"template,omitempty"`
+	Tools       []string  `json:"tools,omitempty"`
+	Agents      []string  `json:"agents,omitempty"`
+	Workflows   []string  `json:"workflows,omitempty"`
 
 	Step        string   `json:"step,omitempty"`
 	Cache       *bool    `json:"cache,omitempty"`
 	Temperature *float32 `json:"temperature,omitempty"`
+}
+
+type Template struct {
+	Name string            `json:"name,omitempty"`
+	Args map[string]string `json:"args,omitempty"`
 }
 
 func oneline(s string) string {
