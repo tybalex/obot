@@ -22,7 +22,7 @@ func (h *Handler) RunIf(req router.Request, resp router.Response) error {
 	conditionStep := h.defineCondition(step, nil, 0)
 	resp.Objects(conditionStep)
 
-	conditionRunName, conditionResult, wait, err := h.conditionResult(req.Ctx, req.Client, conditionStep)
+	conditionRunName, conditionResult, wait, err := h.conditionResult(req.Ctx, req.Client, step, conditionStep)
 	if err != nil {
 		return err
 	} else if wait {
@@ -51,9 +51,9 @@ func (h *Handler) RunIf(req router.Request, resp router.Response) error {
 	return nil
 }
 
-func (h *Handler) conditionResult(ctx context.Context, c kclient.Client, step *v1.WorkflowStep) (runName string, result, wait bool, err error) {
+func (h *Handler) conditionResult(ctx context.Context, c kclient.Client, parentStep, conditionStep *v1.WorkflowStep) (runName string, result, wait bool, err error) {
 	var checkStep v1.WorkflowStep
-	if err := c.Get(ctx, router.Key(step.Namespace, step.Name), &checkStep); apierrors.IsNotFound(err) {
+	if err := c.Get(ctx, router.Key(conditionStep.Namespace, conditionStep.Name), &checkStep); apierrors.IsNotFound(err) {
 		return "", false, true, nil
 	} else if err != nil {
 		return "", false, false, err
@@ -64,7 +64,7 @@ func (h *Handler) conditionResult(ctx context.Context, c kclient.Client, step *v
 	}
 
 	var run v1.Run
-	if err := c.Get(ctx, router.Key(step.Namespace, checkStep.Status.LastRunName), &run); err != nil {
+	if err := c.Get(ctx, router.Key(conditionStep.Namespace, checkStep.Status.LastRunName), &run); err != nil {
 		return "", false, false, err
 	}
 
@@ -73,6 +73,9 @@ func (h *Handler) conditionResult(ctx context.Context, c kclient.Client, step *v
 	} else if isFalse(run.Status.Output) {
 		return run.Name, false, false, nil
 	}
+
+	parentStep.Status.Error = fmt.Sprintf("Error evaluating condition: %s", run.Status.Output)
+	parentStep.Status.State = v1.WorkflowStepStateError
 
 	return "", false, true, nil
 }

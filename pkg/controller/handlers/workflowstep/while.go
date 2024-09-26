@@ -37,7 +37,7 @@ func (h *Handler) RunWhile(req router.Request, resp router.Response) error {
 		conditionStep := h.defineCondition(step, lastStep, i)
 		resp.Objects(conditionStep)
 
-		runName, conditionResult, wait, err := h.conditionResult(req.Ctx, req.Client, conditionStep)
+		runName, conditionResult, wait, err := h.conditionResult(req.Ctx, req.Client, step, conditionStep)
 		if err != nil {
 			return err
 		}
