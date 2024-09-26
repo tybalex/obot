@@ -68,6 +68,10 @@ func Invoke(ctx context.Context, c *client.Client, id, input string, opts Option
 			return err
 		}
 
+		if system.IsWorkflowID(id) {
+			return nil
+		}
+
 		nextInput, cont, err := inputter.Next(ctx, input, resp)
 		if err != nil {
 			return err

@@ -78,6 +78,7 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 			resp, err := i.events.Watch(ctx, wfe.Namespace, events.WatchOptions{
 				History:    true,
 				ThreadName: wfe.Status.ThreadName,
+				Follow:     true,
 			})
 			if err != nil {
 				continue

@@ -15,7 +15,7 @@ type ThreadPrint struct {
 
 func (l *ThreadPrint) Customize(cmd *cobra.Command) {
 	cmd.Use = "print [flags] [THREAD_ID]"
-	cmd.Args = cobra.MaximumNArgs(1)
+	cmd.Args = cobra.ExactArgs(1)
 }
 
 func (l *ThreadPrint) Run(cmd *cobra.Command, args []string) error {

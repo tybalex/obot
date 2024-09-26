@@ -335,10 +335,6 @@ func (e *Emitter) isWorkflowDone(ctx context.Context, run v1.Run, follow bool) (
 	if run.Spec.WorkflowExecutionName == "" {
 		return nil, func() {}, nil
 	}
-	if follow {
-		// In follow mode we never consider if the workflow is done or failed
-		return nil, func() {}, nil
-	}
 	w, err := e.client.Watch(ctx, &v1.WorkflowExecutionList{}, kclient.InNamespace(run.Namespace), &kclient.MatchingFields{
 		"metadata.name": run.Spec.WorkflowExecutionName,
 	})
