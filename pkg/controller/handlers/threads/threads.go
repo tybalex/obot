@@ -5,49 +5,19 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/otto/pkg/aihelper"
-	"github.com/gptscript-ai/otto/pkg/knowledge"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
-	wclient "github.com/thedadams/workspace-provider/pkg/client"
+	"github.com/gptscript-ai/otto/pkg/system"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ThreadHandler struct {
-	workspace *wclient.Client
-	ingester  *knowledge.Ingester
-	aihelper  *aihelper.AIHelper
+	aihelper *aihelper.AIHelper
 }
 
-func New(workspace *wclient.Client, ingester *knowledge.Ingester, aihelper *aihelper.AIHelper) *ThreadHandler {
+func New(aihelper *aihelper.AIHelper) *ThreadHandler {
 	return &ThreadHandler{
-		workspace: workspace,
-		ingester:  ingester,
-		aihelper:  aihelper,
+		aihelper: aihelper,
 	}
-}
-
-func (t *ThreadHandler) MoveWorkspacesToStatus(req router.Request, _ router.Response) error {
-	thread := req.Object.(*v1.Thread)
-	if thread.Status.Workspace.WorkspaceID == "" || thread.Status.KnowledgeWorkspace.KnowledgeWorkspaceID == "" {
-		thread.Status.Workspace.WorkspaceID = thread.Spec.WorkspaceID
-		thread.Status.KnowledgeWorkspace.KnowledgeWorkspaceID = thread.Spec.KnowledgeWorkspaceID
-	}
-
-	return nil
-}
-
-// HasKnowledge is a dumb optimazation to avoid updating the status of the thread because when you read
-// the knowledge status of the thread, we copy it from the spec to the status. This causes a write when there
-// before this knowledge, and we just don't need that.
-func (t *ThreadHandler) HasKnowledge(handler router.Handler) router.Handler {
-	return router.HandlerFunc(func(req router.Request, resp router.Response) error {
-		if req.Object == nil {
-			return nil
-		}
-		thread := req.Object.(*v1.Thread)
-		if thread.Status.KnowledgeWorkspace.HasKnowledge {
-			return handler.Handle(req, resp)
-		}
-		return nil
-	})
 }
 
 func (t *ThreadHandler) Description(req router.Request, _ router.Response) error {
@@ -85,4 +55,33 @@ Assistant: %s\n`, run.Spec.Input, run.Status.Output))
 
 	thread.Spec.Manifest.Description = desc
 	return req.Client.Update(req.Ctx, thread)
+}
+
+func (t *ThreadHandler) CreateWorkspaces(req router.Request, resp router.Response) error {
+	thread := req.Object.(*v1.Thread)
+	resp.Objects(
+		&v1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: thread.Namespace,
+				Name:      system.WorkspacePrefix + thread.Name,
+			},
+			Spec: v1.WorkspaceSpec{
+				ThreadName:  thread.Name,
+				WorkspaceID: thread.Spec.WorkspaceID,
+			},
+		},
+		&v1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: thread.Namespace,
+				Name:      system.WorkspacePrefix + "knowledge" + thread.Name,
+			},
+			Spec: v1.WorkspaceSpec{
+				ThreadName:  thread.Name,
+				WorkspaceID: thread.Spec.KnowledgeWorkspaceID,
+				IsKnowledge: true,
+			},
+		},
+	)
+
+	return nil
 }

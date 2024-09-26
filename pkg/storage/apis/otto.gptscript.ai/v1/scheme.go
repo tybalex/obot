@@ -43,6 +43,12 @@ func AddToSchemeWithGV(scheme *runtime.Scheme, schemeGroupVersion schema.GroupVe
 		&KnowledgeFileList{},
 		&ToolReference{},
 		&ToolReferenceList{},
+		&Workspace{},
+		&WorkspaceList{},
+		&IngestKnowledgeRequest{},
+		&IngestKnowledgeRequestList{},
+		&SyncUploadRequest{},
+		&SyncUploadRequestList{},
 	); err != nil {
 		return err
 	}

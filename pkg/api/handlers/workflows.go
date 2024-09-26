@@ -137,7 +137,7 @@ func (a *WorkflowHandler) Files(req api.Context) error {
 		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
 	}
 
-	return listFiles(req.Context(), req, a.workspaceClient, workflow.Status.Workspace.WorkspaceID)
+	return listFiles(req.Context(), req, a.workspaceClient, workflow.Status.WorkspaceName)
 }
 
 func (a *WorkflowHandler) UploadFile(req api.Context) error {
@@ -149,7 +149,7 @@ func (a *WorkflowHandler) UploadFile(req api.Context) error {
 		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
 	}
 
-	if err := uploadFile(req.Context(), req, a.workspaceClient, workflow.Status.Workspace.WorkspaceID); err != nil {
+	if err := uploadFile(req.Context(), req, a.workspaceClient, workflow.Status.WorkspaceName); err != nil {
 		return err
 	}
 
@@ -167,23 +167,39 @@ func (a *WorkflowHandler) DeleteFile(req api.Context) error {
 		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
 	}
 
-	return deleteFile(req.Context(), req, a.workspaceClient, workflow.Status.Workspace.WorkspaceID)
+	return deleteFile(req.Context(), req, a.workspaceClient, workflow.Status.WorkspaceName)
 }
 
 func (a *WorkflowHandler) Knowledge(req api.Context) error {
-	return listKnowledgeFiles(req, new(v1.Workflow))
+	var wf v1.Workflow
+	if err := req.Get(&wf, req.PathValue("id")); err != nil {
+		return err
+	}
+	return listKnowledgeFiles(req, wf.Status.KnowledgeWorkspaceName)
 }
 
 func (a *WorkflowHandler) UploadKnowledge(req api.Context) error {
-	return uploadKnowledge(req, a.workspaceClient, req.PathValue("id"), new(v1.Workflow))
+	var wf v1.Workflow
+	if err := req.Get(&wf, req.PathValue("id")); err != nil {
+		return err
+	}
+	return uploadKnowledge(req, a.workspaceClient, wf.Status.KnowledgeWorkspaceName)
 }
 
 func (a *WorkflowHandler) DeleteKnowledge(req api.Context) error {
-	return deleteKnowledge(req, req.PathValue("file"), req.PathValue("id"), new(v1.Workflow))
+	var wf v1.Workflow
+	if err := req.Get(&wf, req.PathValue("id")); err != nil {
+		return err
+	}
+	return deleteKnowledge(req, req.PathValue("file"), wf.Status.KnowledgeWorkspaceName)
 }
 
 func (a *WorkflowHandler) IngestKnowledge(req api.Context) error {
-	return ingestKnowledge(req, a.workspaceClient, req.PathValue("id"), new(v1.Workflow))
+	var wf v1.Workflow
+	if err := req.Get(&wf, req.PathValue("id")); err != nil {
+		return err
+	}
+	return ingestKnowledge(req, a.workspaceClient, wf.Status.KnowledgeWorkspaceName)
 }
 
 func (a *WorkflowHandler) CreateOnedriveLinks(req api.Context) error {

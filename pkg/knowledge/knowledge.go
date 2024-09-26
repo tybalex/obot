@@ -6,18 +6,8 @@ import (
 	"strings"
 
 	"github.com/gptscript-ai/otto/pkg/invoke"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/workspace"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-type Knowledgeable interface {
-	client.Object
-	KnowledgeWorkspaceStatus() *v1.KnowledgeWorkspaceStatus
-	AgentName() string
-	WorkflowName() string
-	ThreadName() string
-}
 
 type Ingester struct {
 	invoker       *invoke.Invoker

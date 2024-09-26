@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/gptscript-ai/otto/pkg/api"
 	"github.com/gptscript-ai/otto/pkg/api/types"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/pkg/system"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -43,6 +45,10 @@ func createOneDriveLinks(req api.Context, parentName string, parentObj client.Ob
 
 	if err := req.Create(oneDriveLinks); err != nil {
 		return fmt.Errorf("failed to create OneDrive links: %w", err)
+	}
+
+	if err := createSyncRequest(req, *oneDriveLinks); err != nil {
+		return fmt.Errorf("failed to create sync request: %w", err)
 	}
 
 	return req.Write(convertOneDriveLinks(*oneDriveLinks))
@@ -90,11 +96,25 @@ func reSyncOneDriveLinks(req api.Context, linksID, parentName string, parentObj 
 		return fmt.Errorf("OneDrive links agent name %q does not match provided agent name %q", oneDriveLinks.Spec.AgentName, parentName)
 	}
 
-	oneDriveLinks.Status.ObservedGeneration = 0
-	oneDriveLinks.Status.ThreadName = ""
-	oneDriveLinks.Status.RunName = ""
-	if err := req.Storage.Status().Update(req.Context(), &oneDriveLinks); err != nil {
-		return fmt.Errorf("failed to resync OneDrive links: %w", err)
+	if err := createSyncRequest(req, oneDriveLinks); err != nil {
+		return fmt.Errorf("failed to create sync request: %w", err)
+	}
+
+	req.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+func createSyncRequest(req api.Context, oneDriveLinks v1.OneDriveLinks) error {
+	if err := req.Storage.Create(req.Context(), &v1.SyncUploadRequest{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: system.SyncRequestPrefix,
+			Namespace:    oneDriveLinks.Namespace,
+		},
+		Spec: v1.SyncUploadRequestSpec{
+			UploadName: oneDriveLinks.Name,
+		},
+	}); err != nil {
+		return fmt.Errorf("failed to create sync request: %w", err)
 	}
 
 	return nil

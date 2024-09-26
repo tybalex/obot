@@ -38,7 +38,7 @@ type WorkflowExecutionSpec struct {
 	Input                 string `json:"input,omitempty"`
 	WorkflowName          string `json:"workflowName,omitempty"`
 	AfterWorkflowStepName string `json:"afterWorkflowStepName,omitempty"`
-	WorkspaceID           string `json:"workspaceID,omitempty"`
+	WorkspaceName         string `json:"workspaceName,omitempty"`
 }
 
 func (in *WorkflowExecution) DeleteRefs() []Ref {

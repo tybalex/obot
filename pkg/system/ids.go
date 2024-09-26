@@ -9,6 +9,9 @@ const (
 	WorkflowPrefix          = "w1"
 	WorkflowExecutionPrefix = "we1"
 	WorkflowStepPrefix      = "ws1"
+	WorkspacePrefix         = "wksp1"
+	IngestRequestPrefix     = "ik1"
+	SyncRequestPrefix       = "su1"
 )
 
 var typePrefixes = []string{

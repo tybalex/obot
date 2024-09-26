@@ -133,7 +133,7 @@ func (a *AgentHandler) Files(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return listFiles(req.Context(), req, a.workspaceClient, agent.Status.Workspace.WorkspaceID)
+	return listFiles(req.Context(), req, a.workspaceClient, agent.Status.WorkspaceName)
 }
 
 func (a *AgentHandler) UploadFile(req api.Context) error {
@@ -145,7 +145,7 @@ func (a *AgentHandler) UploadFile(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	if err := uploadFile(req.Context(), req, a.workspaceClient, agent.Status.Workspace.WorkspaceID); err != nil {
+	if err := uploadFile(req.Context(), req, a.workspaceClient, agent.Status.WorkspaceName); err != nil {
 		return err
 	}
 
@@ -163,23 +163,39 @@ func (a *AgentHandler) DeleteFile(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return deleteFile(req.Context(), req, a.workspaceClient, agent.Status.Workspace.WorkspaceID)
+	return deleteFile(req.Context(), req, a.workspaceClient, agent.Status.WorkspaceName)
 }
 
 func (a *AgentHandler) Knowledge(req api.Context) error {
-	return listKnowledgeFiles(req, new(v1.Agent))
+	var agent v1.Agent
+	if err := req.Get(&agent, req.PathValue("id")); err != nil {
+		return err
+	}
+	return listKnowledgeFiles(req, agent.Status.KnowledgeWorkspaceName)
 }
 
 func (a *AgentHandler) UploadKnowledge(req api.Context) error {
-	return uploadKnowledge(req, a.workspaceClient, req.PathValue("id"), new(v1.Agent))
+	var agent v1.Agent
+	if err := req.Get(&agent, req.PathValue("id")); err != nil {
+		return err
+	}
+	return uploadKnowledge(req, a.workspaceClient, agent.Status.KnowledgeWorkspaceName)
 }
 
 func (a *AgentHandler) DeleteKnowledge(req api.Context) error {
-	return deleteKnowledge(req, req.PathValue("file"), req.PathValue("id"), new(v1.Agent))
+	var agent v1.Agent
+	if err := req.Get(&agent, req.PathValue("id")); err != nil {
+		return err
+	}
+	return deleteKnowledge(req, req.PathValue("file"), agent.Status.KnowledgeWorkspaceName)
 }
 
 func (a *AgentHandler) IngestKnowledge(req api.Context) error {
-	return ingestKnowledge(req, a.workspaceClient, req.PathValue("id"), new(v1.Agent))
+	var agent v1.Agent
+	if err := req.Get(&agent, req.PathValue("id")); err != nil {
+		return err
+	}
+	return ingestKnowledge(req, a.workspaceClient, agent.Status.KnowledgeWorkspaceName)
 }
 
 func (a *AgentHandler) CreateOnedriveLinks(req api.Context) error {

@@ -19,26 +19,6 @@ type Workflow struct {
 	Status WorkflowStatus `json:"status,omitempty"`
 }
 
-func (in *Workflow) AgentName() string {
-	return ""
-}
-
-func (in *Workflow) WorkflowName() string {
-	return in.Name
-}
-
-func (in *Workflow) ThreadName() string {
-	return ""
-}
-
-func (in *Workflow) KnowledgeWorkspaceStatus() *KnowledgeWorkspaceStatus {
-	return &in.Status.KnowledgeWorkspace
-}
-
-func (in *Workflow) WorkspaceStatus() *WorkspaceStatus {
-	return &in.Status.Workspace
-}
-
 func (in *Workflow) GetConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
 }
@@ -52,10 +32,10 @@ type WorkflowExternalStatus struct {
 }
 
 type WorkflowStatus struct {
-	External           WorkflowExternalStatus   `json:"external,omitempty"`
-	Workspace          WorkspaceStatus          `json:"workspace,omitempty"`
-	KnowledgeWorkspace KnowledgeWorkspaceStatus `json:"knowledgeWorkspace,omitempty"`
-	Conditions         []metav1.Condition       `json:"conditions,omitempty"`
+	External               WorkflowExternalStatus `json:"external,omitempty"`
+	WorkspaceName          string                 `json:"workspaceName,omitempty"`
+	KnowledgeWorkspaceName string                 `json:"knowledgeWorkspaceName,omitempty"`
+	Conditions             []metav1.Condition     `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
