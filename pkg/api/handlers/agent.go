@@ -5,13 +5,14 @@ import (
 	"net/http"
 
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/api/types"
 	"github.com/gptscript-ai/otto/pkg/render"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/system"
 	"github.com/thedadams/workspace-provider/pkg/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type AgentHandler struct {
@@ -30,7 +31,7 @@ func (a *AgentHandler) Update(req api.Context) error {
 	var (
 		id       = req.PathValue("id")
 		agent    v1.Agent
-		manifest v1.AgentManifest
+		manifest types.AgentManifest
 	)
 
 	if err := req.Read(&manifest); err != nil {
@@ -63,7 +64,7 @@ func (a *AgentHandler) Delete(req api.Context) error {
 }
 
 func (a *AgentHandler) Create(req api.Context) error {
-	var manifest v1.AgentManifest
+	var manifest types.AgentManifest
 	if err := req.Read(&manifest); err != nil {
 		return err
 	}
@@ -95,7 +96,7 @@ func convertAgent(agent v1.Agent, prefix string) *types.Agent {
 		links = []string{"invoke", prefix + "/invoke/" + refName}
 	}
 	return &types.Agent{
-		Metadata:            types.MetadataFrom(&agent, links...),
+		Metadata:            MetadataFrom(&agent, links...),
 		AgentManifest:       agent.Spec.Manifest,
 		AgentExternalStatus: agent.Status.External,
 	}
@@ -238,4 +239,19 @@ func (a *AgentHandler) Script(req api.Context) error {
 	}
 
 	return req.Write(script)
+}
+
+func MetadataFrom(obj kclient.Object, linkKV ...string) types.Metadata {
+	m := types.Metadata{
+		ID:      obj.GetName(),
+		Created: *types.NewTime(obj.GetCreationTimestamp().Time),
+		Links:   map[string]string{},
+	}
+	if delTime := obj.GetDeletionTimestamp(); delTime != nil {
+		m.Deleted = types.NewTime(delTime.Time)
+	}
+	for i := 0; i < len(linkKV); i += 2 {
+		m.Links[linkKV[i]] = linkKV[i+1]
+	}
+	return m
 }

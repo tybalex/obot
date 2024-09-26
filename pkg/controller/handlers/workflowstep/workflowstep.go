@@ -7,6 +7,7 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/name"
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/system"
@@ -94,7 +95,7 @@ func Running(handler router.Handler) router.Handler {
 
 var replaceRegexp = regexp.MustCompile(`[{},=]+`)
 
-func NewStep(namespace, workflowExecutionName string, afterStepName string, step v1.Step) *v1.WorkflowStep {
+func NewStep(namespace, workflowExecutionName string, afterStepName string, step types.Step) *v1.WorkflowStep {
 	if step.ID == "" {
 		panic("step ID is required")
 	}

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/api/types"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/system"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -146,7 +146,7 @@ func deleteOneDriveLinks(req api.Context, linksID, parentName string, parentObj 
 	}
 
 	var (
-		httpErr       *api.ErrHTTP
+		httpErr       *types.ErrHTTP
 		oneDriveLinks v1.OneDriveLinks
 	)
 	if err := req.Get(&oneDriveLinks, linksID); errors.As(err, &httpErr) {
@@ -168,7 +168,7 @@ func deleteOneDriveLinks(req api.Context, linksID, parentName string, parentObj 
 
 func convertOneDriveLinks(oneDriveLink v1.OneDriveLinks) types.OneDriveLinks {
 	return types.OneDriveLinks{
-		Metadata:    types.MetadataFrom(&oneDriveLink),
+		Metadata:    MetadataFrom(&oneDriveLink),
 		AgentID:     oneDriveLink.Spec.AgentName,
 		WorkflowID:  oneDriveLink.Spec.WorkflowName,
 		SharedLinks: oneDriveLink.Spec.SharedLinks,

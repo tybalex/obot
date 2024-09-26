@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
-	"github.com/gptscript-ai/otto/pkg/api/client"
-	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/apiclient"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/spf13/cobra"
 )
 
@@ -35,7 +35,7 @@ func (l *Credentials) printCredentials(i types.CredentialList) error {
 	for _, credential := range i.Items {
 		time := "never"
 		if credential.ExpiresAt != nil {
-			time = humanize.Time(*credential.ExpiresAt)
+			time = humanize.Time(credential.ExpiresAt.Time)
 		}
 		w.WriteRow(credential.Name, strings.Join(credential.EnvVars, ","), time)
 	}
@@ -44,7 +44,7 @@ func (l *Credentials) printCredentials(i types.CredentialList) error {
 }
 
 func (l *Credentials) Run(cmd *cobra.Command, args []string) error {
-	creds, err := l.root.Client.ListCredentials(cmd.Context(), client.ListCredentialsOptions{
+	creds, err := l.root.Client.ListCredentials(cmd.Context(), apiclient.ListCredentialsOptions{
 		ThreadID: l.ThreadID,
 	})
 	if err != nil {
@@ -52,13 +52,13 @@ func (l *Credentials) Run(cmd *cobra.Command, args []string) error {
 	}
 
 	if l.ThreadID == "" {
-		agents, err := l.root.Client.ListAgents(cmd.Context(), client.ListAgentsOptions{})
+		agents, err := l.root.Client.ListAgents(cmd.Context(), apiclient.ListAgentsOptions{})
 		if err != nil {
 			return err
 		}
 
 		for _, agent := range agents.Items {
-			agentCreds, err := l.root.Client.ListCredentials(cmd.Context(), client.ListCredentialsOptions{
+			agentCreds, err := l.root.Client.ListCredentials(cmd.Context(), apiclient.ListCredentialsOptions{
 				AgentID: agent.ID,
 			})
 			if err != nil {
@@ -70,13 +70,13 @@ func (l *Credentials) Run(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		wfs, err := l.root.Client.ListWorkflows(cmd.Context(), client.ListWorkflowsOptions{})
+		wfs, err := l.root.Client.ListWorkflows(cmd.Context(), apiclient.ListWorkflowsOptions{})
 		if err != nil {
 			return err
 		}
 
 		for _, wf := range wfs.Items {
-			wfCreds, err := l.root.Client.ListCredentials(cmd.Context(), client.ListCredentialsOptions{
+			wfCreds, err := l.root.Client.ListCredentials(cmd.Context(), apiclient.ListCredentialsOptions{
 				WorkflowID: wf.ID,
 			})
 			if err != nil {

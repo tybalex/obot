@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 )
@@ -25,7 +25,7 @@ func (l *Update) Run(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	var newManifest v1.AgentManifest
+	var newManifest types.AgentManifest
 	if err := yaml.Unmarshal(data, &newManifest); err != nil {
 
 	}

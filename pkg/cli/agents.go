@@ -32,7 +32,7 @@ func (l *Agents) Run(cmd *cobra.Command, args []string) error {
 
 	w := newTable("ID", "NAME", "DESCRIPTION", "INVOKE", "CREATED")
 	for _, agent := range agents.Items {
-		w.WriteRow(agent.ID, agent.Name, truncate(agent.Description, l.Wide), agent.Links["invoke"], humanize.Time(agent.Created))
+		w.WriteRow(agent.ID, agent.Name, truncate(agent.Description, l.Wide), agent.Links["invoke"], humanize.Time(agent.Created.Time))
 	}
 
 	return w.Err()

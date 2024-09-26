@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/cli/edit"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/system"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
@@ -40,7 +40,7 @@ func (l *Edit) editWorkflow(ctx context.Context, id string) error {
 	}
 
 	err = edit.Edit(ctx, data, ".yaml", func(data []byte) error {
-		var newManifest v1.WorkflowManifest
+		var newManifest types.WorkflowManifest
 		if err := yaml.Unmarshal(data, &newManifest); err != nil {
 			return err
 		}
@@ -63,7 +63,7 @@ func (l *Edit) editAgent(ctx context.Context, id string) error {
 
 	if l.Prompt {
 		err = edit.Edit(ctx, []byte(agent.Prompt), ".txt", func(data []byte) error {
-			agent.Prompt = v1.Body(data)
+			agent.Prompt = string(data)
 			_, err := l.root.Client.UpdateAgent(ctx, agent.ID, agent.AgentManifest)
 			return err
 		})
@@ -80,7 +80,7 @@ func (l *Edit) editAgent(ctx context.Context, id string) error {
 	}
 
 	err = edit.Edit(ctx, data, ".yaml", func(data []byte) error {
-		var newManifest v1.AgentManifest
+		var newManifest types.AgentManifest
 		if err := yaml.Unmarshal(data, &newManifest); err != nil {
 			return err
 		}

@@ -1,4 +1,4 @@
-package client
+package apiclient
 
 import (
 	"bufio"
@@ -8,15 +8,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"slices"
 	"strings"
 	"unicode/utf8"
 
-	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/mvl"
-	"k8s.io/utils/strings/slices"
+	"github.com/gptscript-ai/otto/apiclient/types"
+	"github.com/gptscript-ai/otto/logger"
 )
 
-var log = mvl.Package()
+var log = logger.Package()
 
 type Client struct {
 	BaseURL string
@@ -92,7 +92,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, body io.Rea
 		if len(msg) == 0 {
 			msg = resp.Status
 		}
-		return nil, nil, &api.ErrHTTP{
+		return nil, nil, &types.ErrHTTP{
 			Code:    resp.StatusCode,
 			Message: msg,
 		}

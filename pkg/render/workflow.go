@@ -1,13 +1,14 @@
 package render
 
 import (
+	"github.com/gptscript-ai/otto/apiclient/types"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type WorkflowOptions struct {
-	Step             *v1.Step
-	ManifestOverride *v1.WorkflowManifest
+	Step             *types.Step
+	ManifestOverride *types.WorkflowManifest
 }
 
 func Workflow(wf *v1.Workflow, opts WorkflowOptions) *v1.Agent {

@@ -6,6 +6,7 @@ import (
 	"sort"
 
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/workspace"
 	"k8s.io/apimachinery/pkg/fields"
@@ -63,9 +64,8 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, opts AgentOp
 		Description:  agent.Spec.Manifest.Description,
 		Chat:         true,
 		Tools:        agent.Spec.Manifest.Tools,
-		Instructions: agent.Spec.Manifest.Prompt.Instructions(),
+		Instructions: agent.Spec.Manifest.Prompt,
 		InputFilters: agent.Spec.InputFilters,
-		MetaData:     agent.Spec.Manifest.Prompt.Metadata(agent.Spec.Manifest.CodeDependencies),
 		Temperature:  agent.Spec.Manifest.Temperature,
 		Cache:        agent.Spec.Manifest.Cache,
 		Type:         "agent",
@@ -126,7 +126,7 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, opts AgentOp
 	return append([]gptscript.ToolDef{mainTool}, otherTools...), extraEnv, nil
 }
 
-func manifestToTool(manifest v1.AgentManifest, agentType, ref, id string) gptscript.ToolDef {
+func manifestToTool(manifest types.AgentManifest, agentType, ref, id string) gptscript.ToolDef {
 	toolDef := gptscript.ToolDef{
 		Name:        manifest.Name,
 		Description: agentType + " described as: " + manifest.Description,

@@ -1,4 +1,4 @@
-package client
+package apiclient
 
 import (
 	"context"
@@ -6,11 +6,10 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/gptscript-ai/otto/pkg/api/types"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/apiclient/types"
 )
 
-func (c *Client) UpdateWorkflow(ctx context.Context, id string, manifest v1.WorkflowManifest) (*types.Workflow, error) {
+func (c *Client) UpdateWorkflow(ctx context.Context, id string, manifest types.WorkflowManifest) (*types.Workflow, error) {
 	_, resp, err := c.putJSON(ctx, fmt.Sprintf("/workflows/%s", id), manifest)
 	if err != nil {
 		return nil, err
@@ -29,7 +28,7 @@ func (c *Client) GetWorkflow(ctx context.Context, id string) (*types.Workflow, e
 	return toObject(resp, &types.Workflow{})
 }
 
-func (c *Client) CreateWorkflow(ctx context.Context, workflow v1.WorkflowManifest) (*types.Workflow, error) {
+func (c *Client) CreateWorkflow(ctx context.Context, workflow types.WorkflowManifest) (*types.Workflow, error) {
 	_, resp, err := c.postJSON(ctx, fmt.Sprintf("/workflows"), workflow)
 	if err != nil {
 		return nil, err
@@ -46,7 +45,7 @@ type ListWorkflowsOptions struct {
 func (c *Client) ListWorkflows(ctx context.Context, opts ...ListWorkflowsOptions) (result types.WorkflowList, err error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {
-			return result.Items[i].Metadata.Created.Before(result.Items[j].Metadata.Created)
+			return result.Items[i].Metadata.Created.Time.Before(result.Items[j].Metadata.Created.Time)
 		})
 	}()
 

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/acorn-io/baaah/pkg/conditions"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -24,20 +25,16 @@ func (in *Agent) GetConditions() *[]metav1.Condition {
 }
 
 type AgentSpec struct {
-	Manifest            AgentManifest `json:"manifest,omitempty"`
-	InputFilters        []string      `json:"inputFilters,omitempty"`
-	CredentialContextID string        `json:"credentialContextID,omitempty"`
+	Manifest            types.AgentManifest `json:"manifest,omitempty"`
+	InputFilters        []string            `json:"inputFilters,omitempty"`
+	CredentialContextID string              `json:"credentialContextID,omitempty"`
 }
 
 type AgentStatus struct {
-	Conditions             []metav1.Condition  `json:"conditions,omitempty"`
-	External               AgentExternalStatus `json:"external,omitempty"`
-	WorkspaceName          string              `json:"workspaceName,omitempty"`
-	KnowledgeWorkspaceName string              `json:"knowledgeWorkspaceName,omitempty"`
-}
-
-type AgentExternalStatus struct {
-	RefNameAssigned bool `json:"refNameAssigned,omitempty"`
+	Conditions             []metav1.Condition        `json:"conditions,omitempty"`
+	External               types.AgentExternalStatus `json:"external,omitempty"`
+	WorkspaceName          string                    `json:"workspaceName,omitempty"`
+	KnowledgeWorkspaceName string                    `json:"knowledgeWorkspaceName,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

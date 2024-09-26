@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/render"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -61,7 +62,7 @@ func (i *Invoker) toAgentFromStep(ctx context.Context, c kclient.Client, step *v
 	return i.toAgent(&wf, step, *wfe.Status.WorkflowManifest)
 }
 
-func (i *Invoker) toAgent(wf *v1.Workflow, step *v1.WorkflowStep, manifest v1.WorkflowManifest) (v1.Agent, error) {
+func (i *Invoker) toAgent(wf *v1.Workflow, step *v1.WorkflowStep, manifest types.WorkflowManifest) (v1.Agent, error) {
 	agent := render.Workflow(wf, render.WorkflowOptions{
 		ManifestOverride: &manifest,
 		Step:             &step.Spec.Step,

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/api/types"
 	"github.com/gptscript-ai/otto/pkg/events"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
@@ -28,8 +28,8 @@ func NewThreadHandler(wc *wclient.Client, events *events.Emitter) *ThreadHandler
 
 func convertThread(thread v1.Thread) types.Thread {
 	return types.Thread{
-		Metadata: types.MetadataFrom(&thread),
-		ThreadManifest: v1.ThreadManifest{
+		Metadata: MetadataFrom(&thread),
+		ThreadManifest: types.ThreadManifest{
 			Description: thread.Spec.Manifest.Description,
 			Tools:       thread.Spec.Manifest.Tools,
 		},
@@ -79,7 +79,7 @@ func (a *ThreadHandler) Delete(req api.Context) error {
 func (a *ThreadHandler) Update(req api.Context) error {
 	var (
 		id        = req.PathValue("id")
-		newThread v1.ThreadManifest
+		newThread types.ThreadManifest
 		existing  v1.Thread
 	)
 

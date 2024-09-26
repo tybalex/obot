@@ -3,15 +3,15 @@ package runs
 import (
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
+	log2 "github.com/gptscript-ai/otto/logger"
 	"github.com/gptscript-ai/otto/pkg/invoke"
-	"github.com/gptscript-ai/otto/pkg/mvl"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var log = mvl.Package()
+var log = log2.Package()
 
 type Handler struct {
 	invoker *invoke.Invoker

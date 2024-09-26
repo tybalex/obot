@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dustin/go-humanize"
-	"github.com/gptscript-ai/otto/pkg/api/client"
+	"github.com/gptscript-ai/otto/apiclient"
 	"github.com/spf13/cobra"
 )
 
@@ -21,9 +21,9 @@ func (l *Threads) Customize(cmd *cobra.Command) {
 }
 
 func (l *Threads) Run(cmd *cobra.Command, args []string) error {
-	var opts []client.ListThreadsOptions
+	var opts []apiclient.ListThreadsOptions
 	if len(args) > 0 {
-		opts = append(opts, client.ListThreadsOptions{
+		opts = append(opts, apiclient.ListThreadsOptions{
 			AgentID: args[0],
 		})
 	}
@@ -45,7 +45,7 @@ func (l *Threads) Run(cmd *cobra.Command, args []string) error {
 		if agentWF == "" {
 			agentWF = thread.WorkflowID
 		}
-		w.WriteRow(thread.ID, thread.Description, agentWF, thread.LastRunID, thread.PreviousThreadID, string(thread.LastRunState), humanize.Time(thread.Created))
+		w.WriteRow(thread.ID, thread.Description, agentWF, thread.LastRunID, thread.PreviousThreadID, string(thread.LastRunState), humanize.Time(thread.Created.Time))
 	}
 
 	return w.Err()

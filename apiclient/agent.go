@@ -1,4 +1,4 @@
-package client
+package apiclient
 
 import (
 	"context"
@@ -6,11 +6,10 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/gptscript-ai/otto/pkg/api/types"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/apiclient/types"
 )
 
-func (c *Client) UpdateAgent(ctx context.Context, id string, manifest v1.AgentManifest) (*types.Agent, error) {
+func (c *Client) UpdateAgent(ctx context.Context, id string, manifest types.AgentManifest) (*types.Agent, error) {
 	_, resp, err := c.putJSON(ctx, fmt.Sprintf("/agents/%s", id), manifest)
 	if err != nil {
 		return nil, err
@@ -29,7 +28,7 @@ func (c *Client) GetAgent(ctx context.Context, id string) (*types.Agent, error) 
 	return toObject(resp, &types.Agent{})
 }
 
-func (c *Client) CreateAgent(ctx context.Context, agent v1.AgentManifest) (*types.Agent, error) {
+func (c *Client) CreateAgent(ctx context.Context, agent types.AgentManifest) (*types.Agent, error) {
 	_, resp, err := c.postJSON(ctx, fmt.Sprintf("/agents"), agent)
 	if err != nil {
 		return nil, err
@@ -46,7 +45,7 @@ type ListAgentsOptions struct {
 func (c *Client) ListAgents(ctx context.Context, opts ...ListAgentsOptions) (result types.AgentList, err error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {
-			return result.Items[i].Metadata.Created.Before(result.Items[j].Metadata.Created)
+			return result.Items[i].Metadata.Created.Time.Before(result.Items[j].Metadata.Created.Time)
 		})
 	}()
 

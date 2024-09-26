@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/jwt"
 	"github.com/gptscript-ai/otto/pkg/storage"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -71,7 +72,7 @@ func (s *Server) Wrap(f HandlerFunc) http.Handler {
 			User:           user,
 		})
 
-		if errHttp := (*ErrHTTP)(nil); errors.As(err, &errHttp) {
+		if errHttp := (*types.ErrHTTP)(nil); errors.As(err, &errHttp) {
 			http.Error(rw, errHttp.Message, errHttp.Code)
 		} else if errStatus := (*apierrors.StatusError)(nil); errors.As(err, &errStatus) {
 			http.Error(rw, errStatus.Error(), int(errStatus.ErrStatus.Code))

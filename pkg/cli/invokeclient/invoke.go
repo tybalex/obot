@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gptscript-ai/otto/pkg/api/client"
-	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/apiclient"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/cli/events"
 	"github.com/gptscript-ai/otto/pkg/system"
 )
@@ -21,7 +21,7 @@ type Options struct {
 	Async    bool
 }
 
-func Invoke(ctx context.Context, c *client.Client, id, input string, opts Options) (err error) {
+func Invoke(ctx context.Context, c *apiclient.Client, id, input string, opts Options) (err error) {
 	var (
 		printer           = events.NewPrinter(opts.Quiet, opts.Details)
 		inputter inputter = VerboseInputter{
@@ -45,7 +45,7 @@ func Invoke(ctx context.Context, c *client.Client, id, input string, opts Option
 	}
 
 	for {
-		resp, err := c.Invoke(ctx, id, input, client.InvokeOptions{
+		resp, err := c.Invoke(ctx, id, input, apiclient.InvokeOptions{
 			ThreadID: threadID,
 			Async:    opts.Async,
 		})

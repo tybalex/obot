@@ -3,8 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/gptscript-ai/otto/pkg/api/types"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +20,7 @@ func (l *StepTemplateCreate) Customize(cmd *cobra.Command) {
 func (l *StepTemplateCreate) Run(cmd *cobra.Command, args []string) error {
 	tr, err := l.root.Client.CreateToolReference(cmd.Context(), types.ToolReferenceManifest{
 		Name:      args[0],
-		ToolType:  v1.ToolReferenceTypeStepTemplate,
+		ToolType:  types.ToolReferenceTypeStepTemplate,
 		Reference: args[1],
 	})
 	if err != nil {

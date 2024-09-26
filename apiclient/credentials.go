@@ -1,10 +1,10 @@
-package client
+package apiclient
 
 import (
 	"context"
 	"net/http"
 
-	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/apiclient/types"
 )
 
 type ListCredentialsOptions struct {

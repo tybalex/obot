@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/apiclient/types"
+	log2 "github.com/gptscript-ai/otto/logger"
 	"github.com/gptscript-ai/otto/pkg/cli/textio"
-	"github.com/gptscript-ai/otto/pkg/mvl"
 )
 
-var log = mvl.Package()
+var log = log2.Package()
 
 type Quiet struct {
 }

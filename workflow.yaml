@@ -1,3 +1,4 @@
+refName: testamig
 output: The final number and the chose fruit
 workflows:
   - subflow

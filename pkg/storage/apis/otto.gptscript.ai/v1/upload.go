@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/acorn-io/baaah/pkg/conditions"
 	"github.com/acorn-io/baaah/pkg/fields"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -48,26 +49,16 @@ type OnedriveLinksStatus struct {
 	RunName           string             `json:"runName,omitempty"`
 	Status            string             `json:"output,omitempty"`
 	Error             string             `json:"error,omitempty"`
-	Folders           FolderSet          `json:"folders,omitempty"`
+	Folders           types.FolderSet    `json:"folders,omitempty"`
 	LastReSyncStarted metav1.Time        `json:"lastReSyncStarted,omitempty"`
 }
 
 type OneDriveLinksConnectorStatus struct {
-	Status  string                 `json:"output,omitempty"`
-	Error   string                 `json:"error,omitempty"`
-	Files   map[string]FileDetails `json:"files,omitempty"`
-	Folders FolderSet              `json:"folders,omitempty"`
+	Status  string                       `json:"output,omitempty"`
+	Error   string                       `json:"error,omitempty"`
+	Files   map[string]types.FileDetails `json:"files,omitempty"`
+	Folders types.FolderSet              `json:"folders,omitempty"`
 }
-
-type FileDetails struct {
-	FilePath  string `json:"filePath,omitempty"`
-	URL       string `json:"url,omitempty"`
-	UpdatedAt string `json:"updatedAt,omitempty"`
-}
-
-type FolderSet map[string]Item
-
-type Item struct{}
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 

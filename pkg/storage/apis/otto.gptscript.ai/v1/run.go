@@ -48,58 +48,6 @@ func (in *Run) GetConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
 }
 
-type Progress struct {
-	// RunID should be populated for all progress events to associate this event with a run
-	// If RunID is not populated, the event will not specify tied to any particular run
-	RunID string `json:"runID,omitempty"`
-
-	// Content is the output data. The content for all events should be concatenated to form the entire output
-	// If you wish to print event and are not concerned with tracking the internal progress when one can just
-	// only the content field in a very simple loop
-	Content string `json:"content"`
-
-	// NOTE: Only one of the follow fields will be populated, never more than one. If none of the below fields are
-	// populated, you should only care about the content field which should have some content to print. You should
-	// process the below fields first before considering the content field.
-
-	// Some input that was provided to the run
-	Input string `json:"input,omitempty"`
-	// If prompt is set content will also me set, but you can ignore the content field and instead handle the explicit
-	// information in the prompt field which will provider more information for things such as OAuth
-	Prompt *Prompt `json:"prompt,omitempty"`
-	// The step that is currently being executed. When this is set the following events are assumed to be part of
-	// this step until the next step is set. This field is not always set, only set when the set changes
-	Step *Step `json:"step,omitempty"`
-	// ToolInput indicates the LLM is currently generating tool arguments which can sometime take a while
-	ToolInput *ToolInput `json:"toolInput,omitempty"`
-	// ToolCall indicates the LLM is currently calling a tool.
-	ToolCall *ToolCall `json:"toolCall,omitempty"`
-	// WaitingOnModel indicates we are waiting for the model to start responding with content
-	WaitingOnModel bool `json:"waitingOnModel,omitempty"`
-	// Error indicates that an error occurred
-	Error string `json:"error,omitempty"`
-}
-
-type Prompt struct {
-	ID        string            `json:"id,omitempty"`
-	Time      metav1.Time       `json:"time,omitempty"`
-	Message   string            `json:"message,omitempty"`
-	Fields    []string          `json:"fields,omitempty"`
-	Sensitive bool              `json:"sensitive,omitempty"`
-	Metadata  map[string]string `json:"metadata,omitempty"`
-}
-
-type ToolInput struct {
-	Content          string `json:"content,omitempty"`
-	InternalToolName string `json:"internalToolName,omitempty"`
-}
-
-type ToolCall struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	Input       string `json:"input,omitempty"`
-}
-
 type RunSpec struct {
 	Background            bool     `json:"background,omitempty"`
 	ThreadName            string   `json:"threadName,omitempty"`

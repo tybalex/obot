@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/api/types"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflow"
 	"github.com/gptscript-ai/otto/pkg/render"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
@@ -31,7 +31,7 @@ func (a *WorkflowHandler) Update(req api.Context) error {
 	var (
 		id       = req.PathValue("id")
 		wf       v1.Workflow
-		manifest v1.WorkflowManifest
+		manifest types.WorkflowManifest
 	)
 
 	if err := req.Read(&manifest); err != nil {
@@ -66,7 +66,7 @@ func (a *WorkflowHandler) Delete(req api.Context) error {
 }
 
 func (a *WorkflowHandler) Create(req api.Context) error {
-	var manifest v1.WorkflowManifest
+	var manifest types.WorkflowManifest
 	if err := req.Read(&manifest); err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func convertWorkflow(workflow v1.Workflow, prefix string) *types.Workflow {
 		links = []string{"invoke", prefix + "/invoke/" + refName}
 	}
 	return &types.Workflow{
-		Metadata:               types.MetadataFrom(&workflow, links...),
+		Metadata:               MetadataFrom(&workflow, links...),
 		WorkflowManifest:       workflow.Spec.Manifest,
 		WorkflowExternalStatus: workflow.Status.External,
 	}

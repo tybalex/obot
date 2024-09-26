@@ -1,4 +1,4 @@
-package client
+package apiclient
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/apiclient/types"
 )
 
 type ListRunsOptions struct {
@@ -66,7 +66,7 @@ func (c *Client) DeleteRun(ctx context.Context, id string) error {
 func (c *Client) ListRuns(ctx context.Context, opts ...ListRunsOptions) (result types.RunList, err error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {
-			return result.Items[i].Created.Before(result.Items[j].Created)
+			return result.Items[i].Created.Time.Before(result.Items[j].Created.Time)
 		})
 	}()
 

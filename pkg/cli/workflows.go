@@ -32,7 +32,7 @@ func (l *Workflows) Run(cmd *cobra.Command, args []string) error {
 
 	w := newTable("ID", "NAME", "DESCRIPTION", "INVOKE", "CREATED")
 	for _, wf := range wfs.Items {
-		w.WriteRow(wf.ID, wf.Name, truncate(wf.Description, l.Wide), wf.Links["invoke"], humanize.Time(wf.Created))
+		w.WriteRow(wf.ID, wf.Name, truncate(wf.Description, l.Wide), wf.Links["invoke"], humanize.Time(wf.Created.Time))
 	}
 
 	return w.Err()

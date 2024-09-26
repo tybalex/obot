@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/acorn-io/baaah/pkg/fields"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -57,28 +58,9 @@ type KnowledgeFileSpec struct {
 }
 
 type KnowledgeFileStatus struct {
-	IngestionStatus IngestionStatus `json:"ingestionStatus,omitempty"`
-	FileDetails     FileDetails     `json:"fileDetails,omitempty"`
-	UploadID        string          `json:"uploadID,omitempty"`
-}
-
-type IngestionStatus struct {
-	Count        int    `json:"count,omitempty"`
-	Reason       string `json:"reason,omitempty"`
-	AbsolutePath string `json:"absolute_path,omitempty"`
-	BasePath     string `json:"basePath,omitempty"`
-	Filename     string `json:"filename,omitempty"`
-	VectorStore  string `json:"vectorstore,omitempty"`
-	Message      string `json:"msg,omitempty"`
-	Flow         string `json:"flow,omitempty"`
-	RootPath     string `json:"rootPath,omitempty"`
-	Filepath     string `json:"filepath,omitempty"`
-	Phase        string `json:"phase,omitempty"`
-	NumDocuments int    `json:"num_documents,omitempty"`
-	Stage        string `json:"stage,omitempty"`
-	Status       string `json:"status,omitempty"`
-	Component    string `json:"component,omitempty"`
-	FileType     string `json:"filetype,omitempty"`
+	IngestionStatus types.IngestionStatus `json:"ingestionStatus,omitempty"`
+	FileDetails     types.FileDetails     `json:"fileDetails,omitempty"`
+	UploadID        string                `json:"uploadID,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -10,6 +10,7 @@ import (
 	"github.com/acorn-io/baaah/pkg/apply"
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/acorn-io/baaah/pkg/uncached"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/system"
@@ -370,7 +371,7 @@ func knowledgeFilesForUploadName(req router.Request, namespace, name string) (v1
 	})
 }
 
-func compileKnowledgeFilesFromOneDriveConnector(ctx context.Context, c client.Client, oneDriveLinks *v1.OneDriveLinks, files map[string]v1.FileDetails, ws *v1.Workspace) (map[string]any, map[string]struct{}, error) {
+func compileKnowledgeFilesFromOneDriveConnector(ctx context.Context, c client.Client, oneDriveLinks *v1.OneDriveLinks, files map[string]types.FileDetails, ws *v1.Workspace) (map[string]any, map[string]struct{}, error) {
 	var (
 		errs []error
 		// fileMetadata is the metadata for the knowledge tool, translated from the connector output.
@@ -451,8 +452,8 @@ func deleteKnowledgeFilesNotIncluded(ctx context.Context, c client.Client, names
 	return errors.Join(errs...)
 }
 
-func compileKnowledgeFilesForOneDriveConnector(files v1.KnowledgeFileList) map[string]v1.FileDetails {
-	knowledgeFileStatuses := make(map[string]v1.FileDetails, len(files.Items))
+func compileKnowledgeFilesForOneDriveConnector(files v1.KnowledgeFileList) map[string]types.FileDetails {
+	knowledgeFileStatuses := make(map[string]types.FileDetails, len(files.Items))
 	for _, file := range files.Items {
 		knowledgeFileStatuses[file.Status.UploadID] = file.Status.FileDetails
 	}

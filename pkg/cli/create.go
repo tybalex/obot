@@ -10,33 +10,32 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gptscript-ai/otto/pkg/api/client"
+	"github.com/gptscript-ai/otto/apiclient"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/cli/textio"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/spf13/cobra"
 	yamlv3 "gopkg.in/yaml.v3"
 )
 
 type Create struct {
-	Quiet            bool              `usage:"Only print ID after successful creation." short:"q"`
-	Name             string            `usage:"Name of the agent."`
-	Description      string            `usage:"Description of the agent."`
-	Ref              string            `usage:"The path segment of the agent in the published URL (defaults to ID of agent)."`
-	Tools            []string          `usage:"List of tools the agent can use."`
-	CodeDependencies string            `usage:"The code dependencies content for the agent if it using JavaScript (package.json) or Python (requirements.txt)."`
-	Steps            []string          `usage:"The steps for a workflow."`
-	Output           string            `usage:"The output for a workflow."`
-	Params           map[string]string `usage:"The parameters for the agent." hidden:"true"`
-	File             string            `usage:"The file to read the agent manifest from." short:"f"`
-	Replace          bool              `usage:"If loading from file, replace the agent with the same refName if it exists." short:"r"`
-	root             *Otto
+	Quiet       bool              `usage:"Only print ID after successful creation." short:"q"`
+	Name        string            `usage:"Name of the agent."`
+	Description string            `usage:"Description of the agent."`
+	Ref         string            `usage:"The path segment of the agent in the published URL (defaults to ID of agent)."`
+	Tools       []string          `usage:"List of tools the agent can use."`
+	Steps       []string          `usage:"The steps for a workflow."`
+	Output      string            `usage:"The output for a workflow."`
+	Params      map[string]string `usage:"The parameters for the agent." hidden:"true"`
+	File        string            `usage:"The file to read the agent manifest from." short:"f"`
+	Replace     bool              `usage:"If loading from file, replace the agent with the same refName if it exists." short:"r"`
+	root        *Otto
 }
 
 func (l *Create) Customize(cmd *cobra.Command) {
 	cmd.Use = "create [flags]"
 }
 
-func parseManifests(data []byte) (result []v1.WorkflowManifest, _ error) {
+func parseManifests(data []byte) (result []types.WorkflowManifest, _ error) {
 	var (
 		dec = yamlv3.NewDecoder(bytes.NewReader(data))
 	)
@@ -54,7 +53,7 @@ func parseManifests(data []byte) (result []v1.WorkflowManifest, _ error) {
 			return nil, err
 		}
 
-		var manifest v1.WorkflowManifest
+		var manifest types.WorkflowManifest
 		if err := json.Unmarshal(jsonData, &manifest); err != nil {
 			return nil, err
 		}
@@ -94,7 +93,7 @@ func (l *Create) loadFromFile(ctx context.Context) error {
 	for _, newManifest := range manifests {
 		if len(newManifest.Steps) > 0 || newManifest.Output != "" {
 			if l.Replace && l.Ref != "" {
-				workflows, err := l.root.Client.ListWorkflows(ctx, client.ListWorkflowsOptions{
+				workflows, err := l.root.Client.ListWorkflows(ctx, apiclient.ListWorkflowsOptions{
 					RefName: l.Ref,
 				})
 				if err != nil {
@@ -118,7 +117,7 @@ func (l *Create) loadFromFile(ctx context.Context) error {
 			}
 		} else {
 			if l.Replace && l.Ref != "" {
-				agents, err := l.root.Client.ListAgents(ctx, client.ListAgentsOptions{
+				agents, err := l.root.Client.ListAgents(ctx, apiclient.ListAgentsOptions{
 					RefName: l.Ref,
 				})
 				if err != nil {
@@ -166,26 +165,25 @@ func (l *Create) Run(cmd *cobra.Command, args []string) error {
 		prompt = result
 	}
 
-	agentManifest := v1.AgentManifest{
-		Name:             l.Name,
-		Description:      l.Description,
-		RefName:          l.Ref,
-		Prompt:           v1.Body(prompt),
-		Tools:            l.Tools,
-		CodeDependencies: l.CodeDependencies,
-		Params:           l.Params,
+	agentManifest := types.AgentManifest{
+		Name:        l.Name,
+		Description: l.Description,
+		RefName:     l.Ref,
+		Prompt:      prompt,
+		Tools:       l.Tools,
+		Params:      l.Params,
 	}
 
 	var (
 		id, link string
 	)
 	if l.Output != "" || len(l.Steps) > 0 {
-		wf := v1.WorkflowManifest{
+		wf := types.WorkflowManifest{
 			AgentManifest: agentManifest,
 			Output:        l.Output,
 		}
 		for _, step := range l.Steps {
-			wf.Steps = append(wf.Steps, v1.Step{
+			wf.Steps = append(wf.Steps, types.Step{
 				Step: step,
 			})
 		}

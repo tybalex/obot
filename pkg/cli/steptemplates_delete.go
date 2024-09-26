@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +19,7 @@ func (l *StepTemplatesDelete) Customize(cmd *cobra.Command) {
 
 func (l *StepTemplatesDelete) Run(cmd *cobra.Command, args []string) error {
 	for _, arg := range args {
-		if err := l.root.Client.DeleteToolReference(cmd.Context(), arg, v1.ToolReferenceTypeStepTemplate); err != nil {
+		if err := l.root.Client.DeleteToolReference(cmd.Context(), arg, types.ToolReferenceTypeStepTemplate); err != nil {
 			return err
 		}
 		if l.Quiet {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gptscript-ai/otto/pkg/api/client"
+	"github.com/gptscript-ai/otto/apiclient"
 	"github.com/gptscript-ai/otto/pkg/system"
 	"github.com/spf13/cobra"
 )
@@ -21,7 +21,7 @@ func (l *CredentialsDelete) Customize(cmd *cobra.Command) {
 
 func (l *CredentialsDelete) Run(cmd *cobra.Command, args []string) error {
 	for _, arg := range args {
-		opt := client.DeleteCredentialsOptions{}
+		opt := apiclient.DeleteCredentialsOptions{}
 		scope, name, ok := strings.Cut(arg, "::")
 		if !ok {
 			name = scope

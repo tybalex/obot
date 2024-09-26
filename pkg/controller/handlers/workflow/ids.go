@@ -4,10 +4,10 @@ import (
 	"strings"
 
 	"github.com/acorn-io/baaah/pkg/randomtoken"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/apiclient/types"
 )
 
-func PopulateIDs(manifest v1.WorkflowManifest) v1.WorkflowManifest {
+func PopulateIDs(manifest types.WorkflowManifest) types.WorkflowManifest {
 	manifest = *manifest.DeepCopy()
 	ids := map[string]struct{}{}
 	for i, step := range manifest.Steps {
@@ -16,7 +16,7 @@ func PopulateIDs(manifest v1.WorkflowManifest) v1.WorkflowManifest {
 	return manifest
 }
 
-func FindStep(manifest *v1.WorkflowManifest, id string) *v1.Step {
+func FindStep(manifest *types.WorkflowManifest, id string) *types.Step {
 	if manifest == nil || id == "" {
 		return nil
 	}
@@ -29,7 +29,7 @@ func FindStep(manifest *v1.WorkflowManifest, id string) *v1.Step {
 	return found
 }
 
-func findInSteps(steps []v1.Step, id string) *v1.Step {
+func findInSteps(steps []types.Step, id string) *types.Step {
 	for _, step := range steps {
 		if step.ID == id {
 			return &step
@@ -65,7 +65,7 @@ func nextID(seen map[string]struct{}) string {
 	}
 }
 
-func populateStepID(seen map[string]struct{}, step v1.Step) v1.Step {
+func populateStepID(seen map[string]struct{}, step types.Step) types.Step {
 	if step.ID == "" {
 		step.ID = nextID(seen)
 	} else if _, ok := seen[step.ID]; ok {
@@ -81,14 +81,14 @@ func populateStepID(seen map[string]struct{}, step v1.Step) v1.Step {
 	return step
 }
 
-func populateWhileID(seen map[string]struct{}, while v1.While) *v1.While {
+func populateWhileID(seen map[string]struct{}, while types.While) *types.While {
 	for i, step := range while.Steps {
 		while.Steps[i] = populateStepID(seen, step)
 	}
 	return &while
 }
 
-func populateIfID(seen map[string]struct{}, ifStep v1.If) *v1.If {
+func populateIfID(seen map[string]struct{}, ifStep types.If) *types.If {
 	for i, step := range ifStep.Steps {
 		ifStep.Steps[i] = populateStepID(seen, step)
 	}

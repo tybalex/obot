@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/acorn-io/baaah/pkg/conditions"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -37,10 +38,10 @@ func (in *WorkflowStep) GetConditions() *[]metav1.Condition {
 }
 
 type WorkflowStepSpec struct {
-	AfterWorkflowStepName string `json:"afterWorkflowStepName,omitempty"`
-	Step                  Step   `json:"step,omitempty"`
-	WorkflowExecutionName string `json:"workflowExecutionName,omitempty"`
-	Input                 string `json:"input,omitempty"`
+	AfterWorkflowStepName string     `json:"afterWorkflowStepName,omitempty"`
+	Step                  types.Step `json:"step,omitempty"`
+	WorkflowExecutionName string     `json:"workflowExecutionName,omitempty"`
+	Input                 string     `json:"input,omitempty"`
 }
 
 func (in *WorkflowStep) DeleteRefs() []Ref {

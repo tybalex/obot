@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/api/types"
 	"github.com/gptscript-ai/otto/pkg/events"
 	"github.com/gptscript-ai/otto/pkg/gz"
 	"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
@@ -32,7 +32,7 @@ func convertRun(run v1.Run) types.Run {
 	}
 	return types.Run{
 		ID:             run.Name,
-		Created:        run.CreationTimestamp.Time,
+		Created:        *types.NewTime(run.CreationTimestamp.Time),
 		ThreadID:       run.Spec.ThreadName,
 		AgentID:        run.Spec.AgentName,
 		WorkflowID:     run.Spec.WorkflowName,

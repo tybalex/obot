@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/api/types"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/storage/selectors"
 	"github.com/gptscript-ai/otto/pkg/system"
@@ -116,7 +116,7 @@ func uploadKnowledgeToWorkspace(req api.Context, wc *wclient.Client, ws v1.Works
 
 func convertKnowledgeFile(file v1.KnowledgeFile, ws v1.Workspace) types.KnowledgeFile {
 	return types.KnowledgeFile{
-		Metadata:        types.MetadataFrom(&file),
+		Metadata:        MetadataFrom(&file),
 		FileName:        file.Spec.FileName,
 		AgentID:         ws.Spec.AgentName,
 		WorkflowID:      ws.Spec.WorkflowName,

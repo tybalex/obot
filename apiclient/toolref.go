@@ -1,15 +1,14 @@
-package client
+package apiclient
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/gptscript-ai/otto/pkg/api/types"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/apiclient/types"
 )
 
 type ListToolReferencesOptions struct {
-	ToolType v1.ToolReferenceType
+	ToolType types.ToolReferenceType
 }
 
 func (c *Client) ListToolReferences(ctx context.Context, opts ListToolReferencesOptions) (result types.ToolReferenceList, _ error) {
@@ -39,7 +38,7 @@ func (c *Client) UpdateToolReference(ctx context.Context, id, reference string) 
 	return toObject(resp, &types.ToolReference{})
 }
 
-func (c *Client) DeleteToolReference(ctx context.Context, id string, toolType v1.ToolReferenceType) error {
+func (c *Client) DeleteToolReference(ctx context.Context, id string, toolType types.ToolReferenceType) error {
 	path := fmt.Sprintf("/toolreferences/%s", id)
 	if toolType != "" {
 		path = fmt.Sprintf("/toolreferences/%s?type=%s", id, toolType)

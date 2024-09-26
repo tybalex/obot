@@ -12,6 +12,7 @@ import (
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/acorn-io/baaah/pkg/typed"
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflow"
 	"github.com/gptscript-ai/otto/pkg/gz"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
@@ -39,7 +40,7 @@ func NewEmitter(client kclient.WithWatch) *Emitter {
 type liveState struct {
 	Prg      *gptscript.Program
 	Frames   Frames
-	Progress *v1.Progress
+	Progress *types.Progress
 	Done     bool
 }
 
@@ -93,7 +94,7 @@ func (e *Emitter) ClearProgress(run *v1.Run) {
 	e.liveBroadcast.Broadcast()
 }
 
-func (e *Emitter) SubmitProgress(run *v1.Run, progress v1.Progress) {
+func (e *Emitter) SubmitProgress(run *v1.Run, progress types.Progress) {
 	e.liveStateLock.Lock()
 	defer e.liveStateLock.Unlock()
 
@@ -114,7 +115,7 @@ func (e *Emitter) findRunByThreadName(ctx context.Context, threadNamespace, thre
 	return nil, fmt.Errorf("no run found for thread: %s", threadName)
 }
 
-func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions) (chan v1.Progress, error) {
+func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions) (chan types.Progress, error) {
 	var (
 		run v1.Run
 	)
@@ -141,7 +142,7 @@ func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions
 		}
 	}
 
-	result := make(chan v1.Progress)
+	result := make(chan types.Progress)
 
 	if run.Name == "" {
 		close(result)
@@ -156,7 +157,7 @@ func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions
 	return result, nil
 }
 
-func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, result chan v1.Progress) error {
+func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, result chan types.Progress) error {
 	var (
 		liveIndex    int
 		broadcast    = make(chan struct{}, 1)
@@ -170,7 +171,7 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 			return err
 		}
 		step := workflow.FindStep(wfe.Status.WorkflowManifest, run.Spec.WorkflowStepID)
-		result <- v1.Progress{
+		result <- types.Progress{
 			RunID: run.Name,
 			Step:  step,
 		}
@@ -271,7 +272,7 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 	}
 }
 
-func (e *Emitter) printParent(ctx context.Context, state *printState, run v1.Run, result chan v1.Progress) error {
+func (e *Emitter) printParent(ctx context.Context, state *printState, run v1.Run, result chan types.Progress) error {
 	if run.Spec.PreviousRunName == "" {
 		return nil
 	}
@@ -293,11 +294,11 @@ func (e *Emitter) printParent(ctx context.Context, state *printState, run v1.Run
 	return errors.Join(errNotFound, e.printRun(ctx, state, parent, result))
 }
 
-func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOptions, result chan v1.Progress) (retErr error) {
+func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOptions, result chan types.Progress) (retErr error) {
 	defer close(result)
 	defer func() {
 		if retErr != nil {
-			result <- v1.Progress{
+			result <- types.Progress{
 				RunID: run.Name,
 				Error: retErr.Error(),
 			}
@@ -427,7 +428,7 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1
 
 }
 
-func callToEvents(runID string, prg *gptscript.Program, frames Frames, printed *printState, out chan v1.Progress) {
+func callToEvents(runID string, prg *gptscript.Program, frames Frames, printed *printState, out chan types.Progress) {
 	var (
 		parent gptscript.CallFrame
 	)
@@ -443,12 +444,12 @@ func callToEvents(runID string, prg *gptscript.Program, frames Frames, printed *
 	printCall(runID, prg, &parent, printed, out)
 }
 
-func printCall(runID string, prg *gptscript.Program, call *gptscript.CallFrame, lastPrint *printState, out chan v1.Progress) {
+func printCall(runID string, prg *gptscript.Program, call *gptscript.CallFrame, lastPrint *printState, out chan types.Progress) {
 	printed := lastPrint.frames[call.ID]
 	lastOutputs := printed.Outputs
 
 	if call.Input != "" && !printed.InputPrinted {
-		out <- v1.Progress{
+		out <- types.Progress{
 			RunID:   runID,
 			Content: "\n",
 			Input:   call.Input,
@@ -470,9 +471,9 @@ func printCall(runID string, prg *gptscript.Program, call *gptscript.CallFrame, 
 			subCall := currentOutput.SubCalls[callID]
 			if _, ok := last.SubCalls[callID]; !ok {
 				if tool, ok := prg.ToolSet[subCall.ToolID]; ok {
-					out <- v1.Progress{
+					out <- types.Progress{
 						RunID: runID,
-						ToolCall: &v1.ToolCall{
+						ToolCall: &types.ToolCall{
 							Name:        tool.Name,
 							Description: tool.Description,
 							Input:       subCall.Input,
@@ -489,7 +490,7 @@ func printCall(runID string, prg *gptscript.Program, call *gptscript.CallFrame, 
 	lastPrint.frames[call.ID] = printed
 }
 
-func printString(runID string, out chan v1.Progress, last, current string) string {
+func printString(runID string, out chan types.Progress, last, current string) string {
 	toPrint := current
 	if strings.HasPrefix(current, last) {
 		toPrint = current[len(last):]
@@ -499,7 +500,7 @@ func printString(runID string, out chan v1.Progress, last, current string) strin
 
 	var (
 		toolName  string
-		toolInput *v1.ToolInput
+		toolInput *types.ToolInput
 	)
 
 	toPrint, waitingOnModel := strings.CutPrefix(toPrint, "Waiting for model response...")
@@ -519,13 +520,13 @@ func printString(runID string, out chan v1.Progress, last, current string) strin
 	toolPrint = strings.TrimPrefix(toolPrint, toolName+" -> ")
 
 	if isToolCall {
-		toolInput = &v1.ToolInput{
+		toolInput = &types.ToolInput{
 			Content:          toolPrint,
 			InternalToolName: toolName,
 		}
 	}
 
-	out <- v1.Progress{
+	out <- types.Progress{
 		RunID:          runID,
 		Content:        toPrint,
 		ToolInput:      toolInput,

@@ -1,6 +1,8 @@
 package events
 
-import "github.com/gptscript-ai/otto/pkg/api/types"
+import (
+	"github.com/gptscript-ai/otto/apiclient/types"
+)
 
 type Printer interface {
 	Print(input string, events <-chan types.Progress) error

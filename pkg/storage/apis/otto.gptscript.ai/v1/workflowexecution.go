@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/acorn-io/baaah/pkg/conditions"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -57,11 +58,11 @@ const (
 )
 
 type WorkflowExecutionStatus struct {
-	State            WorkflowState      `json:"state,omitempty"`
-	Output           string             `json:"output,omitempty"`
-	ThreadName       string             `json:"threadName,omitempty"`
-	WorkflowManifest *WorkflowManifest  `json:"workflowManifest,omitempty"`
-	Conditions       []metav1.Condition `json:"conditions,omitempty"`
+	State            WorkflowState           `json:"state,omitempty"`
+	Output           string                  `json:"output,omitempty"`
+	ThreadName       string                  `json:"threadName,omitempty"`
+	WorkflowManifest *types.WorkflowManifest `json:"workflowManifest,omitempty"`
+	Conditions       []metav1.Condition      `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

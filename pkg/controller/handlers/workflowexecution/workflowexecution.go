@@ -4,9 +4,10 @@ import (
 	"context"
 
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/apiclient/types"
+	log2 "github.com/gptscript-ai/otto/logger"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflowstep"
 	"github.com/gptscript-ai/otto/pkg/invoke"
-	"github.com/gptscript-ai/otto/pkg/mvl"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
@@ -14,7 +15,7 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var log = mvl.Package()
+var log = log2.Package()
 
 type Handler struct {
 	workspaceClient *wclient.Client
@@ -100,7 +101,7 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 	}
 
 	if we.Status.WorkflowManifest.Output != "" {
-		newStep := workflowstep.NewStep(we.Namespace, we.Name, lastStepName, v1.Step{
+		newStep := workflowstep.NewStep(we.Namespace, we.Name, lastStepName, types.Step{
 			ID:   "output",
 			Step: we.Status.WorkflowManifest.Output,
 		})

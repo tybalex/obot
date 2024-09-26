@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
-	"github.com/gptscript-ai/otto/pkg/api/client"
-	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/apiclient"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )
@@ -46,7 +46,7 @@ func (l *Runs) printRuns(i iter.Seq[types.Run], flush bool) error {
 			agentWF = run.WorkflowID
 		}
 
-		w.WriteRow(run.ID, run.PreviousRunID, agentWF, run.ThreadID, run.State, run.Input, run.Output, humanize.Time(run.Created))
+		w.WriteRow(run.ID, run.PreviousRunID, agentWF, run.ThreadID, run.State, run.Input, run.Output, humanize.Time(run.Created.Time))
 		if flush {
 			w.Flush()
 		}
@@ -82,17 +82,17 @@ func sliceToIter[T any](s []T) iter.Seq[T] {
 
 func (l *Runs) Run(cmd *cobra.Command, args []string) error {
 	var (
-		opts  []client.ListRunsOptions
+		opts  []apiclient.ListRunsOptions
 		flush bool
 		list  iter.Seq[types.Run]
 	)
 	if len(args) > 0 {
-		opts = append(opts, client.ListRunsOptions{
+		opts = append(opts, apiclient.ListRunsOptions{
 			AgentID: args[0],
 		})
 	}
 	if len(args) > 1 {
-		opts = append(opts, client.ListRunsOptions{
+		opts = append(opts, apiclient.ListRunsOptions{
 			ThreadID: args[1],
 		})
 	}

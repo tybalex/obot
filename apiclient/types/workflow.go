@@ -1,8 +1,18 @@
-package v1
+package types
 
-import (
-	"strings"
-)
+import "strings"
+
+type Workflow struct {
+	Metadata
+	WorkflowManifest
+	WorkflowExternalStatus
+}
+
+type WorkflowExternalStatus struct {
+	RefNameAssigned bool `json:"refNameAssigned,omitempty"`
+}
+
+type WorkflowList List[Workflow]
 
 type WorkflowManifest struct {
 	AgentManifest `json:",inline"`
@@ -29,14 +39,6 @@ type Step struct {
 type Template struct {
 	Name string            `json:"name,omitempty"`
 	Args map[string]string `json:"args,omitempty"`
-}
-
-func oneline(s string) string {
-	l := strings.Split(s, "\n")[0]
-	if len(l) > 80 {
-		return l[:80] + "..."
-	}
-	return l
 }
 
 func (s Step) Display() string {
@@ -77,4 +79,12 @@ type While struct {
 	Condition string `json:"condition,omitempty"`
 	MaxLoops  int    `json:"maxLoops,omitempty"`
 	Steps     []Step `json:"steps,omitempty"`
+}
+
+func oneline(s string) string {
+	l := strings.Split(s, "\n")[0]
+	if len(l) > 80 {
+		return l[:80] + "..."
+	}
+	return l
 }

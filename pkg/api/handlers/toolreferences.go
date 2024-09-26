@@ -3,8 +3,8 @@ package handlers
 import (
 	"fmt"
 
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/api/types"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -23,7 +23,7 @@ func NewToolReferenceHandler(wc *wclient.Client) *ToolReferenceHandler {
 
 func convertToolReference(toolRef v1.ToolReference) types.ToolReference {
 	tf := types.ToolReference{
-		Metadata: types.MetadataFrom(&toolRef),
+		Metadata: MetadataFrom(&toolRef),
 		ToolReferenceManifest: types.ToolReferenceManifest{
 			Name:      toolRef.Name,
 			ToolType:  toolRef.Spec.Type,
@@ -57,7 +57,7 @@ func (a *ToolReferenceHandler) Create(req api.Context) error {
 	}
 
 	switch newToolReference.ToolType {
-	case v1.ToolReferenceTypeTool, v1.ToolReferenceTypeStepTemplate:
+	case types.ToolReferenceTypeTool, types.ToolReferenceTypeStepTemplate:
 	default:
 		return apierrors.NewBadRequest(fmt.Sprintf("invalid tool type %s", newToolReference.ToolType))
 	}
@@ -90,7 +90,7 @@ func (a *ToolReferenceHandler) Delete(req api.Context) error {
 		if err := req.Get(&toolRef, id); apierrors.IsNotFound(err) {
 			return nil
 		}
-		if toolRef.Spec.Type != v1.ToolReferenceType(toolType) {
+		if toolRef.Spec.Type != types.ToolReferenceType(toolType) {
 			return apierrors.NewBadRequest(fmt.Sprintf("tool reference %s is of type %s not requested type %s", id, toolRef.Spec.Type, toolType))
 		}
 	}
@@ -130,7 +130,7 @@ func (a *ToolReferenceHandler) Update(req api.Context) error {
 
 func (a *ToolReferenceHandler) List(req api.Context) error {
 	var (
-		toolType    = v1.ToolReferenceType(req.URL.Query().Get("type"))
+		toolType    = types.ToolReferenceType(req.URL.Query().Get("type"))
 		toolRefList v1.ToolReferenceList
 	)
 

@@ -1,4 +1,4 @@
-package client
+package apiclient
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/apiclient/types"
 )
 
 type InvokeOptions struct {

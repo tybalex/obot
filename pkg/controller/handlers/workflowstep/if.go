@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -120,7 +121,7 @@ func (h *Handler) defineCondition(step, afterStep *v1.WorkflowStep, iteration in
 		suffix = fmt.Sprintf("{condition,index=%d}", iteration)
 	}
 
-	newStep := NewStep(step.Namespace, step.Spec.WorkflowExecutionName, afterStepName, v1.Step{
+	newStep := NewStep(step.Namespace, step.Spec.WorkflowExecutionName, afterStepName, types.Step{
 		ID:   step.Spec.Step.ID + suffix,
 		Step: toStepCondition(condition),
 	})
@@ -128,7 +129,7 @@ func (h *Handler) defineCondition(step, afterStep *v1.WorkflowStep, iteration in
 }
 
 func (h *Handler) defineIf(step *v1.WorkflowStep, conditionStep *v1.WorkflowStep, conditionResult bool) (result []kclient.Object, _ error) {
-	var steps []v1.Step
+	var steps []types.Step
 	if conditionResult {
 		steps = step.Spec.Step.If.Steps
 	} else {

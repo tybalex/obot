@@ -12,10 +12,11 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/apiclient/types"
+	log2 "github.com/gptscript-ai/otto/logger"
 	"github.com/gptscript-ai/otto/pkg/events"
 	"github.com/gptscript-ai/otto/pkg/gz"
 	"github.com/gptscript-ai/otto/pkg/jwt"
-	"github.com/gptscript-ai/otto/pkg/mvl"
 	"github.com/gptscript-ai/otto/pkg/render"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/system"
@@ -26,7 +27,7 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var log = mvl.Package()
+var log = log2.Package()
 
 type Invoker struct {
 	gptClient               *gptscript.GPTScript
@@ -54,7 +55,7 @@ type Response struct {
 	cancel context.CancelFunc
 	Run    *v1.Run
 	Thread *v1.Thread
-	Events <-chan v1.Progress
+	Events <-chan types.Progress
 }
 
 func (r *Response) Wait() error {
@@ -306,7 +307,8 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 			Input:                 input,
 			Tool:                  string(toolData),
 			Env:                   opts.Env,
-			CredentialContextIDs:  opts.CredentialContextIDs,
+			// Just never pass cred contexts right now and always use default
+			//CredentialContextIDs:  opts.CredentialContextIDs,
 		},
 	}
 
@@ -585,7 +587,7 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName s
 		retErr = i.saveState(ctx, c, prevThreadName, thread, run, runResp, retErr)
 		if retErr != nil {
 			log.Errorf("failed to save state: %v", retErr)
-			i.events.SubmitProgress(run, v1.Progress{
+			i.events.SubmitProgress(run, types.Progress{
 				RunID: run.Name,
 				Error: retErr.Error(),
 			})
@@ -648,12 +650,12 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName s
 				if !strings.HasSuffix(msg, "\n") {
 					msg += "\n"
 				}
-				i.events.SubmitProgress(run, v1.Progress{
+				i.events.SubmitProgress(run, types.Progress{
 					RunID:   run.Name,
 					Content: msg,
-					Prompt: &v1.Prompt{
+					Prompt: &types.Prompt{
 						ID:        frame.Prompt.ID,
-						Time:      metav1.NewTime(frame.Prompt.Time),
+						Time:      types.NewTime(frame.Prompt.Time),
 						Message:   frame.Prompt.Message,
 						Fields:    frame.Prompt.Fields,
 						Sensitive: frame.Prompt.Sensitive,

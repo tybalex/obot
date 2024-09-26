@@ -6,8 +6,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/gptscript-ai/otto/pkg/api/client"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/apiclient"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/spf13/cobra"
 )
 
@@ -23,8 +23,8 @@ func (l *StepTemplates) Customize(cmd *cobra.Command) {
 }
 
 func (l *StepTemplates) Run(cmd *cobra.Command, args []string) error {
-	toolRefs, err := l.root.Client.ListToolReferences(cmd.Context(), client.ListToolReferencesOptions{
-		ToolType: v1.ToolReferenceTypeStepTemplate,
+	toolRefs, err := l.root.Client.ListToolReferences(cmd.Context(), apiclient.ListToolReferencesOptions{
+		ToolType: types.ToolReferenceTypeStepTemplate,
 	})
 	if err != nil {
 		return err

@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/acorn-io/baaah/pkg/conditions"
 	gptscriptclient "github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -25,22 +26,17 @@ func (in *Thread) GetConditions() *[]metav1.Condition {
 }
 
 type ThreadSpec struct {
-	Manifest              ThreadManifest `json:"manifest,omitempty"`
-	AgentName             string         `json:"agentName,omitempty"`
-	WorkflowName          string         `json:"workflowName,omitempty"`
-	WorkflowExecutionName string         `json:"workflowExecutionName,omitempty"`
-	WorkflowStepName      string         `json:"workflowStepName,omitempty"`
-	WorkspaceID           string         `json:"workspaceID,omitempty"`
-	KnowledgeWorkspaceID  string         `json:"knowledgeWorkspaceID,omitempty"`
+	Manifest              types.ThreadManifest `json:"manifest,omitempty"`
+	AgentName             string               `json:"agentName,omitempty"`
+	WorkflowName          string               `json:"workflowName,omitempty"`
+	WorkflowExecutionName string               `json:"workflowExecutionName,omitempty"`
+	WorkflowStepName      string               `json:"workflowStepName,omitempty"`
+	WorkspaceID           string               `json:"workspaceID,omitempty"`
+	KnowledgeWorkspaceID  string               `json:"knowledgeWorkspaceID,omitempty"`
 }
 
 func (in *Thread) DeleteRefs() []Ref {
 	return []Ref{}
-}
-
-type ThreadManifest struct {
-	Tools       []string `json:"tools,omitempty"`
-	Description string   `json:"description,omitempty"`
 }
 
 type ThreadStatus struct {

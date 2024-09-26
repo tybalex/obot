@@ -1,8 +1,15 @@
 module github.com/gptscript-ai/otto
 
-go 1.23.0
+go 1.23.1
+
+replace (
+github.com/gptscript-ai/otto/apiclient => ./apiclient
+github.com/gptscript-ai/otto/logger => ./logger
+)
 
 require (
+	github.com/gptscript-ai/otto/logger v0.0.0-00010101000000-000000000000
+	github.com/gptscript-ai/otto/apiclient v0.0.0-00010101000000-000000000000
 	github.com/acorn-io/baaah v0.0.0-20240912163758-8f7c537609d1
 	github.com/acorn-io/mink v0.0.0-20240924215355-6b3069de5d2f
 	github.com/adrg/xdg v0.5.0
@@ -13,10 +20,10 @@ require (
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
 	github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240920232051-64eaa0ac8caf
 	github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240926003321-dd4ba0dffc5b
+	github.com/gptscript-ai/otto/apiclient v0.0.0-00010101000000-000000000000
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/pterm/pterm v0.12.79
 	github.com/rs/cors v1.11.1
-	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.1
 	github.com/thedadams/workspace-provider v0.0.0-20240912195139-5dc37cf34474
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
@@ -28,7 +35,6 @@ require (
 	k8s.io/client-go v0.29.0
 	k8s.io/kube-openapi v0.0.0-20240105020646-a37d4de58910
 	k8s.io/kubectl v0.29.0
-	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	sigs.k8s.io/controller-runtime v0.16.3
 	sigs.k8s.io/yaml v1.4.0
 )
@@ -71,7 +77,7 @@ require (
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.4 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dlclark/regexp2 v1.4.0 // indirect
 	github.com/docker/cli v26.0.0+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.8.1 // indirect
@@ -168,6 +174,7 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/skeema/knownhosts v1.2.2 // indirect
 	github.com/sourcegraph/go-diff-patch v0.0.0-20240223163233-798fd1e94a8e // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -231,6 +238,7 @@ require (
 	k8s.io/gengo v0.0.0-20230829151522-9cce18d56c01 // indirect
 	k8s.io/klog/v2 v2.110.1 // indirect
 	k8s.io/kms v0.29.0 // indirect
+	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.28.0 // indirect
 	sigs.k8s.io/controller-tools v0.12.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect

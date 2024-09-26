@@ -2,18 +2,12 @@ package v1
 
 import (
 	"github.com/acorn-io/baaah/pkg/conditions"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
 	_ conditions.Conditions = (*ToolReference)(nil)
-)
-
-type ToolReferenceType string
-
-const (
-	ToolReferenceTypeTool         ToolReferenceType = "tool"
-	ToolReferenceTypeStepTemplate ToolReferenceType = "stepTemplate"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -40,8 +34,8 @@ func (in *ToolReference) GetConditions() *[]metav1.Condition {
 }
 
 type ToolReferenceSpec struct {
-	Type      ToolReferenceType `json:"type,omitempty"`
-	Reference string            `json:"reference,omitempty"`
+	Type      types.ToolReferenceType `json:"type,omitempty"`
+	Reference string                  `json:"reference,omitempty"`
 }
 
 type ToolShortDescription struct {

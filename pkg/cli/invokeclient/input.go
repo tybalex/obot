@@ -3,8 +3,8 @@ package invokeclient
 import (
 	"context"
 
-	"github.com/gptscript-ai/otto/pkg/api/client"
-	"github.com/gptscript-ai/otto/pkg/api/types"
+	"github.com/gptscript-ai/otto/apiclient"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/cli/textio"
 )
 
@@ -19,7 +19,7 @@ func (d QuietInputter) Next(_ context.Context, previous string, resp *types.Invo
 }
 
 type VerboseInputter struct {
-	client *client.Client
+	client *apiclient.Client
 }
 
 func nextInput() (string, bool, error) {

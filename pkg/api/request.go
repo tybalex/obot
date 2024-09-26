@@ -11,8 +11,8 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/storage"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,7 +38,7 @@ func (r *Context) Accepts(contentType string) bool {
 	return slices.Contains(r.Request.Header.Values("Accept"), contentType)
 }
 
-func (r *Context) WriteEvents(events <-chan v1.Progress) error {
+func (r *Context) WriteEvents(events <-chan types.Progress) error {
 	// Check if SSE is requested
 	sendEvents := r.IsStreamRequested()
 
@@ -49,7 +49,7 @@ func (r *Context) WriteEvents(events <-chan v1.Progress) error {
 
 	var (
 		lastFlush time.Time
-		toWrite   []v1.Progress
+		toWrite   []types.Progress
 	)
 	for event := range events {
 		if sendEvents {
@@ -186,7 +186,7 @@ func (r *Context) Get(obj client.Object, name string) error {
 	err := r.Storage.Get(r.Request.Context(), router.Key(namespace, name), obj)
 	if apierrors.IsNotFound(err) {
 		gvk, _ := r.Storage.GroupVersionKindFor(obj)
-		return NewErrHttp(http.StatusNotFound, fmt.Sprintf("%s %s not found", strings.ToLower(gvk.Kind), name))
+		return types.NewErrHttp(http.StatusNotFound, fmt.Sprintf("%s %s not found", strings.ToLower(gvk.Kind), name))
 	}
 	return err
 }

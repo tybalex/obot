@@ -8,6 +8,7 @@
 package generated
 
 import (
+	types "github.com/gptscript-ai/otto/apiclient/types"
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
@@ -17,20 +18,53 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
+		"github.com/gptscript-ai/otto/apiclient/types.Agent":                                              schema_gptscript_ai_otto_apiclient_types_Agent(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.AgentExternalStatus":                                schema_gptscript_ai_otto_apiclient_types_AgentExternalStatus(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.AgentList":                                          schema_gptscript_ai_otto_apiclient_types_AgentList(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.AgentManifest":                                      schema_gptscript_ai_otto_apiclient_types_AgentManifest(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.Credential":                                         schema_gptscript_ai_otto_apiclient_types_Credential(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.CredentialList":                                     schema_gptscript_ai_otto_apiclient_types_CredentialList(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.ErrHTTP":                                            schema_gptscript_ai_otto_apiclient_types_ErrHTTP(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.File":                                               schema_gptscript_ai_otto_apiclient_types_File(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.FileDetails":                                        schema_gptscript_ai_otto_apiclient_types_FileDetails(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.FileList":                                           schema_gptscript_ai_otto_apiclient_types_FileList(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.If":                                                 schema_gptscript_ai_otto_apiclient_types_If(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.IngestionStatus":                                    schema_gptscript_ai_otto_apiclient_types_IngestionStatus(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.Item":                                               schema_gptscript_ai_otto_apiclient_types_Item(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.KnowledgeFile":                                      schema_gptscript_ai_otto_apiclient_types_KnowledgeFile(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.KnowledgeFileList":                                  schema_gptscript_ai_otto_apiclient_types_KnowledgeFileList(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.Metadata":                                           schema_gptscript_ai_otto_apiclient_types_Metadata(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.OneDriveLinks":                                      schema_gptscript_ai_otto_apiclient_types_OneDriveLinks(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.OneDriveLinksList":                                  schema_gptscript_ai_otto_apiclient_types_OneDriveLinksList(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.Progress":                                           schema_gptscript_ai_otto_apiclient_types_Progress(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.Prompt":                                             schema_gptscript_ai_otto_apiclient_types_Prompt(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.Run":                                                schema_gptscript_ai_otto_apiclient_types_Run(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.RunList":                                            schema_gptscript_ai_otto_apiclient_types_RunList(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.Step":                                               schema_gptscript_ai_otto_apiclient_types_Step(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.SubFlow":                                            schema_gptscript_ai_otto_apiclient_types_SubFlow(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.Template":                                           schema_gptscript_ai_otto_apiclient_types_Template(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.Thread":                                             schema_gptscript_ai_otto_apiclient_types_Thread(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.ThreadList":                                         schema_gptscript_ai_otto_apiclient_types_ThreadList(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.ThreadManifest":                                     schema_gptscript_ai_otto_apiclient_types_ThreadManifest(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.Time":                                               schema_gptscript_ai_otto_apiclient_types_Time(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.ToolCall":                                           schema_gptscript_ai_otto_apiclient_types_ToolCall(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.ToolInput":                                          schema_gptscript_ai_otto_apiclient_types_ToolInput(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.ToolReference":                                      schema_gptscript_ai_otto_apiclient_types_ToolReference(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.ToolReferenceList":                                  schema_gptscript_ai_otto_apiclient_types_ToolReferenceList(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.ToolReferenceManifest":                              schema_gptscript_ai_otto_apiclient_types_ToolReferenceManifest(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.While":                                              schema_gptscript_ai_otto_apiclient_types_While(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.Workflow":                                           schema_gptscript_ai_otto_apiclient_types_Workflow(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.WorkflowExternalStatus":                             schema_gptscript_ai_otto_apiclient_types_WorkflowExternalStatus(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.WorkflowList":                                       schema_gptscript_ai_otto_apiclient_types_WorkflowList(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest":                                   schema_gptscript_ai_otto_apiclient_types_WorkflowManifest(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Agent":                        schema_storage_apis_ottogptscriptai_v1_Agent(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentExternalStatus":          schema_storage_apis_ottogptscriptai_v1_AgentExternalStatus(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentList":                    schema_storage_apis_ottogptscriptai_v1_AgentList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentManifest":                schema_storage_apis_ottogptscriptai_v1_AgentManifest(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec":                    schema_storage_apis_ottogptscriptai_v1_AgentSpec(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentStatus":                  schema_storage_apis_ottogptscriptai_v1_AgentStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.FileDetails":                  schema_storage_apis_ottogptscriptai_v1_FileDetails(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.If":                           schema_storage_apis_ottogptscriptai_v1_If(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequest":       schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequest(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestList":   schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestList(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestSpec":   schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestSpec(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestStatus": schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestionStatus":              schema_storage_apis_ottogptscriptai_v1_IngestionStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Item":                         schema_storage_apis_ottogptscriptai_v1_Item(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFile":                schema_storage_apis_ottogptscriptai_v1_KnowledgeFile(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileList":            schema_storage_apis_ottogptscriptai_v1_KnowledgeFileList(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileSpec":            schema_storage_apis_ottogptscriptai_v1_KnowledgeFileSpec(ref),
@@ -40,8 +74,6 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OneDriveLinksList":            schema_storage_apis_ottogptscriptai_v1_OneDriveLinksList(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OnedriveLinksSpec":            schema_storage_apis_ottogptscriptai_v1_OnedriveLinksSpec(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OnedriveLinksStatus":          schema_storage_apis_ottogptscriptai_v1_OnedriveLinksStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Progress":                     schema_storage_apis_ottogptscriptai_v1_Progress(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Prompt":                       schema_storage_apis_ottogptscriptai_v1_Prompt(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Ref":                          schema_storage_apis_ottogptscriptai_v1_Ref(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Reference":                    schema_storage_apis_ottogptscriptai_v1_Reference(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceList":                schema_storage_apis_ottogptscriptai_v1_ReferenceList(ref),
@@ -55,35 +87,26 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStateSpec":                 schema_storage_apis_ottogptscriptai_v1_RunStateSpec(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStateStatus":               schema_storage_apis_ottogptscriptai_v1_RunStateStatus(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStatus":                    schema_storage_apis_ottogptscriptai_v1_RunStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step":                         schema_storage_apis_ottogptscriptai_v1_Step(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SubCall":                      schema_storage_apis_ottogptscriptai_v1_SubCall(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SubFlow":                      schema_storage_apis_ottogptscriptai_v1_SubFlow(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequest":            schema_storage_apis_ottogptscriptai_v1_SyncUploadRequest(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestList":        schema_storage_apis_ottogptscriptai_v1_SyncUploadRequestList(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestSpec":        schema_storage_apis_ottogptscriptai_v1_SyncUploadRequestSpec(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestStatus":      schema_storage_apis_ottogptscriptai_v1_SyncUploadRequestStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Template":                     schema_storage_apis_ottogptscriptai_v1_Template(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Thread":                       schema_storage_apis_ottogptscriptai_v1_Thread(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadList":                   schema_storage_apis_ottogptscriptai_v1_ThreadList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadManifest":               schema_storage_apis_ottogptscriptai_v1_ThreadManifest(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadSpec":                   schema_storage_apis_ottogptscriptai_v1_ThreadSpec(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadStatus":                 schema_storage_apis_ottogptscriptai_v1_ThreadStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolCall":                     schema_storage_apis_ottogptscriptai_v1_ToolCall(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolInput":                    schema_storage_apis_ottogptscriptai_v1_ToolInput(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReference":                schema_storage_apis_ottogptscriptai_v1_ToolReference(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceList":            schema_storage_apis_ottogptscriptai_v1_ToolReferenceList(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceSpec":            schema_storage_apis_ottogptscriptai_v1_ToolReferenceSpec(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceStatus":          schema_storage_apis_ottogptscriptai_v1_ToolReferenceStatus(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolShortDescription":         schema_storage_apis_ottogptscriptai_v1_ToolShortDescription(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.While":                        schema_storage_apis_ottogptscriptai_v1_While(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Workflow":                     schema_storage_apis_ottogptscriptai_v1_Workflow(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecution":            schema_storage_apis_ottogptscriptai_v1_WorkflowExecution(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionList":        schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionList(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionSpec":        schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionSpec(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionStatus":      schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExternalStatus":       schema_storage_apis_ottogptscriptai_v1_WorkflowExternalStatus(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowList":                 schema_storage_apis_ottogptscriptai_v1_WorkflowList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowManifest":             schema_storage_apis_ottogptscriptai_v1_WorkflowManifest(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowSpec":                 schema_storage_apis_ottogptscriptai_v1_WorkflowSpec(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStatus":               schema_storage_apis_ottogptscriptai_v1_WorkflowStatus(ref),
 		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStep":                 schema_storage_apis_ottogptscriptai_v1_WorkflowStep(ref),
@@ -155,53 +178,40 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_Agent(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_gptscript_ai_otto_apiclient_types_Agent(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"kind": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"apiVersion": {
-						SchemaProps: spec.SchemaProps{
-							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"metadata": {
+					"Metadata": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
 						},
 					},
-					"spec": {
+					"AgentManifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec"),
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.AgentManifest"),
 						},
 					},
-					"status": {
+					"AgentExternalStatus": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentStatus"),
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.AgentExternalStatus"),
 						},
 					},
 				},
+				Required: []string{"Metadata", "AgentManifest", "AgentExternalStatus"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/gptscript-ai/otto/apiclient/types.AgentExternalStatus", "github.com/gptscript-ai/otto/apiclient/types.AgentManifest", "github.com/gptscript-ai/otto/apiclient/types.Metadata"},
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_AgentExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_gptscript_ai_otto_apiclient_types_AgentExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -219,32 +229,12 @@ func schema_storage_apis_ottogptscriptai_v1_AgentExternalStatus(ref common.Refer
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_AgentList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_gptscript_ai_otto_apiclient_types_AgentList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"kind": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"apiVersion": {
-						SchemaProps: spec.SchemaProps{
-							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"metadata": {
-						SchemaProps: spec.SchemaProps{
-							Default: map[string]interface{}{},
-							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"),
-						},
-					},
 					"items": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
@@ -252,7 +242,7 @@ func schema_storage_apis_ottogptscriptai_v1_AgentList(ref common.ReferenceCallba
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Agent"),
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Agent"),
 									},
 								},
 							},
@@ -263,11 +253,11 @@ func schema_storage_apis_ottogptscriptai_v1_AgentList(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Agent", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/gptscript-ai/otto/apiclient/types.Agent"},
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_AgentManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_gptscript_ai_otto_apiclient_types_AgentManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -370,33 +360,32 @@ func schema_storage_apis_ottogptscriptai_v1_AgentManifest(ref common.ReferenceCa
 							},
 						},
 					},
-					"codeDependencies": {
-						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
-						},
-					},
 				},
-				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools", "codeDependencies"},
+				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools"},
 			},
 		},
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_AgentSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_gptscript_ai_otto_apiclient_types_Credential(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"manifest": {
+					"contextID": {
 						SchemaProps: spec.SchemaProps{
-							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentManifest"),
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
-					"inputFilters": {
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"envVars": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
 							Items: &spec.SchemaOrArray{
@@ -410,52 +399,81 @@ func schema_storage_apis_ottogptscriptai_v1_AgentSpec(ref common.ReferenceCallba
 							},
 						},
 					},
-					"credentialContextID": {
+					"expiresAt": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentManifest"},
+			"github.com/gptscript-ai/otto/apiclient/types.Time"},
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_AgentStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_gptscript_ai_otto_apiclient_types_CredentialList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"conditions": {
+					"items": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Credential"),
 									},
 								},
 							},
 						},
 					},
-					"external": {
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Credential"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_ErrHTTP(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"Code": {
 						SchemaProps: spec.SchemaProps{
-							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentExternalStatus"),
+							Default: 0,
+							Type:    []string{"integer"},
+							Format:  "int32",
 						},
 					},
-					"workspaceName": {
+					"Message": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
-					"knowledgeWorkspaceName": {
+				},
+				Required: []string{"Code", "Message"},
+			},
+		},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_File(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -464,12 +482,10 @@ func schema_storage_apis_ottogptscriptai_v1_AgentStatus(ref common.ReferenceCall
 				},
 			},
 		},
-		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_FileDetails(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_gptscript_ai_otto_apiclient_types_FileDetails(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -499,7 +515,35 @@ func schema_storage_apis_ottogptscriptai_v1_FileDetails(ref common.ReferenceCall
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_If(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_gptscript_ai_otto_apiclient_types_FileList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.File"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.File"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_If(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -518,7 +562,7 @@ func schema_storage_apis_ottogptscriptai_v1_If(ref common.ReferenceCallback) com
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step"),
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Step"),
 									},
 								},
 							},
@@ -531,7 +575,7 @@ func schema_storage_apis_ottogptscriptai_v1_If(ref common.ReferenceCallback) com
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step"),
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Step"),
 									},
 								},
 							},
@@ -541,7 +585,1514 @@ func schema_storage_apis_ottogptscriptai_v1_If(ref common.ReferenceCallback) com
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step"},
+			"github.com/gptscript-ai/otto/apiclient/types.Step"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_IngestionStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"count": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"reason": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"absolute_path": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"basePath": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"filename": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"vectorstore": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"msg": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"flow": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"rootPath": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"filepath": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"phase": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"num_documents": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"stage": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"component": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"filetype": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_Item(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+			},
+		},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_KnowledgeFile(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"Metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+						},
+					},
+					"fileName": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"agentID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"workflowID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"threadID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"uploadID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"ingestionStatus": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.IngestionStatus"),
+						},
+					},
+					"fileDetails": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.FileDetails"),
+						},
+					},
+				},
+				Required: []string{"Metadata", "fileName"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.FileDetails", "github.com/gptscript-ai/otto/apiclient/types.IngestionStatus", "github.com/gptscript-ai/otto/apiclient/types.Metadata"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_KnowledgeFileList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.KnowledgeFile"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.KnowledgeFile"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_Metadata(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"id": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"created": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+						},
+					},
+					"deleted": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+						},
+					},
+					"links": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Time"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_OneDriveLinks(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"Metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+						},
+					},
+					"agentID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"workflowID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"sharedLinks": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"threadID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"runID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"output": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"error": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"folders": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Item"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"Metadata"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Item", "github.com/gptscript-ai/otto/apiclient/types.Metadata"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_OneDriveLinksList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.OneDriveLinks"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.OneDriveLinks"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_Progress(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"runID": {
+						SchemaProps: spec.SchemaProps{
+							Description: "RunID should be populated for all progress events to associate this event with a run If RunID is not populated, the event will not specify tied to any particular run",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"content": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Content is the output data. The content for all events should be concatenated to form the entire output If you wish to print event and are not concerned with tracking the internal progress when one can just only the content field in a very simple loop",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"input": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Some input that was provided to the run",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"prompt": {
+						SchemaProps: spec.SchemaProps{
+							Description: "If prompt is set content will also me set, but you can ignore the content field and instead handle the explicit information in the prompt field which will provider more information for things such as OAuth",
+							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.Prompt"),
+						},
+					},
+					"step": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The step that is currently being executed. When this is set the following events are assumed to be part of this step until the next step is set. This field is not always set, only set when the set changes",
+							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.Step"),
+						},
+					},
+					"toolInput": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ToolInput indicates the LLM is currently generating tool arguments which can sometime take a while",
+							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.ToolInput"),
+						},
+					},
+					"toolCall": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ToolCall indicates the LLM is currently calling a tool.",
+							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.ToolCall"),
+						},
+					},
+					"waitingOnModel": {
+						SchemaProps: spec.SchemaProps{
+							Description: "WaitingOnModel indicates we are waiting for the model to start responding with content",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"error": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Error indicates that an error occurred",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+				},
+				Required: []string{"content"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Prompt", "github.com/gptscript-ai/otto/apiclient/types.Step", "github.com/gptscript-ai/otto/apiclient/types.ToolCall", "github.com/gptscript-ai/otto/apiclient/types.ToolInput"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_Prompt(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"id": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"time": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+						},
+					},
+					"message": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"fields": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"sensitive": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Time"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_Run(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"id": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"created": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+						},
+					},
+					"threadID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"agentID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"workflowID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"workflowStepID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"previousRunID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"input": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"state": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"output": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"error": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"input"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Time"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_RunList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Run"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Run"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_Step(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"id": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"description": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"if": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.If"),
+						},
+					},
+					"while": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.While"),
+						},
+					},
+					"template": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Template"),
+						},
+					},
+					"tools": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"agents": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"workflows": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"step": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"cache": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"temperature": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"number"},
+							Format: "float",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.If", "github.com/gptscript-ai/otto/apiclient/types.Template", "github.com/gptscript-ai/otto/apiclient/types.While"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_SubFlow(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"input": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"workflow": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_Template(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"args": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_Thread(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"Metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+						},
+					},
+					"ThreadManifest": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.ThreadManifest"),
+						},
+					},
+					"agentID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"workflowID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"lastRunID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"lastRunState": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"previousThreadID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"Metadata", "ThreadManifest"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Metadata", "github.com/gptscript-ai/otto/apiclient/types.ThreadManifest"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_ThreadList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Thread"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Thread"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_ThreadManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"tools": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"description": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_Time(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type:   types.Time{}.OpenAPISchemaType(),
+				Format: types.Time{}.OpenAPISchemaFormat(),
+			},
+		},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_ToolCall(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"description": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"input": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_ToolInput(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"content": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"internalToolName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_ToolReference(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"Metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+						},
+					},
+					"ToolReferenceManifest": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.ToolReferenceManifest"),
+						},
+					},
+					"error": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"description": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"params": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"Metadata", "ToolReferenceManifest"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Metadata", "github.com/gptscript-ai/otto/apiclient/types.ToolReferenceManifest"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_ToolReferenceList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.ToolReference"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.ToolReference"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_ToolReferenceManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"toolType": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"reference": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"name", "toolType"},
+			},
+		},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_While(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"condition": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"maxLoops": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int32",
+						},
+					},
+					"steps": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Step"),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Step"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_Workflow(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"Metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+						},
+					},
+					"WorkflowManifest": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest"),
+						},
+					},
+					"WorkflowExternalStatus": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.WorkflowExternalStatus"),
+						},
+					},
+				},
+				Required: []string{"Metadata", "WorkflowManifest", "WorkflowExternalStatus"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Metadata", "github.com/gptscript-ai/otto/apiclient/types.WorkflowExternalStatus", "github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_WorkflowExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"refNameAssigned": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_WorkflowList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Workflow"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Workflow"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_WorkflowManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"description": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"temperature": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"number"},
+							Format: "float",
+						},
+					},
+					"cache": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"refName": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"prompt": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"agents": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"workflows": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"tools": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"params": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"steps": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Step"),
+									},
+								},
+							},
+						},
+					},
+					"output": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.Step"},
+	}
+}
+
+func schema_storage_apis_ottogptscriptai_v1_Agent(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"),
+						},
+					},
+					"spec": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec"),
+						},
+					},
+					"status": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentStatus"),
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+	}
+}
+
+func schema_storage_apis_ottogptscriptai_v1_AgentList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"kind": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"apiVersion": {
+						SchemaProps: spec.SchemaProps{
+							Description: "APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"),
+						},
+					},
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Agent"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Agent", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+	}
+}
+
+func schema_storage_apis_ottogptscriptai_v1_AgentSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"manifest": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.AgentManifest"),
+						},
+					},
+					"inputFilters": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"credentialContextID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.AgentManifest"},
+	}
+}
+
+func schema_storage_apis_ottogptscriptai_v1_AgentStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"conditions": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
+									},
+								},
+							},
+						},
+					},
+					"external": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.AgentExternalStatus"),
+						},
+					},
+					"workspaceName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"knowledgeWorkspaceName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+		Dependencies: []string{
+			"github.com/gptscript-ai/otto/apiclient/types.AgentExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -664,124 +2215,6 @@ func schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestSpec(ref commo
 }
 
 func schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-			},
-		},
-	}
-}
-
-func schema_storage_apis_ottogptscriptai_v1_IngestionStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"count": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"integer"},
-							Format: "int32",
-						},
-					},
-					"reason": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"absolute_path": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"basePath": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"filename": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"vectorstore": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"msg": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"flow": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"rootPath": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"filepath": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"phase": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"num_documents": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"integer"},
-							Format: "int32",
-						},
-					},
-					"stage": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"status": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"component": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"filetype": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func schema_storage_apis_ottogptscriptai_v1_Item(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -926,13 +2359,13 @@ func schema_storage_apis_ottogptscriptai_v1_KnowledgeFileStatus(ref common.Refer
 					"ingestionStatus": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestionStatus"),
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.IngestionStatus"),
 						},
 					},
 					"fileDetails": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.FileDetails"),
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.FileDetails"),
 						},
 					},
 					"uploadID": {
@@ -945,7 +2378,7 @@ func schema_storage_apis_ottogptscriptai_v1_KnowledgeFileStatus(ref common.Refer
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.FileDetails", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestionStatus"},
+			"github.com/gptscript-ai/otto/apiclient/types.FileDetails", "github.com/gptscript-ai/otto/apiclient/types.IngestionStatus"},
 	}
 }
 
@@ -1021,7 +2454,7 @@ func schema_storage_apis_ottogptscriptai_v1_OneDriveLinksConnectorStatus(ref com
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.FileDetails"),
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.FileDetails"),
 									},
 								},
 							},
@@ -1035,7 +2468,7 @@ func schema_storage_apis_ottogptscriptai_v1_OneDriveLinksConnectorStatus(ref com
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Item"),
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Item"),
 									},
 								},
 							},
@@ -1045,7 +2478,7 @@ func schema_storage_apis_ottogptscriptai_v1_OneDriveLinksConnectorStatus(ref com
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.FileDetails", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Item"},
+			"github.com/gptscript-ai/otto/apiclient/types.FileDetails", "github.com/gptscript-ai/otto/apiclient/types.Item"},
 	}
 }
 
@@ -1186,7 +2619,7 @@ func schema_storage_apis_ottogptscriptai_v1_OnedriveLinksStatus(ref common.Refer
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Item"),
+										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Item"),
 									},
 								},
 							},
@@ -1201,148 +2634,7 @@ func schema_storage_apis_ottogptscriptai_v1_OnedriveLinksStatus(ref common.Refer
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Item", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
-	}
-}
-
-func schema_storage_apis_ottogptscriptai_v1_Progress(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"runID": {
-						SchemaProps: spec.SchemaProps{
-							Description: "RunID should be populated for all progress events to associate this event with a run If RunID is not populated, the event will not specify tied to any particular run",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"content": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Content is the output data. The content for all events should be concatenated to form the entire output If you wish to print event and are not concerned with tracking the internal progress when one can just only the content field in a very simple loop",
-							Default:     "",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"input": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Some input that was provided to the run",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"prompt": {
-						SchemaProps: spec.SchemaProps{
-							Description: "If prompt is set content will also me set, but you can ignore the content field and instead handle the explicit information in the prompt field which will provider more information for things such as OAuth",
-							Ref:         ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Prompt"),
-						},
-					},
-					"step": {
-						SchemaProps: spec.SchemaProps{
-							Description: "The step that is currently being executed. When this is set the following events are assumed to be part of this step until the next step is set. This field is not always set, only set when the set changes",
-							Ref:         ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step"),
-						},
-					},
-					"toolInput": {
-						SchemaProps: spec.SchemaProps{
-							Description: "ToolInput indicates the LLM is currently generating tool arguments which can sometime take a while",
-							Ref:         ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolInput"),
-						},
-					},
-					"toolCall": {
-						SchemaProps: spec.SchemaProps{
-							Description: "ToolCall indicates the LLM is currently calling a tool.",
-							Ref:         ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolCall"),
-						},
-					},
-					"waitingOnModel": {
-						SchemaProps: spec.SchemaProps{
-							Description: "WaitingOnModel indicates we are waiting for the model to start responding with content",
-							Type:        []string{"boolean"},
-							Format:      "",
-						},
-					},
-					"error": {
-						SchemaProps: spec.SchemaProps{
-							Description: "Error indicates that an error occurred",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-				},
-				Required: []string{"content"},
-			},
-		},
-		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Prompt", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolCall", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolInput"},
-	}
-}
-
-func schema_storage_apis_ottogptscriptai_v1_Prompt(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"id": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"time": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
-						},
-					},
-					"message": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"fields": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
-						},
-					},
-					"sensitive": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
-						},
-					},
-					"metadata": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Allows: true,
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+			"github.com/gptscript-ai/otto/apiclient/types.Item", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
 	}
 }
 
@@ -1936,113 +3228,6 @@ func schema_storage_apis_ottogptscriptai_v1_RunStatus(ref common.ReferenceCallba
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_Step(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"id": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"name": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"description": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"if": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.If"),
-						},
-					},
-					"while": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.While"),
-						},
-					},
-					"template": {
-						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Template"),
-						},
-					},
-					"tools": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
-						},
-					},
-					"agents": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
-						},
-					},
-					"workflows": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
-						},
-					},
-					"step": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"cache": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
-						},
-					},
-					"temperature": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"number"},
-							Format: "float",
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.If", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Template", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.While"},
-	}
-}
-
 func schema_storage_apis_ottogptscriptai_v1_SubCall(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -2062,30 +3247,6 @@ func schema_storage_apis_ottogptscriptai_v1_SubCall(ref common.ReferenceCallback
 						},
 					},
 					"input": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func schema_storage_apis_ottogptscriptai_v1_SubFlow(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"input": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"workflow": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -2219,39 +3380,6 @@ func schema_storage_apis_ottogptscriptai_v1_SyncUploadRequestStatus(ref common.R
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_Template(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"name": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"args": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Allows: true,
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
 func schema_storage_apis_ottogptscriptai_v1_Thread(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -2346,38 +3474,6 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadList(ref common.ReferenceCallb
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_ThreadManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"tools": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
-						},
-					},
-					"description": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
 func schema_storage_apis_ottogptscriptai_v1_ThreadSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -2387,7 +3483,7 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadSpec(ref common.ReferenceCallb
 					"manifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadManifest"),
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.ThreadManifest"),
 						},
 					},
 					"agentName": {
@@ -2430,7 +3526,7 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadManifest"},
+			"github.com/gptscript-ai/otto/apiclient/types.ThreadManifest"},
 	}
 }
 
@@ -2476,60 +3572,6 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadStatus(ref common.ReferenceCal
 		},
 		Dependencies: []string{
 			"k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
-	}
-}
-
-func schema_storage_apis_ottogptscriptai_v1_ToolCall(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"name": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"description": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"input": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-				},
-			},
-		},
-	}
-}
-
-func schema_storage_apis_ottogptscriptai_v1_ToolInput(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"content": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"internalToolName": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-				},
-			},
-		},
 	}
 }
 
@@ -2734,45 +3776,6 @@ func schema_storage_apis_ottogptscriptai_v1_ToolShortDescription(ref common.Refe
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_While(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"condition": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"maxLoops": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"integer"},
-							Format: "int32",
-						},
-					},
-					"steps": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step"),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step"},
-	}
-}
-
 func schema_storage_apis_ottogptscriptai_v1_Workflow(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -2937,7 +3940,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionSpec(ref common.Ref
 							Format: "",
 						},
 					},
-					"workspaceID": {
+					"workspaceName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -2975,7 +3978,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionStatus(ref common.R
 					},
 					"workflowManifest": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowManifest"),
+							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest"),
 						},
 					},
 					"conditions": {
@@ -2995,25 +3998,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionStatus(ref common.R
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowManifest", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
-	}
-}
-
-func schema_storage_apis_ottogptscriptai_v1_WorkflowExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"refNameAssigned": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
-						},
-					},
-				},
-			},
-		},
+			"github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -3065,144 +4050,6 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowList(ref common.ReferenceCal
 	}
 }
 
-func schema_storage_apis_ottogptscriptai_v1_WorkflowManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"name": {
-						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
-						},
-					},
-					"description": {
-						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
-						},
-					},
-					"temperature": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"number"},
-							Format: "float",
-						},
-					},
-					"cache": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
-						},
-					},
-					"refName": {
-						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
-						},
-					},
-					"prompt": {
-						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
-						},
-					},
-					"agents": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
-						},
-					},
-					"workflows": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
-						},
-					},
-					"tools": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
-						},
-					},
-					"params": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"object"},
-							AdditionalProperties: &spec.SchemaOrBool{
-								Allows: true,
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: "",
-										Type:    []string{"string"},
-										Format:  "",
-									},
-								},
-							},
-						},
-					},
-					"codeDependencies": {
-						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
-						},
-					},
-					"steps": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step"),
-									},
-								},
-							},
-						},
-					},
-					"output": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-				},
-				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools", "codeDependencies"},
-			},
-		},
-		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step"},
-	}
-}
-
 func schema_storage_apis_ottogptscriptai_v1_WorkflowSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -3212,14 +4059,14 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowSpec(ref common.ReferenceCal
 					"manifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowManifest"),
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowManifest"},
+			"github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest"},
 	}
 }
 
@@ -3232,7 +4079,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStatus(ref common.ReferenceC
 					"external": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExternalStatus"),
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.WorkflowExternalStatus"),
 						},
 					},
 					"workspaceName": {
@@ -3264,7 +4111,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStatus(ref common.ReferenceC
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/gptscript-ai/otto/apiclient/types.WorkflowExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -3377,7 +4224,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStepSpec(ref common.Referenc
 					"step": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step"),
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Step"),
 						},
 					},
 					"workflowExecutionName": {
@@ -3396,7 +4243,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStepSpec(ref common.Referenc
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Step"},
+			"github.com/gptscript-ai/otto/apiclient/types.Step"},
 	}
 }
 

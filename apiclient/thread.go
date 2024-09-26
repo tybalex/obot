@@ -1,4 +1,4 @@
-package client
+package apiclient
 
 import (
 	"context"
@@ -6,8 +6,7 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/gptscript-ai/otto/pkg/api/types"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/gptscript-ai/otto/apiclient/types"
 )
 
 func (c *Client) DeleteThread(ctx context.Context, id string) error {
@@ -41,7 +40,7 @@ type ListThreadsOptions struct {
 	AgentID string
 }
 
-func (c *Client) UpdateThread(ctx context.Context, id string, thread v1.ThreadManifest) (*types.Thread, error) {
+func (c *Client) UpdateThread(ctx context.Context, id string, thread types.ThreadManifest) (*types.Thread, error) {
 	_, resp, err := c.putJSON(ctx, fmt.Sprintf("/threads/%s", id), thread)
 	if err != nil {
 		return nil, err
@@ -54,7 +53,7 @@ func (c *Client) UpdateThread(ctx context.Context, id string, thread v1.ThreadMa
 func (c *Client) ListThreads(ctx context.Context, opts ...ListThreadsOptions) (result types.ThreadList, err error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {
-			return result.Items[i].Created.Before(result.Items[j].Created)
+			return result.Items[i].Created.Time.Before(result.Items[j].Created.Time)
 		})
 	}()
 

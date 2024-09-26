@@ -9,6 +9,7 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/apply"
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	"github.com/gptscript-ai/otto/pkg/knowledge"
 	"github.com/gptscript-ai/otto/pkg/mvl"
@@ -113,7 +114,7 @@ func compileFileStatuses(ctx context.Context, client kclient.Client, ws *v1.Work
 			if line == "" || line[0] != '{' || line[len(line)-1] != '}' {
 				continue
 			}
-			var ingestionStatus v1.IngestionStatus
+			var ingestionStatus types.IngestionStatus
 			if err := json.Unmarshal([]byte(line), &ingestionStatus); err != nil {
 				logger.Errorf("failed to unmarshal event: %s", err)
 			}

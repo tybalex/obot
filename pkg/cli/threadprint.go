@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"github.com/gptscript-ai/otto/pkg/api/client"
+	"github.com/gptscript-ai/otto/apiclient"
 	"github.com/gptscript-ai/otto/pkg/cli/events"
 	"github.com/spf13/cobra"
 )
@@ -23,7 +23,7 @@ func (l *ThreadPrint) Run(cmd *cobra.Command, args []string) error {
 		printer = events.NewPrinter(l.Quiet, l.Verbose)
 	)
 
-	events, err := l.root.Client.ThreadEvents(cmd.Context(), args[0], client.ThreadEventsOptions{
+	events, err := l.root.Client.ThreadEvents(cmd.Context(), args[0], apiclient.ThreadEventsOptions{
 		Follow: l.Follow,
 	})
 	if err != nil {

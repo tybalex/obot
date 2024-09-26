@@ -6,8 +6,8 @@ import (
 	"slices"
 
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/api/types"
 )
 
 func ListCredentials(req api.Context) error {
@@ -48,6 +48,6 @@ func convertCredential(cred gptscript.Credential) types.Credential {
 		ContextID: cred.Context,
 		Name:      cred.ToolName,
 		EnvVars:   slices.Sorted(maps.Keys(cred.Env)),
-		ExpiresAt: cred.ExpiresAt,
+		ExpiresAt: types.NewTimeFromPointer(cred.ExpiresAt),
 	}
 }

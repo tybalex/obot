@@ -5,17 +5,17 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gptscript-ai/cmd"
-	"github.com/gptscript-ai/otto/pkg/api/client"
-	"github.com/gptscript-ai/otto/pkg/mvl"
+	"github.com/gptscript-ai/otto/apiclient"
+	log2 "github.com/gptscript-ai/otto/logger"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
 
-var log = mvl.Package()
+var log = log2.Package()
 
 type Otto struct {
 	Debug  bool `usage:"Enable debug logging"`
-	Client *client.Client
+	Client *apiclient.Client
 }
 
 func (a *Otto) PersistentPre(cmd *cobra.Command, args []string) error {
@@ -24,14 +24,14 @@ func (a *Otto) PersistentPre(cmd *cobra.Command, args []string) error {
 	}
 
 	if a.Debug {
-		mvl.SetDebug()
+		log2.SetDebug()
 	}
 	return nil
 }
 
 func New() *cobra.Command {
 	root := &Otto{
-		Client: &client.Client{
+		Client: &apiclient.Client{
 			BaseURL: "http://localhost:8080",
 			Token:   os.Getenv("OTTO_TOKEN"),
 		},
