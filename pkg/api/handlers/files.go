@@ -37,7 +37,12 @@ func listFileFromWorkspace(ctx context.Context, req api.Context, wc *wclient.Cli
 		return fmt.Errorf("failed to list files in workspace %q: %w", ws.Status.WorkspaceID, err)
 	}
 
-	return req.Write(types.FileList{Items: files})
+	resp := make([]types.File, 0, len(files))
+	for _, file := range files {
+		resp = append(resp, convertFile(file))
+	}
+
+	return req.Write(types.FileList{Items: resp})
 }
 
 func listKnowledgeFiles(req api.Context, workspaceName string) error {
@@ -119,6 +124,12 @@ func convertKnowledgeFile(file v1.KnowledgeFile, ws v1.Workspace) types.Knowledg
 		IngestionStatus: file.Status.IngestionStatus,
 		FileDetails:     file.Status.FileDetails,
 		UploadID:        file.Spec.UploadName,
+	}
+}
+
+func convertFile(file string) types.File {
+	return types.File{
+		Name: file,
 	}
 }
 
