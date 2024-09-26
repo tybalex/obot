@@ -20,3 +20,13 @@ func NewErrHttp(code int, message string) *ErrHTTP {
 		Message: message,
 	}
 }
+
+func NewErrNotFound(message string, args ...any) *ErrHTTP {
+	if message == "" {
+		message = "not found"
+	}
+	if len(args) > 0 {
+		message = fmt.Sprintf(message, args...)
+	}
+	return NewErrHttp(http.StatusNotFound, message)
+}

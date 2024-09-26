@@ -88,3 +88,116 @@ func oneline(s string) string {
 	}
 	return l
 }
+
+func DeleteStep(manifest *WorkflowManifest, id string) *WorkflowManifest {
+	if manifest == nil || id == "" {
+		return nil
+	}
+
+	result := manifest.DeepCopy()
+	lookupID, _, _ := strings.Cut(id, "{")
+	result.Steps = deleteStep(manifest.Steps, lookupID)
+	return result
+}
+
+func deleteStep(steps []Step, id string) []Step {
+	newSteps := make([]Step, 0, len(steps))
+	for _, step := range steps {
+		if step.ID != id {
+			if step.While != nil {
+				step.While.Steps = deleteStep(step.While.Steps, id)
+			}
+			if step.If != nil {
+				step.If.Steps = deleteStep(step.If.Steps, id)
+				step.If.Else = deleteStep(step.If.Else, id)
+			}
+			newSteps = append(newSteps, step)
+		}
+	}
+	return newSteps
+}
+
+func AppendStep(manifest *WorkflowManifest, parentID string, step Step) *WorkflowManifest {
+	if manifest == nil {
+		return nil
+	}
+
+	parentID, addToElse := strings.CutSuffix(parentID, "::else")
+
+	result := manifest.DeepCopy()
+	if parentID == "" {
+		result.Steps = append(result.Steps, step)
+		return result
+	}
+
+	lookupID, _, _ := strings.Cut(parentID, "{")
+	result.Steps = appendStep(result.Steps, lookupID, addToElse, step)
+	return result
+}
+
+func appendStep(steps []Step, id string, addToElse bool, stepToAdd Step) []Step {
+	result := make([]Step, 0, len(steps))
+
+	for _, step := range steps {
+		if step.ID != id {
+			if step.If != nil {
+				step.If.Steps = appendStep(step.If.Steps, id, addToElse, stepToAdd)
+				step.If.Else = appendStep(step.If.Else, id, addToElse, stepToAdd)
+			}
+			if step.While != nil {
+				step.While.Steps = appendStep(step.While.Steps, id, addToElse, stepToAdd)
+			}
+			result = append(result, step)
+			continue
+		}
+
+		if step.If != nil {
+			if addToElse {
+				step.If.Else = append(step.If.Else, stepToAdd)
+			} else {
+				step.If.Steps = append(step.If.Steps, stepToAdd)
+			}
+		} else if step.While != nil {
+			step.While.Steps = append(step.While.Steps, stepToAdd)
+		}
+
+		result = append(result, step)
+	}
+
+	return result
+}
+
+func FindStep(manifest *WorkflowManifest, id string) *Step {
+	if manifest == nil || id == "" {
+		return nil
+	}
+	lookupID, _, _ := strings.Cut(id, "{")
+	found := findInSteps(manifest.Steps, lookupID)
+	if found != nil && found.ID != id {
+		found = found.DeepCopy()
+		found.ID = id
+	}
+	return found
+}
+
+func findInSteps(steps []Step, id string) *Step {
+	for _, step := range steps {
+		if step.ID == id {
+			return &step
+		}
+		if step.While != nil {
+			if found := findInSteps(step.While.Steps, id); found != nil {
+				return found
+			}
+		}
+		if step.If != nil {
+			if found := findInSteps(step.If.Steps, id); found != nil {
+				return found
+			}
+			if found := findInSteps(step.If.Else, id); found != nil {
+				return found
+			}
+		}
+	}
+	return nil
+}

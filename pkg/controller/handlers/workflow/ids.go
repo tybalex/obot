@@ -1,8 +1,6 @@
 package workflow
 
 import (
-	"strings"
-
 	"github.com/acorn-io/baaah/pkg/randomtoken"
 	"github.com/gptscript-ai/otto/apiclient/types"
 )
@@ -14,41 +12,6 @@ func PopulateIDs(manifest types.WorkflowManifest) types.WorkflowManifest {
 		manifest.Steps[i] = populateStepID(ids, step)
 	}
 	return manifest
-}
-
-func FindStep(manifest *types.WorkflowManifest, id string) *types.Step {
-	if manifest == nil || id == "" {
-		return nil
-	}
-	lookupID, _, _ := strings.Cut(id, "{")
-	found := findInSteps(manifest.Steps, lookupID)
-	if found != nil && found.ID != id {
-		found = found.DeepCopy()
-		found.ID = id
-	}
-	return found
-}
-
-func findInSteps(steps []types.Step, id string) *types.Step {
-	for _, step := range steps {
-		if step.ID == id {
-			return &step
-		}
-		if step.While != nil {
-			if found := findInSteps(step.While.Steps, id); found != nil {
-				return found
-			}
-		}
-		if step.If != nil {
-			if found := findInSteps(step.If.Steps, id); found != nil {
-				return found
-			}
-			if found := findInSteps(step.If.Else, id); found != nil {
-				return found
-			}
-		}
-	}
-	return nil
 }
 
 func nextID(seen map[string]struct{}) string {

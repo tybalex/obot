@@ -13,7 +13,6 @@ import (
 	"github.com/acorn-io/baaah/pkg/typed"
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/apiclient/types"
-	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflow"
 	"github.com/gptscript-ai/otto/pkg/gz"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -170,7 +169,7 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 		if err := e.client.Get(ctx, router.Key(run.Namespace, run.Spec.WorkflowExecutionName), &wfe); err != nil {
 			return err
 		}
-		step := workflow.FindStep(wfe.Status.WorkflowManifest, run.Spec.WorkflowStepID)
+		step := types.FindStep(wfe.Status.WorkflowManifest, run.Spec.WorkflowStepID)
 		result <- types.Progress{
 			RunID: run.Name,
 			Step:  step,

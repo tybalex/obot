@@ -92,6 +92,7 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	// ToolRefs
 	mux.Handle("GET /toolreferences", w(toolRefs.List))
+	mux.Handle("GET /toolreferences/{id}", w(toolRefs.Get))
 	mux.Handle("POST /toolreferences", w(toolRefs.Create))
 	mux.Handle("DELETE /toolreferences/{id}", w(toolRefs.Delete))
 	mux.Handle("PUT /toolreferences/{id}", w(toolRefs.Update))

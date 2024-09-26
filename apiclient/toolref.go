@@ -11,6 +11,16 @@ type ListToolReferencesOptions struct {
 	ToolType types.ToolReferenceType
 }
 
+func (c *Client) GetToolReference(ctx context.Context, id string) (result *types.ToolReference, _ error) {
+	_, resp, err := c.doRequest(ctx, "GET", fmt.Sprintf("/toolreferences/%s", id), nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return toObject(resp, &types.ToolReference{})
+}
+
 func (c *Client) ListToolReferences(ctx context.Context, opts ListToolReferencesOptions) (result types.ToolReferenceList, _ error) {
 	path := "/toolreferences"
 	if opts.ToolType != "" {

@@ -39,6 +39,19 @@ func convertToolReference(toolRef v1.ToolReference) types.ToolReference {
 	return tf
 }
 
+func (a *ToolReferenceHandler) Get(req api.Context) error {
+	var (
+		id      = req.PathValue("id")
+		toolRef v1.ToolReference
+	)
+
+	if err := req.Get(&toolRef, id); err != nil {
+		return err
+	}
+
+	return req.Write(convertToolReference(toolRef))
+}
+
 func (a *ToolReferenceHandler) Create(req api.Context) error {
 	var (
 		newToolReference types.ToolReferenceManifest
