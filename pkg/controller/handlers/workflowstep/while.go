@@ -22,6 +22,7 @@ func (h *Handler) RunWhile(req router.Request, resp router.Response) error {
 
 	var (
 		finalState  = v1.WorkflowStepStateComplete
+		finalError  string
 		lastRunName string
 		lastStep    *v1.WorkflowStep
 	)
@@ -31,6 +32,7 @@ func (h *Handler) RunWhile(req router.Request, resp router.Response) error {
 	for i := 0; i < count; i++ {
 		if i == count-1 {
 			finalState = v1.WorkflowStepStateError
+			finalError = fmt.Sprintf("MaxLoops exceeded count %d", count-1)
 			break
 		}
 
@@ -80,6 +82,7 @@ func (h *Handler) RunWhile(req router.Request, resp router.Response) error {
 	}
 
 	step.Status.State = finalState
+	step.Status.Error = finalError
 	step.Status.LastRunName = lastRunName
 	return nil
 }

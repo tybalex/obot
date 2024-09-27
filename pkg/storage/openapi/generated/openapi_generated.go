@@ -3705,6 +3705,12 @@ func schema_storage_apis_ottogptscriptai_v1_ToolReferenceStatus(ref common.Refer
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
+					"reference": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"observedGeneration": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"integer"},

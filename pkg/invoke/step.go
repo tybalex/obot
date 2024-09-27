@@ -58,15 +58,18 @@ func (i *Invoker) toAgentFromStep(ctx context.Context, c kclient.Client, step *v
 	if err := c.Get(ctx, router.Key(step.Namespace, wfe.Spec.WorkflowName), &wf); err != nil {
 		return v1.Agent{}, err
 	}
-	return i.toAgent(&wf, step, wfe.Spec.Input, *wfe.Status.WorkflowManifest)
+	return i.toAgent(ctx, c, &wf, step, wfe.Spec.Input, *wfe.Status.WorkflowManifest)
 }
 
-func (i *Invoker) toAgent(wf *v1.Workflow, step *v1.WorkflowStep, input string, manifest types.WorkflowManifest) (v1.Agent, error) {
-	agent := render.Workflow(wf, render.WorkflowOptions{
+func (i *Invoker) toAgent(ctx context.Context, c kclient.Client, wf *v1.Workflow, step *v1.WorkflowStep, input string, manifest types.WorkflowManifest) (v1.Agent, error) {
+	agent, err := render.Workflow(ctx, c, wf, render.WorkflowOptions{
 		ManifestOverride: &manifest,
 		Step:             &step.Spec.Step,
 		Input:            input,
 	})
+	if err != nil {
+		return v1.Agent{}, err
+	}
 	return *agent, nil
 }
 

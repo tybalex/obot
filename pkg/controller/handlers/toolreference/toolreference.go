@@ -24,6 +24,7 @@ func (h *Handler) Populate(req router.Request, resp router.Response) error {
 
 	// Reset status
 	toolRef.Status.ObservedGeneration = toolRef.Generation
+	toolRef.Status.Reference = toolRef.Spec.Reference
 	toolRef.Status.Tool = nil
 	toolRef.Status.Error = ""
 

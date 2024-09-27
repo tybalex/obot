@@ -233,9 +233,12 @@ func (a *WorkflowHandler) Script(req api.Context) error {
 	}
 
 	step := types.FindStep(&wf.Spec.Manifest, stepID)
-	agent := render.Workflow(&wf, render.WorkflowOptions{
+	agent, err := render.Workflow(req.Context(), req.Storage, &wf, render.WorkflowOptions{
 		Step: step,
 	})
+	if err != nil {
+		return err
+	}
 
 	tools, _, err := render.Agent(req.Context(), req.Storage, agent, render.AgentOptions{})
 	if err != nil {
