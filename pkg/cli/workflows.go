@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dustin/go-humanize"
+	"github.com/gptscript-ai/otto/apiclient"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +19,7 @@ func (l *Workflows) Customize(cmd *cobra.Command) {
 }
 
 func (l *Workflows) Run(cmd *cobra.Command, args []string) error {
-	wfs, err := l.root.Client.ListWorkflows(cmd.Context())
+	wfs, err := l.root.Client.ListWorkflows(cmd.Context(), apiclient.ListWorkflowsOptions{})
 	if err != nil {
 		return err
 	}

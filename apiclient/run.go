@@ -33,8 +33,8 @@ func (c *Client) DebugRun(ctx context.Context, runID string) (result *types.RunD
 	return toObject(resp, &types.RunDebug{})
 }
 
-func (c *Client) StreamRuns(ctx context.Context, opts ...ListRunsOptions) (result <-chan types.Run, err error) {
-	url := c.runURLFromOpts(opts...)
+func (c *Client) StreamRuns(ctx context.Context, opts ListRunsOptions) (result <-chan types.Run, err error) {
+	url := c.runURLFromOpts(opts)
 	_, resp, err := c.doStream(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return
@@ -63,14 +63,14 @@ func (c *Client) DeleteRun(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c *Client) ListRuns(ctx context.Context, opts ...ListRunsOptions) (result types.RunList, err error) {
+func (c *Client) ListRuns(ctx context.Context, opts ListRunsOptions) (result types.RunList, err error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {
 			return result.Items[i].Created.Time.Before(result.Items[j].Created.Time)
 		})
 	}()
 
-	url := c.runURLFromOpts(opts...)
+	url := c.runURLFromOpts(opts)
 	_, resp, err := c.doRequest(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return

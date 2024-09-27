@@ -82,30 +82,26 @@ func sliceToIter[T any](s []T) iter.Seq[T] {
 
 func (l *Runs) Run(cmd *cobra.Command, args []string) error {
 	var (
-		opts  []apiclient.ListRunsOptions
+		opts  apiclient.ListRunsOptions
 		flush bool
 		list  iter.Seq[types.Run]
 	)
 	if len(args) > 0 {
-		opts = append(opts, apiclient.ListRunsOptions{
-			AgentID: args[0],
-		})
+		opts.AgentID = args[0]
 	}
 	if len(args) > 1 {
-		opts = append(opts, apiclient.ListRunsOptions{
-			ThreadID: args[1],
-		})
+		opts.ThreadID = args[1]
 	}
 
 	if l.Follow {
-		items, err := l.root.Client.StreamRuns(cmd.Context(), opts...)
+		items, err := l.root.Client.StreamRuns(cmd.Context(), opts)
 		if err != nil {
 			return err
 		}
 		list = chanToIter(items)
 		flush = true
 	} else {
-		runs, err := l.root.Client.ListRuns(cmd.Context(), opts...)
+		runs, err := l.root.Client.ListRuns(cmd.Context(), opts)
 		if err != nil {
 			return err
 		}

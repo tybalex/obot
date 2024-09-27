@@ -42,19 +42,12 @@ type ListWorkflowsOptions struct {
 	RefName string
 }
 
-func (c *Client) ListWorkflows(ctx context.Context, opts ...ListWorkflowsOptions) (result types.WorkflowList, err error) {
+func (c *Client) ListWorkflows(ctx context.Context, opts ListWorkflowsOptions) (result types.WorkflowList, err error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {
 			return result.Items[i].Metadata.Created.Time.Before(result.Items[j].Metadata.Created.Time)
 		})
 	}()
-
-	var opt ListWorkflowsOptions
-	for _, o := range opts {
-		if o.RefName != "" {
-			opt.RefName = o.RefName
-		}
-	}
 
 	_, resp, err := c.doRequest(ctx, http.MethodGet, "/workflows", nil)
 	if err != nil {
@@ -67,10 +60,10 @@ func (c *Client) ListWorkflows(ctx context.Context, opts ...ListWorkflowsOptions
 		return result, err
 	}
 
-	if opt.RefName != "" {
+	if opts.RefName != "" {
 		var filtered types.WorkflowList
 		for _, workflow := range result.Items {
-			if workflow.RefName == opt.RefName && workflow.RefNameAssigned {
+			if workflow.RefName == opts.RefName && workflow.RefNameAssigned {
 				filtered.Items = append(filtered.Items, workflow)
 			}
 		}

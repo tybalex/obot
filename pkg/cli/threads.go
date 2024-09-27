@@ -21,13 +21,11 @@ func (l *Threads) Customize(cmd *cobra.Command) {
 }
 
 func (l *Threads) Run(cmd *cobra.Command, args []string) error {
-	var opts []apiclient.ListThreadsOptions
+	var opts apiclient.ListThreadsOptions
 	if len(args) > 0 {
-		opts = append(opts, apiclient.ListThreadsOptions{
-			AgentID: args[0],
-		})
+		opts.AgentID = args[0]
 	}
-	threads, err := l.root.Client.ListThreads(cmd.Context(), opts...)
+	threads, err := l.root.Client.ListThreads(cmd.Context(), opts)
 	if err != nil {
 		return err
 	}

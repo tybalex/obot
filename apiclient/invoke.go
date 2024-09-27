@@ -15,19 +15,7 @@ type InvokeOptions struct {
 	Async    bool
 }
 
-func (c *Client) Invoke(ctx context.Context, agentID string, input string, opt ...InvokeOptions) (*types.InvokeResponse, error) {
-	var (
-		opts InvokeOptions
-	)
-	for _, o := range opt {
-		if o.ThreadID != "" {
-			opts.ThreadID = o.ThreadID
-		}
-		if o.Async {
-			opts.Async = o.Async
-		}
-	}
-
+func (c *Client) Invoke(ctx context.Context, agentID string, input string, opts InvokeOptions) (*types.InvokeResponse, error) {
 	url := fmt.Sprintf("/invoke/%s?async=%v", agentID, opts.Async)
 	if opts.ThreadID != "" {
 		url = fmt.Sprintf("/invoke/%s/threads/%s?async=%v", agentID, opts.ThreadID, opts.Async)

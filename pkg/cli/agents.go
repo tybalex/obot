@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dustin/go-humanize"
+	"github.com/gptscript-ai/otto/apiclient"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +19,7 @@ func (l *Agents) Customize(cmd *cobra.Command) {
 }
 
 func (l *Agents) Run(cmd *cobra.Command, args []string) error {
-	agents, err := l.root.Client.ListAgents(cmd.Context())
+	agents, err := l.root.Client.ListAgents(cmd.Context(), apiclient.ListAgentsOptions{})
 	if err != nil {
 		return err
 	}

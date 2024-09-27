@@ -14,7 +14,6 @@ type Credentials struct {
 	root     *Otto
 	Wide     bool   `usage:"Print more information" short:"w"`
 	Quiet    bool   `usage:"Only print IDs of credentials" short:"q"`
-	Follow   bool   `usage:"Follow the output of credentials" short:"f"`
 	ThreadID string `usage:"Specific thread list credentials for" short:"t"`
 }
 

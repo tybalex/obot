@@ -44,7 +44,6 @@ func convertThread(thread v1.Thread) types.Thread {
 func (a *ThreadHandler) Events(req api.Context) error {
 	var (
 		id     = req.PathValue("id")
-		follow = req.URL.Query().Get("follow") == "true"
 		thread v1.Thread
 	)
 
@@ -53,7 +52,7 @@ func (a *ThreadHandler) Events(req api.Context) error {
 	}
 
 	events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
-		Follow:     follow,
+		Follow:     true,
 		History:    true,
 		ThreadName: thread.Name,
 	})

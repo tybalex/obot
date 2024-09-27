@@ -42,19 +42,12 @@ type ListAgentsOptions struct {
 	RefName string
 }
 
-func (c *Client) ListAgents(ctx context.Context, opts ...ListAgentsOptions) (result types.AgentList, err error) {
+func (c *Client) ListAgents(ctx context.Context, opts ListAgentsOptions) (result types.AgentList, err error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {
 			return result.Items[i].Metadata.Created.Time.Before(result.Items[j].Metadata.Created.Time)
 		})
 	}()
-
-	var opt ListAgentsOptions
-	for _, o := range opts {
-		if o.RefName != "" {
-			opt.RefName = o.RefName
-		}
-	}
 
 	_, resp, err := c.doRequest(ctx, http.MethodGet, "/agents", nil)
 	if err != nil {
@@ -67,10 +60,10 @@ func (c *Client) ListAgents(ctx context.Context, opts ...ListAgentsOptions) (res
 		return result, err
 	}
 
-	if opt.RefName != "" {
+	if opts.RefName != "" {
 		var filtered types.AgentList
 		for _, agent := range result.Items {
-			if agent.RefName == opt.RefName && agent.RefNameAssigned {
+			if agent.RefName == opts.RefName && agent.RefNameAssigned {
 				filtered.Items = append(filtered.Items, agent)
 			}
 		}
