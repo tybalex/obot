@@ -41,7 +41,6 @@ type WorkflowStepSpec struct {
 	AfterWorkflowStepName string     `json:"afterWorkflowStepName,omitempty"`
 	Step                  types.Step `json:"step,omitempty"`
 	WorkflowExecutionName string     `json:"workflowExecutionName,omitempty"`
-	Input                 string     `json:"input,omitempty"`
 }
 
 func (in *WorkflowStep) DeleteRefs() []Ref {

@@ -3,7 +3,6 @@ package invoke
 import (
 	"context"
 	"encoding/json"
-	"strings"
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/otto/apiclient/types"
@@ -59,45 +58,31 @@ func (i *Invoker) toAgentFromStep(ctx context.Context, c kclient.Client, step *v
 	if err := c.Get(ctx, router.Key(step.Namespace, wfe.Spec.WorkflowName), &wf); err != nil {
 		return v1.Agent{}, err
 	}
-	return i.toAgent(&wf, step, *wfe.Status.WorkflowManifest)
+	return i.toAgent(&wf, step, wfe.Spec.Input, *wfe.Status.WorkflowManifest)
 }
 
-func (i *Invoker) toAgent(wf *v1.Workflow, step *v1.WorkflowStep, manifest types.WorkflowManifest) (v1.Agent, error) {
+func (i *Invoker) toAgent(wf *v1.Workflow, step *v1.WorkflowStep, input string, manifest types.WorkflowManifest) (v1.Agent, error) {
 	agent := render.Workflow(wf, render.WorkflowOptions{
 		ManifestOverride: &manifest,
 		Step:             &step.Spec.Step,
+		Input:            input,
 	})
 	return *agent, nil
 }
 
-func concatOrNotJSONMaps(one string, args map[string]string) string {
-	result := map[string]string{}
-	if one != "" {
-		if err := json.Unmarshal([]byte(one), &result); err != nil {
-			// Not JSON, just use as is
-			return one
-		}
+func toStringArgs(args map[string]string) (string, error) {
+	if args == nil {
+		args = map[string]string{}
 	}
-
-	for k, v := range args {
-		result[k] = v
-	}
-
-	data, _ := json.Marshal(result)
-	return string(data)
+	data, err := json.Marshal(args)
+	return string(data), err
 }
 
 func (i *Invoker) getInput(step *v1.WorkflowStep) (string, error) {
 	if step.Spec.Step.Template != nil && step.Spec.Step.Template.Name != "" {
-		return concatOrNotJSONMaps(step.Spec.Input, step.Spec.Step.Template.Args), nil
+		return toStringArgs(step.Spec.Step.Template.Args)
+	} else if step.Spec.Step.Step != "" {
+		return step.Spec.Step.Step, nil
 	}
-
-	var content []string
-	if step.Spec.Input != "" {
-		content = append(content, step.Spec.Input)
-	}
-	if step.Spec.Step.Step != "" {
-		content = append(content, step.Spec.Step.Step)
-	}
-	return strings.Join(content, "\n"), nil
+	return "", nil
 }

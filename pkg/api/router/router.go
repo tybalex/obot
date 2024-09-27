@@ -74,6 +74,7 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	// Threads
 	mux.Handle("GET /threads", w(threads.List))
+	mux.Handle("GET /threads/{id}", w(threads.ByID))
 	mux.Handle("GET /threads/{id}/events", w(threads.Events))
 	mux.Handle("DELETE /threads/{id}", w(threads.Delete))
 	mux.Handle("PUT /threads/{id}", w(threads.Update))
@@ -92,7 +93,7 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	// ToolRefs
 	mux.Handle("GET /toolreferences", w(toolRefs.List))
-	mux.Handle("GET /toolreferences/{id}", w(toolRefs.Get))
+	mux.Handle("GET /toolreferences/{id}", w(toolRefs.ByID))
 	mux.Handle("POST /toolreferences", w(toolRefs.Create))
 	mux.Handle("DELETE /toolreferences/{id}", w(toolRefs.Delete))
 	mux.Handle("PUT /toolreferences/{id}", w(toolRefs.Update))

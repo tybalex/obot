@@ -1,6 +1,8 @@
 package render
 
 import (
+	"fmt"
+
 	"github.com/gptscript-ai/otto/apiclient/types"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -9,6 +11,7 @@ import (
 type WorkflowOptions struct {
 	Step             *types.Step
 	ManifestOverride *types.WorkflowManifest
+	Input            string
 }
 
 func Workflow(wf *v1.Workflow, opts WorkflowOptions) *v1.Agent {
@@ -49,6 +52,10 @@ func Workflow(wf *v1.Workflow, opts WorkflowOptions) *v1.Agent {
 
 	if agent.Spec.Manifest.Prompt == "" {
 		agent.Spec.Manifest.Prompt = v1.DefaultWorkflowAgentPrompt
+	}
+
+	if opts.Input != "" {
+		agent.Spec.Manifest.Prompt = fmt.Sprintf("USER INPUT: %s\n\n%s", agent.Spec.Manifest.Prompt, opts.Input)
 	}
 
 	return &agent

@@ -91,11 +91,8 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 		lastStepName = we.Spec.AfterWorkflowStepName
 	)
 
-	for i, step := range we.Status.WorkflowManifest.Steps {
+	for _, step := range we.Status.WorkflowManifest.Steps {
 		newStep := workflowstep.NewStep(we.Namespace, we.Name, lastStepName, step)
-		if i == 0 {
-			newStep.Spec.Input = we.Spec.Input
-		}
 		steps = append(steps, newStep)
 		lastStepName = newStep.Name
 	}

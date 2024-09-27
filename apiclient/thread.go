@@ -19,7 +19,8 @@ func (c *Client) DeleteThread(ctx context.Context, id string) error {
 }
 
 type ThreadEventsOptions struct {
-	Follow bool
+	AfterRunID string
+	Follow     bool
 }
 
 func (c *Client) ThreadEvents(ctx context.Context, threadID string, opts ThreadEventsOptions) (result <-chan types.Progress, err error) {
@@ -44,6 +45,16 @@ func (c *Client) UpdateThread(ctx context.Context, id string, thread types.Threa
 	_, resp, err := c.putJSON(ctx, fmt.Sprintf("/threads/%s", id), thread)
 	if err != nil {
 		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return toObject(resp, &types.Thread{})
+}
+
+func (c *Client) GetThread(ctx context.Context, threadID string) (result *types.Thread, err error) {
+	_, resp, err := c.doRequest(ctx, http.MethodGet, fmt.Sprintf("/threads/"+threadID), nil)
+	if err != nil {
+		return
 	}
 	defer resp.Body.Close()
 

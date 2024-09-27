@@ -4239,12 +4239,6 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStepSpec(ref common.Referenc
 							Format: "",
 						},
 					},
-					"input": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 				},
 			},
 		},

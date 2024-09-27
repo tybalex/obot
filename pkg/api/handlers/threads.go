@@ -64,6 +64,19 @@ func (a *ThreadHandler) Events(req api.Context) error {
 	return req.WriteEvents(events)
 }
 
+func (a *ThreadHandler) ByID(req api.Context) error {
+	var (
+		id     = req.PathValue("id")
+		thread v1.Thread
+	)
+
+	if err := req.Get(&thread, id); err != nil {
+		return err
+	}
+
+	return req.Write(convertThread(thread))
+}
+
 func (a *ThreadHandler) Delete(req api.Context) error {
 	var (
 		id = req.PathValue("id")

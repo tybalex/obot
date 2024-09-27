@@ -39,7 +39,7 @@ func convertToolReference(toolRef v1.ToolReference) types.ToolReference {
 	return tf
 }
 
-func (a *ToolReferenceHandler) Get(req api.Context) error {
+func (a *ToolReferenceHandler) ByID(req api.Context) error {
 	var (
 		id      = req.PathValue("id")
 		toolRef v1.ToolReference

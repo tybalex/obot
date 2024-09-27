@@ -105,6 +105,11 @@ func (r *Context) Write(obj any) error {
 }
 
 func (r *Context) WriteDataEvent(obj any) error {
+	if prg, ok := obj.(*types.Progress); ok && prg.RunID != "" {
+		if _, err := r.ResponseWriter.Write([]byte("id: " + prg.RunID + "\n")); err != nil {
+			return err
+		}
+	}
 	data, err := json.Marshal(obj)
 	if err != nil {
 		return err
