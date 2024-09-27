@@ -55,7 +55,7 @@ func Workflow(wf *v1.Workflow, opts WorkflowOptions) *v1.Agent {
 	}
 
 	if opts.Input != "" {
-		agent.Spec.Manifest.Prompt = fmt.Sprintf("USER INPUT: %s\n\n%s", agent.Spec.Manifest.Prompt, opts.Input)
+		agent.Spec.Manifest.Prompt = fmt.Sprintf("WORKFLOW INPUT: %s\nEND WORKFLOW INPUT\n\n%s", opts.Input, agent.Spec.Manifest.Prompt)
 	}
 
 	return &agent
