@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"time"
 
 	"github.com/acorn-io/baaah/pkg/apply"
 	"github.com/acorn-io/baaah/pkg/router"
@@ -202,15 +203,31 @@ func (u *UploadHandler) HandleUploadRun(req router.Request, resp router.Response
 
 	var run v1.Run
 	if err := req.Get(&run, oneDriveLinks.Namespace, oneDriveLinks.Status.RunName); apierrors.IsNotFound(err) {
-		// Might not be in the cache yet.
 		return nil
-	} else if err != nil || !run.Status.State.IsTerminal() {
+	} else if err != nil {
 		return err
 	}
 
 	var thread v1.Thread
 	if err := req.Get(&thread, oneDriveLinks.Namespace, oneDriveLinks.Status.ThreadName); err != nil {
 		return err
+	}
+
+	if !run.Status.State.IsTerminal() {
+		file, err := u.workspaceClient.OpenFile(req.Ctx, thread.Spec.WorkspaceID, ".metadata.json")
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		var output map[string]v1.OneDriveLinksConnectorStatus
+		if err = json.NewDecoder(file).Decode(&output); err != nil {
+			return err
+		}
+		oneDriveLinks.Status.Status = output["output"].Status
+		oneDriveLinks.Status.Error = output["output"].Error
+		resp.RetryAfter(5 * time.Second)
+		return nil
 	}
 
 	ws, err := knowledgeWorkspaceFromParent(req, oneDriveLinks)
