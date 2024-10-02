@@ -47,7 +47,7 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 	we := req.Object.(*v1.WorkflowExecution)
 
 	switch we.Status.State {
-	case v1.WorkflowStateError, v1.WorkflowStateComplete:
+	case types.WorkflowStateError, types.WorkflowStateComplete:
 		resp.DisablePrune()
 		return nil
 	}
@@ -63,8 +63,8 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 		return nil
 	}
 
-	if we.Status.State != v1.WorkflowStateRunning {
-		we.Status.State = v1.WorkflowStateRunning
+	if we.Status.State != types.WorkflowStateRunning {
+		we.Status.State = types.WorkflowStateRunning
 		if err := req.Client.Status().Update(req.Ctx, we); err != nil {
 			return err
 		}
@@ -111,8 +111,21 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 		return err
 	}
 
+	if we.Status.ThreadName != "" && (newState == types.WorkflowStateError || newState == types.WorkflowStateComplete) {
+		var thread v1.Thread
+		if err := req.Get(&thread, we.Namespace, we.Status.ThreadName); err != nil {
+			return err
+		}
+		if thread.Status.WorkflowState != newState {
+			thread.Status.WorkflowState = newState
+			if err := req.Client.Status().Update(req.Ctx, &thread); err != nil {
+				return err
+			}
+		}
+	}
+
 	we.Status.State = newState
-	if we.Status.State == v1.WorkflowStateError || we.Status.State == v1.WorkflowStateComplete {
+	if we.Status.State == types.WorkflowStateError || we.Status.State == types.WorkflowStateComplete {
 		we.Status.EndTime = &metav1.Time{Time: time.Now()}
 	}
 	if we.Status.WorkflowManifest.Output != "" {
@@ -122,27 +135,27 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 	return nil
 }
 
-func (h *Handler) getState(ctx context.Context, client kclient.Client, steps []kclient.Object) (string, v1.WorkflowState, error) {
+func (h *Handler) getState(ctx context.Context, client kclient.Client, steps []kclient.Object) (string, types.WorkflowState, error) {
 	for i, obj := range steps {
 		step := obj.(*v1.WorkflowStep).DeepCopy()
 		if err := client.Get(ctx, router.Key(step.Namespace, step.Name), step); apierror.IsNotFound(err) {
-			return "", v1.WorkflowStateRunning, nil
+			return "", types.WorkflowStateRunning, nil
 		} else if err != nil {
 			return "", "", err
 		}
 		if step.Status.State == v1.WorkflowStepStateError {
-			return "", v1.WorkflowStateError, nil
+			return "", types.WorkflowStateError, nil
 		}
 		if len(steps)-1 == i && step.Status.State == v1.WorkflowStepStateComplete {
 			var run v1.Run
 			if err := client.Get(ctx, router.Key(step.Namespace, step.Status.LastRunName), &run); err != nil {
-				return "", v1.WorkflowStateError, err
+				return "", types.WorkflowStateError, err
 			}
-			return run.Status.Output, v1.WorkflowStateComplete, nil
+			return run.Status.Output, types.WorkflowStateComplete, nil
 		}
 	}
 
-	return "", v1.WorkflowStateRunning, nil
+	return "", types.WorkflowStateRunning, nil
 }
 
 func (h *Handler) loadManifest(req router.Request, we *v1.WorkflowExecution) error {
@@ -173,6 +186,7 @@ func (h *Handler) newThread(ctx context.Context, c kclient.Client, wf *v1.Workfl
 	}
 
 	return h.invoker.NewThread(ctx, c, wf.Namespace, invoke.NewThreadOptions{
+		ParentThreadName:      we.Spec.ParentThreadName,
 		WorkflowName:          we.Spec.WorkflowName,
 		WorkflowExecutionName: we.Name,
 		WebhookName:           we.Spec.WebhookName,

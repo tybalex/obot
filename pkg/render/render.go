@@ -145,7 +145,7 @@ func manifestToTool(manifest types.AgentManifest, agentType, ref, id string) gpt
 		}
 	}
 	toolDef.Instructions = fmt.Sprintf(`#!/bin/bash
-#OTTO_SUBFLOW: ID: %s
+#OTTO_SUBCALL: TARGET: %s
 INPUT=$(${GPTSCRIPT_BIN} getenv GPTSCRIPT_INPUT)
 if echo "${INPUT}" | grep -q '^{'; then
 	echo '{"%s":"%s","type":"OttoSubFlow",'

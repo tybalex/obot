@@ -6,6 +6,7 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/apply"
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/gptscript-ai/otto/pkg/system"
 	"github.com/robfig/cron/v3"
@@ -82,7 +83,7 @@ func (h *Handler) SetSuccessRunTime(req router.Request, _ router.Response) error
 	}
 
 	for _, execution := range workflowExecutions.Items {
-		if execution.Status.State == v1.WorkflowStateComplete && (cj.Status.LastSuccessfulRunCompleted == nil || cj.Status.LastSuccessfulRunCompleted.Before(execution.Status.EndTime)) {
+		if execution.Status.State == types.WorkflowStateComplete && (cj.Status.LastSuccessfulRunCompleted == nil || cj.Status.LastSuccessfulRunCompleted.Before(execution.Status.EndTime)) {
 			cj.Status.LastSuccessfulRunCompleted = execution.Status.EndTime
 		}
 	}

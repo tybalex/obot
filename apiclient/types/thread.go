@@ -1,15 +1,22 @@
 package types
 
-import gptscriptclient "github.com/gptscript-ai/go-gptscript"
+type WorkflowState string
+
+const (
+	WorkflowStatePending  WorkflowState = "Pending"
+	WorkflowStateRunning  WorkflowState = "Running"
+	WorkflowStateError    WorkflowState = "Error"
+	WorkflowStateComplete WorkflowState = "Complete"
+)
 
 type Thread struct {
 	Metadata
 	ThreadManifest
-	AgentID          string                   `json:"agentID,omitempty"`
-	WorkflowID       string                   `json:"workflowID,omitempty"`
-	LastRunID        string                   `json:"lastRunID,omitempty"`
-	LastRunState     gptscriptclient.RunState `json:"lastRunState,omitempty"`
-	PreviousThreadID string                   `json:"previousThreadID,omitempty"`
+	AgentID        string `json:"agentID,omitempty"`
+	WorkflowID     string `json:"workflowID,omitempty"`
+	State          string `json:"state,omitempty"`
+	LastRunID      string `json:"lastRunID,omitempty"`
+	ParentThreadID string `json:"parentThreadID,omitempty"`
 }
 
 type ThreadList List[Thread]

@@ -45,7 +45,7 @@ type ListAgentsOptions struct {
 func (c *Client) ListAgents(ctx context.Context, opts ListAgentsOptions) (result types.AgentList, err error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {
-			return result.Items[i].Metadata.Created.Time.Before(result.Items[j].Metadata.Created.Time)
+			return result.Items[i].Metadata.Created.Time.After(result.Items[j].Metadata.Created.Time)
 		})
 	}()
 

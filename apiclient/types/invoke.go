@@ -13,10 +13,17 @@ type Progress struct {
 	// If RunID is not populated, the event will not specify tied to any particular run
 	RunID string `json:"runID,omitempty"`
 
+	// Time is the time the event was generated
+	Time *Time `json:"time,omitempty"`
+
 	// Content is the output data. The content for all events should be concatenated to form the entire output
 	// If you wish to print event and are not concerned with tracking the internal progress when one can just
 	// only the content field in a very simple loop
 	Content string `json:"content"`
+
+	// ContentID is a unique identifier for the content. This is used to track the content across multiple events.
+	// This field applies to Content and ToolInput.Content fields.
+	ContentID string `json:"contentID,omitempty"`
 
 	// NOTE: Only one of the follow fields will be populated, never more than one. If none of the below fields are
 	// populated, you should only care about the content field which should have some content to print. You should
@@ -34,6 +41,8 @@ type Progress struct {
 	ToolInput *ToolInput `json:"toolInput,omitempty"`
 	// ToolCall indicates the LLM is currently calling a tool.
 	ToolCall *ToolCall `json:"toolCall,omitempty"`
+	// ToolCall indicates the LLM is currently calling a tool.
+	WorkflowCall *WorkflowCall `json:"workflowCall,omitempty"`
 	// WaitingOnModel indicates we are waiting for the model to start responding with content
 	WaitingOnModel bool `json:"waitingOnModel,omitempty"`
 	// Error indicates that an error occurred
@@ -57,5 +66,13 @@ type ToolInput struct {
 type ToolCall struct {
 	Name        string `json:"name,omitempty"`
 	Description string `json:"description,omitempty"`
+	Input       string `json:"input,omitempty"`
+}
+
+type WorkflowCall struct {
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	ThreadID    string `json:"threadID,omitempty"`
+	WorkflowID  string `json:"workflowID,omitempty"`
 	Input       string `json:"input,omitempty"`
 }

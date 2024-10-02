@@ -27,17 +27,25 @@ func NewThreadHandler(wc *wclient.Client, events *events.Emitter) *ThreadHandler
 }
 
 func convertThread(thread v1.Thread) types.Thread {
+	var state = string(thread.Status.LastRunState)
+	if thread.Status.WorkflowState != "" {
+		state = string(thread.Status.WorkflowState)
+	}
+	parent := thread.Spec.ParentThreadName
+	if parent == "" {
+		parent = thread.Status.PreviousThreadName
+	}
 	return types.Thread{
 		Metadata: MetadataFrom(&thread),
 		ThreadManifest: types.ThreadManifest{
 			Description: thread.Spec.Manifest.Description,
 			Tools:       thread.Spec.Manifest.Tools,
 		},
-		AgentID:          thread.Spec.AgentName,
-		WorkflowID:       thread.Spec.WorkflowName,
-		LastRunID:        thread.Status.LastRunName,
-		LastRunState:     thread.Status.LastRunState,
-		PreviousThreadID: thread.Status.PreviousThreadName,
+		AgentID:        thread.Spec.AgentName,
+		WorkflowID:     thread.Spec.WorkflowName,
+		LastRunID:      thread.Status.LastRunName,
+		State:          state,
+		ParentThreadID: parent,
 	}
 }
 

@@ -1,9 +1,7 @@
 package workflowstep
 
 import (
-	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
@@ -58,9 +56,9 @@ func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {
 
 	switch run.Status.State {
 	case gptscript.Continue, gptscript.Finished:
-		if subCall, ok := h.toSubCall(run.Status.Output); ok {
+		if run.Status.SubCall != nil {
 			step.Status.State = v1.WorkflowStepStateSubCall
-			step.Status.SubCalls = []v1.SubCall{subCall}
+			step.Status.SubCalls = []v1.SubCall{*run.Status.SubCall}
 		} else {
 			step.Status.State = v1.WorkflowStepStateComplete
 			step.Status.LastRunName = step.Status.RunNames[0]
@@ -74,39 +72,4 @@ func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {
 	}
 
 	return nil
-}
-
-type call struct {
-	Type     string `json:"type,omitempty"`
-	Workflow string `json:"workflow,omitempty"`
-	Input    any    `json:"input,omitempty"`
-}
-
-func (h *Handler) toSubCall(output string) (v1.SubCall, bool) {
-	var call call
-	if err := json.Unmarshal([]byte(strings.TrimSpace(output)), &call); err != nil || call.Type != "OttoSubFlow" || call.Workflow == "" {
-		return v1.SubCall{}, false
-	}
-
-	var inputString string
-	switch v := call.Input.(type) {
-	case string:
-		inputString = v
-	default:
-		inputBytes, err := json.Marshal(v)
-		if err != nil {
-			panic(err)
-		}
-		inputString = string(inputBytes)
-	}
-
-	if inputString == "{}" {
-		inputString = ""
-	}
-
-	return v1.SubCall{
-		Type:     call.Type,
-		Workflow: call.Workflow,
-		Input:    inputString,
-	}, true
 }

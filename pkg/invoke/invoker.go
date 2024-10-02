@@ -78,6 +78,7 @@ type Options struct {
 	Background            bool
 	ThreadName            string
 	PreviousRunName       string
+	ParentThreadName      string
 	WorkflowName          string
 	WorkflowExecutionName string
 	WorkflowStepName      string
@@ -89,6 +90,7 @@ type NewThreadOptions struct {
 	AgentName             string
 	ThreadName            string
 	ThreadGenerateName    string
+	ParentThreadName      string
 	WorkflowName          string
 	WorkflowExecutionName string
 	WebhookName           string
@@ -140,6 +142,7 @@ func (i *Invoker) NewThread(ctx context.Context, c kclient.Client, namespace str
 			Namespace:    namespace,
 		},
 		Spec: v1.ThreadSpec{
+			ParentThreadName:      opt.ParentThreadName,
 			AgentName:             opt.AgentName,
 			WorkflowExecutionName: opt.WorkflowExecutionName,
 			WorkflowName:          opt.WorkflowName,
@@ -198,8 +201,9 @@ func (i *Invoker) getChatState(ctx context.Context, c kclient.Client, run *v1.Ru
 
 func (i *Invoker) Agent(ctx context.Context, c kclient.Client, agent *v1.Agent, input string, opt Options) (*Response, error) {
 	threadOpt := NewThreadOptions{
-		AgentName:  agent.Name,
-		ThreadName: opt.ThreadName,
+		AgentName:        agent.Name,
+		ThreadName:       opt.ThreadName,
+		ParentThreadName: opt.ParentThreadName,
 	}
 	if agent.Status.WorkspaceName != "" {
 		var ws v1.Workspace
@@ -546,7 +550,10 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, prevThreadN
 			panic(err)
 		}
 		if run.Status.Output != text {
-			run.Status.Output = text
+			run.Status.SubCall = toSubCall(text)
+			if run.Status.SubCall == nil {
+				run.Status.Output = text
+			}
 			runChanged = true
 		}
 	}
@@ -565,18 +572,68 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, prevThreadN
 		}
 	}
 
+	var workflowState types.WorkflowState
+	if thread.Spec.WorkflowExecutionName != "" {
+		var wfe v1.WorkflowExecution
+		if err := c.Get(ctx, router.Key(thread.Namespace, thread.Spec.WorkflowExecutionName), &wfe); err == nil {
+			workflowState = wfe.Status.State
+		}
+	}
+
 	if final && thread.Status.LastRunName != run.Name {
 		if prevThreadName != "" && prevThreadName != thread.Name {
 			thread.Status.PreviousThreadName = prevThreadName
 		}
 		thread.Status.LastRunName = run.Name
 		thread.Status.LastRunState = run.Status.State
+		if workflowState != "" {
+			thread.Status.WorkflowState = workflowState
+		}
+		if err := c.Status().Update(ctx, thread); err != nil {
+			return err
+		}
+	} else if workflowState != "" && thread.Status.WorkflowState != workflowState {
 		if err := c.Status().Update(ctx, thread); err != nil {
 			return err
 		}
 	}
 
 	return retErr
+}
+
+type call struct {
+	Type     string `json:"type,omitempty"`
+	Workflow string `json:"workflow,omitempty"`
+	Input    any    `json:"input,omitempty"`
+}
+
+func toSubCall(output string) *v1.SubCall {
+	var call call
+	if err := json.Unmarshal([]byte(strings.TrimSpace(output)), &call); err != nil || call.Type != "OttoSubFlow" || call.Workflow == "" {
+		return nil
+	}
+
+	var inputString string
+	switch v := call.Input.(type) {
+	case string:
+		inputString = v
+	default:
+		inputBytes, err := json.Marshal(v)
+		if err != nil {
+			panic(err)
+		}
+		inputString = string(inputBytes)
+	}
+
+	if inputString == "{}" {
+		inputString = ""
+	}
+
+	return &v1.SubCall{
+		Type:     call.Type,
+		Workflow: call.Workflow,
+		Input:    inputString,
+	}
 }
 
 func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName string, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run) (retErr error) {
@@ -593,6 +650,7 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName s
 			log.Errorf("failed to save state: %v", retErr)
 			i.events.SubmitProgress(run, types.Progress{
 				RunID: run.Name,
+				Time:  types.NewTime(time.Now()),
 				Error: retErr.Error(),
 			})
 		}
@@ -657,6 +715,7 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName s
 				i.events.SubmitProgress(run, types.Progress{
 					RunID:   run.Name,
 					Content: msg,
+					Time:    types.NewTime(time.Now()),
 					Prompt: &types.Prompt{
 						ID:        frame.Prompt.ID,
 						Time:      types.NewTime(frame.Prompt.Time),

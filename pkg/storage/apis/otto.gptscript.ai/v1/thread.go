@@ -27,6 +27,7 @@ func (in *Thread) GetConditions() *[]metav1.Condition {
 
 type ThreadSpec struct {
 	Manifest              types.ThreadManifest `json:"manifest,omitempty"`
+	ParentThreadName      string               `json:"parentThreadName,omitempty"`
 	AgentName             string               `json:"agentName,omitempty"`
 	WorkflowName          string               `json:"workflowName,omitempty"`
 	WorkflowExecutionName string               `json:"workflowExecutionName,omitempty"`
@@ -44,6 +45,7 @@ func (in *Thread) DeleteRefs() []Ref {
 type ThreadStatus struct {
 	LastRunName        string                   `json:"lastRunName,omitempty"`
 	LastRunState       gptscriptclient.RunState `json:"lastRunState,omitempty"`
+	WorkflowState      types.WorkflowState      `json:"workflowState,omitempty"`
 	PreviousThreadName string                   `json:"previousThreadName,omitempty"`
 	Conditions         []metav1.Condition       `json:"conditions,omitempty"`
 }

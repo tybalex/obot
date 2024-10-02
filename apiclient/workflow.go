@@ -45,7 +45,7 @@ type ListWorkflowsOptions struct {
 func (c *Client) ListWorkflows(ctx context.Context, opts ListWorkflowsOptions) (result types.WorkflowList, err error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {
-			return result.Items[i].Metadata.Created.Time.Before(result.Items[j].Metadata.Created.Time)
+			return result.Items[i].Metadata.Created.Time.After(result.Items[j].Metadata.Created.Time)
 		})
 	}()
 

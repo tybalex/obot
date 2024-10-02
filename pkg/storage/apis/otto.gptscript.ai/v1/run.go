@@ -75,6 +75,7 @@ type RunStatus struct {
 	State      gptscriptclient.RunState `json:"state,omitempty"`
 	Output     string                   `json:"output"`
 	Error      string                   `json:"error,omitempty"`
+	SubCall    *SubCall                 `json:"subCall,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

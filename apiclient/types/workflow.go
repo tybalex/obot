@@ -36,6 +36,35 @@ type Step struct {
 	Temperature *float32 `json:"temperature,omitempty"`
 }
 
+func (s *Step) SetCondition(condition string) {
+	s.Step = ""
+	s.Template = nil
+	if s.While != nil {
+		s.If = nil
+		s.While.Condition = condition
+	}
+	if s.If != nil {
+		s.While = nil
+		s.If.Condition = condition
+	}
+}
+
+func (s *Step) SetArgs(args map[string]string) {
+	if s.Template != nil {
+		s.Template.Args = args
+	}
+	s.If = nil
+	s.While = nil
+	s.Step = ""
+}
+
+func (s *Step) SetPrompt(prompt string) {
+	s.Step = prompt
+	s.Template = nil
+	s.While = nil
+	s.If = nil
+}
+
 type Template struct {
 	Name string            `json:"name,omitempty"`
 	Args map[string]string `json:"args,omitempty"`
@@ -167,37 +196,50 @@ func appendStep(steps []Step, id string, addToElse bool, stepToAdd Step) []Step 
 	return result
 }
 
-func FindStep(manifest *WorkflowManifest, id string) *Step {
+func SetStep(manifest *WorkflowManifest, step Step) {
+	id := step.ID
 	if manifest == nil || id == "" {
-		return nil
+		return
 	}
 	lookupID, _, _ := strings.Cut(id, "{")
-	found := findInSteps(manifest.Steps, lookupID)
+	found, _ := findInSteps("", manifest.Steps, lookupID)
+	if found != nil {
+		*found = step
+	}
+	return
+}
+
+func FindStep(manifest *WorkflowManifest, id string) (_ *Step, parentID string) {
+	if manifest == nil || id == "" {
+		return nil, ""
+	}
+	lookupID, _, _ := strings.Cut(id, "{")
+	found, parentID := findInSteps("", manifest.Steps, lookupID)
 	if found != nil && found.ID != id {
 		found = found.DeepCopy()
 		found.ID = id
 	}
-	return found
+	return found, parentID
 }
 
-func findInSteps(steps []Step, id string) *Step {
-	for _, step := range steps {
+func findInSteps(parentID string, steps []Step, id string) (*Step, string) {
+	for i, step := range steps {
 		if step.ID == id {
-			return &step
+			return &steps[i], parentID
 		}
 		if step.While != nil {
-			if found := findInSteps(step.While.Steps, id); found != nil {
-				return found
+			if found, parentID := findInSteps(step.ID, step.While.Steps, id); found != nil {
+				return found, parentID
 			}
 		}
 		if step.If != nil {
-			if found := findInSteps(step.If.Steps, id); found != nil {
-				return found
+			if found, parentID := findInSteps(step.ID, step.If.Steps, id); found != nil {
+				return found, parentID
 			}
-			if found := findInSteps(step.If.Else, id); found != nil {
-				return found
+			if found, parentID := findInSteps(step.ID, step.If.Else, id); found != nil {
+				return found, parentID
 			}
 		}
 	}
-	return nil
+	return nil, ""
 }

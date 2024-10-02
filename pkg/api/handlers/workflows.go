@@ -232,7 +232,7 @@ func (a *WorkflowHandler) Script(req api.Context) error {
 		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
 	}
 
-	step := types.FindStep(&wf.Spec.Manifest, stepID)
+	step, _ := types.FindStep(&wf.Spec.Manifest, stepID)
 	agent, err := render.Workflow(req.Context(), req.Storage, &wf, render.WorkflowOptions{
 		Step: step,
 	})

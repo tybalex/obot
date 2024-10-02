@@ -33,6 +33,10 @@ func (in *WorkflowExecution) Get(field string) string {
 			return in.Spec.WebhookName
 		case "spec.cronJobName":
 			return in.Spec.CronJobName
+		case "spec.workflowName":
+			return in.Spec.WorkflowName
+		case "spec.parentRunName":
+			return in.Spec.ParentRunName
 		}
 	}
 
@@ -40,7 +44,7 @@ func (in *WorkflowExecution) Get(field string) string {
 }
 
 func (in *WorkflowExecution) FieldNames() []string {
-	return []string{"spec.webhookName", "spec.cronJobName"}
+	return []string{"spec.webhookName", "spec.cronJobName", "spec.workflowName", "spec.parentRunName"}
 }
 
 func (in *WorkflowExecution) GetColumns() [][]string {
@@ -63,27 +67,21 @@ type WorkflowExecutionSpec struct {
 	WorkflowName          string `json:"workflowName,omitempty"`
 	WebhookName           string `json:"webhookName,omitempty"`
 	CronJobName           string `json:"cronJobName,omitempty"`
+	ParentThreadName      string `json:"parentThreadName,omitempty"`
+	ParentRunName         string `json:"parentRunName,omitempty"`
 	AfterWorkflowStepName string `json:"afterWorkflowStepName,omitempty"`
 	WorkspaceName         string `json:"workspaceName,omitempty"`
 }
 
 func (in *WorkflowExecution) DeleteRefs() []Ref {
 	return []Ref{
+		{ObjType: &Workflow{}, Name: in.Spec.WorkflowName},
 		{ObjType: &Thread{}, Name: in.Status.ThreadName},
 	}
 }
 
-type WorkflowState string
-
-const (
-	WorkflowStatePending  WorkflowState = "Pending"
-	WorkflowStateRunning  WorkflowState = "Running"
-	WorkflowStateError    WorkflowState = "Error"
-	WorkflowStateComplete WorkflowState = "Complete"
-)
-
 type WorkflowExecutionStatus struct {
-	State            WorkflowState           `json:"state,omitempty"`
+	State            types.WorkflowState     `json:"state,omitempty"`
 	Output           string                  `json:"output,omitempty"`
 	ThreadName       string                  `json:"threadName,omitempty"`
 	WorkflowManifest *types.WorkflowManifest `json:"workflowManifest,omitempty"`

@@ -19,7 +19,6 @@ func (c *Client) DeleteThread(ctx context.Context, id string) error {
 }
 
 type ThreadEventsOptions struct {
-	AfterRunID string
 }
 
 func (c *Client) ThreadEvents(ctx context.Context, threadID string, opts ThreadEventsOptions) (result <-chan types.Progress, err error) {
@@ -60,7 +59,7 @@ func (c *Client) GetThread(ctx context.Context, threadID string) (result *types.
 func (c *Client) ListThreads(ctx context.Context, opts ListThreadsOptions) (result types.ThreadList, err error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {
-			return result.Items[i].Created.Time.Before(result.Items[j].Created.Time)
+			return result.Items[i].Created.Time.After(result.Items[j].Created.Time)
 		})
 	}()
 

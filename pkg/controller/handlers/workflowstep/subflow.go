@@ -7,6 +7,7 @@ import (
 	"github.com/acorn-io/baaah/pkg/name"
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	"github.com/gptscript-ai/otto/pkg/render"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
@@ -49,6 +50,8 @@ func (h *Handler) RunSubflow(req router.Request, resp router.Response) error {
 			},
 			Spec: v1.WorkflowExecutionSpec{
 				Input:                 subCall.Input,
+				ParentThreadName:      step.Status.ThreadName,
+				ParentRunName:         step.Status.RunNames[i],
 				WorkflowName:          wf.Name,
 				AfterWorkflowStepName: step.Spec.AfterWorkflowStepName,
 				WorkspaceName:         wf.Status.WorkspaceName,
@@ -86,8 +89,8 @@ func (h *Handler) RunSubflow(req router.Request, resp router.Response) error {
 
 	switch run.Status.State {
 	case gptscript.Continue, gptscript.Finished:
-		if subCall, ok := h.toSubCall(run.Status.Output); ok {
-			step.Status.SubCalls = append(step.Status.SubCalls, subCall)
+		if run.Status.SubCall != nil {
+			step.Status.SubCalls = append(step.Status.SubCalls, *run.Status.SubCall)
 		} else {
 			step.Status.State = v1.WorkflowStepStateComplete
 			step.Status.LastRunName = nextRunName
@@ -127,7 +130,7 @@ func (h *Handler) getSubflowOutput(req router.Request, wfe *v1.WorkflowExecution
 		return "", false, err
 	}
 
-	if check.Status.State != v1.WorkflowStateComplete {
+	if check.Status.State != types.WorkflowStateComplete {
 		return "", false, nil
 	}
 

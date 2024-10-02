@@ -30,7 +30,7 @@ func convertRun(run v1.Run) types.Run {
 	case gptscript.Error:
 		state = "error"
 	}
-	return types.Run{
+	result := types.Run{
 		ID:             run.Name,
 		Created:        *types.NewTime(run.CreationTimestamp.Time),
 		ThreadID:       run.Spec.ThreadName,
@@ -43,6 +43,11 @@ func convertRun(run v1.Run) types.Run {
 		Output:         run.Status.Output,
 		Error:          run.Status.Error,
 	}
+	if run.Status.SubCall != nil {
+		result.SubCallWorkflowID = run.Status.SubCall.Workflow
+		result.SubCallInput = run.Status.SubCall.Input
+	}
+	return result
 }
 
 func (a *RunHandler) Debug(req api.Context) error {

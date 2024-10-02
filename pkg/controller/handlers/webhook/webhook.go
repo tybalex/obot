@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -50,7 +51,7 @@ func (h *Handler) SetSuccessRunTime(req router.Request, _ router.Response) error
 	}
 
 	for _, trigger := range workflowExecutions.Items {
-		if trigger.Status.State == v1.WorkflowStateComplete && (wh.Status.LastSuccessfulRunCompleted == nil || wh.Status.LastSuccessfulRunCompleted.Before(trigger.Status.EndTime)) {
+		if trigger.Status.State == types.WorkflowStateComplete && (wh.Status.LastSuccessfulRunCompleted == nil || wh.Status.LastSuccessfulRunCompleted.Before(trigger.Status.EndTime)) {
 			wh.Status.LastSuccessfulRunCompleted = trigger.Status.EndTime
 		}
 	}

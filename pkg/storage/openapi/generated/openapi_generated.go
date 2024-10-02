@@ -61,6 +61,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/gptscript-ai/otto/apiclient/types.WebhookManifest":                                    schema_gptscript_ai_otto_apiclient_types_WebhookManifest(ref),
 		"github.com/gptscript-ai/otto/apiclient/types.While":                                              schema_gptscript_ai_otto_apiclient_types_While(ref),
 		"github.com/gptscript-ai/otto/apiclient/types.Workflow":                                           schema_gptscript_ai_otto_apiclient_types_Workflow(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.WorkflowCall":                                       schema_gptscript_ai_otto_apiclient_types_WorkflowCall(ref),
 		"github.com/gptscript-ai/otto/apiclient/types.WorkflowExternalStatus":                             schema_gptscript_ai_otto_apiclient_types_WorkflowExternalStatus(ref),
 		"github.com/gptscript-ai/otto/apiclient/types.WorkflowList":                                       schema_gptscript_ai_otto_apiclient_types_WorkflowList(ref),
 		"github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest":                                   schema_gptscript_ai_otto_apiclient_types_WorkflowManifest(ref),
@@ -1101,10 +1102,23 @@ func schema_gptscript_ai_otto_apiclient_types_Progress(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"time": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Time is the time the event was generated",
+							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+						},
+					},
 					"content": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Content is the output data. The content for all events should be concatenated to form the entire output If you wish to print event and are not concerned with tracking the internal progress when one can just only the content field in a very simple loop",
 							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"contentID": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ContentID is a unique identifier for the content. This is used to track the content across multiple events. This field applies to Content and ToolInput.Content fields.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -1140,6 +1154,12 @@ func schema_gptscript_ai_otto_apiclient_types_Progress(ref common.ReferenceCallb
 							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.ToolCall"),
 						},
 					},
+					"workflowCall": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ToolCall indicates the LLM is currently calling a tool.",
+							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.WorkflowCall"),
+						},
+					},
 					"waitingOnModel": {
 						SchemaProps: spec.SchemaProps{
 							Description: "WaitingOnModel indicates we are waiting for the model to start responding with content",
@@ -1159,7 +1179,7 @@ func schema_gptscript_ai_otto_apiclient_types_Progress(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Prompt", "github.com/gptscript-ai/otto/apiclient/types.Step", "github.com/gptscript-ai/otto/apiclient/types.ToolCall", "github.com/gptscript-ai/otto/apiclient/types.ToolInput"},
+			"github.com/gptscript-ai/otto/apiclient/types.Prompt", "github.com/gptscript-ai/otto/apiclient/types.Step", "github.com/gptscript-ai/otto/apiclient/types.Time", "github.com/gptscript-ai/otto/apiclient/types.ToolCall", "github.com/gptscript-ai/otto/apiclient/types.ToolInput", "github.com/gptscript-ai/otto/apiclient/types.WorkflowCall"},
 	}
 }
 
@@ -1265,6 +1285,18 @@ func schema_gptscript_ai_otto_apiclient_types_Run(ref common.ReferenceCallback) 
 						},
 					},
 					"workflowStepID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"subCallWorkflowID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"subCallInput": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -1532,19 +1564,19 @@ func schema_gptscript_ai_otto_apiclient_types_Thread(ref common.ReferenceCallbac
 							Format: "",
 						},
 					},
+					"state": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"lastRunID": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
 						},
 					},
-					"lastRunState": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"previousThreadID": {
+					"parentThreadID": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -2020,6 +2052,48 @@ func schema_gptscript_ai_otto_apiclient_types_Workflow(ref common.ReferenceCallb
 		},
 		Dependencies: []string{
 			"github.com/gptscript-ai/otto/apiclient/types.Metadata", "github.com/gptscript-ai/otto/apiclient/types.WorkflowExternalStatus", "github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_WorkflowCall(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"description": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"threadID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"workflowID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"input": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -3669,12 +3743,17 @@ func schema_storage_apis_ottogptscriptai_v1_RunStatus(ref common.ReferenceCallba
 							Format: "",
 						},
 					},
+					"subCall": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SubCall"),
+						},
+					},
 				},
 				Required: []string{"output"},
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SubCall", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -3936,6 +4015,12 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadSpec(ref common.ReferenceCallb
 							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.ThreadManifest"),
 						},
 					},
+					"parentThreadName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"agentName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -4005,6 +4090,12 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadStatus(ref common.ReferenceCal
 						},
 					},
 					"lastRunState": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"workflowState": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -4754,6 +4845,18 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionSpec(ref common.Ref
 						},
 					},
 					"cronJobName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"parentThreadName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"parentRunName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
