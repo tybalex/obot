@@ -1,0 +1,25 @@
+package components
+
+
+templ Chat() {
+    <div id="chat" x-data="" class="w-[700px] h-screen flex flex-col p-8" >
+        <div id="message" class="grow" ></div>
+        <form hx-post="/chat" hx-target="#response" >
+            <textarea
+                name="message"
+                placeholder="Type your message here"
+                @keydown.enter="if (!$event.shiftKey) { $refs.submit.click(); $event.preventDefault() }"
+                class="w-full h-12 p-2 border border-gray-300 rounded-lg" ></textarea>
+            <button x-ref="submit" x-show="false" type="submit" ></button>
+            <div id="response" ></div>
+        </form>
+    </div>
+}
+
+templ ChatResponse(err error) {
+    if err == nil {
+        <div>OK</div>
+    } else {
+        <div>Error: {err.Error()}</div>
+    }
+}

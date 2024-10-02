@@ -1,0 +1,26 @@
+package pages
+
+import (
+    "github.com/gptscript-ai/otto/apiclient/types"
+    "github.com/gptscript-ai/otto/ui/layouts"
+    "github.com/gptscript-ai/otto/ui/components"
+)
+
+type editWorkflowPage struct {
+	workflow      types.Workflow
+	stepTemplates types.ToolReferenceList
+}
+
+func NewEditWorkflow(workflow types.Workflow, stepTemplates types.ToolReferenceList) templ.Component {
+    page := editWorkflowPage{
+        workflow: workflow,
+        stepTemplates: stepTemplates,
+    }
+    return page.main()
+}
+
+templ (e editWorkflowPage) main() {
+    @layouts.MainLayout() {
+        @components.NewEditWorkflow("edit-workflow", e.workflow, e.stepTemplates)
+    }
+}

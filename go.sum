@@ -62,6 +62,8 @@ github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2 h1:+vx7roKuyA63n
 github.com/Netflix/go-expect v0.0.0-20220104043353-73e0943537d2/go.mod h1:HBCaDeC1lPdgDeDbhX8XFpy1jqjK0IBG8W5K+xYqA0w=
 github.com/ProtonMail/go-crypto v1.0.0 h1:LRuvITjQWX+WIfr930YHG2HNfjR1uOfyf5vE0kC2U78=
 github.com/ProtonMail/go-crypto v1.0.0/go.mod h1:EjAoLdwvbIOoOQr3ihjnSoLZRtE8azugULFRteWMNc0=
+github.com/a-h/templ v0.2.778 h1:VzhOuvWECrwOec4790lcLlZpP4Iptt5Q4K9aFxQmtaM=
+github.com/a-h/templ v0.2.778/go.mod h1:lq48JXoUvuQrU0VThrK31yFwdRjTCnIE5bcPCM9IP1w=
 github.com/acorn-io/baaah v0.0.0-20240912163758-8f7c537609d1 h1:JobENeM/SoGMlR1/K6DCirRRwBA90FRlynqqqYchOXQ=
 github.com/acorn-io/baaah v0.0.0-20240912163758-8f7c537609d1/go.mod h1:13nTO3svO8zTD3j9E5c86tCtK5YrKsK5sxca4Lwkbc0=
 github.com/acorn-io/broadcaster v0.0.0-20240105011354-bfadd4a7b45d h1:hfpNQkJ4I2b8+DbMr8m97gG67ku0uPsMzUfskVu3cHU=
@@ -335,8 +337,8 @@ github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a h1:LX7AOcbBoTnUk/
 github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a/go.mod h1:DJAo1xTht1LDkNYFNydVjTHd576TC7MlpsVRl3oloVw=
 github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240927213153-2af51434b93e h1:WpNae0NBx+Ri8RB3SxF8DhadDKU7h+jfWPQterDpbJA=
 github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240927213153-2af51434b93e/go.mod h1:/FVuLwhz+sIfsWUgUHWKi32qT0i6+IXlUlzs70KKt/Q=
-github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240928000751-cc5e5ed5463d h1:QvOCvBNSeAKYTpHuxa+jNNKk8Vgus5Y/9DBBP7ino8k=
-github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240928000751-cc5e5ed5463d/go.mod h1:+CC86EbcmMMBgvv5NBqHzep63SobtB5vhNOq4i6aPrA=
+github.com/gptscript-ai/gptscript v0.9.5 h1:EWq+AyJ6CBdU9hS6xOnqBQGpWIy74Zx/Fd6tN0I6Bxc=
+github.com/gptscript-ai/gptscript v0.9.5/go.mod h1:+CC86EbcmMMBgvv5NBqHzep63SobtB5vhNOq4i6aPrA=
 github.com/gptscript-ai/tui v0.0.0-20240923192013-172e51ccf1d6 h1:vkgNZVWQgbE33VD3z9WKDwuu7B/eJVVMMPM62ixfCR8=
 github.com/gptscript-ai/tui v0.0.0-20240923192013-172e51ccf1d6/go.mod h1:frrl/B+ZH3VSs3Tqk2qxEIIWTONExX3tuUa4JsVnqx4=
 github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 h1:pdN6V1QBWetyv/0+wjACpqVH+eVULgEjkurDLq3goeM=
@@ -648,8 +650,6 @@ github.com/stretchr/testify v1.8.0/go.mod h1:yNjHg4UonilssWZ8iaSj1OCr/vHnekPRkoO
 github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/thedadams/workspace-provider v0.0.0-20240912195139-5dc37cf34474 h1:4EuFOH8T7Vf9VG3Ay5hP7abBRoftO+pBmHCKSNmWKWQ=
-github.com/thedadams/workspace-provider v0.0.0-20240912195139-5dc37cf34474/go.mod h1:lEWAqSBY6752x3xd1GdPUT7hWbtpkT2BcRUxvu56M/0=
 github.com/thedadams/workspace-provider v0.0.0-20241003193225-35c02f38505b h1:pp0/y2RDB6+7SgxrkssupKZ9pX4YQ2Ap26i6pdzfxSI=
 github.com/thedadams/workspace-provider v0.0.0-20241003193225-35c02f38505b/go.mod h1:lEWAqSBY6752x3xd1GdPUT7hWbtpkT2BcRUxvu56M/0=
 github.com/therootcompany/xz v1.0.1 h1:CmOtsn1CbtmyYiusbfmhmkpAAETj0wBIH6kCYaX+xzw=

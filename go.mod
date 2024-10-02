@@ -5,6 +5,7 @@ go 1.23.1
 replace (
 	github.com/gptscript-ai/otto/apiclient => ./apiclient
 	github.com/gptscript-ai/otto/logger => ./logger
+	github.com/gptscript-ai/otto/ui => ./ui
 )
 
 require (
@@ -16,9 +17,10 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
 	github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240927213153-2af51434b93e
-	github.com/gptscript-ai/gptscript v0.9.5-rc5.0.20240928000751-cc5e5ed5463d
+	github.com/gptscript-ai/gptscript v0.9.5
 	github.com/gptscript-ai/otto/apiclient v0.0.0-00010101000000-000000000000
 	github.com/gptscript-ai/otto/logger v0.0.0-00010101000000-000000000000
+	github.com/gptscript-ai/otto/ui v0.0.0-00010101000000-000000000000
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/pterm/pterm v0.12.79
 	github.com/robfig/cron/v3 v3.0.1
@@ -50,6 +52,7 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
+	github.com/a-h/templ v0.2.778 // indirect
 	github.com/acorn-io/broadcaster v0.0.0-20240105011354-bfadd4a7b45d // indirect
 	github.com/alecthomas/chroma/v2 v2.8.0 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect

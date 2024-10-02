@@ -3,11 +3,17 @@ package router
 import (
 	"net/http"
 
+	"github.com/gptscript-ai/otto/apiclient"
 	"github.com/gptscript-ai/otto/pkg/api/handlers"
 	"github.com/gptscript-ai/otto/pkg/services"
+	"github.com/gptscript-ai/otto/ui/router"
 )
 
 func Router(services *services.Services) (http.Handler, error) {
+	ui := router.Init(&apiclient.Client{
+		BaseURL: "http://localhost:8080",
+	}, false)
+
 	w := services.APIServer.Wrap
 	mux := http.NewServeMux()
 
@@ -137,6 +143,9 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.Handle("DELETE /cronjobs/{id}", w(cronJobs.Delete))
 	mux.Handle("PUT /cronjobs/{id}", w(cronJobs.Update))
 	mux.Handle("POST /cronjobs/{id}", w(cronJobs.Execute))
+
+	// UI
+	mux.Handle("/", ui)
 
 	return mux, nil
 }

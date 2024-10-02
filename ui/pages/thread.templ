@@ -1,0 +1,17 @@
+package pages
+
+import (
+    "github.com/gptscript-ai/otto/ui/layouts"
+    "github.com/gptscript-ai/otto/apiclient/types"
+    "github.com/gptscript-ai/otto/ui/components"
+)
+
+type ThreadData struct {
+    Thread types.Thread
+}
+
+templ Thread(data ThreadData) {
+    @layouts.MainLayout() {
+        @components.NewThread("thread", data.Thread.ID)
+    }
+}

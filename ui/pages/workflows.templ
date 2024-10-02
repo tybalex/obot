@@ -1,0 +1,13 @@
+package pages
+
+import (
+    "github.com/gptscript-ai/otto/apiclient/types"
+    "github.com/gptscript-ai/otto/ui/layouts"
+    "github.com/gptscript-ai/otto/ui/components"
+)
+
+templ Workflows(wf []types.Workflow) {
+    @layouts.MainLayout() {
+        @components.Workflows(wf)
+    }
+}

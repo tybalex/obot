@@ -1,0 +1,14 @@
+package pages
+
+import (
+    "github.com/gptscript-ai/otto/ui/layouts"
+    "github.com/gptscript-ai/otto/ui/components"
+)
+
+templ Chat() {
+    @layouts.HeadOnly() {
+        <body class="flex justify-center">
+            @components.Chat()
+        </body>
+    }
+}
