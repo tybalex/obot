@@ -52,6 +52,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/gptscript-ai/otto/apiclient/types.Run":                                                schema_gptscript_ai_otto_apiclient_types_Run(ref),
 		"github.com/gptscript-ai/otto/apiclient/types.RunList":                                            schema_gptscript_ai_otto_apiclient_types_RunList(ref),
 		"github.com/gptscript-ai/otto/apiclient/types.Step":                                               schema_gptscript_ai_otto_apiclient_types_Step(ref),
+		"github.com/gptscript-ai/otto/apiclient/types.StepTemplateInvoke":                                 schema_gptscript_ai_otto_apiclient_types_StepTemplateInvoke(ref),
 		"github.com/gptscript-ai/otto/apiclient/types.SubFlow":                                            schema_gptscript_ai_otto_apiclient_types_SubFlow(ref),
 		"github.com/gptscript-ai/otto/apiclient/types.Template":                                           schema_gptscript_ai_otto_apiclient_types_Template(ref),
 		"github.com/gptscript-ai/otto/apiclient/types.Thread":                                             schema_gptscript_ai_otto_apiclient_types_Thread(ref),
@@ -910,6 +911,12 @@ func schema_gptscript_ai_otto_apiclient_types_KnowledgeFile(ref common.Reference
 							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.FileDetails"),
 						},
 					},
+					"uploadID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 				Required: []string{"Metadata", "fileName"},
 			},
@@ -970,6 +977,21 @@ func schema_gptscript_ai_otto_apiclient_types_Metadata(ref common.ReferenceCallb
 						},
 					},
 					"links": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"metadata": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{
@@ -1165,6 +1187,19 @@ func schema_gptscript_ai_otto_apiclient_types_Progress(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"inputIsStepTemplateInput": {
+						SchemaProps: spec.SchemaProps{
+							Description: "InputIsStepTemplateInput indicates that the input will be passed to a step template. Later an event will be sent with the step template invoke information in the StepTemplateInvoke field",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
+					"stepTemplateInvoke": {
+						SchemaProps: spec.SchemaProps{
+							Description: "StepTemplateInvoke indicates that a step template is being invoked",
+							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.StepTemplateInvoke"),
+						},
+					},
 					"prompt": {
 						SchemaProps: spec.SchemaProps{
 							Description: "If prompt is set content will also me set, but you can ignore the content field and instead handle the explicit information in the prompt field which will provider more information for things such as OAuth",
@@ -1214,7 +1249,7 @@ func schema_gptscript_ai_otto_apiclient_types_Progress(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Prompt", "github.com/gptscript-ai/otto/apiclient/types.Step", "github.com/gptscript-ai/otto/apiclient/types.Time", "github.com/gptscript-ai/otto/apiclient/types.ToolCall", "github.com/gptscript-ai/otto/apiclient/types.ToolInput", "github.com/gptscript-ai/otto/apiclient/types.WorkflowCall"},
+			"github.com/gptscript-ai/otto/apiclient/types.Prompt", "github.com/gptscript-ai/otto/apiclient/types.Step", "github.com/gptscript-ai/otto/apiclient/types.StepTemplateInvoke", "github.com/gptscript-ai/otto/apiclient/types.Time", "github.com/gptscript-ai/otto/apiclient/types.ToolCall", "github.com/gptscript-ai/otto/apiclient/types.ToolInput", "github.com/gptscript-ai/otto/apiclient/types.WorkflowCall"},
 	}
 }
 
@@ -1774,6 +1809,51 @@ func schema_gptscript_ai_otto_apiclient_types_Step(ref common.ReferenceCallback)
 		},
 		Dependencies: []string{
 			"github.com/gptscript-ai/otto/apiclient/types.If", "github.com/gptscript-ai/otto/apiclient/types.Template", "github.com/gptscript-ai/otto/apiclient/types.While"},
+	}
+}
+
+func schema_gptscript_ai_otto_apiclient_types_StepTemplateInvoke(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"description": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"args": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"result": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -4704,6 +4784,21 @@ func schema_storage_apis_ottogptscriptai_v1_ToolShortDescription(ref common.Refe
 						},
 					},
 					"params": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"metadata": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"object"},
 							AdditionalProperties: &spec.SchemaOrBool{

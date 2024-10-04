@@ -9,8 +9,10 @@ import (
 )
 
 func main() {
-	if embedded.Run(embedded.Options{}) {
-		return
+	if os.Getenv("GPTSCRIPT_EMBEDDED") != "false" {
+		if embedded.Run(embedded.Options{}) {
+			return
+		}
 	}
 	// Don't shutdown on SIGTERM, only on SIGINT. SIGTERM is handled by the controller leader election
 	cmd.ShutdownSignals = []os.Signal{os.Interrupt}

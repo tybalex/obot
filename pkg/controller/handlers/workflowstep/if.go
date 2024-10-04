@@ -102,7 +102,7 @@ func isFalse(s string) bool {
 
 func toStepCondition(s string) string {
 	//input := "STEP_CONDITION: " + step.Spec.Step.If.Condition
-	input := `Response with only the word TRUE if the following condition is true, or FALSE if false:\n` + s
+	input := `Respond with only the word TRUE if the following condition is true, or FALSE if false:\n` + s
 	return input
 }
 

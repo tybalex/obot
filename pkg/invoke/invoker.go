@@ -195,6 +195,9 @@ func (i *Invoker) getChatState(ctx context.Context, c kclient.Client, run *v1.Ru
 		return "", "", err
 	}
 
+	if len(lastRun.Spec.ChatState) == 0 {
+		return "", lastRun.Spec.ThreadName, nil
+	}
 	err := gz.Decompress(&result, lastRun.Spec.ChatState)
 	return result, lastRun.Spec.ThreadName, err
 }

@@ -5,26 +5,35 @@ import (
 	"fmt"
 
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/pkg/controller/handlers/toolreference"
 	"github.com/gptscript-ai/otto/pkg/services"
 	// Enabled logrus logging in baaah
 	_ "github.com/acorn-io/baaah/pkg/logrus"
 )
 
 type Controller struct {
-	router   *router.Router
-	services *services.Services
+	router         *router.Router
+	services       *services.Services
+	toolRefHandler *toolreference.Handler
 }
 
 func New(ctx context.Context, services *services.Services) (*Controller, error) {
-	err := routes(services.Router, services)
+	c := &Controller{
+		router:   services.Router,
+		services: services,
+	}
+
+	err := c.setupRoutes()
 	if err != nil {
 		return nil, err
 	}
 
-	return &Controller{
-		router:   services.Router,
-		services: services,
-	}, nil
+	return c, nil
+}
+
+func (c *Controller) PostStart(ctx context.Context) error {
+	go c.toolRefHandler.PollRegistry(ctx, c.services.Router.Backend())
+	return nil
 }
 
 func (c *Controller) Start(ctx context.Context) error {

@@ -28,6 +28,9 @@ func Run(ctx context.Context, c services.Config) error {
 		if err := c.Start(ctx); err != nil {
 			log.Fatalf("Failed to start controller: %v", err)
 		}
+		if err := c.PostStart(ctx); err != nil {
+			log.Fatalf("Failed to post start controller: %v", err)
+		}
 	}()
 
 	handler, err := router.Router(svcs)

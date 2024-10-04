@@ -31,6 +31,11 @@ type Progress struct {
 
 	// Some input that was provided to the run
 	Input string `json:"input,omitempty"`
+	// InputIsStepTemplateInput indicates that the input will be passed to a step template. Later an event will be
+	// sent with the step template invoke information in the StepTemplateInvoke field
+	InputIsStepTemplateInput bool `json:"inputIsStepTemplateInput,omitempty"`
+	// StepTemplateInvoke indicates that a step template is being invoked
+	StepTemplateInvoke *StepTemplateInvoke `json:"stepTemplateInvoke,omitempty"`
 	// If prompt is set content will also me set, but you can ignore the content field and instead handle the explicit
 	// information in the prompt field which will provider more information for things such as OAuth
 	Prompt *Prompt `json:"prompt,omitempty"`
@@ -47,6 +52,13 @@ type Progress struct {
 	WaitingOnModel bool `json:"waitingOnModel,omitempty"`
 	// Error indicates that an error occurred
 	Error string `json:"error,omitempty"`
+}
+
+type StepTemplateInvoke struct {
+	Name        string            `json:"name,omitempty"`
+	Description string            `json:"description,omitempty"`
+	Args        map[string]string `json:"args,omitempty"`
+	Result      string            `json:"result,omitempty"`
 }
 
 type Prompt struct {

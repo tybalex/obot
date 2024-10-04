@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/agents"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/cleanup"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/cronjob"
@@ -21,17 +20,19 @@ import (
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 )
 
-func routes(root *router.Router, svcs *services.Services) error {
-	workflowExecution := workflowexecution.New(svcs.WorkspaceClient, svcs.Invoker)
-	workflowStep := workflowstep.New(svcs.Invoker)
-	ingester := knowledge.NewIngester(svcs.Invoker, svcs.SystemTools[services.SystemToolKnowledge])
-	agents := agents.New(svcs.AIHelper)
-	toolRef := toolreference.New(svcs.GPTClient)
-	threads := threads.New(svcs.AIHelper)
-	workspace := workspace.New(svcs.WorkspaceClient, "directory")
-	knowledge := knowledgehandler.New(svcs.WorkspaceClient, ingester, "directory")
-	uploads := uploads.New(svcs.Invoker, svcs.WorkspaceClient, "directory", svcs.SystemTools[services.SystemToolOneDrive], svcs.SystemTools[services.SystemToolNotion], svcs.SystemTools[services.SystemToolWebsite])
-	runs := runs.New(svcs.Invoker)
+func (c *Controller) setupRoutes() error {
+	root := c.router
+
+	workflowExecution := workflowexecution.New(c.services.WorkspaceClient, c.services.Invoker)
+	workflowStep := workflowstep.New(c.services.Invoker)
+	ingester := knowledge.NewIngester(c.services.Invoker, c.services.SystemTools[services.SystemToolKnowledge])
+	agents := agents.New(c.services.AIHelper)
+	toolRef := toolreference.New(c.services.GPTClient, c.services.ToolRegistryURL)
+	threads := threads.New(c.services.AIHelper)
+	workspace := workspace.New(c.services.WorkspaceClient, "directory")
+	knowledge := knowledgehandler.New(c.services.WorkspaceClient, ingester, "directory")
+	uploads := uploads.New(c.services.Invoker, c.services.WorkspaceClient, "directory", c.services.SystemTools[services.SystemToolOneDrive], c.services.SystemTools[services.SystemToolNotion], c.services.SystemTools[services.SystemToolWebsite])
+	runs := runs.New(c.services.Invoker)
 	webHooks := webhook.New()
 	cronJobs := cronjob.New()
 
@@ -115,5 +116,6 @@ func routes(root *router.Router, svcs *services.Services) error {
 	root.Type(&v1.CronJob{}).HandlerFunc(cronJobs.SetSuccessRunTime)
 	root.Type(&v1.CronJob{}).HandlerFunc(cronJobs.Run)
 
+	c.toolRefHandler = toolRef
 	return nil
 }

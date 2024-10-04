@@ -43,10 +43,12 @@ type Config struct {
 	DevMode         bool   `usage:"Enable development mode" default:"false" name:"dev-mode" env:"OTTO_DEV_MODE"`
 	AllowedOrigin   string `usage:"Allowed origin for CORS"`
 	TokenWebhookURL string `usage:"The url for the token webhook"`
+	ToolRegistryURL string `usage:"The url for the tool registry" default:"https://raw.githubusercontent.com/gptscript-ai/tools/refs/heads/main/index.yaml"`
 	services.Config
 }
 
 type Services struct {
+	ToolRegistryURL string
 	Events          *events.Emitter
 	StorageClient   storage.Client
 	Router          *router.Router
@@ -57,10 +59,11 @@ type Services struct {
 	WorkspaceClient *wclient.Client
 	AIHelper        *aihelper.AIHelper
 	SystemTools     map[string]string
+	Started         chan struct{}
 }
 
 func newGPTScript(ctx context.Context) (*gptscript.GPTScript, error) {
-	if os.Getenv("GPTSCRIPT_URL") != "" || os.Getenv("GPTSCRIPT_BIN") != "" {
+	if os.Getenv("GPTSCRIPT_URL") != "" {
 		return gptscript.NewGPTScript(gptscript.GlobalOptions{
 			URL: os.Getenv("GPTSCRIPT_URL"),
 		})
@@ -126,6 +129,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 	)
 
 	return &Services{
+		ToolRegistryURL: config.ToolRegistryURL,
 		Events:          events,
 		StorageClient:   storageClient,
 		Router:          r,
@@ -160,7 +164,6 @@ func configureDevMode(config Config) Config {
 		config.StorageToken = "adminpass"
 	}
 	_ = os.Setenv("BAAAH_DEV_MODE", "true")
-
 	return config
 }
 

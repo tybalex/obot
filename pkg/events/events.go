@@ -2,6 +2,7 @@ package events
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
@@ -56,8 +57,9 @@ type WatchOptions struct {
 type Frames map[string]gptscript.CallFrame
 
 type callFramePrintState struct {
-	Outputs      []gptscript.Output
-	InputPrinted bool
+	Outputs                []gptscript.Output
+	InputPrinted           bool
+	InputTranslatedPrinted bool
 }
 
 type printState struct {
@@ -511,21 +513,65 @@ func (e *Emitter) callToEvents(ctx context.Context, namespace, runID string, prg
 		return nil
 	}
 
-	return e.printCall(ctx, namespace, runID, prg, &parent, printed, out)
+	return e.printCall(ctx, namespace, runID, prg, &parent, frames, printed, out)
 }
 
-func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *gptscript.Program, call *gptscript.CallFrame, lastPrint *printState, out chan types.Progress) error {
+func getStepTemplateInvoke(prg *gptscript.Program, call *gptscript.CallFrame, frames Frames) *types.StepTemplateInvoke {
+	if len(call.Tool.InputFilters) == 0 {
+		return nil
+	}
+
+	toolIDs := call.Tool.ToolMapping[call.Tool.InputFilters[0]]
+	if len(toolIDs) == 0 {
+		return nil
+	}
+
+	tool := prg.ToolSet[toolIDs[0].ToolID]
+
+	for _, frame := range frames {
+		if frame.Tool.ID == toolIDs[0].ToolID && frame.ParentID == call.ID && frame.ToolCategory == gptscript.InputToolCategory {
+			for _, output := range frame.Output {
+				if output.Content != "" {
+					args := map[string]string{}
+					_ = json.Unmarshal([]byte(frame.Input), &args)
+					return &types.StepTemplateInvoke{
+						Name:        tool.Name,
+						Description: tool.Description,
+						Args:        args,
+						Result:      output.Content,
+					}
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *gptscript.Program, call *gptscript.CallFrame, frames Frames, lastPrint *printState, out chan types.Progress) error {
 	printed := lastPrint.frames[call.ID]
 	lastOutputs := printed.Outputs
 
 	if call.Input != "" && !printed.InputPrinted {
 		out <- types.Progress{
-			RunID:   runID,
-			Time:    types.NewTime(call.Start),
-			Content: "\n",
-			Input:   call.Input,
+			RunID:                    runID,
+			Time:                     types.NewTime(call.Start),
+			Content:                  "\n",
+			Input:                    call.Input,
+			InputIsStepTemplateInput: len(call.Tool.InputFilters) > 0,
 		}
 		printed.InputPrinted = true
+	}
+
+	if !printed.InputTranslatedPrinted {
+		if translated := getStepTemplateInvoke(prg, call, frames); translated != nil {
+			out <- types.Progress{
+				RunID:              runID,
+				Time:               types.NewTime(call.Start),
+				StepTemplateInvoke: translated,
+			}
+			printed.InputTranslatedPrinted = true
+		}
 	}
 
 	for i, currentOutput := range call.Output {
