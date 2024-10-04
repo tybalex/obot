@@ -39,7 +39,13 @@ type ThreadSpec struct {
 }
 
 func (in *Thread) DeleteRefs() []Ref {
-	return []Ref{}
+	return []Ref{
+		{&Agent{}, in.Spec.AgentName},
+		{&WorkflowExecution{}, in.Spec.WorkflowExecutionName},
+		{&Workflow{}, in.Spec.WorkflowName},
+		{&CronJob{}, in.Spec.CronJobName},
+		{&Webhook{}, in.Spec.WebhookName},
+	}
 }
 
 type ThreadStatus struct {
