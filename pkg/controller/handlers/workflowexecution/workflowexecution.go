@@ -11,7 +11,6 @@ import (
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	wclient "github.com/thedadams/workspace-provider/pkg/client"
-	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -30,25 +29,21 @@ func New(wc *wclient.Client, invoker *invoke.Invoker) *Handler {
 	}
 }
 
-func (h *Handler) Cleanup(req router.Request, resp router.Response) error {
-	we := req.Object.(*v1.WorkflowExecution)
-	if we.Status.ThreadName != "" {
-		return kclient.IgnoreNotFound(req.Delete(&v1.Thread{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      we.Status.ThreadName,
-				Namespace: we.Namespace,
-			},
-		}))
-	}
-	return nil
-}
-
 func (h *Handler) Run(req router.Request, resp router.Response) error {
+	var completeResponse bool
+	defer func() {
+		if !completeResponse {
+			resp.DisablePrune()
+		}
+	}()
+
 	we := req.Object.(*v1.WorkflowExecution)
 
-	switch we.Status.State {
-	case types.WorkflowStateError, types.WorkflowStateComplete:
-		resp.DisablePrune()
+	if we.Status.State.IsTerminal() {
+		if we.Spec.WorkflowGeneration != we.Status.WorkflowGeneration {
+			we.Status.State = types.WorkflowStatePending
+			we.Status.EndTime = nil
+		}
 		return nil
 	}
 
@@ -63,18 +58,9 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 		return nil
 	}
 
-	if we.Status.State != types.WorkflowStateRunning {
-		we.Status.State = types.WorkflowStateRunning
-		if err := req.Client.Status().Update(req.Ctx, we); err != nil {
-			return err
-		}
-	}
-
-	//if we.Status.WorkflowManifest == nil {
 	if err := h.loadManifest(req, we); err != nil {
 		return err
 	}
-	//}
 
 	if we.Status.ThreadName == "" {
 		if t, err := h.newThread(req.Ctx, req.Client, &wf, we); err != nil {
@@ -93,69 +79,45 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 	)
 
 	for _, step := range we.Status.WorkflowManifest.Steps {
-		newStep := workflowstep.NewStep(we.Namespace, we.Name, lastStepName, step)
+		newStep := workflowstep.NewStep(we.Namespace, we.Name, lastStepName, we.Spec.WorkflowGeneration, step)
 		steps = append(steps, newStep)
 		lastStepName = newStep.Name
 	}
 
 	if we.Status.WorkflowManifest.Output != "" {
-		newStep := workflowstep.NewStep(we.Namespace, we.Name, lastStepName, types.Step{
+		newStep := workflowstep.NewStep(we.Namespace, we.Name, lastStepName, we.Spec.WorkflowGeneration, types.Step{
 			ID:   "output",
 			Step: we.Status.WorkflowManifest.Output,
 		})
 		steps = append(steps, newStep)
 	}
 
-	output, newState, err := h.getState(req.Ctx, req.Client, steps)
+	_, output, newState, err := workflowstep.GetStateFromSteps(req.Ctx, req.Client, we.Spec.WorkflowGeneration, steps...)
 	if err != nil {
 		return err
 	}
 
-	if we.Status.ThreadName != "" && (newState == types.WorkflowStateError || newState == types.WorkflowStateComplete) {
-		var thread v1.Thread
-		if err := req.Get(&thread, we.Namespace, we.Status.ThreadName); err != nil {
-			return err
-		}
-		if thread.Status.WorkflowState != newState {
-			thread.Status.WorkflowState = newState
-			if err := req.Client.Status().Update(req.Ctx, &thread); err != nil {
-				return err
-			}
-		}
+	if newState.IsBlocked() {
+		we.Status.State = newState
+		we.Status.Error = output
+		return nil
 	}
 
+	if newState == types.WorkflowStateComplete {
+		we.Status.Output = output
+	} else if newState == types.WorkflowStateError {
+		we.Status.Error = output
+	}
+
+	completeResponse = true
 	we.Status.State = newState
-	if we.Status.State == types.WorkflowStateError || we.Status.State == types.WorkflowStateComplete {
+	we.Status.WorkflowGeneration = we.Spec.WorkflowGeneration
+	if we.Status.State.IsTerminal() && we.Status.EndTime == nil {
 		we.Status.EndTime = &metav1.Time{Time: time.Now()}
 	}
-	if we.Status.WorkflowManifest.Output != "" {
-		we.Status.Output = output
-	}
+
 	resp.Objects(steps...)
 	return nil
-}
-
-func (h *Handler) getState(ctx context.Context, client kclient.Client, steps []kclient.Object) (string, types.WorkflowState, error) {
-	for i, obj := range steps {
-		step := obj.(*v1.WorkflowStep).DeepCopy()
-		if err := client.Get(ctx, router.Key(step.Namespace, step.Name), step); apierror.IsNotFound(err) {
-			return "", types.WorkflowStateRunning, nil
-		} else if err != nil {
-			return "", "", err
-		}
-		if step.Status.State == v1.WorkflowStepStateError {
-			return "", types.WorkflowStateError, nil
-		}
-		if len(steps)-1 == i && step.Status.State == v1.WorkflowStepStateComplete {
-			var run v1.Run
-			if err := client.Get(ctx, router.Key(step.Namespace, step.Status.LastRunName), &run); err != nil {
-				return "", types.WorkflowStateError, err
-			}
-			return run.Status.Output, types.WorkflowStateComplete, nil
-		}
-	}
-
-	return "", types.WorkflowStateRunning, nil
 }
 
 func (h *Handler) loadManifest(req router.Request, we *v1.WorkflowExecution) error {
@@ -166,7 +128,6 @@ func (h *Handler) loadManifest(req router.Request, we *v1.WorkflowExecution) err
 
 	we.Status.WorkflowManifest = &wf.Spec.Manifest
 	return nil
-	//return req.Client.Status().Update(req.Ctx, we)
 }
 
 func (h *Handler) newThread(ctx context.Context, c kclient.Client, wf *v1.Workflow, we *v1.WorkflowExecution) (*v1.Thread, error) {

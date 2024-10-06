@@ -7,7 +7,17 @@ const (
 	WorkflowStateRunning  WorkflowState = "Running"
 	WorkflowStateError    WorkflowState = "Error"
 	WorkflowStateComplete WorkflowState = "Complete"
+	WorkflowStateSubCall  WorkflowState = "SubCall"
+	WorkflowStateBlocked  WorkflowState = "Blocked"
 )
+
+func (in WorkflowState) IsBlocked() bool {
+	return in == WorkflowStateBlocked || in == WorkflowStateError
+}
+
+func (in WorkflowState) IsTerminal() bool {
+	return in == WorkflowStateComplete || in == WorkflowStateError
+}
 
 type Thread struct {
 	Metadata
@@ -16,6 +26,7 @@ type Thread struct {
 	WorkflowID     string `json:"workflowID,omitempty"`
 	State          string `json:"state,omitempty"`
 	LastRunID      string `json:"lastRunID,omitempty"`
+	CurrentRunID   string `json:"currentRunID,omitempty"`
 	ParentThreadID string `json:"parentThreadID,omitempty"`
 }
 

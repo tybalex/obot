@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/gptscript-ai/otto/apiclient/types"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -15,44 +16,62 @@ func (h *Handler) RunWhile(req router.Request, resp router.Response) error {
 		return nil
 	}
 
+	var completeResponse bool
+	defer func() {
+		if !completeResponse {
+			resp.DisablePrune()
+		}
+	}()
+
 	count := step.Spec.Step.While.MaxLoops
 	if count <= 0 {
 		count = 3
 	}
 
 	var (
-		finalState  = v1.WorkflowStepStateComplete
-		finalError  string
-		lastRunName string
 		lastStep    *v1.WorkflowStep
+		lastRunName string
 	)
+
+	// reset
+	step.Status.Error = ""
 
 	// Do one extra iteration to check the final state.
 	count++
 	for i := 0; i < count; i++ {
 		if i == count-1 {
-			finalState = v1.WorkflowStepStateError
-			finalError = fmt.Sprintf("MaxLoops exceeded count %d", count-1)
-			break
+			step.Status.State = types.WorkflowStateError
+			step.Status.Error = fmt.Sprintf("MaxLoops exceeded count %d", count-1)
+			return nil
 		}
 
 		conditionStep := h.defineCondition(step, lastStep, i)
 		resp.Objects(conditionStep)
 
-		runName, conditionResult, wait, err := h.conditionResult(req.Ctx, req.Client, step, conditionStep)
+		if _, errMsg, state, err := GetStateFromSteps(req.Ctx, req.Client, step.Spec.WorkflowGeneration, conditionStep); err != nil {
+			return err
+		} else if state.IsBlocked() {
+			step.Status.State = state
+			step.Status.Error = errMsg
+			return nil
+		}
+
+		runName, conditionResult, wait, err := getConditionResult(req.Ctx, req.Client, step, conditionStep)
 		if err != nil {
 			return err
 		}
 		lastRunName = runName
 
 		if wait {
-			finalState = v1.WorkflowStepStateRunning
-			break
+			step.Status.State = types.WorkflowStateRunning
+			return nil
 		}
 
 		if !conditionResult {
-			finalState = v1.WorkflowStepStateComplete
-			break
+			completeResponse = true
+			step.Status.State = types.WorkflowStateComplete
+			step.Status.LastRunName = lastRunName
+			return nil
 		}
 
 		steps, err := h.defineWhile(i, conditionStep, step)
@@ -69,20 +88,26 @@ func (h *Handler) RunWhile(req router.Request, resp router.Response) error {
 
 		resp.Objects(steps...)
 
-		runName, newState, err := getStateFromSteps(req.Ctx, req.Client, steps)
+		runName, errMsg, newState, err := GetStateFromSteps(req.Ctx, req.Client, step.Spec.WorkflowGeneration, steps...)
 		if err != nil {
 			return err
 		}
 		lastRunName = runName
 
-		if newState != v1.WorkflowStepStateComplete {
-			finalState = newState
-			break
+		if newState.IsBlocked() {
+			step.Status.State = newState
+			step.Status.Error = errMsg
+			return nil
+		}
+
+		if newState != types.WorkflowStateComplete {
+			step.Status.State = newState
+			return nil
 		}
 	}
 
-	step.Status.State = finalState
-	step.Status.Error = finalError
+	completeResponse = true
+	step.Status.State = types.WorkflowStateComplete
 	step.Status.LastRunName = lastRunName
 	return nil
 }
@@ -100,7 +125,7 @@ func (h *Handler) defineWhile(groupIndex int, conditionStep, step *v1.WorkflowSt
 			afterStepName = lastStepName
 		}
 		loopStep.ID = fmt.Sprintf("%s{index=%d}", loopStep.ID, groupIndex)
-		newStep := NewStep(step.Namespace, step.Spec.WorkflowExecutionName, afterStepName, loopStep)
+		newStep := NewStep(step.Namespace, step.Spec.WorkflowExecutionName, afterStepName, step.Spec.WorkflowGeneration, loopStep)
 		result = append(result, newStep)
 		lastStepName = newStep.Name
 	}

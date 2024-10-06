@@ -19,39 +19,63 @@ func (h *Handler) RunIf(req router.Request, resp router.Response) error {
 		return nil
 	}
 
+	var completeResponse bool
+	defer func() {
+		if !completeResponse {
+			resp.DisablePrune()
+		}
+	}()
+
 	conditionStep := h.defineCondition(step, nil, 0)
 	resp.Objects(conditionStep)
 
-	conditionRunName, conditionResult, wait, err := h.conditionResult(req.Ctx, req.Client, step, conditionStep)
+	if _, errorMsg, state, err := GetStateFromSteps(req.Ctx, req.Client, step.Spec.WorkflowGeneration, conditionStep); err != nil {
+		return err
+	} else if state.IsBlocked() {
+		step.Status.State = state
+		step.Status.Error = errorMsg
+		return nil
+	}
+
+	conditionRunName, conditionResult, wait, err := getConditionResult(req.Ctx, req.Client, step, conditionStep)
 	if err != nil {
 		return err
 	} else if wait {
 		return nil
 	}
 
-	steps, err := h.defineIf(step, conditionStep, conditionResult)
+	steps, err := h.defineIfSteps(step, conditionStep, conditionResult)
 	if err != nil {
 		return err
 	}
+	resp.Objects(steps...)
+
+	completeResponse = true
 
 	if len(steps) == 0 {
-		step.Status.State = v1.WorkflowStepStateComplete
+		step.Status.State = types.WorkflowStateComplete
 		step.Status.LastRunName = conditionRunName
 		return nil
 	}
 
-	lastRunName, newState, err := getStateFromSteps(req.Ctx, req.Client, steps)
+	runName, errMsg, newState, err := GetStateFromSteps(req.Ctx, req.Client, step.Spec.WorkflowGeneration, steps...)
 	if err != nil {
 		return err
 	}
 
+	if newState.IsBlocked() {
+		step.Status.State = newState
+		step.Status.Error = errMsg
+		return nil
+	}
+
 	step.Status.State = newState
-	step.Status.LastRunName = lastRunName
-	resp.Objects(steps...)
+	step.Status.LastRunName = runName
 	return nil
 }
 
-func (h *Handler) conditionResult(ctx context.Context, c kclient.Client, parentStep, conditionStep *v1.WorkflowStep) (runName string, result, wait bool, err error) {
+// getConditionResult assumes the conditionStep is not in a IsBlocking() state already. Always check for IsBlocking() before calling this function.
+func getConditionResult(ctx context.Context, c kclient.Client, parentStep, conditionStep *v1.WorkflowStep) (runName string, result, wait bool, err error) {
 	var checkStep v1.WorkflowStep
 	if err := c.Get(ctx, router.Key(conditionStep.Namespace, conditionStep.Name), &checkStep); apierrors.IsNotFound(err) {
 		return "", false, true, nil
@@ -59,7 +83,7 @@ func (h *Handler) conditionResult(ctx context.Context, c kclient.Client, parentS
 		return "", false, false, err
 	}
 
-	if checkStep.Status.State != v1.WorkflowStepStateComplete || checkStep.Status.LastRunName == "" {
+	if checkStep.Status.State != types.WorkflowStateComplete || checkStep.Status.LastRunName == "" {
 		return "", false, true, nil
 	}
 
@@ -75,7 +99,7 @@ func (h *Handler) conditionResult(ctx context.Context, c kclient.Client, parentS
 	}
 
 	parentStep.Status.Error = fmt.Sprintf("Error evaluating condition: %s", run.Status.Output)
-	parentStep.Status.State = v1.WorkflowStepStateError
+	parentStep.Status.State = types.WorkflowStateError
 
 	return "", false, true, nil
 }
@@ -124,14 +148,14 @@ func (h *Handler) defineCondition(step, afterStep *v1.WorkflowStep, iteration in
 		suffix = fmt.Sprintf("{condition,index=%d}", iteration)
 	}
 
-	newStep := NewStep(step.Namespace, step.Spec.WorkflowExecutionName, afterStepName, types.Step{
+	newStep := NewStep(step.Namespace, step.Spec.WorkflowExecutionName, afterStepName, step.Spec.WorkflowGeneration, types.Step{
 		ID:   step.Spec.Step.ID + suffix,
 		Step: toStepCondition(condition),
 	})
 	return newStep
 }
 
-func (h *Handler) defineIf(step *v1.WorkflowStep, conditionStep *v1.WorkflowStep, conditionResult bool) (result []kclient.Object, _ error) {
+func (h *Handler) defineIfSteps(step *v1.WorkflowStep, conditionStep *v1.WorkflowStep, conditionResult bool) (result []kclient.Object, _ error) {
 	var steps []types.Step
 	if conditionResult {
 		steps = step.Spec.Step.If.Steps
@@ -145,7 +169,7 @@ func (h *Handler) defineIf(step *v1.WorkflowStep, conditionStep *v1.WorkflowStep
 		if i > 0 {
 			afterStepName = lastStepName
 		}
-		newStep := NewStep(step.Namespace, step.Spec.WorkflowExecutionName, afterStepName, ifStep)
+		newStep := NewStep(step.Namespace, step.Spec.WorkflowExecutionName, afterStepName, step.Spec.WorkflowGeneration, ifStep)
 		result = append(result, newStep)
 		lastStepName = newStep.Name
 	}

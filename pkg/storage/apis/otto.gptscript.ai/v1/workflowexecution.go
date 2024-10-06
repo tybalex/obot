@@ -71,6 +71,8 @@ type WorkflowExecutionSpec struct {
 	ParentRunName         string `json:"parentRunName,omitempty"`
 	AfterWorkflowStepName string `json:"afterWorkflowStepName,omitempty"`
 	WorkspaceName         string `json:"workspaceName,omitempty"`
+	WorkflowGeneration    int64  `json:"workflowGeneration,omitempty"`
+	RunUntilStep          string `json:"runUntilStep,omitempty"`
 }
 
 func (in *WorkflowExecution) DeleteRefs() []Ref {
@@ -81,12 +83,14 @@ func (in *WorkflowExecution) DeleteRefs() []Ref {
 }
 
 type WorkflowExecutionStatus struct {
-	State            types.WorkflowState     `json:"state,omitempty"`
-	Output           string                  `json:"output,omitempty"`
-	ThreadName       string                  `json:"threadName,omitempty"`
-	WorkflowManifest *types.WorkflowManifest `json:"workflowManifest,omitempty"`
-	EndTime          *metav1.Time            `json:"endTime,omitempty"`
-	Conditions       []metav1.Condition      `json:"conditions,omitempty"`
+	State              types.WorkflowState     `json:"state,omitempty"`
+	Output             string                  `json:"output,omitempty"`
+	Error              string                  `json:"error,omitempty"`
+	ThreadName         string                  `json:"threadName,omitempty"`
+	WorkflowManifest   *types.WorkflowManifest `json:"workflowManifest,omitempty"`
+	EndTime            *metav1.Time            `json:"endTime,omitempty"`
+	Conditions         []metav1.Condition      `json:"conditions,omitempty"`
+	WorkflowGeneration int64                   `json:"workflowGeneration,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -21,6 +21,17 @@ type Thread struct {
 	Status ThreadStatus `json:"status,omitempty"`
 }
 
+func (in *Thread) GetColumns() [][]string {
+	return [][]string{
+		{"Name", "Name"},
+		{"CurrentRun", "Status.CurrentRunName"},
+		{"LastRun", "Status.LastRunName"},
+		{"LastRunState", "Status.LastRunState"},
+		{"WorkflowState", "Status.WorkflowState"},
+		{"Created", "{{ago .CreationTimestamp}}"},
+	}
+}
+
 func (in *Thread) GetConditions() *[]metav1.Condition {
 	return &in.Status.Conditions
 }
@@ -31,7 +42,6 @@ type ThreadSpec struct {
 	AgentName             string               `json:"agentName,omitempty"`
 	WorkflowName          string               `json:"workflowName,omitempty"`
 	WorkflowExecutionName string               `json:"workflowExecutionName,omitempty"`
-	WorkflowStepName      string               `json:"workflowStepName,omitempty"`
 	WebhookName           string               `json:"webhookName,omitempty"`
 	CronJobName           string               `json:"cronJobName,omitempty"`
 	WorkspaceID           string               `json:"workspaceID,omitempty"`
@@ -45,11 +55,13 @@ func (in *Thread) DeleteRefs() []Ref {
 		{&Workflow{}, in.Spec.WorkflowName},
 		{&CronJob{}, in.Spec.CronJobName},
 		{&Webhook{}, in.Spec.WebhookName},
+		{&Thread{}, in.Status.PreviousThreadName},
 	}
 }
 
 type ThreadStatus struct {
 	LastRunName        string                   `json:"lastRunName,omitempty"`
+	CurrentRunName     string                   `json:"currentRunName,omitempty"`
 	LastRunState       gptscriptclient.RunState `json:"lastRunState,omitempty"`
 	WorkflowState      types.WorkflowState      `json:"workflowState,omitempty"`
 	PreviousThreadName string                   `json:"previousThreadName,omitempty"`

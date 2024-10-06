@@ -19,6 +19,7 @@ type Options struct {
 	Quiet    bool
 	Details  bool
 	Async    bool
+	Step     string
 }
 
 func Invoke(ctx context.Context, c *apiclient.Client, id, input string, opts Options) (err error) {
@@ -46,8 +47,9 @@ func Invoke(ctx context.Context, c *apiclient.Client, id, input string, opts Opt
 
 	for {
 		resp, err := c.Invoke(ctx, id, input, apiclient.InvokeOptions{
-			ThreadID: threadID,
-			Async:    opts.Async,
+			ThreadID:       threadID,
+			Async:          opts.Async,
+			WorkflowStepID: opts.Step,
 		})
 		if err != nil {
 			return err

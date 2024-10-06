@@ -11,10 +11,9 @@ var (
 )
 
 const (
-	RunFinalizer               = "otto.gptscript.ai/run"
-	WorkflowExecutionFinalizer = "otto.gptscript.ai/workflow-execution"
-	KnowledgeFileFinalizer     = "otto.gptscript.ai/knowledge-file"
-	WorkspaceFinalizer         = "otto.gptscript.ai/workspace"
+	RunFinalizer           = "otto.gptscript.ai/run"
+	KnowledgeFileFinalizer = "otto.gptscript.ai/knowledge-file"
+	WorkspaceFinalizer     = "otto.gptscript.ai/workspace"
 )
 
 const (
@@ -29,6 +28,25 @@ type Run struct {
 
 	Spec   RunSpec   `json:"spec,omitempty"`
 	Status RunStatus `json:"status,omitempty"`
+}
+
+func (in *Run) Has(field string) bool {
+	return in.Get(field) != ""
+}
+
+func (in *Run) Get(field string) string {
+	if in != nil {
+		switch field {
+		case "spec.threadName":
+			return in.Spec.ThreadName
+		}
+	}
+
+	return ""
+}
+
+func (in *Run) FieldNames() []string {
+	return []string{"spec.threadName"}
 }
 
 func (in *Run) GetColumns() [][]string {
@@ -67,6 +85,8 @@ type RunSpec struct {
 func (in *Run) DeleteRefs() []Ref {
 	return []Ref{
 		{ObjType: &Thread{}, Name: in.Spec.ThreadName},
+		{ObjType: &WorkflowExecution{}, Name: in.Spec.WorkflowExecutionName},
+		{ObjType: &WorkflowStep{}, Name: in.Spec.WorkflowStepName},
 	}
 }
 

@@ -44,6 +44,7 @@ func convertThread(thread v1.Thread) types.Thread {
 		AgentID:        thread.Spec.AgentName,
 		WorkflowID:     thread.Spec.WorkflowName,
 		LastRunID:      thread.Status.LastRunName,
+		CurrentRunID:   thread.Status.CurrentRunName,
 		State:          state,
 		ParentThreadID: parent,
 	}
@@ -59,7 +60,7 @@ func (a *ThreadHandler) Events(req api.Context) error {
 		return err
 	}
 
-	events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
+	_, events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
 		Follow:     true,
 		History:    true,
 		ThreadName: thread.Name,

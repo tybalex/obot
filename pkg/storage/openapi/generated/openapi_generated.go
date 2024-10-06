@@ -1956,6 +1956,12 @@ func schema_gptscript_ai_otto_apiclient_types_Thread(ref common.ReferenceCallbac
 							Format: "",
 						},
 					},
+					"currentRunID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"parentThreadID": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -2556,6 +2562,18 @@ func schema_gptscript_ai_otto_apiclient_types_WorkflowExternalStatus(ref common.
 					"refNameAssigned": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"error": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"output": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
 							Format: "",
 						},
 					},
@@ -4508,12 +4526,6 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadSpec(ref common.ReferenceCallb
 							Format: "",
 						},
 					},
-					"workflowStepName": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 					"webhookName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -4553,6 +4565,12 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadStatus(ref common.ReferenceCal
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
 					"lastRunName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"currentRunName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -5358,6 +5376,18 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionSpec(ref common.Ref
 							Format: "",
 						},
 					},
+					"workflowGeneration": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
+					"runUntilStep": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
@@ -5377,6 +5407,12 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionStatus(ref common.R
 						},
 					},
 					"output": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"error": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -5409,6 +5445,12 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionStatus(ref common.R
 									},
 								},
 							},
+						},
+					},
+					"workflowGeneration": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
 						},
 					},
 				},
@@ -5650,6 +5692,12 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStepSpec(ref common.Referenc
 							Format: "",
 						},
 					},
+					"workflowGeneration": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
 				},
 			},
 		},
@@ -5664,6 +5712,12 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStepStatus(ref common.Refere
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
+					"workflowGeneration": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
 					"state": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},

@@ -11,14 +11,15 @@ import (
 )
 
 type InvokeOptions struct {
-	ThreadID string
-	Async    bool
+	ThreadID       string
+	WorkflowStepID string
+	Async          bool
 }
 
 func (c *Client) Invoke(ctx context.Context, agentID string, input string, opts InvokeOptions) (*types.InvokeResponse, error) {
-	url := fmt.Sprintf("/invoke/%s?async=%v", agentID, opts.Async)
+	url := fmt.Sprintf("/invoke/%s?async=%v&step=%s", agentID, opts.Async, opts.WorkflowStepID)
 	if opts.ThreadID != "" {
-		url = fmt.Sprintf("/invoke/%s/threads/%s?async=%v", agentID, opts.ThreadID, opts.Async)
+		url = fmt.Sprintf("/invoke/%s/threads/%s?async=%v&step=%s", agentID, opts.ThreadID, opts.Async, opts.WorkflowStepID)
 	}
 
 	_, resp, err := c.doRequest(ctx, http.MethodPost, url, bytes.NewBuffer([]byte(input)), "Accept", "text/event-stream")

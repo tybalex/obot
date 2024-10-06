@@ -1,6 +1,8 @@
 package runs
 
 import (
+	"fmt"
+
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
 	log2 "github.com/gptscript-ai/otto/logger"
@@ -40,9 +42,21 @@ func (h *Handler) Resume(req router.Request, resp router.Response) error {
 	}
 
 	if err := req.Get(&thread, run.Namespace, run.Spec.ThreadName); apierrors.IsNotFound(err) {
-		return req.Delete(run)
+		run.Status.Error = fmt.Sprintf("thread %s not found", run.Spec.ThreadName)
+		run.Status.State = gptscript.Error
+		return nil
 	} else if err != nil {
 		return err
+	}
+
+	if run.Spec.PreviousRunName != "" {
+		if err := req.Get(&v1.Run{}, run.Namespace, run.Spec.PreviousRunName); apierrors.IsNotFound(err) {
+			run.Status.Error = fmt.Sprintf("run %s not found", run.Spec.PreviousRunName)
+			run.Status.State = gptscript.Error
+			return nil
+		} else if err != nil {
+			return err
+		}
 	}
 
 	return h.invoker.Resume(req.Ctx, req.Client, &thread, run)

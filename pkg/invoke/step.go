@@ -41,6 +41,7 @@ func (i *Invoker) Step(ctx context.Context, c kclient.Client, step *v1.WorkflowS
 		ThreadName:            wfe.Status.ThreadName,
 		ParentThreadName:      wfe.Spec.ParentThreadName,
 		PreviousRunName:       opt.PreviousRunName,
+		ForceNoResume:         opt.PreviousRunName == "",
 		WorkflowName:          wfe.Spec.WorkflowName,
 		WorkflowExecutionName: step.Spec.WorkflowExecutionName,
 		WorkflowStepName:      step.Name,

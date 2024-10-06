@@ -47,11 +47,12 @@ type liveState struct {
 }
 
 type WatchOptions struct {
-	History     bool
-	LastRunName string
-	ThreadName  string
-	Follow      bool
-	Run         *v1.Run
+	History               bool
+	LastRunName           string
+	ThreadName            string
+	ThreadResourceVersion string
+	Follow                bool
+	Run                   *v1.Run
 }
 
 type Frames map[string]gptscript.CallFrame
@@ -114,25 +115,15 @@ func (e *Emitter) SubmitProgress(run *v1.Run, progress types.Progress) {
 	e.liveBroadcast.Broadcast()
 }
 
-func (e *Emitter) findRunByThreadName(ctx context.Context, threadNamespace, threadName string, wait bool) (*v1.Run, error) {
-	var runs v1.RunList
-	if err := e.client.List(ctx, &runs, kclient.InNamespace(threadNamespace)); err != nil {
-		return nil, err
-	}
-	for _, run := range runs.Items {
-		if run.Spec.ThreadName == threadName {
-			return &run, nil
-		}
-	}
-	if !wait {
-		return nil, fmt.Errorf("no run found for thread: %s", threadName)
-	}
+func (e *Emitter) findRunByThreadName(ctx context.Context, threadNamespace, threadName, resourceVersion string) (*v1.Run, error) {
+	var run v1.Run
 
-	w, err := e.client.Watch(ctx, &v1.RunList{}, kclient.InNamespace(threadNamespace), &kclient.ListOptions{
-		Raw: &metav1.ListOptions{
-			ResourceVersion: runs.ResourceVersion,
-		},
-	})
+	w, err := e.client.Watch(ctx, &v1.ThreadList{}, kclient.InNamespace(threadNamespace),
+		kclient.MatchingFields{"metadata.name": threadName}, &kclient.ListOptions{
+			Raw: &metav1.ListOptions{
+				ResourceVersion: resourceVersion,
+			},
+		})
 	if err != nil {
 		return nil, err
 	}
@@ -143,9 +134,22 @@ func (e *Emitter) findRunByThreadName(ctx context.Context, threadNamespace, thre
 	}()
 
 	for event := range w.ResultChan() {
-		if run, ok := event.Object.(*v1.Run); ok {
-			if run.Spec.ThreadName == threadName {
-				return run, nil
+		if thread, ok := event.Object.(*v1.Thread); ok {
+			if thread.Status.CurrentRunName != "" {
+				if err := e.client.Get(ctx, router.Key(thread.Namespace, thread.Status.CurrentRunName), &run); apierrors.IsNotFound(err) {
+				} else if err != nil {
+					return nil, err
+				} else {
+					return &run, nil
+				}
+			}
+			if thread.Status.LastRunName != "" {
+				if err := e.client.Get(ctx, router.Key(thread.Namespace, thread.Status.LastRunName), &run); apierrors.IsNotFound(err) {
+				} else if err != nil {
+					return nil, err
+				} else {
+					return &run, nil
+				}
 			}
 		}
 	}
@@ -153,7 +157,7 @@ func (e *Emitter) findRunByThreadName(ctx context.Context, threadNamespace, thre
 	return nil, fmt.Errorf("no run found for thread: %s", threadName)
 }
 
-func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions) (chan types.Progress, error) {
+func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions) (*v1.Run, chan types.Progress, error) {
 	var (
 		run v1.Run
 	)
@@ -162,21 +166,21 @@ func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions
 		run = *opts.Run
 	} else if opts.LastRunName != "" {
 		if err := e.client.Get(ctx, router.Key(namespace, opts.LastRunName), &run); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	} else if opts.ThreadName != "" {
 		var thread v1.Thread
 		if err := e.client.Get(ctx, router.Key(namespace, opts.ThreadName), &thread); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if thread.Status.LastRunName == "" {
-			runForThread, err := e.findRunByThreadName(ctx, namespace, opts.ThreadName, opts.History)
+			runForThread, err := e.findRunByThreadName(ctx, namespace, opts.ThreadName, opts.ThreadResourceVersion)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			run = *runForThread
 		} else if err := e.client.Get(ctx, router.Key(namespace, thread.Status.LastRunName), &run); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -184,7 +188,7 @@ func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions
 
 	if run.Name == "" {
 		close(result)
-		return result, nil
+		return &run, result, nil
 	}
 
 	go func() {
@@ -192,7 +196,7 @@ func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions
 		_ = e.streamEvents(ctx, run, opts, result)
 	}()
 
-	return result, nil
+	return &run, result, nil
 }
 
 func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, result chan types.Progress) error {
@@ -427,7 +431,7 @@ func (e *Emitter) isWorkflowDone(ctx context.Context, run v1.Run) (chan struct{}
 		defer cancel()
 		for event := range w.ResultChan() {
 			if wfe, ok := event.Object.(*v1.WorkflowExecution); ok {
-				if wfe.Status.State == types.WorkflowStateComplete || wfe.Status.State == types.WorkflowStateError {
+				if wfe.Status.State.IsTerminal() || wfe.Status.State.IsBlocked() {
 					close(result)
 					return
 				}

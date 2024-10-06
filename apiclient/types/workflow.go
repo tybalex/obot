@@ -9,7 +9,9 @@ type Workflow struct {
 }
 
 type WorkflowExternalStatus struct {
-	RefNameAssigned bool `json:"refNameAssigned,omitempty"`
+	RefNameAssigned bool   `json:"refNameAssigned,omitempty"`
+	Error           string `json:"error,omitempty"`
+	Output          string `json:"output,omitempty"`
 }
 
 type WorkflowList List[Workflow]

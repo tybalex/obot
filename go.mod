@@ -24,7 +24,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/rs/cors v1.11.1
 	github.com/spf13/cobra v1.8.1
-	github.com/thedadams/workspace-provider v0.0.0-20240912195139-5dc37cf34474
+	github.com/thedadams/workspace-provider v0.0.0-20241003193225-35c02f38505b
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc
 	golang.org/x/term v0.23.0
 	gopkg.in/yaml.v3 v3.0.1

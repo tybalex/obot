@@ -23,7 +23,13 @@ func (h *Handler) RunSubflow(req router.Request, resp router.Response) error {
 		resp.DisablePrune()
 	}
 
-	if step.Status.State != v1.WorkflowStepStateSubCall {
+	if step.Status.State != types.WorkflowStateSubCall {
+		return nil
+	}
+
+	// The runs maybe zero on a rerun, reset state to pending
+	if len(step.Status.RunNames) == 0 {
+		step.Status.State = types.WorkflowStatePending
 		return nil
 	}
 
@@ -44,9 +50,8 @@ func (h *Handler) RunSubflow(req router.Request, resp router.Response) error {
 
 		wfe := &v1.WorkflowExecution{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:       name.SafeConcatName(system.WorkflowExecutionPrefix+strings.TrimPrefix(step.Name, system.WorkflowStepPrefix), fmt.Sprintf("%d-%s", i, subCall.Workflow)),
-				Namespace:  step.Namespace,
-				Finalizers: []string{v1.WorkflowExecutionFinalizer},
+				Name:      name.SafeConcatName(system.WorkflowExecutionPrefix+strings.TrimPrefix(step.Name, system.WorkflowStepPrefix), fmt.Sprintf("%d-%s", i, subCall.Workflow)),
+				Namespace: step.Namespace,
 			},
 			Spec: v1.WorkflowExecutionSpec{
 				Input:                 subCall.Input,
@@ -55,13 +60,20 @@ func (h *Handler) RunSubflow(req router.Request, resp router.Response) error {
 				WorkflowName:          wf.Name,
 				AfterWorkflowStepName: step.Spec.AfterWorkflowStepName,
 				WorkspaceName:         wf.Status.WorkspaceName,
+				WorkflowGeneration:    step.Spec.WorkflowGeneration,
 			},
 		}
 		resp.Objects(wfe)
 
-		out, done, err := h.getSubflowOutput(req, wfe)
+		out, isErr, done, err := h.getSubflowOutput(req, wfe)
 		if err != nil {
 			return err
+		}
+
+		if isErr {
+			step.Status.State = types.WorkflowStateError
+			step.Status.Error = out
+			return req.Client.Status().Update(req.Ctx, step)
 		}
 
 		if !done {
@@ -92,12 +104,12 @@ func (h *Handler) RunSubflow(req router.Request, resp router.Response) error {
 		if run.Status.SubCall != nil {
 			step.Status.SubCalls = append(step.Status.SubCalls, *run.Status.SubCall)
 		} else {
-			step.Status.State = v1.WorkflowStepStateComplete
+			step.Status.State = types.WorkflowStateComplete
 			step.Status.LastRunName = nextRunName
 			step.Status.Error = ""
 		}
 	case gptscript.Error:
-		step.Status.State = v1.WorkflowStepStateError
+		step.Status.State = types.WorkflowStateError
 		step.Status.LastRunName = nextRunName
 	}
 
@@ -112,27 +124,31 @@ func (h *Handler) getLastRun(req router.Request, step *v1.WorkflowStep) (string,
 		return "", err
 	}
 
-	if check.Status.State != v1.WorkflowStepStateComplete {
+	if check.Status.State != types.WorkflowStateComplete {
 		return "", nil
 	}
 
 	return check.Status.LastRunName, nil
 }
 
-func (h *Handler) getSubflowOutput(req router.Request, wfe *v1.WorkflowExecution) (string, bool, error) {
+func (h *Handler) getSubflowOutput(req router.Request, wfe *v1.WorkflowExecution) (string, bool, bool, error) {
 	var (
 		check v1.WorkflowExecution
 	)
 
 	if err := req.Get(&check, wfe.Namespace, wfe.Name); apierrors.IsNotFound(err) {
-		return "", false, nil
+		return "", false, false, nil
 	} else if err != nil {
-		return "", false, err
+		return "", false, false, err
 	}
 
-	if check.Status.State != types.WorkflowStateComplete {
-		return "", false, nil
+	if check.Status.State == types.WorkflowStateError && check.Status.WorkflowGeneration == wfe.Spec.WorkflowGeneration {
+		return check.Status.Error, true, true, nil
 	}
 
-	return check.Status.Output, true, nil
+	if check.Status.State != types.WorkflowStateComplete || check.Status.WorkflowGeneration != wfe.Spec.WorkflowGeneration {
+		return "", false, false, nil
+	}
+
+	return check.Status.Output, false, true, nil
 }

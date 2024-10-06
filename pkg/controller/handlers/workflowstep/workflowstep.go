@@ -26,76 +26,200 @@ func New(invoker *invoke.Invoker) *Handler {
 	}
 }
 
-func (h *Handler) SetRunning(req router.Request, resp router.Response) error {
-	step := req.Object.(*v1.WorkflowStep)
-
-	if step.Status.State == v1.WorkflowStepStateComplete || step.Status.State == v1.WorkflowStepStateError {
-		resp.DisablePrune()
-		return nil
+func lastRunMatches(ctx context.Context, c kclient.Client, parent, current *v1.WorkflowStep) (bool, error) {
+	if parent.Status.LastRunName == "" {
+		if current.Status.HasRunsSet() {
+			return false, nil
+		}
+		return true, nil
 	}
 
-	if step.Spec.AfterWorkflowStepName != "" {
-		var parent v1.WorkflowStep
-		if err := req.Get(&parent, step.Namespace, step.Spec.AfterWorkflowStepName); err != nil {
-			return kclient.IgnoreNotFound(err)
-		}
+	currentFirstRun := current.Status.FirstRun()
+	if currentFirstRun == "" {
+		return true, nil
+	}
 
-		if parent.Status.State != v1.WorkflowStepStateComplete {
-			return nil
+	var firstRun v1.Run
+	if err := c.Get(ctx, kclient.ObjectKey{Namespace: current.Namespace, Name: currentFirstRun}, &firstRun); apierrors.IsNotFound(err) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+
+	return firstRun.Spec.PreviousRunName == parent.Status.LastRunName, nil
+}
+
+func deleteLastRuns(ctx context.Context, client kclient.Client, step *v1.WorkflowStep) error {
+	if step.Status.LastRunName != "" {
+		if err := client.Delete(ctx, &v1.Run{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      step.Status.LastRunName,
+				Namespace: step.Namespace,
+			},
+		}); kclient.IgnoreNotFound(err) != nil {
+			return err
 		}
 	}
 
-	if step.Status.State != v1.WorkflowStepStateRunning && step.Status.State != v1.WorkflowStepStateSubCall {
-		step.Status.State = v1.WorkflowStepStateRunning
-		if err := req.Client.Status().Update(req.Ctx, step); err != nil {
-			return kclient.IgnoreNotFound(err)
+	for _, run := range step.Status.RunNames {
+		if err := client.Delete(ctx, &v1.Run{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      run,
+				Namespace: step.Namespace,
+			},
+		}); kclient.IgnoreNotFound(err) != nil {
+			return err
 		}
 	}
 
+	step.Status.LastRunName = ""
+	step.Status.RunNames = nil
 	return nil
 }
 
-func getStateFromSteps[T kclient.Object](ctx context.Context, client kclient.Client, steps []T) (string, v1.WorkflowStepState, error) {
-	for i, obj := range steps {
+func (h *Handler) Preconditions(next router.Handler) router.Handler {
+	return router.HandlerFunc(func(req router.Request, resp router.Response) error {
+		if req.Object == nil {
+			return nil
+		}
+
+		if proceed, err := h.checkPreconditions(req, resp); err != nil {
+			return err
+		} else if proceed {
+			return next.Handle(req, resp)
+		}
+
+		resp.DisablePrune()
+		return nil
+	})
+}
+
+func (h *Handler) checkPreconditions(req router.Request, resp router.Response) (proceed bool, err error) {
+	step := req.Object.(*v1.WorkflowStep)
+
+	if step.Status.State.IsTerminal() {
+		if !step.IsGenerationInSync() {
+			// We are rerunning, reset the state and reprocess
+			step.Status.State = types.WorkflowStatePending
+			return false, nil
+		}
+		// When terminal we no longer process anything
+		return false, nil
+	}
+
+	// Set generation, which just means we have seen and processed this step in its current state,
+	// but maybe not actually accomplished anything yet.
+	step.Status.WorkflowGeneration = step.Spec.WorkflowGeneration
+
+	if step.Spec.AfterWorkflowStepName == "" {
+		// (darkness) No parents, nothing to check
+		return true, nil
+	}
+
+	var parent v1.WorkflowStep
+	if err := req.Get(&parent, step.Namespace, step.Spec.AfterWorkflowStepName); err != nil {
+		return false, kclient.IgnoreNotFound(err)
+	}
+
+	if !parent.IsGenerationInSync() {
+		// Wait for parent to be processed
+		step.Status.State = types.WorkflowStatePending
+		return false, nil
+	}
+
+	if parent.Status.State.IsBlocked() {
+		step.Status.State = types.WorkflowStateBlocked
+		return false, nil
+	}
+
+	var wf v1.WorkflowExecution
+	if err := req.Get(&wf, step.Namespace, step.Spec.WorkflowExecutionName); err != nil {
+		return false, err
+	}
+
+	if WorkflowStepMatchesStepID(&parent, wf.Spec.RunUntilStep) {
+		// We are blocked because the workflow is supposed to only run until the parent step
+		step.Status.State = types.WorkflowStateBlocked
+		return false, nil
+	}
+
+	if parent.Status.State != types.WorkflowStateComplete {
+		// We are just waiting for the parent to complete
+		step.Status.State = types.WorkflowStatePending
+		return false, nil
+	}
+
+	// If parent lastRun doesn't match our first run, we cleanup
+	if matches, err := lastRunMatches(req.Ctx, req.Client, &parent, step); err != nil {
+		return false, err
+	} else if !matches {
+		if err := deleteLastRuns(req.Ctx, req.Client, step); err != nil {
+			return false, err
+		}
+	}
+
+	if parent.Status.LastRunName == "" {
+		step.Status.State = types.WorkflowStateBlocked
+		return false, nil
+	}
+
+	if step.Status.State == "" {
+		step.Status.State = types.WorkflowStatePending
+	}
+	return true, nil
+}
+
+func normalizeStepID(stepID string) string {
+	id, _, _ := strings.Cut(stepID, "{")
+	return id
+}
+
+func WorkflowStepMatchesStepID(step *v1.WorkflowStep, stepID string) bool {
+	return normalizeStepID(step.Spec.Step.ID) == normalizeStepID(stepID)
+}
+
+func GetStateFromSteps[T kclient.Object](ctx context.Context, client kclient.Client, generation int64, steps ...T) (lastRun string, output string, _ types.WorkflowState, _ error) {
+	var (
+		toCheck []*v1.WorkflowStep
+	)
+
+	for _, obj := range steps {
 		var (
 			genericObj kclient.Object = obj
 		)
 		step := genericObj.(*v1.WorkflowStep).DeepCopy()
 		if err := client.Get(ctx, kclient.ObjectKeyFromObject(step), step); apierrors.IsNotFound(err) {
-			if i == 0 {
-				return "", v1.WorkflowStepStatePending, nil
-			}
-			return "", v1.WorkflowStepStateRunning, nil
+			toCheck = append(toCheck, nil)
 		} else if err != nil {
-			return "", "", err
+			return "", "", "", err
+		} else if step.Status.State.IsBlocked() {
+			return "", step.Status.Error, step.Status.State, nil
 		}
-		if step.Status.State == v1.WorkflowStepStateError {
-			return "", v1.WorkflowStepStateError, nil
+		toCheck = append(toCheck, step)
+	}
+
+	for i, step := range toCheck {
+		if step == nil || step.Status.WorkflowGeneration != generation {
+			if i == 0 {
+				return "", "", types.WorkflowStatePending, nil
+			}
+			return "", "", types.WorkflowStateRunning, nil
 		}
-		if i == len(steps)-1 && step.Status.State == v1.WorkflowStepStateComplete {
-			return step.Status.LastRunName, v1.WorkflowStepStateComplete, nil
+		if i == len(steps)-1 && step.Status.State == types.WorkflowStateComplete {
+			var run v1.Run
+			if err := client.Get(ctx, router.Key(step.Namespace, step.Status.LastRunName), &run); err != nil {
+				return "", "", "", err
+			}
+			return step.Status.LastRunName, run.Status.Output, types.WorkflowStateComplete, nil
 		}
 	}
 
-	return "", v1.WorkflowStepStateRunning, nil
-}
-
-func Running(handler router.Handler) router.Handler {
-	return router.HandlerFunc(func(req router.Request, resp router.Response) error {
-		if req.Object == nil {
-			return nil
-		}
-		step := req.Object.(*v1.WorkflowStep)
-		if step.Status.State == v1.WorkflowStepStateRunning || step.Status.State == v1.WorkflowStepStatePending {
-			return handler.Handle(req, resp)
-		}
-		return nil
-	})
+	return "", "", types.WorkflowStateRunning, nil
 }
 
 var replaceRegexp = regexp.MustCompile(`[{},=]+`)
 
-func NewStep(namespace, workflowExecutionName string, afterStepName string, step types.Step) *v1.WorkflowStep {
+func NewStep(namespace, workflowExecutionName, afterStepName string, generation int64, step types.Step) *v1.WorkflowStep {
 	if step.ID == "" {
 		panic("step ID is required")
 	}
@@ -115,6 +239,7 @@ func NewStep(namespace, workflowExecutionName string, afterStepName string, step
 			AfterWorkflowStepName: afterStepName,
 			Step:                  step,
 			WorkflowExecutionName: workflowExecutionName,
+			WorkflowGeneration:    generation,
 		},
 	}
 }

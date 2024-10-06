@@ -29,6 +29,7 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 		wf       v1.Workflow
 		ref      v1.Reference
 		threadID = req.PathValue("thread")
+		stepID   = req.URL.Query().Get("step")
 		async    = req.URL.Query().Get("async") == "true"
 	)
 
@@ -40,6 +41,14 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 		agentID = id
 	} else if system.IsWorkflowID(id) {
 		wfID = id
+	} else if system.IsThreadID(id) {
+		var thread v1.Thread
+		if err := req.Get(&thread, id); err != nil {
+			return err
+		}
+		agentID = thread.Spec.AgentName
+		wfID = thread.Spec.WorkflowName
+		threadID = id
 	} else {
 		if err := req.Get(&ref, id); apierrors.IsNotFound(err) {
 		} else if err != nil {
@@ -82,6 +91,7 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 		resp, err = i.invoker.Workflow(req.Context(), req.Storage, &wf, string(input), invoke.WorkflowOptions{
 			ThreadName: threadID,
 			Background: async,
+			StepID:     stepID,
 		})
 		if err != nil {
 			return err

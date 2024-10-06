@@ -58,6 +58,22 @@ Assistant: %s\n`, run.Spec.Input, run.Status.Output))
 	return req.Client.Update(req.Ctx, thread)
 }
 
+func (t *ThreadHandler) WorkflowState(req router.Request, _ router.Response) error {
+	var (
+		thread = req.Object.(*v1.Thread)
+		wfe    v1.WorkflowExecution
+	)
+
+	if thread.Spec.WorkflowExecutionName != "" {
+		if err := req.Get(&wfe, thread.Namespace, thread.Spec.WorkflowExecutionName); err != nil {
+			return err
+		}
+		thread.Status.WorkflowState = wfe.Status.State
+	}
+
+	return nil
+}
+
 func (t *ThreadHandler) CreateWorkspaces(req router.Request, resp router.Response) error {
 	thread := req.Object.(*v1.Thread)
 	resp.Objects(

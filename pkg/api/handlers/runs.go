@@ -83,7 +83,7 @@ func (a *RunHandler) Events(req api.Context) error {
 		runID = req.PathValue("id")
 	)
 
-	events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
+	_, events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
 		LastRunName: runID,
 	})
 	if err != nil {

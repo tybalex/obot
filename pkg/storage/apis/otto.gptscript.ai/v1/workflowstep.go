@@ -20,6 +20,10 @@ type WorkflowStep struct {
 	Status WorkflowStepStatus `json:"status,omitempty"`
 }
 
+func (in *WorkflowStep) IsGenerationInSync() bool {
+	return in.Spec.WorkflowGeneration == in.Status.WorkflowGeneration
+}
+
 func (in *WorkflowStep) GetColumns() [][]string {
 	return [][]string{
 		{"Name", "Name"},
@@ -41,12 +45,14 @@ type WorkflowStepSpec struct {
 	AfterWorkflowStepName string     `json:"afterWorkflowStepName,omitempty"`
 	Step                  types.Step `json:"step,omitempty"`
 	WorkflowExecutionName string     `json:"workflowExecutionName,omitempty"`
+	WorkflowGeneration    int64      `json:"workflowGeneration,omitempty"`
 }
 
 func (in *WorkflowStep) DeleteRefs() []Ref {
 	refs := []Ref{
 		{ObjType: &WorkflowExecution{}, Name: in.Spec.WorkflowExecutionName},
 		{ObjType: &Run{}, Name: in.Status.LastRunName},
+		{ObjType: &Thread{}, Name: in.Status.ThreadName},
 	}
 	for _, run := range in.Status.RunNames {
 		refs = append(refs, Ref{ObjType: &Run{}, Name: run})
@@ -54,24 +60,26 @@ func (in *WorkflowStep) DeleteRefs() []Ref {
 	return refs
 }
 
-type WorkflowStepState string
-
-const (
-	WorkflowStepStatePending  WorkflowStepState = "Pending"
-	WorkflowStepStateRunning  WorkflowStepState = "Running"
-	WorkflowStepStateError    WorkflowStepState = "Error"
-	WorkflowStepStateComplete WorkflowStepState = "Complete"
-	WorkflowStepStateSubCall  WorkflowStepState = "SubCall"
-)
-
 type WorkflowStepStatus struct {
-	State       WorkflowStepState  `json:"state,omitempty"`
-	SubCalls    []SubCall          `json:"subCalls,omitempty"`
-	Error       string             `json:"message,omitempty"`
-	ThreadName  string             `json:"threadName,omitempty"`
-	RunNames    []string           `json:"runNames,omitempty"`
-	LastRunName string             `json:"lastRunName,omitempty"`
-	Conditions  []metav1.Condition `json:"conditions,omitempty"`
+	WorkflowGeneration int64               `json:"workflowGeneration,omitempty"`
+	State              types.WorkflowState `json:"state,omitempty"`
+	SubCalls           []SubCall           `json:"subCalls,omitempty"`
+	Error              string              `json:"message,omitempty"`
+	ThreadName         string              `json:"threadName,omitempty"`
+	RunNames           []string            `json:"runNames,omitempty"`
+	LastRunName        string              `json:"lastRunName,omitempty"`
+	Conditions         []metav1.Condition  `json:"conditions,omitempty"`
+}
+
+func (in WorkflowStepStatus) FirstRun() string {
+	if len(in.RunNames) > 0 {
+		return in.RunNames[0]
+	}
+	return in.LastRunName
+}
+
+func (in WorkflowStepStatus) HasRunsSet() bool {
+	return in.LastRunName != "" || len(in.RunNames) > 0
 }
 
 type SubCall struct {

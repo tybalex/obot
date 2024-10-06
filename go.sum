@@ -650,6 +650,8 @@ github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsT
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 github.com/thedadams/workspace-provider v0.0.0-20240912195139-5dc37cf34474 h1:4EuFOH8T7Vf9VG3Ay5hP7abBRoftO+pBmHCKSNmWKWQ=
 github.com/thedadams/workspace-provider v0.0.0-20240912195139-5dc37cf34474/go.mod h1:lEWAqSBY6752x3xd1GdPUT7hWbtpkT2BcRUxvu56M/0=
+github.com/thedadams/workspace-provider v0.0.0-20241003193225-35c02f38505b h1:pp0/y2RDB6+7SgxrkssupKZ9pX4YQ2Ap26i6pdzfxSI=
+github.com/thedadams/workspace-provider v0.0.0-20241003193225-35c02f38505b/go.mod h1:lEWAqSBY6752x3xd1GdPUT7hWbtpkT2BcRUxvu56M/0=
 github.com/therootcompany/xz v1.0.1 h1:CmOtsn1CbtmyYiusbfmhmkpAAETj0wBIH6kCYaX+xzw=
 github.com/therootcompany/xz v1.0.1/go.mod h1:3K3UH1yCKgBneZYhuQUvJ9HPD19UEXEI0BWbMn8qNMY=
 github.com/tidwall/gjson v1.17.1 h1:wlYEnwqAHgzmhNUFfw7Xalt2JzQvsMx2Se4PcoFCT/U=

@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/acorn-io/baaah/pkg/handlers"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/agents"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/cleanup"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/cronjob"
@@ -45,22 +46,22 @@ func (c *Controller) setupRoutes() error {
 	root.Type(&v1.Thread{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.Description)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.CreateWorkspaces)
+	root.Type(&v1.Thread{}).HandlerFunc(threads.WorkflowState)
 
 	// Workflows
 	root.Type(&v1.Workflow{}).HandlerFunc(workflow.WorkspaceObjects)
 	root.Type(&v1.Workflow{}).HandlerFunc(workflow.EnsureIDs)
 
 	// WorkflowExecutions
-	root.Type(&v1.WorkflowExecution{}).FinalizeFunc(v1.WorkflowExecutionFinalizer, workflowExecution.Cleanup)
 	root.Type(&v1.WorkflowExecution{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.WorkflowExecution{}).HandlerFunc(workflowExecution.Run)
 
 	// WorkflowSteps
 	steps := root.Type(&v1.WorkflowStep{})
-	steps.HandlerFunc(workflowStep.SetRunning)
 	steps.HandlerFunc(cleanup.Cleanup)
+	steps.HandlerFunc(handlers.GCOrphans)
 
-	running := steps.Middleware(workflowstep.Running)
+	running := steps.Middleware(workflowStep.Preconditions)
 	running.HandlerFunc(workflowStep.RunInvoke)
 	running.HandlerFunc(workflowStep.RunIf)
 	running.HandlerFunc(workflowStep.RunWhile)
@@ -71,10 +72,10 @@ func (c *Controller) setupRoutes() error {
 	root.Type(&v1.Agent{}).HandlerFunc(agents.WorkspaceObjects)
 
 	// Uploads
+	root.Type(&v1.RemoteKnowledgeSource{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.RemoteKnowledgeSource{}).HandlerFunc(uploads.CreateThread)
 	root.Type(&v1.RemoteKnowledgeSource{}).HandlerFunc(uploads.RunUpload)
 	root.Type(&v1.RemoteKnowledgeSource{}).HandlerFunc(uploads.HandleUploadRun)
-	root.Type(&v1.RemoteKnowledgeSource{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.RemoteKnowledgeSource{}).FinalizeFunc(v1.RemoteKnowledgeSourceFinalizer, uploads.Cleanup)
 
 	// ReSync requests
@@ -98,9 +99,9 @@ func (c *Controller) setupRoutes() error {
 
 	// Workspaces
 	root.Type(&v1.Workspace{}).FinalizeFunc(v1.WorkspaceFinalizer, workspace.RemoveWorkspace)
+	root.Type(&v1.Workspace{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.Workspace{}).HandlerFunc(workspace.CreateWorkspace)
 	root.Type(&v1.Workspace{}).HandlerFunc(knowledge.IngestKnowledge)
-	root.Type(&v1.Workspace{}).HandlerFunc(cleanup.Cleanup)
 
 	// Webhooks
 	root.Type(&v1.Webhook{}).HandlerFunc(cleanup.Cleanup)

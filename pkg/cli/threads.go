@@ -37,13 +37,17 @@ func (l *Threads) Run(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	w := newTable("ID", "PARENT_THREAD", "DESC", "AGENT/WF", "LASTRUN", "PARENT_THREAD", "STATE", "CREATED")
+	w := newTable("ID", "PARENT_THREAD", "DESC", "AGENT/WF", "CURRENT/LASTRUN", "STATE", "CREATED")
 	for _, thread := range threads.Items {
 		agentWF := thread.AgentID
 		if agentWF == "" {
 			agentWF = thread.WorkflowID
 		}
-		w.WriteRow(thread.ID, thread.ParentThreadID, thread.Description, agentWF, thread.LastRunID, thread.State, humanize.Time(thread.Created.Time))
+		run := thread.CurrentRunID
+		if run == "" {
+			run = thread.LastRunID
+		}
+		w.WriteRow(thread.ID, thread.ParentThreadID, thread.Description, agentWF, run, thread.State, humanize.Time(thread.Created.Time))
 	}
 
 	return w.Err()

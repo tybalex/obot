@@ -78,6 +78,7 @@ type Options struct {
 	Background            bool
 	ThreadName            string
 	PreviousRunName       string
+	ForceNoResume         bool
 	ParentThreadName      string
 	WorkflowName          string
 	WorkflowExecutionName string
@@ -258,6 +259,7 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.Client, agent *v1.Agent, 
 		AgentName:             agent.Name,
 		Env:                   append(opt.Env, extraEnv...),
 		PreviousRunName:       opt.PreviousRunName,
+		ForceNoResume:         opt.ForceNoResume,
 		WorkflowName:          opt.WorkflowName,
 		WorkflowExecutionName: opt.WorkflowExecutionName,
 		WorkflowStepName:      opt.WorkflowStepName,
@@ -274,6 +276,7 @@ type runOptions struct {
 	WorkflowStepName      string
 	WorkflowStepID        string
 	PreviousRunName       string
+	ForceNoResume         bool
 	Env                   []string
 	CredentialContextIDs  []string
 }
@@ -292,6 +295,10 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 	previousRunName := thread.Status.LastRunName
 	if opts.PreviousRunName != "" {
 		previousRunName = opts.PreviousRunName
+	}
+
+	if opts.ForceNoResume {
+		previousRunName = ""
 	}
 
 	toolData, err := json.Marshal(tool)
@@ -333,6 +340,11 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 		return nil, err
 	}
 
+	thread.Status.CurrentRunName = run.Name
+	if err := c.Status().Update(ctx, thread); err != nil {
+		return nil, err
+	}
+
 	if run.Spec.Background {
 		return &Response{
 			Run:    &run,
@@ -340,7 +352,7 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 		}, nil
 	}
 
-	events, err := i.events.Watch(ctx, thread.Namespace, events.WatchOptions{
+	_, events, err := i.events.Watch(ctx, thread.Namespace, events.WatchOptions{
 		Run: &run,
 	})
 	if err != nil {
@@ -587,6 +599,7 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, prevThreadN
 		if prevThreadName != "" && prevThreadName != thread.Name {
 			thread.Status.PreviousThreadName = prevThreadName
 		}
+		thread.Status.CurrentRunName = ""
 		thread.Status.LastRunName = run.Name
 		thread.Status.LastRunState = run.Status.State
 		if workflowState != "" {
