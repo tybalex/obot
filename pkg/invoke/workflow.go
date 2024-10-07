@@ -83,6 +83,10 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 		}
 	}
 
+	if opt.Background {
+		return &Response{Thread: thread}, nil
+	}
+
 	run, prg, err := i.events.Watch(ctx, thread.Namespace, events.WatchOptions{
 		History:               true,
 		ThreadName:            thread.Name,
@@ -90,10 +94,6 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 		Follow:                true,
 	})
 	if err != nil {
-		return nil, err
-	}
-
-	if err := c.Get(ctx, router.Key(run.Namespace, run.Spec.ThreadName), thread); err != nil {
 		return nil, err
 	}
 

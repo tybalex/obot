@@ -53,6 +53,8 @@ func convertThread(thread v1.Thread) types.Thread {
 func (a *ThreadHandler) Events(req api.Context) error {
 	var (
 		id     = req.PathValue("id")
+		follow = req.URL.Query().Get("follow") == "true"
+		runID  = req.URL.Query().Get("runID")
 		thread v1.Thread
 	)
 
@@ -61,9 +63,10 @@ func (a *ThreadHandler) Events(req api.Context) error {
 	}
 
 	_, events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
-		Follow:     true,
-		History:    true,
-		ThreadName: thread.Name,
+		Follow:      follow,
+		History:     runID == "",
+		LastRunName: runID,
+		ThreadName:  thread.Name,
 	})
 	if err != nil {
 		return err

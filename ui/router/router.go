@@ -17,6 +17,7 @@ func Init(client *apiclient.Client, devMode bool) http.Handler {
 	router.Handle("GET /write", templ.Handler(layouts.Write()))
 	router.Handle("POST /chat", errors(handlers.Chat))
 	router.Handle("GET /chat", errors(handlers.Chat))
+	router.Handle("GET /events", errors(handlers.Events))
 
 	// Workflows
 	router.Handle("GET /ui/workflows/{id}/edit", errors(handlers.EditWorkflow))

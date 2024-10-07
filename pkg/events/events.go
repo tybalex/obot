@@ -168,6 +168,9 @@ func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions
 		if err := e.client.Get(ctx, router.Key(namespace, opts.LastRunName), &run); err != nil {
 			return nil, nil, err
 		}
+		if opts.ThreadName != "" && run.Spec.ThreadName != opts.ThreadName {
+			return nil, nil, fmt.Errorf("run %s is not associated with thread %s", opts.LastRunName, opts.ThreadName)
+		}
 	} else if opts.ThreadName != "" {
 		var thread v1.Thread
 		if err := e.client.Get(ctx, router.Key(namespace, opts.ThreadName), &thread); err != nil {
@@ -451,12 +454,8 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1
 		}
 	)
 
-	if !follow && run.Spec.WorkflowExecutionName == "" {
+	if !follow {
 		// If this isn't a workflow we are done at this point if follow is requested
-		return nil, nil
-	}
-
-	if run.Spec.WorkflowExecutionName != "" && !follow {
 		return nil, nil
 	}
 
