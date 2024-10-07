@@ -89,6 +89,14 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, opts AgentOp
 		}
 	}
 
+	for i, tool := range agent.Spec.Manifest.Tools {
+		name, err := resolveToolReference(ctx, db, types.ToolReferenceTypeTool, agent.Namespace, tool)
+		if err != nil {
+			return nil, nil, err
+		}
+		agent.Spec.Manifest.Tools[i] = name
+	}
+
 	if len(agent.Spec.Manifest.Agents) == 0 && len(agent.Spec.Manifest.Workflows) == 0 {
 		return []gptscript.ToolDef{mainTool}, extraEnv, nil
 	}
