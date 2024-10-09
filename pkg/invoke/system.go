@@ -3,7 +3,7 @@ package invoke
 import (
 	"context"
 
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 )
 
 func (i *Invoker) SystemAction(ctx context.Context, generateName, agentName, namespace, tool, input string, env ...string) (*Response, error) {

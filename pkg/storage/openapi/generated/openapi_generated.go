@@ -8,7 +8,7 @@
 package generated
 
 import (
-	types "github.com/gptscript-ai/otto/apiclient/types"
+	types "github.com/otto8-ai/otto8/apiclient/types"
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	intstr "k8s.io/apimachinery/pkg/util/intstr"
@@ -18,210 +18,210 @@ import (
 
 func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenAPIDefinition {
 	return map[string]common.OpenAPIDefinition{
-		"github.com/gptscript-ai/otto/apiclient/types.Agent":                                              schema_gptscript_ai_otto_apiclient_types_Agent(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.AgentExternalStatus":                                schema_gptscript_ai_otto_apiclient_types_AgentExternalStatus(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.AgentList":                                          schema_gptscript_ai_otto_apiclient_types_AgentList(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.AgentManifest":                                      schema_gptscript_ai_otto_apiclient_types_AgentManifest(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.Credential":                                         schema_gptscript_ai_otto_apiclient_types_Credential(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.CredentialList":                                     schema_gptscript_ai_otto_apiclient_types_CredentialList(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.CronJob":                                            schema_gptscript_ai_otto_apiclient_types_CronJob(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.CronJobList":                                        schema_gptscript_ai_otto_apiclient_types_CronJobList(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.CronJobManifest":                                    schema_gptscript_ai_otto_apiclient_types_CronJobManifest(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.ErrHTTP":                                            schema_gptscript_ai_otto_apiclient_types_ErrHTTP(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.File":                                               schema_gptscript_ai_otto_apiclient_types_File(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.FileDetails":                                        schema_gptscript_ai_otto_apiclient_types_FileDetails(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.FileList":                                           schema_gptscript_ai_otto_apiclient_types_FileList(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.If":                                                 schema_gptscript_ai_otto_apiclient_types_If(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.IngestionStatus":                                    schema_gptscript_ai_otto_apiclient_types_IngestionStatus(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.Item":                                               schema_gptscript_ai_otto_apiclient_types_Item(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.KnowledgeFile":                                      schema_gptscript_ai_otto_apiclient_types_KnowledgeFile(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.KnowledgeFileList":                                  schema_gptscript_ai_otto_apiclient_types_KnowledgeFileList(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.Metadata":                                           schema_gptscript_ai_otto_apiclient_types_Metadata(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.NotionConfig":                                       schema_gptscript_ai_otto_apiclient_types_NotionConfig(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.NotionConnectorState":                               schema_gptscript_ai_otto_apiclient_types_NotionConnectorState(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.NotionPage":                                         schema_gptscript_ai_otto_apiclient_types_NotionPage(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.OAuthApp":                                           schema_gptscript_ai_otto_apiclient_types_OAuthApp(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.OAuthAppExternalStatus":                             schema_gptscript_ai_otto_apiclient_types_OAuthAppExternalStatus(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.OAuthAppList":                                       schema_gptscript_ai_otto_apiclient_types_OAuthAppList(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.OAuthAppManifest":                                   schema_gptscript_ai_otto_apiclient_types_OAuthAppManifest(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.OneDriveConfig":                                     schema_gptscript_ai_otto_apiclient_types_OneDriveConfig(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.OneDriveLinksConnectorState":                        schema_gptscript_ai_otto_apiclient_types_OneDriveLinksConnectorState(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.Progress":                                           schema_gptscript_ai_otto_apiclient_types_Progress(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.Prompt":                                             schema_gptscript_ai_otto_apiclient_types_Prompt(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSource":                              schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSource(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSourceInput":                         schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceInput(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSourceList":                          schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceList(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSourceManifest":                      schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceManifest(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSourceState":                         schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceState(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.Run":                                                schema_gptscript_ai_otto_apiclient_types_Run(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.RunList":                                            schema_gptscript_ai_otto_apiclient_types_RunList(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.Step":                                               schema_gptscript_ai_otto_apiclient_types_Step(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.StepTemplateInvoke":                                 schema_gptscript_ai_otto_apiclient_types_StepTemplateInvoke(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.SubFlow":                                            schema_gptscript_ai_otto_apiclient_types_SubFlow(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.Template":                                           schema_gptscript_ai_otto_apiclient_types_Template(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.Thread":                                             schema_gptscript_ai_otto_apiclient_types_Thread(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.ThreadList":                                         schema_gptscript_ai_otto_apiclient_types_ThreadList(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.ThreadManifest":                                     schema_gptscript_ai_otto_apiclient_types_ThreadManifest(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.Time":                                               schema_gptscript_ai_otto_apiclient_types_Time(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.ToolCall":                                           schema_gptscript_ai_otto_apiclient_types_ToolCall(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.ToolInput":                                          schema_gptscript_ai_otto_apiclient_types_ToolInput(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.ToolReference":                                      schema_gptscript_ai_otto_apiclient_types_ToolReference(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.ToolReferenceList":                                  schema_gptscript_ai_otto_apiclient_types_ToolReferenceList(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.ToolReferenceManifest":                              schema_gptscript_ai_otto_apiclient_types_ToolReferenceManifest(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.Webhook":                                            schema_gptscript_ai_otto_apiclient_types_Webhook(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.WebhookExternalStatus":                              schema_gptscript_ai_otto_apiclient_types_WebhookExternalStatus(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.WebhookList":                                        schema_gptscript_ai_otto_apiclient_types_WebhookList(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.WebhookManifest":                                    schema_gptscript_ai_otto_apiclient_types_WebhookManifest(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.WebsiteCrawlingConfig":                              schema_gptscript_ai_otto_apiclient_types_WebsiteCrawlingConfig(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.WebsiteCrawlingConnectorState":                      schema_gptscript_ai_otto_apiclient_types_WebsiteCrawlingConnectorState(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.While":                                              schema_gptscript_ai_otto_apiclient_types_While(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.Workflow":                                           schema_gptscript_ai_otto_apiclient_types_Workflow(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.WorkflowCall":                                       schema_gptscript_ai_otto_apiclient_types_WorkflowCall(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.WorkflowExternalStatus":                             schema_gptscript_ai_otto_apiclient_types_WorkflowExternalStatus(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.WorkflowList":                                       schema_gptscript_ai_otto_apiclient_types_WorkflowList(ref),
-		"github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest":                                   schema_gptscript_ai_otto_apiclient_types_WorkflowManifest(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Agent":                        schema_storage_apis_ottogptscriptai_v1_Agent(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentList":                    schema_storage_apis_ottogptscriptai_v1_AgentList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec":                    schema_storage_apis_ottogptscriptai_v1_AgentSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentStatus":                  schema_storage_apis_ottogptscriptai_v1_AgentStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.CronJob":                      schema_storage_apis_ottogptscriptai_v1_CronJob(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.CronJobList":                  schema_storage_apis_ottogptscriptai_v1_CronJobList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.CronJobSpec":                  schema_storage_apis_ottogptscriptai_v1_CronJobSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.CronJobStatus":                schema_storage_apis_ottogptscriptai_v1_CronJobStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequest":       schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequest(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestList":   schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestSpec":   schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestStatus": schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFile":                schema_storage_apis_ottogptscriptai_v1_KnowledgeFile(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileList":            schema_storage_apis_ottogptscriptai_v1_KnowledgeFileList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileSpec":            schema_storage_apis_ottogptscriptai_v1_KnowledgeFileSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileStatus":          schema_storage_apis_ottogptscriptai_v1_KnowledgeFileStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthApp":                     schema_storage_apis_ottogptscriptai_v1_OAuthApp(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppList":                 schema_storage_apis_ottogptscriptai_v1_OAuthAppList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReference":            schema_storage_apis_ottogptscriptai_v1_OAuthAppReference(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceList":        schema_storage_apis_ottogptscriptai_v1_OAuthAppReferenceList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceSpec":        schema_storage_apis_ottogptscriptai_v1_OAuthAppReferenceSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceStatus":      schema_storage_apis_ottogptscriptai_v1_OAuthAppReferenceStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppSpec":                 schema_storage_apis_ottogptscriptai_v1_OAuthAppSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppStatus":               schema_storage_apis_ottogptscriptai_v1_OAuthAppStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Ref":                          schema_storage_apis_ottogptscriptai_v1_Ref(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Reference":                    schema_storage_apis_ottogptscriptai_v1_Reference(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceList":                schema_storage_apis_ottogptscriptai_v1_ReferenceList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceSpec":                schema_storage_apis_ottogptscriptai_v1_ReferenceSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceStatus":              schema_storage_apis_ottogptscriptai_v1_ReferenceStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RemoteConnectorStatus":        schema_storage_apis_ottogptscriptai_v1_RemoteConnectorStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSource":        schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSource(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceList":    schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSourceList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceSpec":    schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSourceSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceStatus":  schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSourceStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Run":                          schema_storage_apis_ottogptscriptai_v1_Run(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunList":                      schema_storage_apis_ottogptscriptai_v1_RunList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunSpec":                      schema_storage_apis_ottogptscriptai_v1_RunSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunState":                     schema_storage_apis_ottogptscriptai_v1_RunState(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStateList":                 schema_storage_apis_ottogptscriptai_v1_RunStateList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStateSpec":                 schema_storage_apis_ottogptscriptai_v1_RunStateSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStateStatus":               schema_storage_apis_ottogptscriptai_v1_RunStateStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStatus":                    schema_storage_apis_ottogptscriptai_v1_RunStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SubCall":                      schema_storage_apis_ottogptscriptai_v1_SubCall(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequest":            schema_storage_apis_ottogptscriptai_v1_SyncUploadRequest(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestList":        schema_storage_apis_ottogptscriptai_v1_SyncUploadRequestList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestSpec":        schema_storage_apis_ottogptscriptai_v1_SyncUploadRequestSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestStatus":      schema_storage_apis_ottogptscriptai_v1_SyncUploadRequestStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Thread":                       schema_storage_apis_ottogptscriptai_v1_Thread(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadList":                   schema_storage_apis_ottogptscriptai_v1_ThreadList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadSpec":                   schema_storage_apis_ottogptscriptai_v1_ThreadSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadStatus":                 schema_storage_apis_ottogptscriptai_v1_ThreadStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReference":                schema_storage_apis_ottogptscriptai_v1_ToolReference(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceList":            schema_storage_apis_ottogptscriptai_v1_ToolReferenceList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceSpec":            schema_storage_apis_ottogptscriptai_v1_ToolReferenceSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceStatus":          schema_storage_apis_ottogptscriptai_v1_ToolReferenceStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolShortDescription":         schema_storage_apis_ottogptscriptai_v1_ToolShortDescription(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Webhook":                      schema_storage_apis_ottogptscriptai_v1_Webhook(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookList":                  schema_storage_apis_ottogptscriptai_v1_WebhookList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReference":             schema_storage_apis_ottogptscriptai_v1_WebhookReference(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReferenceList":         schema_storage_apis_ottogptscriptai_v1_WebhookReferenceList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReferenceSpec":         schema_storage_apis_ottogptscriptai_v1_WebhookReferenceSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReferenceStatus":       schema_storage_apis_ottogptscriptai_v1_WebhookReferenceStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookSpec":                  schema_storage_apis_ottogptscriptai_v1_WebhookSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookStatus":                schema_storage_apis_ottogptscriptai_v1_WebhookStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Workflow":                     schema_storage_apis_ottogptscriptai_v1_Workflow(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecution":            schema_storage_apis_ottogptscriptai_v1_WorkflowExecution(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionList":        schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionSpec":        schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionStatus":      schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowList":                 schema_storage_apis_ottogptscriptai_v1_WorkflowList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowSpec":                 schema_storage_apis_ottogptscriptai_v1_WorkflowSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStatus":               schema_storage_apis_ottogptscriptai_v1_WorkflowStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStep":                 schema_storage_apis_ottogptscriptai_v1_WorkflowStep(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepList":             schema_storage_apis_ottogptscriptai_v1_WorkflowStepList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepSpec":             schema_storage_apis_ottogptscriptai_v1_WorkflowStepSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepStatus":           schema_storage_apis_ottogptscriptai_v1_WorkflowStepStatus(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Workspace":                    schema_storage_apis_ottogptscriptai_v1_Workspace(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceList":                schema_storage_apis_ottogptscriptai_v1_WorkspaceList(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceSpec":                schema_storage_apis_ottogptscriptai_v1_WorkspaceSpec(ref),
-		"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceStatus":              schema_storage_apis_ottogptscriptai_v1_WorkspaceStatus(ref),
-		"k8s.io/api/coordination/v1.Lease":                                                                schema_k8sio_api_coordination_v1_Lease(ref),
-		"k8s.io/api/coordination/v1.LeaseList":                                                            schema_k8sio_api_coordination_v1_LeaseList(ref),
-		"k8s.io/api/coordination/v1.LeaseSpec":                                                            schema_k8sio_api_coordination_v1_LeaseSpec(ref),
-		"k8s.io/apimachinery/pkg/api/resource.Quantity":                                                   schema_apimachinery_pkg_api_resource_Quantity(ref),
-		"k8s.io/apimachinery/pkg/api/resource.int64Amount":                                                schema_apimachinery_pkg_api_resource_int64Amount(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.APIGroup":                                                   schema_pkg_apis_meta_v1_APIGroup(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.APIGroupList":                                               schema_pkg_apis_meta_v1_APIGroupList(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.APIResource":                                                schema_pkg_apis_meta_v1_APIResource(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.APIResourceList":                                            schema_pkg_apis_meta_v1_APIResourceList(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.APIVersions":                                                schema_pkg_apis_meta_v1_APIVersions(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.ApplyOptions":                                               schema_pkg_apis_meta_v1_ApplyOptions(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.Condition":                                                  schema_pkg_apis_meta_v1_Condition(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.CreateOptions":                                              schema_pkg_apis_meta_v1_CreateOptions(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.DeleteOptions":                                              schema_pkg_apis_meta_v1_DeleteOptions(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.Duration":                                                   schema_pkg_apis_meta_v1_Duration(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.FieldsV1":                                                   schema_pkg_apis_meta_v1_FieldsV1(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.GetOptions":                                                 schema_pkg_apis_meta_v1_GetOptions(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.GroupKind":                                                  schema_pkg_apis_meta_v1_GroupKind(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.GroupResource":                                              schema_pkg_apis_meta_v1_GroupResource(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.GroupVersion":                                               schema_pkg_apis_meta_v1_GroupVersion(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.GroupVersionForDiscovery":                                   schema_pkg_apis_meta_v1_GroupVersionForDiscovery(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.GroupVersionKind":                                           schema_pkg_apis_meta_v1_GroupVersionKind(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.GroupVersionResource":                                       schema_pkg_apis_meta_v1_GroupVersionResource(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.InternalEvent":                                              schema_pkg_apis_meta_v1_InternalEvent(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.LabelSelector":                                              schema_pkg_apis_meta_v1_LabelSelector(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.LabelSelectorRequirement":                                   schema_pkg_apis_meta_v1_LabelSelectorRequirement(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.List":                                                       schema_pkg_apis_meta_v1_List(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta":                                                   schema_pkg_apis_meta_v1_ListMeta(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.ListOptions":                                                schema_pkg_apis_meta_v1_ListOptions(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.ManagedFieldsEntry":                                         schema_pkg_apis_meta_v1_ManagedFieldsEntry(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.MicroTime":                                                  schema_pkg_apis_meta_v1_MicroTime(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta":                                                 schema_pkg_apis_meta_v1_ObjectMeta(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.OwnerReference":                                             schema_pkg_apis_meta_v1_OwnerReference(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.PartialObjectMetadata":                                      schema_pkg_apis_meta_v1_PartialObjectMetadata(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.PartialObjectMetadataList":                                  schema_pkg_apis_meta_v1_PartialObjectMetadataList(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.Patch":                                                      schema_pkg_apis_meta_v1_Patch(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.PatchOptions":                                               schema_pkg_apis_meta_v1_PatchOptions(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.Preconditions":                                              schema_pkg_apis_meta_v1_Preconditions(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.RootPaths":                                                  schema_pkg_apis_meta_v1_RootPaths(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.ServerAddressByClientCIDR":                                  schema_pkg_apis_meta_v1_ServerAddressByClientCIDR(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.Status":                                                     schema_pkg_apis_meta_v1_Status(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.StatusCause":                                                schema_pkg_apis_meta_v1_StatusCause(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.StatusDetails":                                              schema_pkg_apis_meta_v1_StatusDetails(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.Table":                                                      schema_pkg_apis_meta_v1_Table(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.TableColumnDefinition":                                      schema_pkg_apis_meta_v1_TableColumnDefinition(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.TableOptions":                                               schema_pkg_apis_meta_v1_TableOptions(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.TableRow":                                                   schema_pkg_apis_meta_v1_TableRow(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.TableRowCondition":                                          schema_pkg_apis_meta_v1_TableRowCondition(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.Time":                                                       schema_pkg_apis_meta_v1_Time(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.Timestamp":                                                  schema_pkg_apis_meta_v1_Timestamp(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta":                                                   schema_pkg_apis_meta_v1_TypeMeta(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.UpdateOptions":                                              schema_pkg_apis_meta_v1_UpdateOptions(ref),
-		"k8s.io/apimachinery/pkg/apis/meta/v1.WatchEvent":                                                 schema_pkg_apis_meta_v1_WatchEvent(ref),
-		"k8s.io/apimachinery/pkg/runtime.RawExtension":                                                    schema_k8sio_apimachinery_pkg_runtime_RawExtension(ref),
-		"k8s.io/apimachinery/pkg/runtime.TypeMeta":                                                        schema_k8sio_apimachinery_pkg_runtime_TypeMeta(ref),
-		"k8s.io/apimachinery/pkg/runtime.Unknown":                                                         schema_k8sio_apimachinery_pkg_runtime_Unknown(ref),
-		"k8s.io/apimachinery/pkg/util/intstr.IntOrString":                                                 schema_apimachinery_pkg_util_intstr_IntOrString(ref),
-		"k8s.io/apimachinery/pkg/version.Info":                                                            schema_k8sio_apimachinery_pkg_version_Info(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Agent":                                              schema_otto8_ai_otto8_apiclient_types_Agent(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.AgentExternalStatus":                                schema_otto8_ai_otto8_apiclient_types_AgentExternalStatus(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.AgentList":                                          schema_otto8_ai_otto8_apiclient_types_AgentList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.AgentManifest":                                      schema_otto8_ai_otto8_apiclient_types_AgentManifest(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Credential":                                         schema_otto8_ai_otto8_apiclient_types_Credential(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.CredentialList":                                     schema_otto8_ai_otto8_apiclient_types_CredentialList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.CronJob":                                            schema_otto8_ai_otto8_apiclient_types_CronJob(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.CronJobList":                                        schema_otto8_ai_otto8_apiclient_types_CronJobList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.CronJobManifest":                                    schema_otto8_ai_otto8_apiclient_types_CronJobManifest(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.ErrHTTP":                                            schema_otto8_ai_otto8_apiclient_types_ErrHTTP(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.File":                                               schema_otto8_ai_otto8_apiclient_types_File(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.FileDetails":                                        schema_otto8_ai_otto8_apiclient_types_FileDetails(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.FileList":                                           schema_otto8_ai_otto8_apiclient_types_FileList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.If":                                                 schema_otto8_ai_otto8_apiclient_types_If(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.IngestionStatus":                                    schema_otto8_ai_otto8_apiclient_types_IngestionStatus(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Item":                                               schema_otto8_ai_otto8_apiclient_types_Item(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.KnowledgeFile":                                      schema_otto8_ai_otto8_apiclient_types_KnowledgeFile(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.KnowledgeFileList":                                  schema_otto8_ai_otto8_apiclient_types_KnowledgeFileList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Metadata":                                           schema_otto8_ai_otto8_apiclient_types_Metadata(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.NotionConfig":                                       schema_otto8_ai_otto8_apiclient_types_NotionConfig(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.NotionConnectorState":                               schema_otto8_ai_otto8_apiclient_types_NotionConnectorState(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.NotionPage":                                         schema_otto8_ai_otto8_apiclient_types_NotionPage(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.OAuthApp":                                           schema_otto8_ai_otto8_apiclient_types_OAuthApp(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.OAuthAppExternalStatus":                             schema_otto8_ai_otto8_apiclient_types_OAuthAppExternalStatus(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.OAuthAppList":                                       schema_otto8_ai_otto8_apiclient_types_OAuthAppList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.OAuthAppManifest":                                   schema_otto8_ai_otto8_apiclient_types_OAuthAppManifest(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.OneDriveConfig":                                     schema_otto8_ai_otto8_apiclient_types_OneDriveConfig(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.OneDriveLinksConnectorState":                        schema_otto8_ai_otto8_apiclient_types_OneDriveLinksConnectorState(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Progress":                                           schema_otto8_ai_otto8_apiclient_types_Progress(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Prompt":                                             schema_otto8_ai_otto8_apiclient_types_Prompt(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSource":                              schema_otto8_ai_otto8_apiclient_types_RemoteKnowledgeSource(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSourceInput":                         schema_otto8_ai_otto8_apiclient_types_RemoteKnowledgeSourceInput(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSourceList":                          schema_otto8_ai_otto8_apiclient_types_RemoteKnowledgeSourceList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSourceManifest":                      schema_otto8_ai_otto8_apiclient_types_RemoteKnowledgeSourceManifest(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSourceState":                         schema_otto8_ai_otto8_apiclient_types_RemoteKnowledgeSourceState(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Run":                                                schema_otto8_ai_otto8_apiclient_types_Run(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.RunList":                                            schema_otto8_ai_otto8_apiclient_types_RunList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Step":                                               schema_otto8_ai_otto8_apiclient_types_Step(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.StepTemplateInvoke":                                 schema_otto8_ai_otto8_apiclient_types_StepTemplateInvoke(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.SubFlow":                                            schema_otto8_ai_otto8_apiclient_types_SubFlow(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Template":                                           schema_otto8_ai_otto8_apiclient_types_Template(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Thread":                                             schema_otto8_ai_otto8_apiclient_types_Thread(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.ThreadList":                                         schema_otto8_ai_otto8_apiclient_types_ThreadList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.ThreadManifest":                                     schema_otto8_ai_otto8_apiclient_types_ThreadManifest(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Time":                                               schema_otto8_ai_otto8_apiclient_types_Time(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.ToolCall":                                           schema_otto8_ai_otto8_apiclient_types_ToolCall(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.ToolInput":                                          schema_otto8_ai_otto8_apiclient_types_ToolInput(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.ToolReference":                                      schema_otto8_ai_otto8_apiclient_types_ToolReference(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.ToolReferenceList":                                  schema_otto8_ai_otto8_apiclient_types_ToolReferenceList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.ToolReferenceManifest":                              schema_otto8_ai_otto8_apiclient_types_ToolReferenceManifest(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Webhook":                                            schema_otto8_ai_otto8_apiclient_types_Webhook(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.WebhookExternalStatus":                              schema_otto8_ai_otto8_apiclient_types_WebhookExternalStatus(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.WebhookList":                                        schema_otto8_ai_otto8_apiclient_types_WebhookList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.WebhookManifest":                                    schema_otto8_ai_otto8_apiclient_types_WebhookManifest(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConfig":                              schema_otto8_ai_otto8_apiclient_types_WebsiteCrawlingConfig(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConnectorState":                      schema_otto8_ai_otto8_apiclient_types_WebsiteCrawlingConnectorState(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.While":                                              schema_otto8_ai_otto8_apiclient_types_While(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Workflow":                                           schema_otto8_ai_otto8_apiclient_types_Workflow(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.WorkflowCall":                                       schema_otto8_ai_otto8_apiclient_types_WorkflowCall(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.WorkflowExternalStatus":                             schema_otto8_ai_otto8_apiclient_types_WorkflowExternalStatus(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.WorkflowList":                                       schema_otto8_ai_otto8_apiclient_types_WorkflowList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.WorkflowManifest":                                   schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Agent":                        schema_storage_apis_ottogptscriptai_v1_Agent(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.AgentList":                    schema_storage_apis_ottogptscriptai_v1_AgentList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec":                    schema_storage_apis_ottogptscriptai_v1_AgentSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.AgentStatus":                  schema_storage_apis_ottogptscriptai_v1_AgentStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.CronJob":                      schema_storage_apis_ottogptscriptai_v1_CronJob(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.CronJobList":                  schema_storage_apis_ottogptscriptai_v1_CronJobList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.CronJobSpec":                  schema_storage_apis_ottogptscriptai_v1_CronJobSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.CronJobStatus":                schema_storage_apis_ottogptscriptai_v1_CronJobStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequest":       schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequest(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestList":   schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestSpec":   schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestStatus": schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFile":                schema_storage_apis_ottogptscriptai_v1_KnowledgeFile(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileList":            schema_storage_apis_ottogptscriptai_v1_KnowledgeFileList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileSpec":            schema_storage_apis_ottogptscriptai_v1_KnowledgeFileSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileStatus":          schema_storage_apis_ottogptscriptai_v1_KnowledgeFileStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthApp":                     schema_storage_apis_ottogptscriptai_v1_OAuthApp(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppList":                 schema_storage_apis_ottogptscriptai_v1_OAuthAppList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReference":            schema_storage_apis_ottogptscriptai_v1_OAuthAppReference(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceList":        schema_storage_apis_ottogptscriptai_v1_OAuthAppReferenceList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceSpec":        schema_storage_apis_ottogptscriptai_v1_OAuthAppReferenceSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceStatus":      schema_storage_apis_ottogptscriptai_v1_OAuthAppReferenceStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppSpec":                 schema_storage_apis_ottogptscriptai_v1_OAuthAppSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppStatus":               schema_storage_apis_ottogptscriptai_v1_OAuthAppStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Ref":                          schema_storage_apis_ottogptscriptai_v1_Ref(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Reference":                    schema_storage_apis_ottogptscriptai_v1_Reference(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceList":                schema_storage_apis_ottogptscriptai_v1_ReferenceList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceSpec":                schema_storage_apis_ottogptscriptai_v1_ReferenceSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceStatus":              schema_storage_apis_ottogptscriptai_v1_ReferenceStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RemoteConnectorStatus":        schema_storage_apis_ottogptscriptai_v1_RemoteConnectorStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSource":        schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSource(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceList":    schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSourceList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceSpec":    schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSourceSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceStatus":  schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSourceStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Run":                          schema_storage_apis_ottogptscriptai_v1_Run(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunList":                      schema_storage_apis_ottogptscriptai_v1_RunList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunSpec":                      schema_storage_apis_ottogptscriptai_v1_RunSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunState":                     schema_storage_apis_ottogptscriptai_v1_RunState(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunStateList":                 schema_storage_apis_ottogptscriptai_v1_RunStateList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunStateSpec":                 schema_storage_apis_ottogptscriptai_v1_RunStateSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunStateStatus":               schema_storage_apis_ottogptscriptai_v1_RunStateStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunStatus":                    schema_storage_apis_ottogptscriptai_v1_RunStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SubCall":                      schema_storage_apis_ottogptscriptai_v1_SubCall(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequest":            schema_storage_apis_ottogptscriptai_v1_SyncUploadRequest(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestList":        schema_storage_apis_ottogptscriptai_v1_SyncUploadRequestList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestSpec":        schema_storage_apis_ottogptscriptai_v1_SyncUploadRequestSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestStatus":      schema_storage_apis_ottogptscriptai_v1_SyncUploadRequestStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Thread":                       schema_storage_apis_ottogptscriptai_v1_Thread(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ThreadList":                   schema_storage_apis_ottogptscriptai_v1_ThreadList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ThreadSpec":                   schema_storage_apis_ottogptscriptai_v1_ThreadSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ThreadStatus":                 schema_storage_apis_ottogptscriptai_v1_ThreadStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolReference":                schema_storage_apis_ottogptscriptai_v1_ToolReference(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceList":            schema_storage_apis_ottogptscriptai_v1_ToolReferenceList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceSpec":            schema_storage_apis_ottogptscriptai_v1_ToolReferenceSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceStatus":          schema_storage_apis_ottogptscriptai_v1_ToolReferenceStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolShortDescription":         schema_storage_apis_ottogptscriptai_v1_ToolShortDescription(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Webhook":                      schema_storage_apis_ottogptscriptai_v1_Webhook(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookList":                  schema_storage_apis_ottogptscriptai_v1_WebhookList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReference":             schema_storage_apis_ottogptscriptai_v1_WebhookReference(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReferenceList":         schema_storage_apis_ottogptscriptai_v1_WebhookReferenceList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReferenceSpec":         schema_storage_apis_ottogptscriptai_v1_WebhookReferenceSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReferenceStatus":       schema_storage_apis_ottogptscriptai_v1_WebhookReferenceStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookSpec":                  schema_storage_apis_ottogptscriptai_v1_WebhookSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookStatus":                schema_storage_apis_ottogptscriptai_v1_WebhookStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Workflow":                     schema_storage_apis_ottogptscriptai_v1_Workflow(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecution":            schema_storage_apis_ottogptscriptai_v1_WorkflowExecution(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionList":        schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionSpec":        schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionStatus":      schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowList":                 schema_storage_apis_ottogptscriptai_v1_WorkflowList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowSpec":                 schema_storage_apis_ottogptscriptai_v1_WorkflowSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStatus":               schema_storage_apis_ottogptscriptai_v1_WorkflowStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStep":                 schema_storage_apis_ottogptscriptai_v1_WorkflowStep(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepList":             schema_storage_apis_ottogptscriptai_v1_WorkflowStepList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepSpec":             schema_storage_apis_ottogptscriptai_v1_WorkflowStepSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepStatus":           schema_storage_apis_ottogptscriptai_v1_WorkflowStepStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Workspace":                    schema_storage_apis_ottogptscriptai_v1_Workspace(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceList":                schema_storage_apis_ottogptscriptai_v1_WorkspaceList(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceSpec":                schema_storage_apis_ottogptscriptai_v1_WorkspaceSpec(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceStatus":              schema_storage_apis_ottogptscriptai_v1_WorkspaceStatus(ref),
+		"k8s.io/api/coordination/v1.Lease":                                                             schema_k8sio_api_coordination_v1_Lease(ref),
+		"k8s.io/api/coordination/v1.LeaseList":                                                         schema_k8sio_api_coordination_v1_LeaseList(ref),
+		"k8s.io/api/coordination/v1.LeaseSpec":                                                         schema_k8sio_api_coordination_v1_LeaseSpec(ref),
+		"k8s.io/apimachinery/pkg/api/resource.Quantity":                                                schema_apimachinery_pkg_api_resource_Quantity(ref),
+		"k8s.io/apimachinery/pkg/api/resource.int64Amount":                                             schema_apimachinery_pkg_api_resource_int64Amount(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.APIGroup":                                                schema_pkg_apis_meta_v1_APIGroup(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.APIGroupList":                                            schema_pkg_apis_meta_v1_APIGroupList(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.APIResource":                                             schema_pkg_apis_meta_v1_APIResource(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.APIResourceList":                                         schema_pkg_apis_meta_v1_APIResourceList(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.APIVersions":                                             schema_pkg_apis_meta_v1_APIVersions(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.ApplyOptions":                                            schema_pkg_apis_meta_v1_ApplyOptions(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.Condition":                                               schema_pkg_apis_meta_v1_Condition(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.CreateOptions":                                           schema_pkg_apis_meta_v1_CreateOptions(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.DeleteOptions":                                           schema_pkg_apis_meta_v1_DeleteOptions(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.Duration":                                                schema_pkg_apis_meta_v1_Duration(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.FieldsV1":                                                schema_pkg_apis_meta_v1_FieldsV1(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.GetOptions":                                              schema_pkg_apis_meta_v1_GetOptions(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.GroupKind":                                               schema_pkg_apis_meta_v1_GroupKind(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.GroupResource":                                           schema_pkg_apis_meta_v1_GroupResource(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.GroupVersion":                                            schema_pkg_apis_meta_v1_GroupVersion(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.GroupVersionForDiscovery":                                schema_pkg_apis_meta_v1_GroupVersionForDiscovery(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.GroupVersionKind":                                        schema_pkg_apis_meta_v1_GroupVersionKind(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.GroupVersionResource":                                    schema_pkg_apis_meta_v1_GroupVersionResource(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.InternalEvent":                                           schema_pkg_apis_meta_v1_InternalEvent(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.LabelSelector":                                           schema_pkg_apis_meta_v1_LabelSelector(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.LabelSelectorRequirement":                                schema_pkg_apis_meta_v1_LabelSelectorRequirement(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.List":                                                    schema_pkg_apis_meta_v1_List(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta":                                                schema_pkg_apis_meta_v1_ListMeta(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.ListOptions":                                             schema_pkg_apis_meta_v1_ListOptions(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.ManagedFieldsEntry":                                      schema_pkg_apis_meta_v1_ManagedFieldsEntry(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.MicroTime":                                               schema_pkg_apis_meta_v1_MicroTime(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta":                                              schema_pkg_apis_meta_v1_ObjectMeta(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.OwnerReference":                                          schema_pkg_apis_meta_v1_OwnerReference(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.PartialObjectMetadata":                                   schema_pkg_apis_meta_v1_PartialObjectMetadata(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.PartialObjectMetadataList":                               schema_pkg_apis_meta_v1_PartialObjectMetadataList(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.Patch":                                                   schema_pkg_apis_meta_v1_Patch(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.PatchOptions":                                            schema_pkg_apis_meta_v1_PatchOptions(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.Preconditions":                                           schema_pkg_apis_meta_v1_Preconditions(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.RootPaths":                                               schema_pkg_apis_meta_v1_RootPaths(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.ServerAddressByClientCIDR":                               schema_pkg_apis_meta_v1_ServerAddressByClientCIDR(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.Status":                                                  schema_pkg_apis_meta_v1_Status(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.StatusCause":                                             schema_pkg_apis_meta_v1_StatusCause(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.StatusDetails":                                           schema_pkg_apis_meta_v1_StatusDetails(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.Table":                                                   schema_pkg_apis_meta_v1_Table(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.TableColumnDefinition":                                   schema_pkg_apis_meta_v1_TableColumnDefinition(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.TableOptions":                                            schema_pkg_apis_meta_v1_TableOptions(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.TableRow":                                                schema_pkg_apis_meta_v1_TableRow(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.TableRowCondition":                                       schema_pkg_apis_meta_v1_TableRowCondition(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.Time":                                                    schema_pkg_apis_meta_v1_Time(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.Timestamp":                                               schema_pkg_apis_meta_v1_Timestamp(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.TypeMeta":                                                schema_pkg_apis_meta_v1_TypeMeta(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.UpdateOptions":                                           schema_pkg_apis_meta_v1_UpdateOptions(ref),
+		"k8s.io/apimachinery/pkg/apis/meta/v1.WatchEvent":                                              schema_pkg_apis_meta_v1_WatchEvent(ref),
+		"k8s.io/apimachinery/pkg/runtime.RawExtension":                                                 schema_k8sio_apimachinery_pkg_runtime_RawExtension(ref),
+		"k8s.io/apimachinery/pkg/runtime.TypeMeta":                                                     schema_k8sio_apimachinery_pkg_runtime_TypeMeta(ref),
+		"k8s.io/apimachinery/pkg/runtime.Unknown":                                                      schema_k8sio_apimachinery_pkg_runtime_Unknown(ref),
+		"k8s.io/apimachinery/pkg/util/intstr.IntOrString":                                              schema_apimachinery_pkg_util_intstr_IntOrString(ref),
+		"k8s.io/apimachinery/pkg/version.Info":                                                         schema_k8sio_apimachinery_pkg_version_Info(ref),
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Agent(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Agent(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -230,19 +230,19 @@ func schema_gptscript_ai_otto_apiclient_types_Agent(ref common.ReferenceCallback
 					"Metadata": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Metadata"),
 						},
 					},
 					"AgentManifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.AgentManifest"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.AgentManifest"),
 						},
 					},
 					"AgentExternalStatus": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.AgentExternalStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.AgentExternalStatus"),
 						},
 					},
 				},
@@ -250,11 +250,11 @@ func schema_gptscript_ai_otto_apiclient_types_Agent(ref common.ReferenceCallback
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.AgentExternalStatus", "github.com/gptscript-ai/otto/apiclient/types.AgentManifest", "github.com/gptscript-ai/otto/apiclient/types.Metadata"},
+			"github.com/otto8-ai/otto8/apiclient/types.AgentExternalStatus", "github.com/otto8-ai/otto8/apiclient/types.AgentManifest", "github.com/otto8-ai/otto8/apiclient/types.Metadata"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_AgentExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_AgentExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -272,7 +272,7 @@ func schema_gptscript_ai_otto_apiclient_types_AgentExternalStatus(ref common.Ref
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_AgentList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_AgentList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -285,7 +285,7 @@ func schema_gptscript_ai_otto_apiclient_types_AgentList(ref common.ReferenceCall
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Agent"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Agent"),
 									},
 								},
 							},
@@ -296,11 +296,11 @@ func schema_gptscript_ai_otto_apiclient_types_AgentList(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Agent"},
+			"github.com/otto8-ai/otto8/apiclient/types.Agent"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_AgentManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_AgentManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -445,7 +445,7 @@ func schema_gptscript_ai_otto_apiclient_types_AgentManifest(ref common.Reference
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Credential(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Credential(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -479,18 +479,18 @@ func schema_gptscript_ai_otto_apiclient_types_Credential(ref common.ReferenceCal
 					},
 					"expiresAt": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Time"},
+			"github.com/otto8-ai/otto8/apiclient/types.Time"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_CredentialList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_CredentialList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -503,7 +503,7 @@ func schema_gptscript_ai_otto_apiclient_types_CredentialList(ref common.Referenc
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Credential"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Credential"),
 									},
 								},
 							},
@@ -514,11 +514,11 @@ func schema_gptscript_ai_otto_apiclient_types_CredentialList(ref common.Referenc
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Credential"},
+			"github.com/otto8-ai/otto8/apiclient/types.Credential"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_CronJob(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_CronJob(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -527,28 +527,28 @@ func schema_gptscript_ai_otto_apiclient_types_CronJob(ref common.ReferenceCallba
 					"Metadata": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Metadata"),
 						},
 					},
 					"CronJobManifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.CronJobManifest"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.CronJobManifest"),
 						},
 					},
 					"lastRunStartedAt": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
 						},
 					},
 					"lastSuccessfulRunCompleted": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
 						},
 					},
 					"nextRunAt": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
 						},
 					},
 				},
@@ -556,11 +556,11 @@ func schema_gptscript_ai_otto_apiclient_types_CronJob(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.CronJobManifest", "github.com/gptscript-ai/otto/apiclient/types.Metadata", "github.com/gptscript-ai/otto/apiclient/types.Time"},
+			"github.com/otto8-ai/otto8/apiclient/types.CronJobManifest", "github.com/otto8-ai/otto8/apiclient/types.Metadata", "github.com/otto8-ai/otto8/apiclient/types.Time"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_CronJobList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_CronJobList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -573,7 +573,7 @@ func schema_gptscript_ai_otto_apiclient_types_CronJobList(ref common.ReferenceCa
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.CronJob"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.CronJob"),
 									},
 								},
 							},
@@ -584,11 +584,11 @@ func schema_gptscript_ai_otto_apiclient_types_CronJobList(ref common.ReferenceCa
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.CronJob"},
+			"github.com/otto8-ai/otto8/apiclient/types.CronJob"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_CronJobManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_CronJobManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -624,7 +624,7 @@ func schema_gptscript_ai_otto_apiclient_types_CronJobManifest(ref common.Referen
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_ErrHTTP(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_ErrHTTP(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -651,7 +651,7 @@ func schema_gptscript_ai_otto_apiclient_types_ErrHTTP(ref common.ReferenceCallba
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_File(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_File(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -669,7 +669,7 @@ func schema_gptscript_ai_otto_apiclient_types_File(ref common.ReferenceCallback)
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_FileDetails(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_FileDetails(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -699,7 +699,7 @@ func schema_gptscript_ai_otto_apiclient_types_FileDetails(ref common.ReferenceCa
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_FileList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_FileList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -712,7 +712,7 @@ func schema_gptscript_ai_otto_apiclient_types_FileList(ref common.ReferenceCallb
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.File"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.File"),
 									},
 								},
 							},
@@ -723,11 +723,11 @@ func schema_gptscript_ai_otto_apiclient_types_FileList(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.File"},
+			"github.com/otto8-ai/otto8/apiclient/types.File"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_If(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_If(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -746,7 +746,7 @@ func schema_gptscript_ai_otto_apiclient_types_If(ref common.ReferenceCallback) c
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Step"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Step"),
 									},
 								},
 							},
@@ -759,7 +759,7 @@ func schema_gptscript_ai_otto_apiclient_types_If(ref common.ReferenceCallback) c
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Step"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Step"),
 									},
 								},
 							},
@@ -769,11 +769,11 @@ func schema_gptscript_ai_otto_apiclient_types_If(ref common.ReferenceCallback) c
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Step"},
+			"github.com/otto8-ai/otto8/apiclient/types.Step"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_IngestionStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_IngestionStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -887,7 +887,7 @@ func schema_gptscript_ai_otto_apiclient_types_IngestionStatus(ref common.Referen
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Item(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Item(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -897,7 +897,7 @@ func schema_gptscript_ai_otto_apiclient_types_Item(ref common.ReferenceCallback)
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_KnowledgeFile(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_KnowledgeFile(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -906,7 +906,7 @@ func schema_gptscript_ai_otto_apiclient_types_KnowledgeFile(ref common.Reference
 					"Metadata": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Metadata"),
 						},
 					},
 					"fileName": {
@@ -949,13 +949,13 @@ func schema_gptscript_ai_otto_apiclient_types_KnowledgeFile(ref common.Reference
 					"ingestionStatus": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.IngestionStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.IngestionStatus"),
 						},
 					},
 					"fileDetails": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.FileDetails"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.FileDetails"),
 						},
 					},
 					"uploadID": {
@@ -969,11 +969,11 @@ func schema_gptscript_ai_otto_apiclient_types_KnowledgeFile(ref common.Reference
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.FileDetails", "github.com/gptscript-ai/otto/apiclient/types.IngestionStatus", "github.com/gptscript-ai/otto/apiclient/types.Metadata"},
+			"github.com/otto8-ai/otto8/apiclient/types.FileDetails", "github.com/otto8-ai/otto8/apiclient/types.IngestionStatus", "github.com/otto8-ai/otto8/apiclient/types.Metadata"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_KnowledgeFileList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_KnowledgeFileList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -986,7 +986,7 @@ func schema_gptscript_ai_otto_apiclient_types_KnowledgeFileList(ref common.Refer
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.KnowledgeFile"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.KnowledgeFile"),
 									},
 								},
 							},
@@ -997,11 +997,11 @@ func schema_gptscript_ai_otto_apiclient_types_KnowledgeFileList(ref common.Refer
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.KnowledgeFile"},
+			"github.com/otto8-ai/otto8/apiclient/types.KnowledgeFile"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Metadata(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Metadata(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1015,12 +1015,12 @@ func schema_gptscript_ai_otto_apiclient_types_Metadata(ref common.ReferenceCallb
 					},
 					"created": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
 						},
 					},
 					"deleted": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
 						},
 					},
 					"links": {
@@ -1057,11 +1057,11 @@ func schema_gptscript_ai_otto_apiclient_types_Metadata(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Time"},
+			"github.com/otto8-ai/otto8/apiclient/types.Time"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_NotionConfig(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_NotionConfig(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1087,7 +1087,7 @@ func schema_gptscript_ai_otto_apiclient_types_NotionConfig(ref common.ReferenceC
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_NotionConnectorState(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_NotionConnectorState(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1101,7 +1101,7 @@ func schema_gptscript_ai_otto_apiclient_types_NotionConnectorState(ref common.Re
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.NotionPage"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.NotionPage"),
 									},
 								},
 							},
@@ -1111,11 +1111,11 @@ func schema_gptscript_ai_otto_apiclient_types_NotionConnectorState(ref common.Re
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.NotionPage"},
+			"github.com/otto8-ai/otto8/apiclient/types.NotionPage"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_NotionPage(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_NotionPage(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1139,7 +1139,7 @@ func schema_gptscript_ai_otto_apiclient_types_NotionPage(ref common.ReferenceCal
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_OAuthApp(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_OAuthApp(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1148,13 +1148,13 @@ func schema_gptscript_ai_otto_apiclient_types_OAuthApp(ref common.ReferenceCallb
 					"OAuthAppManifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.OAuthAppManifest"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.OAuthAppManifest"),
 						},
 					},
 					"OAuthAppExternalStatus": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.OAuthAppExternalStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.OAuthAppExternalStatus"),
 						},
 					},
 				},
@@ -1162,11 +1162,11 @@ func schema_gptscript_ai_otto_apiclient_types_OAuthApp(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.OAuthAppExternalStatus", "github.com/gptscript-ai/otto/apiclient/types.OAuthAppManifest"},
+			"github.com/otto8-ai/otto8/apiclient/types.OAuthAppExternalStatus", "github.com/otto8-ai/otto8/apiclient/types.OAuthAppManifest"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_OAuthAppExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_OAuthAppExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1190,7 +1190,7 @@ func schema_gptscript_ai_otto_apiclient_types_OAuthAppExternalStatus(ref common.
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_OAuthAppList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_OAuthAppList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1203,7 +1203,7 @@ func schema_gptscript_ai_otto_apiclient_types_OAuthAppList(ref common.ReferenceC
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.OAuthApp"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.OAuthApp"),
 									},
 								},
 							},
@@ -1214,11 +1214,11 @@ func schema_gptscript_ai_otto_apiclient_types_OAuthAppList(ref common.ReferenceC
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.OAuthApp"},
+			"github.com/otto8-ai/otto8/apiclient/types.OAuthApp"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_OAuthAppManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_OAuthAppManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1227,7 +1227,7 @@ func schema_gptscript_ai_otto_apiclient_types_OAuthAppManifest(ref common.Refere
 					"Metadata": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Metadata"),
 						},
 					},
 					"type": {
@@ -1303,11 +1303,11 @@ func schema_gptscript_ai_otto_apiclient_types_OAuthAppManifest(ref common.Refere
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Metadata"},
+			"github.com/otto8-ai/otto8/apiclient/types.Metadata"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_OneDriveConfig(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_OneDriveConfig(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1333,7 +1333,7 @@ func schema_gptscript_ai_otto_apiclient_types_OneDriveConfig(ref common.Referenc
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_OneDriveLinksConnectorState(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_OneDriveLinksConnectorState(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1347,7 +1347,7 @@ func schema_gptscript_ai_otto_apiclient_types_OneDriveLinksConnectorState(ref co
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Item"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Item"),
 									},
 								},
 							},
@@ -1357,11 +1357,11 @@ func schema_gptscript_ai_otto_apiclient_types_OneDriveLinksConnectorState(ref co
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Item"},
+			"github.com/otto8-ai/otto8/apiclient/types.Item"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Progress(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Progress(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1377,7 +1377,7 @@ func schema_gptscript_ai_otto_apiclient_types_Progress(ref common.ReferenceCallb
 					"time": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Time is the time the event was generated",
-							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+							Ref:         ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
 						},
 					},
 					"content": {
@@ -1412,37 +1412,37 @@ func schema_gptscript_ai_otto_apiclient_types_Progress(ref common.ReferenceCallb
 					"stepTemplateInvoke": {
 						SchemaProps: spec.SchemaProps{
 							Description: "StepTemplateInvoke indicates that a step template is being invoked",
-							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.StepTemplateInvoke"),
+							Ref:         ref("github.com/otto8-ai/otto8/apiclient/types.StepTemplateInvoke"),
 						},
 					},
 					"prompt": {
 						SchemaProps: spec.SchemaProps{
 							Description: "If prompt is set content will also me set, but you can ignore the content field and instead handle the explicit information in the prompt field which will provider more information for things such as OAuth",
-							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.Prompt"),
+							Ref:         ref("github.com/otto8-ai/otto8/apiclient/types.Prompt"),
 						},
 					},
 					"step": {
 						SchemaProps: spec.SchemaProps{
 							Description: "The step that is currently being executed. When this is set the following events are assumed to be part of this step until the next step is set. This field is not always set, only set when the set changes",
-							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.Step"),
+							Ref:         ref("github.com/otto8-ai/otto8/apiclient/types.Step"),
 						},
 					},
 					"toolInput": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ToolInput indicates the LLM is currently generating tool arguments which can sometime take a while",
-							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.ToolInput"),
+							Ref:         ref("github.com/otto8-ai/otto8/apiclient/types.ToolInput"),
 						},
 					},
 					"toolCall": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ToolCall indicates the LLM is currently calling a tool.",
-							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.ToolCall"),
+							Ref:         ref("github.com/otto8-ai/otto8/apiclient/types.ToolCall"),
 						},
 					},
 					"workflowCall": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ToolCall indicates the LLM is currently calling a tool.",
-							Ref:         ref("github.com/gptscript-ai/otto/apiclient/types.WorkflowCall"),
+							Ref:         ref("github.com/otto8-ai/otto8/apiclient/types.WorkflowCall"),
 						},
 					},
 					"waitingOnModel": {
@@ -1464,11 +1464,11 @@ func schema_gptscript_ai_otto_apiclient_types_Progress(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Prompt", "github.com/gptscript-ai/otto/apiclient/types.Step", "github.com/gptscript-ai/otto/apiclient/types.StepTemplateInvoke", "github.com/gptscript-ai/otto/apiclient/types.Time", "github.com/gptscript-ai/otto/apiclient/types.ToolCall", "github.com/gptscript-ai/otto/apiclient/types.ToolInput", "github.com/gptscript-ai/otto/apiclient/types.WorkflowCall"},
+			"github.com/otto8-ai/otto8/apiclient/types.Prompt", "github.com/otto8-ai/otto8/apiclient/types.Step", "github.com/otto8-ai/otto8/apiclient/types.StepTemplateInvoke", "github.com/otto8-ai/otto8/apiclient/types.Time", "github.com/otto8-ai/otto8/apiclient/types.ToolCall", "github.com/otto8-ai/otto8/apiclient/types.ToolInput", "github.com/otto8-ai/otto8/apiclient/types.WorkflowCall"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Prompt(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Prompt(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1482,7 +1482,7 @@ func schema_gptscript_ai_otto_apiclient_types_Prompt(ref common.ReferenceCallbac
 					},
 					"time": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
 						},
 					},
 					"message": {
@@ -1530,11 +1530,11 @@ func schema_gptscript_ai_otto_apiclient_types_Prompt(ref common.ReferenceCallbac
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Time"},
+			"github.com/otto8-ai/otto8/apiclient/types.Time"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSource(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_RemoteKnowledgeSource(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1543,7 +1543,7 @@ func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSource(ref common.R
 					"Metadata": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Metadata"),
 						},
 					},
 					"syncSchedule": {
@@ -1574,17 +1574,17 @@ func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSource(ref common.R
 					},
 					"onedriveConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.OneDriveConfig"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.OneDriveConfig"),
 						},
 					},
 					"notionConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.NotionConfig"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.NotionConfig"),
 						},
 					},
 					"websiteCrawlingConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.WebsiteCrawlingConfig"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConfig"),
 						},
 					},
 					"agentID": {
@@ -1614,7 +1614,7 @@ func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSource(ref common.R
 					"state": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSourceState"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSourceState"),
 						},
 					},
 					"status": {
@@ -1634,11 +1634,11 @@ func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSource(ref common.R
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Metadata", "github.com/gptscript-ai/otto/apiclient/types.NotionConfig", "github.com/gptscript-ai/otto/apiclient/types.OneDriveConfig", "github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSourceState", "github.com/gptscript-ai/otto/apiclient/types.WebsiteCrawlingConfig"},
+			"github.com/otto8-ai/otto8/apiclient/types.Metadata", "github.com/otto8-ai/otto8/apiclient/types.NotionConfig", "github.com/otto8-ai/otto8/apiclient/types.OneDriveConfig", "github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSourceState", "github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConfig"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceInput(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_RemoteKnowledgeSourceInput(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1666,28 +1666,28 @@ func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceInput(ref com
 					},
 					"onedriveConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.OneDriveConfig"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.OneDriveConfig"),
 						},
 					},
 					"notionConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.NotionConfig"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.NotionConfig"),
 						},
 					},
 					"websiteCrawlingConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.WebsiteCrawlingConfig"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConfig"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.NotionConfig", "github.com/gptscript-ai/otto/apiclient/types.OneDriveConfig", "github.com/gptscript-ai/otto/apiclient/types.WebsiteCrawlingConfig"},
+			"github.com/otto8-ai/otto8/apiclient/types.NotionConfig", "github.com/otto8-ai/otto8/apiclient/types.OneDriveConfig", "github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConfig"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_RemoteKnowledgeSourceList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1700,7 +1700,7 @@ func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceList(ref comm
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSource"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSource"),
 									},
 								},
 							},
@@ -1711,11 +1711,11 @@ func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceList(ref comm
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSource"},
+			"github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSource"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_RemoteKnowledgeSourceManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1749,28 +1749,28 @@ func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceManifest(ref 
 					},
 					"onedriveConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.OneDriveConfig"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.OneDriveConfig"),
 						},
 					},
 					"notionConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.NotionConfig"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.NotionConfig"),
 						},
 					},
 					"websiteCrawlingConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.WebsiteCrawlingConfig"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConfig"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.NotionConfig", "github.com/gptscript-ai/otto/apiclient/types.OneDriveConfig", "github.com/gptscript-ai/otto/apiclient/types.WebsiteCrawlingConfig"},
+			"github.com/otto8-ai/otto8/apiclient/types.NotionConfig", "github.com/otto8-ai/otto8/apiclient/types.OneDriveConfig", "github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConfig"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceState(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_RemoteKnowledgeSourceState(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1778,28 +1778,28 @@ func schema_gptscript_ai_otto_apiclient_types_RemoteKnowledgeSourceState(ref com
 				Properties: map[string]spec.Schema{
 					"onedriveState": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.OneDriveLinksConnectorState"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.OneDriveLinksConnectorState"),
 						},
 					},
 					"notionState": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.NotionConnectorState"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.NotionConnectorState"),
 						},
 					},
 					"websiteCrawlingState": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.WebsiteCrawlingConnectorState"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConnectorState"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.NotionConnectorState", "github.com/gptscript-ai/otto/apiclient/types.OneDriveLinksConnectorState", "github.com/gptscript-ai/otto/apiclient/types.WebsiteCrawlingConnectorState"},
+			"github.com/otto8-ai/otto8/apiclient/types.NotionConnectorState", "github.com/otto8-ai/otto8/apiclient/types.OneDriveLinksConnectorState", "github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConnectorState"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Run(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Run(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1813,7 +1813,7 @@ func schema_gptscript_ai_otto_apiclient_types_Run(ref common.ReferenceCallback) 
 					},
 					"created": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
 						},
 					},
 					"threadID": {
@@ -1888,11 +1888,11 @@ func schema_gptscript_ai_otto_apiclient_types_Run(ref common.ReferenceCallback) 
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Time"},
+			"github.com/otto8-ai/otto8/apiclient/types.Time"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_RunList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_RunList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1905,7 +1905,7 @@ func schema_gptscript_ai_otto_apiclient_types_RunList(ref common.ReferenceCallba
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Run"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Run"),
 									},
 								},
 							},
@@ -1916,11 +1916,11 @@ func schema_gptscript_ai_otto_apiclient_types_RunList(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Run"},
+			"github.com/otto8-ai/otto8/apiclient/types.Run"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Step(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Step(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -1946,17 +1946,17 @@ func schema_gptscript_ai_otto_apiclient_types_Step(ref common.ReferenceCallback)
 					},
 					"if": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.If"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.If"),
 						},
 					},
 					"while": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.While"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.While"),
 						},
 					},
 					"template": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Template"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Template"),
 						},
 					},
 					"tools": {
@@ -2023,11 +2023,11 @@ func schema_gptscript_ai_otto_apiclient_types_Step(ref common.ReferenceCallback)
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.If", "github.com/gptscript-ai/otto/apiclient/types.Template", "github.com/gptscript-ai/otto/apiclient/types.While"},
+			"github.com/otto8-ai/otto8/apiclient/types.If", "github.com/otto8-ai/otto8/apiclient/types.Template", "github.com/otto8-ai/otto8/apiclient/types.While"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_StepTemplateInvoke(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_StepTemplateInvoke(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2072,7 +2072,7 @@ func schema_gptscript_ai_otto_apiclient_types_StepTemplateInvoke(ref common.Refe
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_SubFlow(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_SubFlow(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2096,7 +2096,7 @@ func schema_gptscript_ai_otto_apiclient_types_SubFlow(ref common.ReferenceCallba
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Template(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Template(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2129,7 +2129,7 @@ func schema_gptscript_ai_otto_apiclient_types_Template(ref common.ReferenceCallb
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Thread(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Thread(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2138,13 +2138,13 @@ func schema_gptscript_ai_otto_apiclient_types_Thread(ref common.ReferenceCallbac
 					"Metadata": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Metadata"),
 						},
 					},
 					"ThreadManifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.ThreadManifest"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.ThreadManifest"),
 						},
 					},
 					"agentID": {
@@ -2188,11 +2188,11 @@ func schema_gptscript_ai_otto_apiclient_types_Thread(ref common.ReferenceCallbac
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Metadata", "github.com/gptscript-ai/otto/apiclient/types.ThreadManifest"},
+			"github.com/otto8-ai/otto8/apiclient/types.Metadata", "github.com/otto8-ai/otto8/apiclient/types.ThreadManifest"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_ThreadList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_ThreadList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2205,7 +2205,7 @@ func schema_gptscript_ai_otto_apiclient_types_ThreadList(ref common.ReferenceCal
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Thread"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Thread"),
 									},
 								},
 							},
@@ -2216,11 +2216,11 @@ func schema_gptscript_ai_otto_apiclient_types_ThreadList(ref common.ReferenceCal
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Thread"},
+			"github.com/otto8-ai/otto8/apiclient/types.Thread"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_ThreadManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_ThreadManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2252,7 +2252,7 @@ func schema_gptscript_ai_otto_apiclient_types_ThreadManifest(ref common.Referenc
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Time(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Time(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2263,7 +2263,7 @@ func schema_gptscript_ai_otto_apiclient_types_Time(ref common.ReferenceCallback)
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_ToolCall(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_ToolCall(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2293,7 +2293,7 @@ func schema_gptscript_ai_otto_apiclient_types_ToolCall(ref common.ReferenceCallb
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_ToolInput(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_ToolInput(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2323,7 +2323,7 @@ func schema_gptscript_ai_otto_apiclient_types_ToolInput(ref common.ReferenceCall
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_ToolReference(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_ToolReference(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2332,13 +2332,13 @@ func schema_gptscript_ai_otto_apiclient_types_ToolReference(ref common.Reference
 					"Metadata": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Metadata"),
 						},
 					},
 					"ToolReferenceManifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.ToolReferenceManifest"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.ToolReferenceManifest"),
 						},
 					},
 					"error": {
@@ -2373,11 +2373,11 @@ func schema_gptscript_ai_otto_apiclient_types_ToolReference(ref common.Reference
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Metadata", "github.com/gptscript-ai/otto/apiclient/types.ToolReferenceManifest"},
+			"github.com/otto8-ai/otto8/apiclient/types.Metadata", "github.com/otto8-ai/otto8/apiclient/types.ToolReferenceManifest"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_ToolReferenceList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_ToolReferenceList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2390,7 +2390,7 @@ func schema_gptscript_ai_otto_apiclient_types_ToolReferenceList(ref common.Refer
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.ToolReference"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.ToolReference"),
 									},
 								},
 							},
@@ -2401,11 +2401,11 @@ func schema_gptscript_ai_otto_apiclient_types_ToolReferenceList(ref common.Refer
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.ToolReference"},
+			"github.com/otto8-ai/otto8/apiclient/types.ToolReference"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_ToolReferenceManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_ToolReferenceManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2438,7 +2438,7 @@ func schema_gptscript_ai_otto_apiclient_types_ToolReferenceManifest(ref common.R
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Webhook(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Webhook(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2447,24 +2447,24 @@ func schema_gptscript_ai_otto_apiclient_types_Webhook(ref common.ReferenceCallba
 					"Metadata": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Metadata"),
 						},
 					},
 					"WebhookManifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.WebhookManifest"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.WebhookManifest"),
 						},
 					},
 					"WebhookExternalStatus": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.WebhookExternalStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.WebhookExternalStatus"),
 						},
 					},
 					"lastSuccessfulRunCompleted": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.Time"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
 						},
 					},
 				},
@@ -2472,11 +2472,11 @@ func schema_gptscript_ai_otto_apiclient_types_Webhook(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Metadata", "github.com/gptscript-ai/otto/apiclient/types.Time", "github.com/gptscript-ai/otto/apiclient/types.WebhookExternalStatus", "github.com/gptscript-ai/otto/apiclient/types.WebhookManifest"},
+			"github.com/otto8-ai/otto8/apiclient/types.Metadata", "github.com/otto8-ai/otto8/apiclient/types.Time", "github.com/otto8-ai/otto8/apiclient/types.WebhookExternalStatus", "github.com/otto8-ai/otto8/apiclient/types.WebhookManifest"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_WebhookExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_WebhookExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2500,7 +2500,7 @@ func schema_gptscript_ai_otto_apiclient_types_WebhookExternalStatus(ref common.R
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_WebhookList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_WebhookList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2513,7 +2513,7 @@ func schema_gptscript_ai_otto_apiclient_types_WebhookList(ref common.ReferenceCa
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Webhook"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Webhook"),
 									},
 								},
 							},
@@ -2524,11 +2524,11 @@ func schema_gptscript_ai_otto_apiclient_types_WebhookList(ref common.ReferenceCa
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Webhook"},
+			"github.com/otto8-ai/otto8/apiclient/types.Webhook"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_WebhookManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_WebhookManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2590,7 +2590,7 @@ func schema_gptscript_ai_otto_apiclient_types_WebhookManifest(ref common.Referen
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_WebsiteCrawlingConfig(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_WebsiteCrawlingConfig(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2616,7 +2616,7 @@ func schema_gptscript_ai_otto_apiclient_types_WebsiteCrawlingConfig(ref common.R
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_WebsiteCrawlingConnectorState(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_WebsiteCrawlingConnectorState(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2645,7 +2645,7 @@ func schema_gptscript_ai_otto_apiclient_types_WebsiteCrawlingConnectorState(ref 
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Item"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Item"),
 									},
 								},
 							},
@@ -2656,11 +2656,11 @@ func schema_gptscript_ai_otto_apiclient_types_WebsiteCrawlingConnectorState(ref 
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Item"},
+			"github.com/otto8-ai/otto8/apiclient/types.Item"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_While(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_While(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2685,7 +2685,7 @@ func schema_gptscript_ai_otto_apiclient_types_While(ref common.ReferenceCallback
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Step"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Step"),
 									},
 								},
 							},
@@ -2695,11 +2695,11 @@ func schema_gptscript_ai_otto_apiclient_types_While(ref common.ReferenceCallback
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Step"},
+			"github.com/otto8-ai/otto8/apiclient/types.Step"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_Workflow(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_Workflow(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2708,19 +2708,19 @@ func schema_gptscript_ai_otto_apiclient_types_Workflow(ref common.ReferenceCallb
 					"Metadata": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Metadata"),
 						},
 					},
 					"WorkflowManifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.WorkflowManifest"),
 						},
 					},
 					"WorkflowExternalStatus": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.WorkflowExternalStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.WorkflowExternalStatus"),
 						},
 					},
 				},
@@ -2728,11 +2728,11 @@ func schema_gptscript_ai_otto_apiclient_types_Workflow(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Metadata", "github.com/gptscript-ai/otto/apiclient/types.WorkflowExternalStatus", "github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest"},
+			"github.com/otto8-ai/otto8/apiclient/types.Metadata", "github.com/otto8-ai/otto8/apiclient/types.WorkflowExternalStatus", "github.com/otto8-ai/otto8/apiclient/types.WorkflowManifest"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_WorkflowCall(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_WorkflowCall(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2774,7 +2774,7 @@ func schema_gptscript_ai_otto_apiclient_types_WorkflowCall(ref common.ReferenceC
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_WorkflowExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_WorkflowExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2804,7 +2804,7 @@ func schema_gptscript_ai_otto_apiclient_types_WorkflowExternalStatus(ref common.
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_WorkflowList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_WorkflowList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2817,7 +2817,7 @@ func schema_gptscript_ai_otto_apiclient_types_WorkflowList(ref common.ReferenceC
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Workflow"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Workflow"),
 									},
 								},
 							},
@@ -2828,11 +2828,11 @@ func schema_gptscript_ai_otto_apiclient_types_WorkflowList(ref common.ReferenceC
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Workflow"},
+			"github.com/otto8-ai/otto8/apiclient/types.Workflow"},
 	}
 }
 
-func schema_gptscript_ai_otto_apiclient_types_WorkflowManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
+func schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
@@ -2977,7 +2977,7 @@ func schema_gptscript_ai_otto_apiclient_types_WorkflowManifest(ref common.Refere
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Step"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Step"),
 									},
 								},
 							},
@@ -2994,7 +2994,7 @@ func schema_gptscript_ai_otto_apiclient_types_WorkflowManifest(ref common.Refere
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Step"},
+			"github.com/otto8-ai/otto8/apiclient/types.Step"},
 	}
 }
 
@@ -3027,20 +3027,20 @@ func schema_storage_apis_ottogptscriptai_v1_Agent(ref common.ReferenceCallback) 
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.AgentStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.AgentStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.AgentSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.AgentStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -3077,7 +3077,7 @@ func schema_storage_apis_ottogptscriptai_v1_AgentList(ref common.ReferenceCallba
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Agent"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Agent"),
 									},
 								},
 							},
@@ -3088,7 +3088,7 @@ func schema_storage_apis_ottogptscriptai_v1_AgentList(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Agent", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Agent", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -3101,7 +3101,7 @@ func schema_storage_apis_ottogptscriptai_v1_AgentSpec(ref common.ReferenceCallba
 					"manifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.AgentManifest"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.AgentManifest"),
 						},
 					},
 					"inputFilters": {
@@ -3128,7 +3128,7 @@ func schema_storage_apis_ottogptscriptai_v1_AgentSpec(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.AgentManifest"},
+			"github.com/otto8-ai/otto8/apiclient/types.AgentManifest"},
 	}
 }
 
@@ -3154,7 +3154,7 @@ func schema_storage_apis_ottogptscriptai_v1_AgentStatus(ref common.ReferenceCall
 					"external": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.AgentExternalStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.AgentExternalStatus"),
 						},
 					},
 					"workspaceName": {
@@ -3173,7 +3173,7 @@ func schema_storage_apis_ottogptscriptai_v1_AgentStatus(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.AgentExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/otto8-ai/otto8/apiclient/types.AgentExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -3206,20 +3206,20 @@ func schema_storage_apis_ottogptscriptai_v1_CronJob(ref common.ReferenceCallback
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.CronJobSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.CronJobSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.CronJobStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.CronJobStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.CronJobSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.CronJobStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.CronJobSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.CronJobStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -3256,7 +3256,7 @@ func schema_storage_apis_ottogptscriptai_v1_CronJobList(ref common.ReferenceCall
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.CronJob"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.CronJob"),
 									},
 								},
 							},
@@ -3267,7 +3267,7 @@ func schema_storage_apis_ottogptscriptai_v1_CronJobList(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.CronJob", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.CronJob", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -3373,20 +3373,20 @@ func schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequest(ref common.Re
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequestStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -3423,7 +3423,7 @@ func schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestList(ref commo
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequest"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequest"),
 									},
 								},
 							},
@@ -3434,7 +3434,7 @@ func schema_storage_apis_ottogptscriptai_v1_IngestKnowledgeRequestList(ref commo
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequest", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.IngestKnowledgeRequest", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -3501,20 +3501,20 @@ func schema_storage_apis_ottogptscriptai_v1_KnowledgeFile(ref common.ReferenceCa
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFileStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -3551,7 +3551,7 @@ func schema_storage_apis_ottogptscriptai_v1_KnowledgeFileList(ref common.Referen
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFile"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFile"),
 									},
 								},
 							},
@@ -3562,7 +3562,7 @@ func schema_storage_apis_ottogptscriptai_v1_KnowledgeFileList(ref common.Referen
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFile", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.KnowledgeFile", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -3613,13 +3613,13 @@ func schema_storage_apis_ottogptscriptai_v1_KnowledgeFileStatus(ref common.Refer
 					"ingestionStatus": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.IngestionStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.IngestionStatus"),
 						},
 					},
 					"fileDetails": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.FileDetails"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.FileDetails"),
 						},
 					},
 					"uploadID": {
@@ -3632,7 +3632,7 @@ func schema_storage_apis_ottogptscriptai_v1_KnowledgeFileStatus(ref common.Refer
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.FileDetails", "github.com/gptscript-ai/otto/apiclient/types.IngestionStatus"},
+			"github.com/otto8-ai/otto8/apiclient/types.FileDetails", "github.com/otto8-ai/otto8/apiclient/types.IngestionStatus"},
 	}
 }
 
@@ -3665,20 +3665,20 @@ func schema_storage_apis_ottogptscriptai_v1_OAuthApp(ref common.ReferenceCallbac
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -3715,7 +3715,7 @@ func schema_storage_apis_ottogptscriptai_v1_OAuthAppList(ref common.ReferenceCal
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthApp"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthApp"),
 									},
 								},
 							},
@@ -3726,7 +3726,7 @@ func schema_storage_apis_ottogptscriptai_v1_OAuthAppList(ref common.ReferenceCal
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthApp", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthApp", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -3759,20 +3759,20 @@ func schema_storage_apis_ottogptscriptai_v1_OAuthAppReference(ref common.Referen
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReferenceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -3809,7 +3809,7 @@ func schema_storage_apis_ottogptscriptai_v1_OAuthAppReferenceList(ref common.Ref
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReference"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReference"),
 									},
 								},
 							},
@@ -3820,7 +3820,7 @@ func schema_storage_apis_ottogptscriptai_v1_OAuthAppReferenceList(ref common.Ref
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReference", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.OAuthAppReference", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -3890,14 +3890,14 @@ func schema_storage_apis_ottogptscriptai_v1_OAuthAppSpec(ref common.ReferenceCal
 					"manifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.OAuthAppManifest"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.OAuthAppManifest"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.OAuthAppManifest"},
+			"github.com/otto8-ai/otto8/apiclient/types.OAuthAppManifest"},
 	}
 }
 
@@ -3923,14 +3923,14 @@ func schema_storage_apis_ottogptscriptai_v1_OAuthAppStatus(ref common.ReferenceC
 					"external": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.OAuthAppExternalStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.OAuthAppExternalStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.OAuthAppExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/otto8-ai/otto8/apiclient/types.OAuthAppExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -3990,20 +3990,20 @@ func schema_storage_apis_ottogptscriptai_v1_Reference(ref common.ReferenceCallba
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -4040,7 +4040,7 @@ func schema_storage_apis_ottogptscriptai_v1_ReferenceList(ref common.ReferenceCa
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Reference"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Reference"),
 									},
 								},
 							},
@@ -4051,7 +4051,7 @@ func schema_storage_apis_ottogptscriptai_v1_ReferenceList(ref common.ReferenceCa
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Reference", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Reference", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -4132,7 +4132,7 @@ func schema_storage_apis_ottogptscriptai_v1_RemoteConnectorStatus(ref common.Ref
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.FileDetails"),
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.FileDetails"),
 									},
 								},
 							},
@@ -4141,14 +4141,14 @@ func schema_storage_apis_ottogptscriptai_v1_RemoteConnectorStatus(ref common.Ref
 					"state": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSourceState"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSourceState"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.FileDetails", "github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSourceState"},
+			"github.com/otto8-ai/otto8/apiclient/types.FileDetails", "github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSourceState"},
 	}
 }
 
@@ -4181,20 +4181,20 @@ func schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSource(ref common.Ref
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSourceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -4231,7 +4231,7 @@ func schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSourceList(ref common
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSource"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSource"),
 									},
 								},
 							},
@@ -4242,7 +4242,7 @@ func schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSourceList(ref common
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSource", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RemoteKnowledgeSource", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -4280,17 +4280,17 @@ func schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSourceSpec(ref common
 					},
 					"onedriveConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.OneDriveConfig"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.OneDriveConfig"),
 						},
 					},
 					"notionConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.NotionConfig"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.NotionConfig"),
 						},
 					},
 					"websiteCrawlingConfig": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.WebsiteCrawlingConfig"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConfig"),
 						},
 					},
 					"agentName": {
@@ -4309,7 +4309,7 @@ func schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSourceSpec(ref common
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.NotionConfig", "github.com/gptscript-ai/otto/apiclient/types.OneDriveConfig", "github.com/gptscript-ai/otto/apiclient/types.WebsiteCrawlingConfig"},
+			"github.com/otto8-ai/otto8/apiclient/types.NotionConfig", "github.com/otto8-ai/otto8/apiclient/types.OneDriveConfig", "github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConfig"},
 	}
 }
 
@@ -4359,7 +4359,7 @@ func schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSourceStatus(ref comm
 					"state": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSourceState"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSourceState"),
 						},
 					},
 					"lastReSyncStarted": {
@@ -4371,7 +4371,7 @@ func schema_storage_apis_ottogptscriptai_v1_RemoteKnowledgeSourceStatus(ref comm
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.RemoteKnowledgeSourceState", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+			"github.com/otto8-ai/otto8/apiclient/types.RemoteKnowledgeSourceState", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
 	}
 }
 
@@ -4404,20 +4404,20 @@ func schema_storage_apis_ottogptscriptai_v1_Run(ref common.ReferenceCallback) co
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -4454,7 +4454,7 @@ func schema_storage_apis_ottogptscriptai_v1_RunList(ref common.ReferenceCallback
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Run"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Run"),
 									},
 								},
 							},
@@ -4465,7 +4465,7 @@ func schema_storage_apis_ottogptscriptai_v1_RunList(ref common.ReferenceCallback
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Run", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Run", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -4606,20 +4606,20 @@ func schema_storage_apis_ottogptscriptai_v1_RunState(ref common.ReferenceCallbac
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStateSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunStateSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStateStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunStateStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStateSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunStateStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunStateSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunStateStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -4656,7 +4656,7 @@ func schema_storage_apis_ottogptscriptai_v1_RunStateList(ref common.ReferenceCal
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunState"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunState"),
 									},
 								},
 							},
@@ -4667,7 +4667,7 @@ func schema_storage_apis_ottogptscriptai_v1_RunStateList(ref common.ReferenceCal
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.RunState", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.RunState", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -4786,7 +4786,7 @@ func schema_storage_apis_ottogptscriptai_v1_RunStatus(ref common.ReferenceCallba
 					},
 					"subCall": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SubCall"),
+							Ref: ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SubCall"),
 						},
 					},
 				},
@@ -4794,7 +4794,7 @@ func schema_storage_apis_ottogptscriptai_v1_RunStatus(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SubCall", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SubCall", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -4857,20 +4857,20 @@ func schema_storage_apis_ottogptscriptai_v1_SyncUploadRequest(ref common.Referen
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequestStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -4907,7 +4907,7 @@ func schema_storage_apis_ottogptscriptai_v1_SyncUploadRequestList(ref common.Ref
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequest"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequest"),
 									},
 								},
 							},
@@ -4918,7 +4918,7 @@ func schema_storage_apis_ottogptscriptai_v1_SyncUploadRequestList(ref common.Ref
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequest", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SyncUploadRequest", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -4979,20 +4979,20 @@ func schema_storage_apis_ottogptscriptai_v1_Thread(ref common.ReferenceCallback)
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ThreadSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ThreadStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ThreadStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ThreadSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ThreadStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -5029,7 +5029,7 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadList(ref common.ReferenceCallb
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Thread"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Thread"),
 									},
 								},
 							},
@@ -5040,7 +5040,7 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadList(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Thread", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Thread", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -5053,7 +5053,7 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadSpec(ref common.ReferenceCallb
 					"manifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.ThreadManifest"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.ThreadManifest"),
 						},
 					},
 					"parentThreadName": {
@@ -5108,7 +5108,7 @@ func schema_storage_apis_ottogptscriptai_v1_ThreadSpec(ref common.ReferenceCallb
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.ThreadManifest"},
+			"github.com/otto8-ai/otto8/apiclient/types.ThreadManifest"},
 	}
 }
 
@@ -5198,20 +5198,20 @@ func schema_storage_apis_ottogptscriptai_v1_ToolReference(ref common.ReferenceCa
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolReferenceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -5248,7 +5248,7 @@ func schema_storage_apis_ottogptscriptai_v1_ToolReferenceList(ref common.Referen
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReference"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolReference"),
 									},
 								},
 							},
@@ -5259,7 +5259,7 @@ func schema_storage_apis_ottogptscriptai_v1_ToolReferenceList(ref common.Referen
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolReference", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolReference", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -5307,7 +5307,7 @@ func schema_storage_apis_ottogptscriptai_v1_ToolReferenceStatus(ref common.Refer
 					},
 					"tool": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolShortDescription"),
+							Ref: ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolShortDescription"),
 						},
 					},
 					"error": {
@@ -5333,7 +5333,7 @@ func schema_storage_apis_ottogptscriptai_v1_ToolReferenceStatus(ref common.Refer
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ToolShortDescription", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ToolShortDescription", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -5420,20 +5420,20 @@ func schema_storage_apis_ottogptscriptai_v1_Webhook(ref common.ReferenceCallback
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -5470,7 +5470,7 @@ func schema_storage_apis_ottogptscriptai_v1_WebhookList(ref common.ReferenceCall
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Webhook"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Webhook"),
 									},
 								},
 							},
@@ -5481,7 +5481,7 @@ func schema_storage_apis_ottogptscriptai_v1_WebhookList(ref common.ReferenceCall
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Webhook", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Webhook", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -5514,20 +5514,20 @@ func schema_storage_apis_ottogptscriptai_v1_WebhookReference(ref common.Referenc
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReferenceSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReferenceSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceStatus", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReferenceSpec", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.ReferenceStatus", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReferenceSpec", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -5564,7 +5564,7 @@ func schema_storage_apis_ottogptscriptai_v1_WebhookReferenceList(ref common.Refe
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReference"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReference"),
 									},
 								},
 							},
@@ -5575,7 +5575,7 @@ func schema_storage_apis_ottogptscriptai_v1_WebhookReferenceList(ref common.Refe
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReference", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WebhookReference", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -5720,7 +5720,7 @@ func schema_storage_apis_ottogptscriptai_v1_WebhookStatus(ref common.ReferenceCa
 					"external": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.WebhookExternalStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.WebhookExternalStatus"),
 						},
 					},
 					"lastSuccessfulRunCompleted": {
@@ -5732,7 +5732,7 @@ func schema_storage_apis_ottogptscriptai_v1_WebhookStatus(ref common.ReferenceCa
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.WebhookExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+			"github.com/otto8-ai/otto8/apiclient/types.WebhookExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
 	}
 }
 
@@ -5765,20 +5765,20 @@ func schema_storage_apis_ottogptscriptai_v1_Workflow(ref common.ReferenceCallbac
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -5811,20 +5811,20 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowExecution(ref common.Referen
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecutionStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -5861,7 +5861,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionList(ref common.Ref
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecution"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecution"),
 									},
 								},
 							},
@@ -5872,7 +5872,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionList(ref common.Ref
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecution", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowExecution", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -5980,7 +5980,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionStatus(ref common.R
 					},
 					"workflowManifest": {
 						SchemaProps: spec.SchemaProps{
-							Ref: ref("github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest"),
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.WorkflowManifest"),
 						},
 					},
 					"endTime": {
@@ -6011,7 +6011,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowExecutionStatus(ref common.R
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+			"github.com/otto8-ai/otto8/apiclient/types.WorkflowManifest", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
 	}
 }
 
@@ -6048,7 +6048,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowList(ref common.ReferenceCal
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Workflow"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Workflow"),
 									},
 								},
 							},
@@ -6059,7 +6059,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowList(ref common.ReferenceCal
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Workflow", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Workflow", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -6072,14 +6072,14 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowSpec(ref common.ReferenceCal
 					"manifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.WorkflowManifest"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.WorkflowManifest"},
+			"github.com/otto8-ai/otto8/apiclient/types.WorkflowManifest"},
 	}
 }
 
@@ -6092,7 +6092,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStatus(ref common.ReferenceC
 					"external": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.WorkflowExternalStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.WorkflowExternalStatus"),
 						},
 					},
 					"workspaceName": {
@@ -6124,7 +6124,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStatus(ref common.ReferenceC
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.WorkflowExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/otto8-ai/otto8/apiclient/types.WorkflowExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -6157,20 +6157,20 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStep(ref common.ReferenceCal
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStepStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -6207,7 +6207,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStepList(ref common.Referenc
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStep"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStep"),
 									},
 								},
 							},
@@ -6218,7 +6218,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStepList(ref common.Referenc
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStep", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkflowStep", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 
@@ -6237,7 +6237,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStepSpec(ref common.Referenc
 					"step": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Step"),
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Step"),
 						},
 					},
 					"workflowExecutionName": {
@@ -6256,7 +6256,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStepSpec(ref common.Referenc
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Step"},
+			"github.com/otto8-ai/otto8/apiclient/types.Step"},
 	}
 }
 
@@ -6285,7 +6285,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStepStatus(ref common.Refere
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SubCall"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SubCall"),
 									},
 								},
 							},
@@ -6340,7 +6340,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkflowStepStatus(ref common.Refere
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.SubCall", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.SubCall", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -6373,20 +6373,20 @@ func schema_storage_apis_ottogptscriptai_v1_Workspace(ref common.ReferenceCallba
 					"spec": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceSpec"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceSpec"),
 						},
 					},
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceSpec", "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.WorkspaceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -6423,7 +6423,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkspaceList(ref common.ReferenceCa
 								Schema: &spec.Schema{
 									SchemaProps: spec.SchemaProps{
 										Default: map[string]interface{}{},
-										Ref:     ref("github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Workspace"),
+										Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Workspace"),
 									},
 								},
 							},
@@ -6434,7 +6434,7 @@ func schema_storage_apis_ottogptscriptai_v1_WorkspaceList(ref common.ReferenceCa
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1.Workspace", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1.Workspace", "k8s.io/apimachinery/pkg/apis/meta/v1.ListMeta"},
 	}
 }
 

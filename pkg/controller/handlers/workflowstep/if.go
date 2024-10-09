@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/acorn-io/baaah/pkg/router"
-	"github.com/gptscript-ai/otto/apiclient/types"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/otto8-ai/otto8/apiclient/types"
+	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )

@@ -8,7 +8,7 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/gptscript-ai/otto/apiclient/types"
+import "github.com/otto8-ai/otto8/apiclient/types"
 
 func Workflows(wfs []types.Workflow) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {

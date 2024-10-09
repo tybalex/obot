@@ -9,9 +9,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/gptscript-ai/otto/apiclient/types"
-	"github.com/gptscript-ai/otto/ui/components"
-	"github.com/gptscript-ai/otto/ui/layouts"
+	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/ui/components"
+	"github.com/otto8-ai/otto8/ui/layouts"
 )
 
 type editWorkflowPage struct {

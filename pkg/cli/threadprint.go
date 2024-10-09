@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/gptscript-ai/otto/apiclient"
-	"github.com/gptscript-ai/otto/pkg/cli/events"
+	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/pkg/cli/events"
 	"github.com/spf13/cobra"
 )
 

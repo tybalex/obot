@@ -3,10 +3,10 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/invoke"
-	"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
-	"github.com/gptscript-ai/otto/pkg/system"
+	"github.com/otto8-ai/otto8/pkg/api"
+	"github.com/otto8-ai/otto8/pkg/invoke"
+	"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/otto8-ai/otto8/pkg/system"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 

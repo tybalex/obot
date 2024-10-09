@@ -4,8 +4,8 @@ import (
 	"github.com/acorn-io/mink/pkg/db"
 	"github.com/acorn-io/mink/pkg/stores"
 	"github.com/acorn-io/mink/pkg/strategy"
-	"github.com/gptscript-ai/otto/pkg/storage/scheme"
-	"github.com/gptscript-ai/otto/pkg/storage/tables"
+	"github.com/otto8-ai/otto8/pkg/storage/scheme"
+	"github.com/otto8-ai/otto8/pkg/storage/tables"
 	"k8s.io/apiserver/pkg/registry/rest"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )

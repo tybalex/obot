@@ -3,7 +3,7 @@ package webcontext
 import (
 	"context"
 
-	"github.com/gptscript-ai/otto/apiclient"
+	"github.com/otto8-ai/otto8/apiclient"
 )
 
 type clientKey struct{}

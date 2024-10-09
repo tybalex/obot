@@ -3,7 +3,7 @@ package v1
 import (
 	"github.com/acorn-io/baaah/pkg/conditions"
 	gptscriptclient "github.com/gptscript-ai/go-gptscript"
-	"github.com/gptscript-ai/otto/apiclient/types"
+	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

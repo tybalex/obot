@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gptscript-ai/otto/apiclient"
-	"github.com/gptscript-ai/otto/ui/pages"
-	"github.com/gptscript-ai/otto/ui/webcontext"
+	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/ui/pages"
+	"github.com/otto8-ai/otto8/ui/webcontext"
 )
 
 func Thread(rw http.ResponseWriter, req *http.Request) error {

@@ -3,9 +3,9 @@ package services
 import (
 	"github.com/acorn-io/baaah/pkg/randomtoken"
 	"github.com/acorn-io/mink/pkg/db"
-	"github.com/gptscript-ai/otto/pkg/storage/authn"
-	"github.com/gptscript-ai/otto/pkg/storage/authz"
-	"github.com/gptscript-ai/otto/pkg/storage/scheme"
+	"github.com/otto8-ai/otto8/pkg/storage/authn"
+	"github.com/otto8-ai/otto8/pkg/storage/authz"
+	"github.com/otto8-ai/otto8/pkg/storage/scheme"
 	"k8s.io/apiserver/pkg/authentication/authenticator"
 	"k8s.io/apiserver/pkg/authorization/authorizer"
 )
@@ -15,7 +15,7 @@ type Config struct {
 	StorageToken      string `usage:"Token for storage access, will be generated if not passed"`
 	//AuditLogPath       string `usage:"Location of where to store audit logs"`
 	//AuditLogPolicyFile string `usage:"Location of audit log policy file"`
-	DSN           string `usage:"Database dsn in driver://connection_string format" default:"sqlite://file:otto.db?_journal=WAL&cache=shared&_busy_timeout=30000"`
+	DSN           string `usage:"Database dsn in driver://connection_string format" default:"sqlite://file:otto8.db?_journal=WAL&cache=shared&_busy_timeout=30000"`
 	KnowledgeTool string `usage:"The knowledge tool to use" default:"github.com/gptscript-ai/knowledge" env:"KNOWLEDGE_TOOL"`
 	OneDriveTool  string `usage:"The OneDrive tool to use" default:"github.com/gptscript-ai/knowledge-onedrive-integration@otto" env:"ONEDRIVE_TOOL"`
 	NotionTool    string `usage:"The Notion tool to use" default:"github.com/gptscript-ai/knowledge-notion-integration@otto" env:"NOTION_TOOL"`

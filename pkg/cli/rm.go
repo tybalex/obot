@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/gptscript-ai/otto/pkg/system"
+	"github.com/otto8-ai/otto8/pkg/system"
 	"github.com/spf13/cobra"
 )
 

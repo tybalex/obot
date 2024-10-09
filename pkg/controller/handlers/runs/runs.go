@@ -5,9 +5,9 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
-	"github.com/gptscript-ai/otto/logger"
-	"github.com/gptscript-ai/otto/pkg/invoke"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/otto8-ai/otto8/logger"
+	"github.com/otto8-ai/otto8/pkg/invoke"
+	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"

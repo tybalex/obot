@@ -1,4 +1,4 @@
-module github.com/gptscript-ai/otto/logger
+module github.com/otto8-ai/otto8/logger
 
 go 1.23.1
 

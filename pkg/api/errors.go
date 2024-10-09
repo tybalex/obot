@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gptscript-ai/otto/apiclient/types"
+	"github.com/otto8-ai/otto8/apiclient/types"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 

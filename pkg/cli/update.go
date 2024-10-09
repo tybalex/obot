@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/gptscript-ai/otto/apiclient/types"
-	"github.com/gptscript-ai/otto/pkg/system"
+	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/system"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 )

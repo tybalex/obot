@@ -12,8 +12,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/gptscript-ai/otto/apiclient/types"
-	"github.com/gptscript-ai/otto/logger"
+	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/logger"
 )
 
 var log = logger.Package()

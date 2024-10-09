@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/fatih/color"
-	"github.com/gptscript-ai/otto/apiclient/types"
-	"github.com/gptscript-ai/otto/logger"
-	"github.com/gptscript-ai/otto/pkg/cli/textio"
+	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/logger"
+	"github.com/otto8-ai/otto8/pkg/cli/textio"
 )
 
 var log = logger.Package()

@@ -3,9 +3,9 @@ package workflowstep
 import (
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
-	"github.com/gptscript-ai/otto/apiclient/types"
-	"github.com/gptscript-ai/otto/pkg/invoke"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/invoke"
+	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 )
 
 func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {

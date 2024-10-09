@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dustin/go-humanize"
-	"github.com/gptscript-ai/otto/apiclient"
+	"github.com/otto8-ai/otto8/apiclient"
 	"github.com/spf13/cobra"
 )
 

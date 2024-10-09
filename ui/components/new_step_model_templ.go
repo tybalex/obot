@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/gptscript-ai/otto/apiclient/types"
+	"github.com/otto8-ai/otto8/apiclient/types"
 )
 
 var systemSteps = []types.ToolReference{

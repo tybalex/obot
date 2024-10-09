@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/gptscript-ai/otto/apiclient/types"
+	"github.com/otto8-ai/otto8/apiclient/types"
 )
 
 func (c *Client) UpdateAgent(ctx context.Context, id string, manifest types.AgentManifest) (*types.Agent, error) {

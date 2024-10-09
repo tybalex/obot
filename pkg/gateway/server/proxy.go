@@ -11,8 +11,8 @@ import (
 	"net/url"
 	"strings"
 
-	kcontext "github.com/gptscript-ai/otto/pkg/gateway/context"
-	"github.com/gptscript-ai/otto/pkg/gateway/types"
+	kcontext "github.com/otto8-ai/otto8/pkg/gateway/context"
+	"github.com/otto8-ai/otto8/pkg/gateway/types"
 	"gorm.io/gorm"
 )
 

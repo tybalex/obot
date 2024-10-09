@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gptscript-ai/otto/pkg/api"
-	kcontext "github.com/gptscript-ai/otto/pkg/gateway/context"
-	ktime "github.com/gptscript-ai/otto/pkg/gateway/time"
-	"github.com/gptscript-ai/otto/pkg/gateway/types"
+	"github.com/otto8-ai/otto8/pkg/api"
+	kcontext "github.com/otto8-ai/otto8/pkg/gateway/context"
+	ktime "github.com/otto8-ai/otto8/pkg/gateway/time"
+	"github.com/otto8-ai/otto8/pkg/gateway/types"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

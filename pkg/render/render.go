@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/gptscript-ai/go-gptscript"
-	"github.com/gptscript-ai/otto/apiclient/types"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
-	"github.com/gptscript-ai/otto/pkg/workspace"
+	"github.com/otto8-ai/otto8/apiclient/types"
+	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/otto8-ai/otto8/pkg/workspace"
 	"k8s.io/apimachinery/pkg/fields"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )

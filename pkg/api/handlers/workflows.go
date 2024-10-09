@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"github.com/gptscript-ai/go-gptscript"
-	"github.com/gptscript-ai/otto/apiclient/types"
-	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflow"
-	"github.com/gptscript-ai/otto/pkg/render"
-	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
-	"github.com/gptscript-ai/otto/pkg/system"
+	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/api"
+	"github.com/otto8-ai/otto8/pkg/controller/handlers/workflow"
+	"github.com/otto8-ai/otto8/pkg/render"
+	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/otto8-ai/otto8/pkg/system"
 	"github.com/otto8-ai/workspace-provider/pkg/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

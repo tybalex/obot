@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gptscript-ai/otto/pkg/invoke"
-	"github.com/gptscript-ai/otto/pkg/workspace"
+	"github.com/otto8-ai/otto8/pkg/invoke"
+	"github.com/otto8-ai/otto8/pkg/workspace"
 )
 
 type Ingester struct {

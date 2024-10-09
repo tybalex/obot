@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"github.com/gptscript-ai/go-gptscript"
-	"github.com/gptscript-ai/otto/apiclient/types"
-	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/events"
-	"github.com/gptscript-ai/otto/pkg/gz"
-	"github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/api"
+	"github.com/otto8-ai/otto8/pkg/events"
+	"github.com/otto8-ai/otto8/pkg/gz"
+	"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

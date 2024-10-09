@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gptscript-ai/otto/pkg/cli/invokeclient"
-	"github.com/gptscript-ai/otto/pkg/system"
+	"github.com/otto8-ai/otto8/pkg/cli/invokeclient"
+	"github.com/otto8-ai/otto8/pkg/system"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )

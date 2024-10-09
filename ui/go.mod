@@ -1,19 +1,19 @@
-module github.com/gptscript-ai/otto/ui
+module github.com/otto8-ai/otto8/ui
 
 go 1.23.1
 
-replace github.com/gptscript-ai/otto => ../
+replace github.com/otto8-ai/otto8 => ../
 
-replace github.com/gptscript-ai/otto/apiclient => ../apiclient
+replace github.com/otto8-ai/otto8/apiclient => ../apiclient
 
-replace github.com/gptscript-ai/otto/logger => ../logger
+replace github.com/otto8-ai/otto8/logger => ../logger
 
 replace github.com/oauth2-proxy/oauth2-proxy/v7 => github.com/otto8-ai/oauth2-proxy/v7 v7.0.0-20241008204315-265dabe17f43
 
 require (
 	github.com/a-h/templ v0.2.778
-	github.com/gptscript-ai/otto v0.0.0-00010101000000-000000000000
-	github.com/gptscript-ai/otto/apiclient v0.0.0-00010101000000-000000000000
+	github.com/otto8-ai/otto8 v0.0.0-00010101000000-000000000000
+	github.com/otto8-ai/otto8/apiclient v0.0.0-00010101000000-000000000000
 )
 
 require (
@@ -46,7 +46,6 @@ require (
 	github.com/googleapis/gax-go/v2 v2.13.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gptscript-ai/go-gptscript v0.9.5-rc5.0.20240927213153-2af51434b93e // indirect
-	github.com/gptscript-ai/otto/logger v0.0.0-00010101000000-000000000000 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
@@ -60,6 +59,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oauth2-proxy/oauth2-proxy/v7 v7.0.0-00010101000000-000000000000 // indirect
 	github.com/ohler55/ojg v1.24.1 // indirect
+	github.com/otto8-ai/otto8/logger v0.0.0-00010101000000-000000000000 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect

@@ -1,6 +1,6 @@
 package mvl
 
-import "github.com/gptscript-ai/otto/logger"
+import "github.com/otto8-ai/otto8/logger"
 
 var Package = logger.Package
 

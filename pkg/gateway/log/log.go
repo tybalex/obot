@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	kcontext "github.com/gptscript-ai/otto/pkg/gateway/context"
+	kcontext "github.com/otto8-ai/otto8/pkg/gateway/context"
 )
 
 func New() *slog.Logger {

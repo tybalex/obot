@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/gptscript-ai/otto/ui/pages"
+	"github.com/otto8-ai/otto8/ui/pages"
 )
 
 func LoginComplete(rw http.ResponseWriter, req *http.Request) error {

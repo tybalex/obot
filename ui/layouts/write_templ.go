@@ -9,7 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/gptscript-ai/otto/ui/components/ng"
+	"github.com/otto8-ai/otto8/ui/components/ng"
 )
 
 func Write() templ.Component {

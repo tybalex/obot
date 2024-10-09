@@ -6,8 +6,8 @@ import (
 	"slices"
 
 	"github.com/gptscript-ai/go-gptscript"
-	"github.com/gptscript-ai/otto/apiclient/types"
-	"github.com/gptscript-ai/otto/pkg/api"
+	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/api"
 )
 
 func ListCredentials(req api.Context) error {

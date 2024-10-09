@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"net/http/httputil"
 
-	"github.com/gptscript-ai/otto/pkg/api"
-	kcontext "github.com/gptscript-ai/otto/pkg/gateway/context"
-	"github.com/gptscript-ai/otto/pkg/gateway/types"
+	"github.com/otto8-ai/otto8/pkg/api"
+	kcontext "github.com/otto8-ai/otto8/pkg/gateway/context"
+	"github.com/otto8-ai/otto8/pkg/gateway/types"
 )
 
 func (s *Server) AddRoutes(authed func(api.HandlerFunc) http.Handler, mux *http.ServeMux) {

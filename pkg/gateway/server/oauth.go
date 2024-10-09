@@ -12,9 +12,9 @@ import (
 	"github.com/MicahParks/keyfunc/v3"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/go-github/v62/github"
-	"github.com/gptscript-ai/otto/pkg/gateway/client"
-	kcontext "github.com/gptscript-ai/otto/pkg/gateway/context"
-	"github.com/gptscript-ai/otto/pkg/gateway/types"
+	"github.com/otto8-ai/otto8/pkg/gateway/client"
+	kcontext "github.com/otto8-ai/otto8/pkg/gateway/context"
+	"github.com/otto8-ai/otto8/pkg/gateway/types"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 )

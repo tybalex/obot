@@ -5,8 +5,8 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gptscript-ai/cmd"
-	"github.com/gptscript-ai/otto/apiclient"
-	"github.com/gptscript-ai/otto/logger"
+	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/logger"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )

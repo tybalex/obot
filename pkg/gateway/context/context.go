@@ -5,7 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/google/uuid"
-	"github.com/gptscript-ai/otto/pkg/gateway/types"
+	"github.com/otto8-ai/otto8/pkg/gateway/types"
 )
 
 type reqIDKey struct{}

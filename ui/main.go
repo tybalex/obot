@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gptscript-ai/otto/apiclient"
-	"github.com/gptscript-ai/otto/pkg/proxy"
-	"github.com/gptscript-ai/otto/ui/router"
+	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/pkg/proxy"
+	"github.com/otto8-ai/otto8/ui/router"
 )
 
 func main() {

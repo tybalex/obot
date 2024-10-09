@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/gptscript-ai/otto/pkg/gateway/types"
+	"github.com/otto8-ai/otto8/pkg/gateway/types"
 	"k8s.io/apiserver/pkg/authentication/authenticator"
 	"k8s.io/apiserver/pkg/authentication/user"
 )

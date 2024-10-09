@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/gptscript-ai/otto/apiclient/types"
+	"github.com/otto8-ai/otto8/apiclient/types"
 )
 
 const (

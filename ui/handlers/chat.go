@@ -3,10 +3,10 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/gptscript-ai/otto/apiclient"
-	"github.com/gptscript-ai/otto/ui/components"
-	"github.com/gptscript-ai/otto/ui/pages"
-	"github.com/gptscript-ai/otto/ui/webcontext"
+	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/ui/components"
+	"github.com/otto8-ai/otto8/ui/pages"
+	"github.com/otto8-ai/otto8/ui/webcontext"
 )
 
 func Events(w http.ResponseWriter, r *http.Request) error {

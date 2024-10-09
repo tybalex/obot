@@ -2,7 +2,7 @@ package workflow
 
 import (
 	"github.com/acorn-io/baaah/pkg/randomtoken"
-	"github.com/gptscript-ai/otto/apiclient/types"
+	"github.com/otto8-ai/otto8/apiclient/types"
 )
 
 func PopulateIDs(manifest types.WorkflowManifest) types.WorkflowManifest {

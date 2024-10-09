@@ -4,7 +4,7 @@ import (
 	gerrors "errors"
 	"net/http"
 
-	"github.com/gptscript-ai/otto/apiclient/types"
+	"github.com/otto8-ai/otto8/apiclient/types"
 )
 
 func errors(f func(rw http.ResponseWriter, req *http.Request) error) http.HandlerFunc {

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gptscript-ai/otto/logger"
-	"github.com/gptscript-ai/otto/pkg/api/router"
-	"github.com/gptscript-ai/otto/pkg/controller"
-	"github.com/gptscript-ai/otto/pkg/services"
+	"github.com/otto8-ai/otto8/logger"
+	"github.com/otto8-ai/otto8/pkg/api/router"
+	"github.com/otto8-ai/otto8/pkg/controller"
+	"github.com/otto8-ai/otto8/pkg/services"
 	"github.com/rs/cors"
 )
 

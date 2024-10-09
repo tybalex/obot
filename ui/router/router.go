@@ -4,11 +4,11 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/gptscript-ai/otto/apiclient"
-	"github.com/gptscript-ai/otto/ui/handlers"
-	"github.com/gptscript-ai/otto/ui/layouts"
-	"github.com/gptscript-ai/otto/ui/static"
-	"github.com/gptscript-ai/otto/ui/webcontext"
+	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/ui/handlers"
+	"github.com/otto8-ai/otto8/ui/layouts"
+	"github.com/otto8-ai/otto8/ui/static"
+	"github.com/otto8-ai/otto8/ui/webcontext"
 )
 
 func Init(client *apiclient.Client, devMode bool) http.Handler {

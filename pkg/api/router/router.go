@@ -3,10 +3,10 @@ package router
 import (
 	"net/http"
 
-	"github.com/gptscript-ai/otto/apiclient"
-	"github.com/gptscript-ai/otto/pkg/api/handlers"
-	"github.com/gptscript-ai/otto/pkg/services"
-	"github.com/gptscript-ai/otto/ui/router"
+	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/pkg/api/handlers"
+	"github.com/otto8-ai/otto8/pkg/services"
+	"github.com/otto8-ai/otto8/ui/router"
 )
 
 func Router(services *services.Services) (http.Handler, error) {

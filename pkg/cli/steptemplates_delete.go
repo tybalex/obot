@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/gptscript-ai/otto/apiclient/types"
+	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/spf13/cobra"
 )
 

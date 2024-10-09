@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gptscript-ai/otto/apiclient"
-	"github.com/gptscript-ai/otto/apiclient/types"
-	"github.com/gptscript-ai/otto/pkg/cli/events"
-	"github.com/gptscript-ai/otto/pkg/system"
+	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/cli/events"
+	"github.com/otto8-ai/otto8/pkg/system"
 )
 
 type inputter interface {

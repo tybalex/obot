@@ -5,8 +5,8 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/gptscript-ai/otto/pkg/gateway/db"
-	"github.com/gptscript-ai/otto/pkg/gateway/types"
+	"github.com/otto8-ai/otto8/pkg/gateway/db"
+	"github.com/otto8-ai/otto8/pkg/gateway/types"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"k8s.io/apiserver/pkg/authentication/authenticator"

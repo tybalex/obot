@@ -5,7 +5,7 @@ import (
 
 	"github.com/gptscript-ai/cmd"
 	"github.com/gptscript-ai/gptscript/pkg/embedded"
-	"github.com/gptscript-ai/otto/pkg/cli"
+	"github.com/otto8-ai/otto8/pkg/cli"
 )
 
 func main() {

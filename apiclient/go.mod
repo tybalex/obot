@@ -1,17 +1,17 @@
-module github.com/gptscript-ai/otto/apiclient
+module github.com/otto8-ai/otto8/apiclient
 
 go 1.23.1
 
-replace github.com/gptscript-ai/otto/logger => ../logger
+replace github.com/otto8-ai/otto8/logger => ../logger
 
 require (
+	github.com/getkin/kin-openapi v0.124.0
 	github.com/gptscript-ai/go-gptscript v0.9.4
-	github.com/gptscript-ai/otto/logger v0.0.0-00010101000000-000000000000
+	github.com/otto8-ai/otto8/logger v0.0.0-00010101000000-000000000000
 )
 
 require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/getkin/kin-openapi v0.124.0 // indirect
 	github.com/go-openapi/jsonpointer v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.8 // indirect
 	github.com/invopop/yaml v0.2.0 // indirect

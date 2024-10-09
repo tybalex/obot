@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/dustin/go-humanize"
-	"github.com/gptscript-ai/otto/apiclient"
-	"github.com/gptscript-ai/otto/apiclient/types"
+	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/spf13/cobra"
 )
 

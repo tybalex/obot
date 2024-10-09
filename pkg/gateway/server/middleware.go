@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gptscript-ai/otto/pkg/api"
-	"github.com/gptscript-ai/otto/pkg/gateway/context"
-	"github.com/gptscript-ai/otto/pkg/gateway/log"
-	"github.com/gptscript-ai/otto/pkg/gateway/types"
+	"github.com/otto8-ai/otto8/pkg/api"
+	"github.com/otto8-ai/otto8/pkg/gateway/context"
+	"github.com/otto8-ai/otto8/pkg/gateway/log"
+	"github.com/otto8-ai/otto8/pkg/gateway/types"
 	"gorm.io/gorm"
 )
 

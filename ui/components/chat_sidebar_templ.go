@@ -8,7 +8,7 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/gptscript-ai/otto/apiclient/types"
+import "github.com/otto8-ai/otto8/apiclient/types"
 
 type ChatSidebarData struct {
 	Files []types.File

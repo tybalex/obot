@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/acorn-io/baaah/pkg/router"
-	"github.com/gptscript-ai/otto/pkg/controller/handlers/toolreference"
-	"github.com/gptscript-ai/otto/pkg/services"
+	"github.com/otto8-ai/otto8/pkg/controller/handlers/toolreference"
+	"github.com/otto8-ai/otto8/pkg/services"
 	// Enabled logrus logging in baaah
 	_ "github.com/acorn-io/baaah/pkg/logrus"
 )
