@@ -27,13 +27,13 @@ func AssociateOAuthAppWithReference(req router.Request, resp router.Response) er
 	oa.Status.External.RefNameAssigned = false
 	oa.Status.External.RefName = oa.Namespace + "-" + oa.Name
 
-	if oa.Spec.RefName == "" {
+	if oa.Spec.Manifest.RefName == "" {
 		return nil
 	}
 
 	ref := v1.OAuthAppReference{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: oa.Spec.RefName,
+			Name: oa.Spec.Manifest.RefName,
 		},
 
 		Spec: v1.OAuthAppReferenceSpec{
@@ -74,7 +74,7 @@ func CleanupOAuthApp(req router.Request, _ router.Response) error {
 
 	// If this is not a "custom" app reference, then this is the "standard" app reference is that is associated to every
 	// app. We don't want to delete it here because it will be deleted when the app is deleted.
-	if oar.Spec.Custom && app.Spec.RefName != oar.Name {
+	if oar.Spec.Custom && app.Spec.Manifest.RefName != oar.Name {
 		return kclient.IgnoreNotFound(req.Delete(oar))
 	}
 

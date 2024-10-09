@@ -12,6 +12,14 @@ func WithClient(ctx context.Context, client *apiclient.Client) context.Context {
 	return context.WithValue(ctx, clientKey{}, client)
 }
 
+func AgentID(ctx context.Context) string {
+	return "otto"
+}
+
+func ThreadID(ctx context.Context) string {
+	return "t1-user"
+}
+
 func Client(ctx context.Context) *apiclient.Client {
 	c, ok := ctx.Value(clientKey{}).(*apiclient.Client)
 	if !ok {

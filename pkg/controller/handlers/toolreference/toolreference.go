@@ -44,6 +44,13 @@ func New(gptClient *gptscript.GPTScript, registryURL string) *Handler {
 	}
 }
 
+func isValidTool(tool gptscript.Tool) bool {
+	if tool.MetaData["index"] == "false" {
+		return false
+	}
+	return tool.Name != "" && (tool.Type == "" || tool.Type == "tool")
+}
+
 func (h *Handler) toolsToToolReferences(ctx context.Context, toolType types.ToolReferenceType, entries map[string]indexEntry) (result []client.Object) {
 	for name, entry := range entries {
 		if entry.All {
@@ -54,7 +61,7 @@ func (h *Handler) toolsToToolReferences(ctx context.Context, toolType types.Tool
 			}
 
 			tool := prg.ToolSet[prg.EntryToolID]
-			if tool.Name != "" {
+			if isValidTool(tool) {
 				result = append(result, &v1.ToolReference{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      normalize(name, tool.Name),
@@ -68,7 +75,7 @@ func (h *Handler) toolsToToolReferences(ctx context.Context, toolType types.Tool
 			}
 			for _, peerToolID := range tool.LocalTools {
 				peerTool := prg.ToolSet[peerToolID]
-				if peerTool.Name != "" {
+				if isValidTool(peerTool) {
 					result = append(result, &v1.ToolReference{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      normalize(name, peerTool.Name),

@@ -32,6 +32,8 @@ type OAuthAppManifest struct {
 	AppID string `json:"appID,omitempty"`
 	// This field is optional for HubSpot OAuth apps.
 	OptionalScope string `json:"optionalScope,omitempty"`
+	// This field is required, it correlates to the integration name in the gptscript oauth cred tool
+	Integration string `json:"integration,omitempty"`
 }
 
 type OAuthAppExternalStatus struct {

@@ -78,7 +78,7 @@ func (s *Server) listOAuthApps(apiContext api.Context) error {
 
 	resp := make([]types2.OAuthApp, 0, len(apps.Items))
 	for _, app := range apps.Items {
-		app.Spec.ClientSecret = ""
+		app.Spec.Manifest.ClientSecret = ""
 		resp = append(resp, convertOAuthAppRegistrationToOAuthApp(app, s.baseURL))
 	}
 
@@ -112,7 +112,7 @@ func (s *Server) createOAuthApp(apiContext api.Context) error {
 			Namespace:    apiContext.Namespace(),
 		},
 		Spec: v1.OAuthAppSpec{
-			OAuthAppManifest: *appManifest,
+			Manifest: *appManifest,
 		},
 	}
 	if err := apiContext.Create(&app); err != nil {
@@ -135,13 +135,13 @@ func (s *Server) updateOAuthApp(apiContext api.Context) error {
 		return err
 	}
 
-	merged := types.MergeOAuthAppManifests(&originalApp.Spec.OAuthAppManifest, appManifest)
+	merged := types.MergeOAuthAppManifests(&originalApp.Spec.Manifest, appManifest)
 	if err := types.ValidateAndSetDefaultsOAuthAppManifest(merged); err != nil {
 		return apierrors.NewBadRequest(fmt.Sprintf("invalid OAuth app: %s", err))
 	}
 
 	// Update the app.
-	originalApp.Spec.OAuthAppManifest = *merged
+	originalApp.Spec.Manifest = *merged
 	if err := apiContext.Update(&originalApp); err != nil {
 		return err
 	}
@@ -210,35 +210,35 @@ func (s *Server) authorizeOAuthApp(apiContext api.Context) error {
 	}
 
 	// Construct URL to redirect the user to.
-	u, err := url.Parse(app.Spec.AuthURL)
+	u, err := url.Parse(app.Spec.Manifest.AuthURL)
 	if err != nil { // This should never happen unless someone updates the database directly with an invalid URL.
-		return fmt.Errorf("failed to parse auth URL %q: %w", app.Spec.AuthURL, err)
+		return fmt.Errorf("failed to parse auth URL %q: %w", app.Spec.Manifest.AuthURL, err)
 	}
 
 	q := u.Query()
 
 	q.Set("response_type", "code")
-	q.Set("client_id", app.Spec.ClientID)
+	q.Set("client_id", app.Spec.Manifest.ClientID)
 	q.Set("redirect_uri", app.RedirectURL(s.baseURL))
 	q.Set("state", state)
 
 	// HubSpot supports setting optional scopes in this query param so that we can support an app that is able to have broad permissions,
 	// while at the same time only granting specific stuff.
-	if app.Spec.Type == types2.OAuthAppTypeHubSpot {
-		q.Set("optional_scope", app.Spec.OptionalScope)
+	if app.Spec.Manifest.Type == types2.OAuthAppTypeHubSpot {
+		q.Set("optional_scope", app.Spec.Manifest.OptionalScope)
 	}
 
 	// For Google: access_type=offline instructs Google to return a refresh token and an access token on the initial authorization.
 	// This can be used to refresh the access token when a user is not present at the browser
 	// prompt=consent instructs Google to show the consent screen every time the authorization flow happens so that we get a new refresh token.
-	if app.Spec.Type == types2.OAuthAppTypeGoogle {
+	if app.Spec.Manifest.Type == types2.OAuthAppTypeGoogle {
 		q.Set("access_type", "offline")
 		q.Set("prompt", "consent")
 	}
 
 	// Slack is annoying and makes us call this query parameter user_scope instead of scope.
 	// user_scope is used for delegated user permissions (which is what we want), while just scope is used for bot permissions.
-	if app.Spec.Type == types2.OAuthAppTypeSlack {
+	if app.Spec.Manifest.Type == types2.OAuthAppTypeSlack {
 		q.Set("user_scope", scope)
 	} else {
 		q.Set("scope", scope)
@@ -267,14 +267,14 @@ func (s *Server) refreshOAuthApp(apiContext api.Context) error {
 	}
 
 	data := url.Values{}
-	data.Set("client_id", app.Spec.ClientID)
-	data.Set("client_secret", app.Spec.ClientSecret)
+	data.Set("client_id", app.Spec.Manifest.ClientID)
+	data.Set("client_secret", app.Spec.Manifest.ClientSecret)
 	data.Set("scope", scope)
 	data.Set("redirect_uri", app.RedirectURL(s.baseURL))
 	data.Set("refresh_token", refreshToken)
 	data.Set("grant_type", "refresh_token")
 
-	req, err := http.NewRequest("POST", app.Spec.TokenURL, bytes.NewBufferString(data.Encode()))
+	req, err := http.NewRequest("POST", app.Spec.Manifest.TokenURL, bytes.NewBufferString(data.Encode()))
 	if err != nil {
 		return fmt.Errorf("failed to make token request: %w", err)
 	}
@@ -301,7 +301,7 @@ func (s *Server) refreshOAuthApp(apiContext api.Context) error {
 		return fmt.Errorf("failed to parse token response: %w", err)
 	}
 
-	if app.Spec.Type == types2.OAuthAppTypeGoogle {
+	if app.Spec.Manifest.Type == types2.OAuthAppTypeGoogle {
 		tokenResp.RefreshToken = refreshToken
 	}
 
@@ -336,23 +336,23 @@ func (s *Server) callbackOAuthApp(apiContext api.Context) error {
 
 	// Build and make the request to get the tokens.
 	data := url.Values{}
-	data.Set("client_id", app.Spec.ClientID)
-	data.Set("client_secret", app.Spec.ClientSecret) // Including the client secret in the body is not strictly required in the OAuth2 RFC, but some providers require it anyway.
+	data.Set("client_id", app.Spec.Manifest.ClientID)
+	data.Set("client_secret", app.Spec.Manifest.ClientSecret) // Including the client secret in the body is not strictly required in the OAuth2 RFC, but some providers require it anyway.
 	data.Set("code", code)
 	data.Set("redirect_uri", app.RedirectURL(s.baseURL))
 	data.Set("grant_type", "authorization_code")
 
-	if app.Spec.Type == types2.OAuthAppTypeHubSpot {
-		data.Set("optional_scope", app.Spec.OptionalScope)
+	if app.Spec.Manifest.Type == types2.OAuthAppTypeHubSpot {
+		data.Set("optional_scope", app.Spec.Manifest.OptionalScope)
 	}
 
-	req, err := http.NewRequest("POST", app.Spec.TokenURL, bytes.NewBufferString(data.Encode()))
+	req, err := http.NewRequest("POST", app.Spec.Manifest.TokenURL, bytes.NewBufferString(data.Encode()))
 	if err != nil {
 		return fmt.Errorf("failed to create token request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	if app.Spec.Type != types2.OAuthAppTypeGoogle {
-		req.SetBasicAuth(url.QueryEscape(app.Spec.ClientID), url.QueryEscape(app.Spec.ClientSecret))
+	if app.Spec.Manifest.Type != types2.OAuthAppTypeGoogle {
+		req.SetBasicAuth(url.QueryEscape(app.Spec.Manifest.ClientID), url.QueryEscape(app.Spec.Manifest.ClientSecret))
 	}
 
 	resp, err := http.DefaultClient.Do(req)
@@ -374,7 +374,7 @@ func (s *Server) callbackOAuthApp(apiContext api.Context) error {
 	// Get the response and save it to the db so that the cred tool can acquire it.
 	// Once again, Slack and GitHub are annoying and do their own thing.
 	tokenResp := new(types.OAuthTokenResponse)
-	switch app.Spec.Type {
+	switch app.Spec.Manifest.Type {
 	case types2.OAuthAppTypeSlack:
 		slackTokenResp := new(types.SlackOAuthTokenResponse)
 		if err := json.NewDecoder(resp.Body).Decode(slackTokenResp); err != nil {
@@ -499,7 +499,7 @@ func (s *Server) getTokenOAuthApp(apiContext api.Context) error {
 }
 
 func convertOAuthAppRegistrationToOAuthApp(app v1.OAuthApp, baseURL string) types2.OAuthApp {
-	appManifest := app.Spec.OAuthAppManifest
+	appManifest := app.Spec.Manifest
 	appManifest.ClientSecret = ""
 	links := make([]string, 0, 6)
 	if redirectURL := app.RedirectURL(baseURL); redirectURL != "" {

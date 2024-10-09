@@ -17,16 +17,19 @@ type Agent struct {
 type AgentList List[Agent]
 
 type AgentManifest struct {
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	Temperature *float32          `json:"temperature"`
-	Cache       *bool             `json:"cache"`
-	RefName     string            `json:"refName"`
-	Prompt      string            `json:"prompt"`
-	Agents      []string          `json:"agents"`
-	Workflows   []string          `json:"workflows,omitempty"`
-	Tools       []string          `json:"tools"`
-	Params      map[string]string `json:"params,omitempty"`
+	Name                 string            `json:"name"`
+	Description          string            `json:"description"`
+	Temperature          *float32          `json:"temperature"`
+	Cache                *bool             `json:"cache"`
+	RefName              string            `json:"refName"`
+	Prompt               string            `json:"prompt"`
+	Agents               []string          `json:"agents"`
+	Workflows            []string          `json:"workflows,omitempty"`
+	Tools                []string          `json:"tools"`
+	AvailableThreadTools []string          `json:"availableThreadTools"`
+	OAuthApps            []string          `json:"oauthApps"`
+	MaxThreadTools       int               `json:"maxThreadTools"`
+	Params               map[string]string `json:"params,omitempty"`
 }
 
 func (m AgentManifest) GetParams() *openapi3.Schema {

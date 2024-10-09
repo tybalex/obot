@@ -7,11 +7,11 @@ import (
 
 	"github.com/fatih/color"
 	"github.com/gptscript-ai/otto/apiclient/types"
-	log2 "github.com/gptscript-ai/otto/logger"
+	"github.com/gptscript-ai/otto/logger"
 	"github.com/gptscript-ai/otto/pkg/cli/textio"
 )
 
-var log = log2.Package()
+var log = logger.Package()
 
 type Quiet struct {
 }
@@ -86,10 +86,10 @@ outer:
 				out.Start()
 			} else if event.ToolInput != nil {
 				if lastType != "toolInput" {
-					out.Print(fmt.Sprintf("> Generating tool input for (%s)...  ", event.ToolInput.InternalToolName))
+					out.Print(fmt.Sprintf("> Generating tool input for (%s)...  ", event.ToolInput.Name))
 				}
 				lastType = "toolInput"
-				out.Print(event.ToolInput.Content)
+				out.Print(event.ToolInput.Input)
 			} else if event.ToolCall != nil {
 				out.EnsureNewline()
 				out.Print(fmt.Sprintf("> Running tool (%s): %s\n", color.MagentaString(event.ToolCall.Name), color.MagentaString(event.ToolCall.Input)))

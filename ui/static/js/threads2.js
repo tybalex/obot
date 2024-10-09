@@ -1,271 +1,230 @@
 'use strict';
 
-function writeThreadEvents(targetThreadDivID) {
-    const threadDiv = $(targetThreadDivID).first()
-    const threadID = threadDiv.data("otto-thread-id");
-    const es = new EventSource("/ui/threads/" + threadID  + "/events");
+let chat;
 
-    // Crazy state vars
-    let lastRunID = "";
-    let lastRunDiv = null;
-    let lastStepID = "";
-    let lastStepDiv = null;
+document.addEventListener('alpine:init', () => {
+    chat = new Chat();
+    Alpine.store('chat', {
+        messages: [],
+        files: [],
+    });
+})
 
-    // We do this because EventSource might resume itself in the middle of a run due to unforeseen circumstances.
-    es.addEventListener("start", function (e) {
-        // Reset the lastRunID so that we can clear the previous run that might have
-        // been partial
-        lastRunID = ""
-        lastStepID = ""
-    })
+document.addEventListener('alpine:initialized', () => {
+    chat.start();
+})
 
-    // We do this to be done, because we are done, and we should stop doing things.
-    es.addEventListener("close", function (e) {
-        es.close();
-    })
+class Chat {
+    constructor() {
+        this.running = false
+    }
 
-    es.onmessage = (e) => {
-        const data = JSON.parse(e.data);
-        const runID = data.runID || "";
+    start() {
+        if (this.running) {
+            return;
+        }
+        this.files = Alpine.store('chat').files
+        this.messages = Alpine.store('chat').messages
+        this.es = new EventSource('/events');
+        this.es.onmessage = this.onMessage.bind(this);
+        this.es.onerror = this.onError.bind(this);
+        this.running = true
+    }
 
-        // If the runID is empty, we ignore the message
-        if (runID === "") {
-            return
+    stop() {
+        if (this.es) {
+            this.es.close();
+            this.es = null;
+        }
+        this.running = false
+        setTimeout(() => this.start(), 5000)
+    }
+
+    submit(message) {
+        message.changed = []
+        const onSuccess = []
+        for (const file of Alpine.store('chat').files) {
+            if (file.partial) {
+                continue
+            }
+
+            if (file.content !== file.original) {
+                message.changed.push({
+                    filename: file.name,
+                    content: file.content,
+                })
+                onSuccess.push(() => {
+                    file.original = file.content
+                })
+            }
+
+
+        }
+        htmx.ajax('POST', '/chat', {
+            values: {
+                message: message,
+            },
+            target: '#status',
+        }).then(() => {
+            for (const callback of onSuccess) {
+                callback()
+            }
+        })
+    }
+
+    onError(e) {
+        console.error(e);
+        this.stop();
+    }
+
+    appendMessage(msg) {
+        if (this.messages.length > 0) {
+            this.messages.at(-1).done = true;
+        }
+        this.messages.push(msg);
+    }
+
+    pushContent(event) {
+        const content = event.toolInput ? event.toolInput.input : event.content;
+        if (!content) {
+            return;
+        }
+        const last = this.messages.at(-1);
+        if (last && last.contentID === event.contentID) {
+            last.content.push(content);
+            const fileWrite = this.parseFileWrite(event)
+            if (fileWrite) {
+                this.setFileContent(fileWrite.filename, last.content.join(''), true)
+            }
+        } else {
+            this.appendMessage({
+                ...event,
+                content: [content],
+            });
+        }
+    }
+
+    setFileContent(name, content, partial = false) {
+        const file = this.files.find(f => f.name === name)
+        if (file) {
+            file.partial = partial
+            file.content = content
+            if (!partial) {
+                file.original = content
+            }
+        } else {
+            this.files.push({
+                name: name,
+                original: content,
+                content: content,
+                partial: partial,
+            })
+            if (!partial) {
+                htmx.trigger("#chat-sidebar", "files-changed", {})
+            }
+        }
+    }
+
+    onMessage(msg) {
+        const event = JSON.parse(msg.data);
+        if (!"runID" in event) {
+            return;
         }
 
-        // First run clear up old state
-        if (lastRunID === "") {
-            let found = false;
-            for (let child of threadDiv.children()) {
-                if (found) {
-                    child.remove();
-                } else if (child.id === runID) {
-                    found = true;
-                    child.remove();
-                    break;
+        if (event.input) {
+            // Clear the input. This is a bit of a hack.
+            event.content = ""
+        }
+
+        if (event.contentID) {
+            this.pushContent(event);
+        } else {
+            this.appendMessage(event);
+        }
+
+        document.getElementById('messages-scroll').dispatchEvent(new CustomEvent('message-added'));
+
+        const fileWrite = this.parseFileWrite(event)
+        if (fileWrite && !fileWrite.partial) {
+            this.setFileContent(fileWrite.filename, fileWrite.content)
+        }
+    }
+
+    parseFileWrite(event) {
+        const target = event.toolCall || event.toolInput
+        const partial = event.toolCall === undefined
+        if (target && target.name === "workspace_write") {
+            try {
+                let parsed = JSON.parse(target.input)
+                return {
+                    partial: partial,
+                    ...parsed,
+                }
+            } catch (e) {
+                try {
+                    let parsed = JSON.parse(target.input + '"}')
+                    return {
+                        partial: true,
+                        ...parsed,
+                    }
+                } catch (e) {
                 }
             }
         }
+    }
 
-        // Add the step container if this is a new step
-        if ("step" in data) {
-            if (lastStepID !== data.step.id) {
-                lastStepID = data.step.id;
-                lastStepDiv = threadDiv.append($("<div>", {
-                    id: "step_" + data.step.id,
-                    class: "step",
-                })).children().last()
-            }
+    copySelection(el) {
+        const selection = window.getSelection()
+        if (selection.anchorNode && 'filename' in selection.anchorNode.dataset) {
+            el.dataset.filename = selection.anchorNode.dataset.filename
+            el.dataset.selection = selection.toString()
         }
+    }
 
-        // Add the run container if this is a new run
-        if (lastRunID !== runID) {
-            lastRunID = runID;
-            // If we have a step container, add the run to that, otherwise add it to the thread
-            lastRunDiv = (lastStepDiv || threadDiv).append($("<div>", {
-                id: "run_" + runID,
-                class: "run",
-            })).children().last();
-        }
-
-        if (data.waitingOnModel) {
-            lastRunDiv.append(messageWaiting(data.time))
+    explain(el) {
+        const filename = el.dataset.filename
+        const selection = el.dataset.selection
+        if (selection.length === 0) {
             return
         }
+        this.submit({explain: {filename, selection}})
+    }
 
-        lastRunDiv.children(".message-waiting-on-model").remove();
-
-        // Process mutually exclusive messages
-
-        if (data.input) {
-            lastRunDiv.append(messageInputDiv(data.input, data.time))
-        } else if (data.stepTemplateInvoke) {
-            const newContent = JSON.stringify(data.stepTemplateInvoke)
-            const newDiv = messageInputDiv(newContent, data.time)
-            newDiv.data("otto-content", newContent)
-            appendToDiv(lastRunDiv, "message-input", newDiv)
-        } else if (data.error) {
-            lastRunDiv.append(messageErrorDiv(data.input, data.time))
-        } else if (data.toolInput) {
-            appendToDiv(lastRunDiv, "message-tool-input", messageToolInputDiv(data.toolInput.content, data.time))
-        } else if (data.toolCall) {
-            lastRunDiv.children(".message-tool-input").remove();
-            lastRunDiv.append(messageToolCallDiv(data.toolCall.name, data.toolCall.input, data.time, data.runID))
-        } else if (data.workflowCall) {
-            lastRunDiv.children(".message-tool-input").remove();
-            lastRunDiv.append(messageWorkflowCallDiv(data.workflowCall.name, data.workflowCall.input, data.time, data.runID, threadID, data.workflowCall.workflowID, data.workflowCall.threadID))
-            // we added a new button
-            htmx.process(document.body)
-        } else if (data.content) {
-            appendToDiv(lastRunDiv, "message-content", messageContentDev(data.content, data.time))
+    improve(el) {
+        const filename = el.dataset.filename
+        const selection = el.dataset.selection
+        if (selection.length === 0) {
+            return
         }
-    };
-}
-
-function formatTime(time) {
-    if (time === null) {
-        return new Date().toLocaleString()
+        this.submit({
+            prompt: el.value,
+            improve: {filename, selection}
+        })
     }
-    const date = new Date(time);
-    return date.toLocaleString();
 }
 
-function messageWaiting(timestamp) {
-    return $(`<div class="message-waiting-on-model flex justify-end" >
-        <div class="flex items-start gap-2.5 mb-6">
-            <div class="flex flex-col gap-1 w-full max-w-[320px]">
-                <div class="flex items-center space-x-2 rtl:space-x-reverse">
-                    <span class="text-sm font-semibold text-gray-900 dark:text-white">AI</span>
-                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${formatTime(timestamp)}</span>
-                </div>
-                <div
-                    class="flex flex-col leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-                    <div class="message-text text-sm font-normal text-gray-900 dark:text-white">
-                        Waiting for AI response
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>`)
-}
-
-function messageContentDev(input, timestamp) {
-    const el = $(`<div class="message-content flex justify-end" >
-        <div class="flex items-start gap-2.5 mb-6">
-            <div class="flex flex-col gap-1 w-full max-w-[320px]">
-                <div class="flex items-center space-x-2 rtl:space-x-reverse">
-                    <span class="text-sm font-semibold text-gray-900 dark:text-white">AI</span>
-                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${formatTime(timestamp)}</span>
-                </div>
-                <div
-                    class="flex flex-col leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-                    <div class="message-text text-sm font-normal text-gray-900 dark:text-white">
-                        ${DOMPurify.sanitize(marked.parse(input))}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>`)
-    el.data("otto-content", input)
-    return el
-}
-
-function messageToolCallDiv(name, input, timestamp, runID) {
-    if ( input === '' || input === '{}' ) {
-       input = 'No input'
+function getFilenameAndSelection(el) {
+    const selection = window.getSelection()
+    if (selection.anchorNode && 'filename' in selection.anchorNode.dataset) {
+        return {
+            filename: selection.anchorNode.dataset.filename,
+            selection: selection.toString()
+        }
     }
-    return $(`<div class="message-tool-call flex justify-end" >
-        <div class="flex items-start gap-2.5 mb-6">
-            <div class="flex flex-col gap-1 w-full max-w-[320px]">
-                <div class="flex items-center space-x-2 rtl:space-x-reverse">
-                    <span class="text-sm font-semibold text-gray-900 dark:text-white">Tool Call: ${_.escape(name)}</span>
-                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${formatTime(timestamp)}</span>
-                </div>
-                <div
-                    class="flex flex-col leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-                    <div class="message-text text-sm font-normal text-gray-900 dark:text-white">
-                        ${_.escape(input)}
-                    </div>
-                </div>
-                <div class="flex justify-end" >
-                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${runID}</span>
-                </div>
-            </div>
-        </div>
-    </div>`)
+    return null
 }
 
-function messageWorkflowCallDiv(name, input, timestamp, runID, currentThreadID, workflowID, nextThreadID) {
-    const el = $(`<div class="message-workflow-call flex justify-end" >
-        <div class="flex items-start gap-2.5 mb-6">
-            <div class="flex flex-col gap-1 w-full max-w-[320px]">
-                <div class="flex items-center space-x-2 rtl:space-x-reverse">
-                    <span class="text-sm font-semibold text-gray-900 dark:text-white">Workflow Call: ${_.escape(name)}</span>
-                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${formatTime(timestamp)}</span>
-                </div>
-                <button type="button"
-                    class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-                    hx-target="#${currentThreadID}-next-thread"
-                    hx-get="/ui/workflows/${workflowID}/threads/${nextThreadID}"
-                    >
-                    Details
-                </button>
-                <div class="flex justify-end" >
-                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${runID}</span>
-                </div>
-            </div>
-        </div>
-    </div>`)
-    el.data("otto-content", input)
-    return el
-}
-
-function messageToolInputDiv(input, timestamp) {
-    const el = $(`<div class="message-tool-input flex justify-end" >
-        <div class="flex items-start gap-2.5 mb-6">
-            <div class="flex flex-col gap-1 w-full max-w-[320px]">
-                <div class="flex items-center space-x-2 rtl:space-x-reverse">
-                    <span class="text-sm font-semibold text-gray-900 dark:text-white">Generating Tool Call Input</span>
-                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${formatTime(timestamp)}</span>
-                </div>
-                <div
-                    class="flex flex-col leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-                    <div class="message-text text-sm font-normal text-gray-900 dark:text-white">
-                        ${_.escape(input)}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>`)
-    el.data("otto-content", input)
-    return el
-}
-
-function messageInputDiv(input, timestamp) {
-    return $(`<div class="message-input flex items-start gap-2.5 mb-6">
-        <div class="flex flex-col gap-1 w-full max-w-[320px]">
-            <div class="flex items-center space-x-2 rtl:space-x-reverse">
-                <span class="text-sm font-semibold text-gray-900 dark:text-white">Step Input</span>
-                <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${formatTime(timestamp)}</span>
-            </div>
-            <div
-                class="flex flex-col leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-                <div class="message-text text-sm font-normal text-gray-900 dark:text-white">
-                    ${_.escape(input)}
-                </div>
-            </div>
-        </div>
-    </div>`)
-}
-
-function messageErrorDiv(input, timestamp) {
-    return $(`<div class="message-error flex justify-end" >
-        <div class="flex items-start gap-2.5 mb-6">
-            <div class="flex flex-col gap-1 w-full max-w-[320px]">
-                <div class="flex items-center space-x-2 rtl:space-x-reverse">
-                    <span class="text-sm font-semibold text-gray-900 dark:text-white">ERROR</span>
-                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">${formatTime(timestamp)}</span>
-                </div>
-                <div
-                    class="flex flex-col leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl rounded-es-xl dark:bg-gray-700">
-                    <div class="message-text text-sm font-normal text-gray-900 dark:text-white">
-                        ${_.escape(input)}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>`)
-}
-
-function appendToDiv(lastDiv, divClass, newDiv) {
-    const last = lastDiv.children().last()
-    if (last.hasClass(divClass)) {
-        const newContent = (last.data("otto-content") || "") + newDiv.data("otto-content")
-        last.data("otto-content", newContent)
-        const t = DOMPurify.sanitize(marked.parse(newContent))
-        last.find('.message-text').html(t)
-    } else {
-        // Otherwise we append a new div
-        lastDiv.append(newDiv)
+function explainSelection(el) {
+    const selection = getFilenameAndSelection(el)
+    if (selection) {
+        chat.submit({explain: selection})
     }
+}
+
+
+function scrollThis(el) {
+    el.scrollTo({
+        top: el.scrollHeight,
+        behavior: 'smooth'
+    })
 }

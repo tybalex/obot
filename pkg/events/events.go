@@ -314,7 +314,11 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 
 			if runState.Spec.Done {
 				if runState.Spec.Error != "" {
-					return errors.New(runState.Spec.Error)
+					result <- types.Progress{
+						RunID: run.Name,
+						Time:  types.NewTime(time.Now()),
+						Error: runState.Spec.Error,
+					}
 				}
 				return nil
 			}
@@ -577,6 +581,9 @@ func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *g
 		}
 	}
 
+	llmRequest, _ := call.LLMRequest.(map[string]any)
+	toolMapping, _ := llmRequest["toolMapping"].(map[string]any)
+
 	for i, currentOutput := range call.Output {
 		for i >= len(lastOutputs) {
 			lastOutputs = append(lastOutputs, gptscript.Output{})
@@ -584,7 +591,7 @@ func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *g
 		last := lastOutputs[i]
 
 		if last.Content != currentOutput.Content {
-			currentOutput.Content = printString(call.Start, runID, i, out, last.Content, currentOutput.Content)
+			currentOutput.Content = printString(prg, call.Start, runID, toolMapping, i, out, last.Content, currentOutput.Content)
 		}
 
 		for _, callID := range slices.Sorted(maps.Keys(currentOutput.SubCalls)) {
@@ -652,7 +659,28 @@ func isSubCallTargetIDs(tool gptscript.Tool) (agentID string, workflowID string)
 	return "", ""
 }
 
-func printString(time time.Time, runID string, outputIndex int, out chan types.Progress, last, current string) string {
+func printString(prg *gptscript.Program, time time.Time, runID string, toolMapping map[string]any, outputIndex int, out chan types.Progress, last, current string) string {
+	lastParts := strings.Split(last, "<tool call> ")
+	currentParts := strings.Split(current, "<tool call> ")
+	result := make([]string, 0, len(currentParts))
+
+	for i, part := range currentParts {
+		var (
+			lastPart    string
+			currentPart = part
+		)
+		if len(lastParts) > i {
+			lastPart = lastParts[i]
+		}
+		if i > 0 {
+			currentPart = "<tool call> " + currentPart
+		}
+		result = append(result, printSubString(prg, time, runID, toolMapping, outputIndex, i, out, lastPart, currentPart))
+	}
+	return strings.Join(result, "<tool call> ")
+}
+
+func printSubString(prg *gptscript.Program, time time.Time, runID string, toolMapping map[string]any, outputIndex, contentSuffixIndex int, out chan types.Progress, last, current string) string {
 	toPrint := current
 	if strings.HasPrefix(current, last) {
 		toPrint = current[len(last):]
@@ -673,6 +701,7 @@ func printString(time time.Time, runID string, outputIndex int, out chan types.P
 	} else {
 		_, wasToolPrint, wasToolCall := strings.Cut(current, "<tool call> ")
 		if wasToolCall {
+			isToolCall = true
 			toolName = strings.Split(wasToolPrint, " ->")[0]
 			toolPrint = toPrint
 			toPrint = ""
@@ -682,9 +711,14 @@ func printString(time time.Time, runID string, outputIndex int, out chan types.P
 	toolPrint = strings.TrimPrefix(toolPrint, toolName+" -> ")
 
 	if isToolCall {
+		if v, ok := toolMapping[toolName]; ok {
+			toolName = fmt.Sprint(v)
+		}
+		tool := prg.ToolSet[toolName]
 		toolInput = &types.ToolInput{
-			Content:          toolPrint,
-			InternalToolName: toolName,
+			Name:        tool.Name,
+			Description: tool.Description,
+			Input:       toolPrint,
 		}
 	}
 
@@ -692,7 +726,7 @@ func printString(time time.Time, runID string, outputIndex int, out chan types.P
 		RunID:          runID,
 		Time:           types.NewTime(time),
 		Content:        toPrint,
-		ContentID:      fmt.Sprintf("%s-%d", runID, outputIndex),
+		ContentID:      fmt.Sprintf("%s-%d-%d", runID, outputIndex, contentSuffixIndex),
 		ToolInput:      toolInput,
 		WaitingOnModel: waitingOnModel,
 	}

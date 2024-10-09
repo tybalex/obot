@@ -6,7 +6,7 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/otto/apiclient/types"
-	log2 "github.com/gptscript-ai/otto/logger"
+	"github.com/gptscript-ai/otto/logger"
 	"github.com/gptscript-ai/otto/pkg/controller/handlers/workflowstep"
 	"github.com/gptscript-ai/otto/pkg/invoke"
 	v1 "github.com/gptscript-ai/otto/pkg/storage/apis/otto.gptscript.ai/v1"
@@ -15,7 +15,7 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var log = log2.Package()
+var log = logger.Package()
 
 type Handler struct {
 	workspaceClient *wclient.Client

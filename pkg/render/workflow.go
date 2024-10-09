@@ -40,6 +40,9 @@ func resolveToolReference(ctx context.Context, c kclient.Client, toolRefType typ
 	if tool.Status.Reference == "" {
 		return "", fmt.Errorf("tool reference %s has no reference", name)
 	}
+	if toolRefType == types.ToolReferenceTypeTool {
+		return fmt.Sprintf("%s as %s", tool.Status.Reference, name), nil
+	}
 	return tool.Status.Reference, nil
 }
 

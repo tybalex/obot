@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"net/http"
 
-	log2 "github.com/gptscript-ai/otto/logger"
+	"github.com/gptscript-ai/otto/logger"
 	"github.com/gptscript-ai/otto/pkg/api/router"
 	"github.com/gptscript-ai/otto/pkg/controller"
 	"github.com/gptscript-ai/otto/pkg/services"
 	"github.com/rs/cors"
 )
 
-var log = log2.Package()
+var log = logger.Package()
 
 func Run(ctx context.Context, c services.Config) error {
 	svcs, err := services.New(ctx, c)

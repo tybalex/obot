@@ -29,7 +29,9 @@ templ HeadOnly() {
             <script>
                 // Make htmx and flowbite play nice together
                 htmx.onLoad(function (elt) {
-                    initFlowbite();
+                    if (typeof initFlowbite === 'function') {
+                        initFlowbite();
+                    }
                 });
             </script>
             <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -31,6 +31,10 @@ func (r *OAuthApp) RedirectURL(baseURL string) string {
 	return fmt.Sprintf("%s/app-oauth/callback/%s", baseURL, r.Status.External.RefName)
 }
 
+func OAuthAppGetTokenURL(baseURL string) string {
+	return fmt.Sprintf("%s/app-oauth/get-token", baseURL)
+}
+
 func (r *OAuthApp) AuthorizeURL(baseURL string) string {
 	if r.Status.External.RefName == "" {
 		return ""
@@ -54,7 +58,7 @@ func (r *OAuthApp) DeleteRefs() []Ref {
 }
 
 type OAuthAppSpec struct {
-	types.OAuthAppManifest `json:",inline"`
+	Manifest types.OAuthAppManifest `json:"manifest,omitempty"`
 }
 
 type OAuthAppStatus struct {

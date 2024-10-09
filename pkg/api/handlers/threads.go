@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"slices"
 
 	"github.com/gptscript-ai/otto/apiclient/types"
 	"github.com/gptscript-ai/otto/pkg/api"
@@ -105,6 +106,7 @@ func (a *ThreadHandler) Update(req api.Context) error {
 		id        = req.PathValue("id")
 		newThread types.ThreadManifest
 		existing  v1.Thread
+		agent     v1.Agent
 	)
 
 	if err := req.Get(&existing, id); err != nil {
@@ -113,6 +115,24 @@ func (a *ThreadHandler) Update(req api.Context) error {
 
 	if err := req.Read(&newThread); err != nil {
 		return err
+	}
+
+	if existing.Spec.AgentName != "" {
+		if err := req.Get(&agent, existing.Spec.AgentName); err != nil {
+			return err
+		}
+		for _, newTool := range newThread.Tools {
+			if !slices.Contains(agent.Spec.Manifest.AvailableThreadTools, newTool) {
+				return api.NewErrBadRequest("tool %s is not available for agent %s", newTool, agent.Name)
+			}
+		}
+		max := agent.Spec.Manifest.MaxThreadTools
+		if max == 0 {
+			max = 3
+		}
+		if len(newThread.Tools) > max {
+			return api.NewErrBadRequest("too many tools, max %d", max)
+		}
 	}
 
 	existing.Spec.Manifest = newThread

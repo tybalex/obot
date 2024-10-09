@@ -6,12 +6,12 @@ import (
 	"github.com/fatih/color"
 	"github.com/gptscript-ai/cmd"
 	"github.com/gptscript-ai/otto/apiclient"
-	log2 "github.com/gptscript-ai/otto/logger"
+	"github.com/gptscript-ai/otto/logger"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
 
-var log = log2.Package()
+var log = logger.Package()
 
 type Otto struct {
 	Debug  bool `usage:"Enable debug logging"`
@@ -24,7 +24,7 @@ func (a *Otto) PersistentPre(cmd *cobra.Command, args []string) error {
 	}
 
 	if a.Debug {
-		log2.SetDebug()
+		logger.SetDebug()
 	}
 	return nil
 }

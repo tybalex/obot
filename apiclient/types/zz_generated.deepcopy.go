@@ -90,6 +90,16 @@ func (in *AgentManifest) DeepCopyInto(out *AgentManifest) {
 		*out = make([]string, len(*in))
 		copy(*out, *in)
 	}
+	if in.AvailableThreadTools != nil {
+		in, out := &in.AvailableThreadTools, &out.AvailableThreadTools
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
+	if in.OAuthApps != nil {
+		in, out := &in.OAuthApps, &out.OAuthApps
+		*out = make([]string, len(*in))
+		copy(*out, *in)
+	}
 	if in.Params != nil {
 		in, out := &in.Params, &out.Params
 		*out = make(map[string]string, len(*in))

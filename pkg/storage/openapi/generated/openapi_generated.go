@@ -388,6 +388,41 @@ func schema_gptscript_ai_otto_apiclient_types_AgentManifest(ref common.Reference
 							},
 						},
 					},
+					"availableThreadTools": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"oauthApps": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"maxThreadTools": {
+						SchemaProps: spec.SchemaProps{
+							Default: 0,
+							Type:    []string{"integer"},
+							Format:  "int32",
+						},
+					},
 					"params": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"object"},
@@ -404,7 +439,7 @@ func schema_gptscript_ai_otto_apiclient_types_AgentManifest(ref common.Reference
 						},
 					},
 				},
-				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools"},
+				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools", "availableThreadTools", "oauthApps", "maxThreadTools"},
 			},
 		},
 	}
@@ -1252,6 +1287,13 @@ func schema_gptscript_ai_otto_apiclient_types_OAuthAppManifest(ref common.Refere
 					"optionalScope": {
 						SchemaProps: spec.SchemaProps{
 							Description: "This field is optional for HubSpot OAuth apps.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"integration": {
+						SchemaProps: spec.SchemaProps{
+							Description: "This field is required, it correlates to the integration name in the gptscript oauth cred tool",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -2257,13 +2299,19 @@ func schema_gptscript_ai_otto_apiclient_types_ToolInput(ref common.ReferenceCall
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"content": {
+					"name": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
 						},
 					},
-					"internalToolName": {
+					"description": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"input": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -2872,6 +2920,41 @@ func schema_gptscript_ai_otto_apiclient_types_WorkflowManifest(ref common.Refere
 							},
 						},
 					},
+					"availableThreadTools": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"oauthApps": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"maxThreadTools": {
+						SchemaProps: spec.SchemaProps{
+							Default: 0,
+							Type:    []string{"integer"},
+							Format:  "int32",
+						},
+					},
 					"params": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"object"},
@@ -2907,7 +2990,7 @@ func schema_gptscript_ai_otto_apiclient_types_WorkflowManifest(ref common.Refere
 						},
 					},
 				},
-				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools"},
+				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools", "availableThreadTools", "oauthApps", "maxThreadTools"},
 			},
 		},
 		Dependencies: []string{
@@ -3804,79 +3887,17 @@ func schema_storage_apis_ottogptscriptai_v1_OAuthAppSpec(ref common.ReferenceCal
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"Metadata": {
+					"manifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.Metadata"),
-						},
-					},
-					"type": {
-						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
-						},
-					},
-					"refName": {
-						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
-						},
-					},
-					"clientID": {
-						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
-						},
-					},
-					"clientSecret": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"authURL": {
-						SchemaProps: spec.SchemaProps{
-							Description: "These fields are only needed for custom OAuth apps.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"tokenURL": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"tenantID": {
-						SchemaProps: spec.SchemaProps{
-							Description: "This field is only needed for Microsoft 365 OAuth apps.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"appID": {
-						SchemaProps: spec.SchemaProps{
-							Description: "This field is only needed for HubSpot OAuth apps.",
-							Type:        []string{"string"},
-							Format:      "",
-						},
-					},
-					"optionalScope": {
-						SchemaProps: spec.SchemaProps{
-							Description: "This field is optional for HubSpot OAuth apps.",
-							Type:        []string{"string"},
-							Format:      "",
+							Ref:     ref("github.com/gptscript-ai/otto/apiclient/types.OAuthAppManifest"),
 						},
 					},
 				},
-				Required: []string{"Metadata", "type", "refName", "clientID"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/gptscript-ai/otto/apiclient/types.Metadata"},
+			"github.com/gptscript-ai/otto/apiclient/types.OAuthAppManifest"},
 	}
 }
 

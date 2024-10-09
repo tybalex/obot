@@ -71,8 +71,9 @@ type Prompt struct {
 }
 
 type ToolInput struct {
-	Content          string `json:"content,omitempty"`
-	InternalToolName string `json:"internalToolName,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Description string `json:"description,omitempty"`
+	Input       string `json:"input,omitempty"`
 }
 
 type ToolCall struct {

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/apiclient/types"
@@ -240,12 +241,19 @@ func (a *WorkflowHandler) Script(req api.Context) error {
 		return err
 	}
 
-	tools, _, err := render.Agent(req.Context(), req.Storage, agent, render.AgentOptions{})
+	tools, extraEnv, err := render.Agent(req.Context(), req.Storage, agent, render.AgentOptions{})
 	if err != nil {
 		return err
 	}
 
-	script, err := req.GPTClient.Fmt(req.Context(), gptscript.ToolDefsToNodes(tools))
+	nodes := gptscript.ToolDefsToNodes(tools)
+	nodes = append(nodes, gptscript.Node{
+		TextNode: &gptscript.TextNode{
+			Text: "!otto-extra-env\n" + strings.Join(extraEnv, "\n"),
+		},
+	})
+
+	script, err := req.GPTClient.Fmt(req.Context(), nodes)
 	if err != nil {
 		return err
 	}

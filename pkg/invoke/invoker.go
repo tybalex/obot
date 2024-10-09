@@ -13,7 +13,7 @@ import (
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/otto/apiclient/types"
-	log2 "github.com/gptscript-ai/otto/logger"
+	"github.com/gptscript-ai/otto/logger"
 	"github.com/gptscript-ai/otto/pkg/events"
 	"github.com/gptscript-ai/otto/pkg/gz"
 	"github.com/gptscript-ai/otto/pkg/jwt"
@@ -27,7 +27,7 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var log = log2.Package()
+var log = logger.Package()
 
 type Invoker struct {
 	gptClient               *gptscript.GPTScript
@@ -325,8 +325,7 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 			Input:                 input,
 			Tool:                  string(toolData),
 			Env:                   opts.Env,
-			// Just never pass cred contexts right now and always use default
-			//CredentialContextIDs:  opts.CredentialContextIDs,
+			CredentialContextIDs:  opts.CredentialContextIDs,
 		},
 	}
 
