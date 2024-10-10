@@ -49,6 +49,8 @@ type liveState struct {
 type WatchOptions struct {
 	History               bool
 	LastRunName           string
+	MaxRuns               int
+	After                 bool
 	ThreadName            string
 	ThreadResourceVersion string
 	Follow                bool
@@ -210,6 +212,14 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 	)
 	defer cancel()
 
+	defer func() {
+		result <- types.Progress{
+			RunID:       run.Name,
+			Time:        types.NewTime(time.Now()),
+			RunComplete: true,
+		}
+	}()
+
 	if run.Spec.WorkflowStepID != "" && run.Spec.WorkflowExecutionName != "" && state.lastStepPrinted != run.Spec.WorkflowStepID {
 		var wfe v1.WorkflowExecution
 		if err := e.client.Get(ctx, router.Key(run.Namespace, run.Spec.WorkflowExecutionName), &wfe); err != nil {
@@ -326,7 +336,11 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 	}
 }
 
-func (e *Emitter) printParent(ctx context.Context, state *printState, run v1.Run, result chan types.Progress) error {
+func (e *Emitter) printParent(ctx context.Context, remaining int, state *printState, run v1.Run, result chan types.Progress) error {
+	if remaining <= 0 {
+		return nil
+	}
+
 	if run.Spec.PreviousRunName == "" {
 		return nil
 	}
@@ -341,7 +355,7 @@ func (e *Emitter) printParent(ctx context.Context, state *printState, run v1.Run
 		if parent.Spec.ThreadName != "" && run.Spec.ThreadName != "" && parent.Spec.ThreadName != run.Spec.ThreadName {
 			return nil
 		}
-		if err := e.printParent(ctx, state, parent, result); apierrors.IsNotFound(err) {
+		if err := e.printParent(ctx, remaining-1, state, parent, result); apierrors.IsNotFound(err) {
 			errNotFound = err
 		} else if err != nil {
 			return err
@@ -356,25 +370,32 @@ func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOption
 	defer func() {
 		if retErr != nil {
 			result <- types.Progress{
-				RunID: run.Name,
 				Time:  types.NewTime(time.Now()),
 				Error: retErr.Error(),
 			}
 		}
 	}()
 
+	if opts.After {
+		opts.History = false
+	}
+
 	var state *printState
 	for {
 		state = newPrintState(state)
 
 		if opts.History {
-			if err := e.printParent(ctx, state, run, result); !apierrors.IsNotFound(err) && err != nil {
+			if err := e.printParent(ctx, opts.MaxRuns-1, state, run, result); !apierrors.IsNotFound(err) && err != nil {
 				return err
 			}
 		}
 
-		if err := e.printRun(ctx, state, run, result); err != nil {
-			return err
+		if opts.After {
+			opts.After = false
+		} else {
+			if err := e.printRun(ctx, state, run, result); err != nil {
+				return err
+			}
 		}
 
 		nextRun, err := e.findNextRun(ctx, run, opts.Follow)
@@ -472,7 +493,7 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1
 	w, err := e.client.Watch(ctx, &v1.RunList{}, append(criteria, &kclient.ListOptions{
 		Raw: &metav1.ListOptions{
 			ResourceVersion: runs.ResourceVersion,
-			TimeoutSeconds:  typed.Pointer(int64(60 * 15)),
+			TimeoutSeconds:  typed.Pointer(int64(15)),
 		},
 	})...)
 	if err != nil {
@@ -494,7 +515,7 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1
 		select {
 		case event, ok := <-w.ResultChan():
 			if !ok {
-				return nil, fmt.Errorf("failed to find next run after: %s", run.Name)
+				return nil, nil
 			}
 			if run, ok := event.Object.(*v1.Run); ok {
 				return run, nil

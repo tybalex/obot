@@ -16,6 +16,7 @@ import (
 	"github.com/otto8-ai/otto8/logger"
 	"github.com/otto8-ai/otto8/pkg/events"
 	"github.com/otto8-ai/otto8/pkg/gz"
+	"github.com/otto8-ai/otto8/pkg/hash"
 	"github.com/otto8-ai/otto8/pkg/jwt"
 	"github.com/otto8-ai/otto8/pkg/render"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
@@ -727,18 +728,21 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName s
 				if !strings.HasSuffix(msg, "\n") {
 					msg += "\n"
 				}
+				prompt := &types.Prompt{
+					ID:        frame.Prompt.ID,
+					Time:      types.NewTime(frame.Prompt.Time),
+					Message:   frame.Prompt.Message,
+					Fields:    frame.Prompt.Fields,
+					Sensitive: frame.Prompt.Sensitive,
+					Metadata:  frame.Prompt.Metadata,
+				}
+				contentID := hash.String(prompt)[:8]
 				i.events.SubmitProgress(run, types.Progress{
-					RunID:   run.Name,
-					Content: msg,
-					Time:    types.NewTime(time.Now()),
-					Prompt: &types.Prompt{
-						ID:        frame.Prompt.ID,
-						Time:      types.NewTime(frame.Prompt.Time),
-						Message:   frame.Prompt.Message,
-						Fields:    frame.Prompt.Fields,
-						Sensitive: frame.Prompt.Sensitive,
-						Metadata:  frame.Prompt.Metadata,
-					},
+					RunID:     run.Name,
+					Content:   msg,
+					ContentID: contentID,
+					Time:      types.NewTime(time.Now()),
+					Prompt:    prompt,
 				})
 				if len(frame.Prompt.Fields) == 0 {
 					err := i.gptClient.PromptResponse(runCtx, gptscript.PromptResponse{

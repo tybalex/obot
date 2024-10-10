@@ -52,6 +52,8 @@ type Progress struct {
 	WaitingOnModel bool `json:"waitingOnModel,omitempty"`
 	// Error indicates that an error occurred
 	Error string `json:"error,omitempty"`
+	// The run is done, either success or failure
+	RunComplete bool `json:"runComplete,omitempty"`
 }
 
 type StepTemplateInvoke struct {

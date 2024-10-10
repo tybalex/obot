@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"strconv"
+	"strings"
 
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/api"
@@ -53,11 +55,23 @@ func convertThread(thread v1.Thread) types.Thread {
 
 func (a *ThreadHandler) Events(req api.Context) error {
 	var (
-		id     = req.PathValue("id")
-		follow = req.URL.Query().Get("follow") == "true"
-		runID  = req.URL.Query().Get("runID")
-		thread v1.Thread
+		id           = req.PathValue("id")
+		follow       = req.URL.Query().Get("follow") == "true"
+		runID        = req.URL.Query().Get("runID")
+		maxRunString = req.URL.Query().Get("maxRuns")
+		maxRuns      int
+		err          error
+		thread       v1.Thread
 	)
+
+	if maxRunString != "" {
+		maxRuns, err = strconv.Atoi(maxRunString)
+		if err != nil {
+			return api.NewErrBadRequest("maxEvents must be an integer")
+		}
+	} else {
+		maxRuns = 20
+	}
 
 	if err := req.Get(&thread, id); err != nil {
 		return err
@@ -66,7 +80,9 @@ func (a *ThreadHandler) Events(req api.Context) error {
 	_, events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
 		Follow:      follow,
 		History:     runID == "",
-		LastRunName: runID,
+		LastRunName: strings.TrimSuffix(runID, ":after"),
+		MaxRuns:     maxRuns,
+		After:       strings.HasSuffix(runID, ":after"),
 		ThreadName:  thread.Name,
 	})
 	if err != nil {

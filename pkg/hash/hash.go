@@ -2,6 +2,7 @@ package hash
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 )
 
@@ -12,6 +13,7 @@ func String(obj any) string {
 	case string:
 		return fmt.Sprintf("%x", sha256.Sum256([]byte(v)))
 	default:
-		panic("unsupported type")
+		data, _ := json.Marshal(obj)
+		return String(data)
 	}
 }

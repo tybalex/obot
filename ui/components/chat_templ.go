@@ -53,6 +53,14 @@ func Chat() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</template><template x-if=\"message.error\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = message().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</template></div></template></div><textarea name=\"message\" placeholder=\"Type your message here\" @keydown.enter=\"if (!$event.shiftKey) { chat.submit({prompt: $el.value}); $el.value=&#39;&#39;; $event.preventDefault() }\" class=\"w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500\"></textarea><div id=\"status\"></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -152,7 +160,7 @@ func toolCall() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-blue-500 text-white rounded-br-none\"><h1>Tool Call</h1><div x-text=\"message.toolCall.name\"></div><div x-text=\"message.toolCall.description\"></div><div x-text=\"message.toolCall.input\"></div><div x-text=\"message.toolCall.metadata\"></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-blue-500 text-white rounded-br-none\"><h1>Tool Call</h1><div x-text=\"message.toolCall.name\"></div><div x-text=\"message.toolCall.description\"></div><div x-text=\"message.toolCall.input\"></div><div x-text=\"message.toolCall.metadata || {}\"></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -181,7 +189,7 @@ func message() templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-blue-500 text-white rounded-br-none\"><template x-if=\"message.toolInput\"><div style=\"display: contents\"><h1>Tool Input</h1><div x-text=\"message.toolInput.name\"></div><div x-text=\"message.toolInput.description\"></div><div x-text=\"message.toolCall.metadata\"></div></div></template><div x-text=\"message.content.join(&#39;&#39;)\"></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-blue-500 text-white rounded-br-none\"><template x-if=\"message.toolInput\"><div style=\"display: contents\"><h1>Tool Input</h1><div x-text=\"message.toolInput.name\"></div><div x-text=\"message.toolInput.description\"></div><div x-text=\"message.toolInput.metadata\"></div></div></template><template x-if=\"message.error\"><div class=\"bg-red-500 text-white\" x-text=\"message.error\"></div></template><div x-text=\"message.content.join(&#39;&#39;)\"></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -252,7 +260,7 @@ func ChatResponse(err error) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(err.Error())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/chat.templ`, Line: 81, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components/chat.templ`, Line: 88, Col: 32}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {

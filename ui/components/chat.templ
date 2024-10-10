@@ -20,6 +20,9 @@ templ Chat() {
                         <template x-if="message.toolCall" >
                             @toolCall()
                         </template>
+                        <template x-if="message.error" >
+                            @message()
+                        </template>
                     </div>
                 </template>
             </div>
@@ -52,7 +55,7 @@ templ toolCall() {
         <div x-text="message.toolCall.name" ></div>
         <div x-text="message.toolCall.description" ></div>
         <div x-text="message.toolCall.input" ></div>
-        <div x-text="message.toolCall.metadata" ></div>
+        <div x-text="message.toolCall.metadata || {}" ></div>
     </div>
 }
 
@@ -63,8 +66,12 @@ templ message() {
                 <h1>Tool Input</h1>
                 <div x-text="message.toolInput.name" ></div>
                 <div x-text="message.toolInput.description" ></div>
-                <div x-text="message.toolCall.metadata" ></div>
+                <div x-text="message.toolInput.metadata" ></div>
             </div>
+        </template>
+        <template x-if="message.error" >
+            // A red error message
+            <div class="bg-red-500 text-white" x-text="message.error" ></div>
         </template>
         <div x-text="message.content.join('')" ></div>
     </div>

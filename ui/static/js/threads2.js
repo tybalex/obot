@@ -31,13 +31,16 @@ class Chat {
         this.running = true
     }
 
-    stop() {
+    restart() {
         if (this.es) {
             this.es.close();
             this.es = null;
         }
         this.running = false
-        setTimeout(() => this.start(), 5000)
+        setTimeout(() => {
+            console.log("Restarting thread listener")
+            this.start()
+        }, 5000)
     }
 
     submit(message) {
@@ -74,7 +77,9 @@ class Chat {
 
     onError(e) {
         console.error(e);
-        this.stop();
+        if (e.target.readyState === EventSource.CLOSED) {
+            this.restart();
+        }
     }
 
     appendMessage(msg) {

@@ -1461,6 +1461,13 @@ func schema_otto8_ai_otto8_apiclient_types_Progress(ref common.ReferenceCallback
 							Format:      "",
 						},
 					},
+					"runComplete": {
+						SchemaProps: spec.SchemaProps{
+							Description: "The run is done, either success or failure",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 				},
 				Required: []string{"content"},
 			},

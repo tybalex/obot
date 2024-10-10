@@ -16,7 +16,9 @@ func Events(w http.ResponseWriter, r *http.Request) error {
 		lastID = r.Header.Get("Last-Event-ID")
 	)
 
-	events, err := c.ThreadEvents(ctx, "t1-user", apiclient.ThreadEventsOptions{
+	w.Header().Set("Content-Type", "text/event-stream")
+
+	events, err := c.ThreadEvents(ctx, webcontext.ThreadID(ctx), apiclient.ThreadEventsOptions{
 		Follow: true,
 		RunID:  lastID,
 	})
@@ -28,11 +30,18 @@ func Events(w http.ResponseWriter, r *http.Request) error {
 		if err := writeDataEvent(w, map[string]any{}, "reconnect", ""); err != nil {
 			return err
 		}
+	} else {
+		if err := writeDataEvent(w, map[string]any{}, "connect", ""); err != nil {
+			return err
+		}
 	}
 
-	w.Header().Set("Content-Type", "text/event-stream")
 	for event := range events {
-		if err := writeDataEvent(w, event, "", event.RunID); err != nil {
+		lastID = event.RunID
+		if event.RunComplete {
+			lastID += ":after"
+		}
+		if err := writeDataEvent(w, event, "", lastID); err != nil {
 			return err
 		}
 		if f, ok := w.(http.Flusher); ok {
@@ -40,7 +49,7 @@ func Events(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	return writeDataEvent(w, map[string]any{}, "close", "")
+	return nil
 }
 
 func Chat(w http.ResponseWriter, r *http.Request) error {
