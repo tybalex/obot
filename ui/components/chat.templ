@@ -52,6 +52,7 @@ templ toolCall() {
         <div x-text="message.toolCall.name" ></div>
         <div x-text="message.toolCall.description" ></div>
         <div x-text="message.toolCall.input" ></div>
+        <div x-text="message.toolCall.metadata" ></div>
     </div>
 }
 
@@ -62,6 +63,7 @@ templ message() {
                 <h1>Tool Input</h1>
                 <div x-text="message.toolInput.name" ></div>
                 <div x-text="message.toolInput.description" ></div>
+                <div x-text="message.toolCall.metadata" ></div>
             </div>
         </template>
         <div x-text="message.content.join('')" ></div>
