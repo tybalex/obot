@@ -609,6 +609,7 @@ func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *g
 								Name:        tool.Name,
 								Description: tool.Description,
 								Input:       subCall.Input,
+								Metadata:    tool.MetaData,
 							}
 						} else {
 							threadID, err := e.getThreadID(ctx, namespace, runID, workflowID)
@@ -660,9 +661,12 @@ func isSubCallTargetIDs(tool gptscript.Tool) (agentID string, workflowID string)
 }
 
 func printString(prg *gptscript.Program, time time.Time, runID string, toolMapping map[string]any, outputIndex int, out chan types.Progress, last, current string) string {
+	if len(last) > len(current) && strings.HasPrefix(last, current) {
+		return last
+	}
+
 	lastParts := strings.Split(last, "<tool call> ")
 	currentParts := strings.Split(current, "<tool call> ")
-	result := make([]string, 0, len(currentParts))
 
 	for i, part := range currentParts {
 		var (
@@ -673,11 +677,15 @@ func printString(prg *gptscript.Program, time time.Time, runID string, toolMappi
 			lastPart = lastParts[i]
 		}
 		if i > 0 {
+			lastPart = "<tool call> " + lastPart
 			currentPart = "<tool call> " + currentPart
 		}
-		result = append(result, printSubString(prg, time, runID, toolMapping, outputIndex, i, out, lastPart, currentPart))
+		if currentPart == "" {
+			continue
+		}
+		printSubString(prg, time, runID, toolMapping, outputIndex, i, out, lastPart, currentPart)
 	}
-	return strings.Join(result, "<tool call> ")
+	return current
 }
 
 func printSubString(prg *gptscript.Program, time time.Time, runID string, toolMapping map[string]any, outputIndex, contentSuffixIndex int, out chan types.Progress, last, current string) string {
@@ -719,6 +727,7 @@ func printSubString(prg *gptscript.Program, time time.Time, runID string, toolMa
 			Name:        tool.Name,
 			Description: tool.Description,
 			Input:       toolPrint,
+			Metadata:    tool.MetaData,
 		}
 	}
 

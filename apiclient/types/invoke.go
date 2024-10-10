@@ -71,15 +71,17 @@ type Prompt struct {
 }
 
 type ToolInput struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	Input       string `json:"input,omitempty"`
+	Name        string            `json:"name,omitempty"`
+	Description string            `json:"description,omitempty"`
+	Input       string            `json:"input,omitempty"`
+	Metadata    map[string]string `json:"metadata,omitempty"`
 }
 
 type ToolCall struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
-	Input       string `json:"input,omitempty"`
+	Name        string            `json:"name,omitempty"`
+	Description string            `json:"description,omitempty"`
+	Input       string            `json:"input,omitempty"`
+	Metadata    map[string]string `json:"metadata,omitempty"`
 }
 
 type WorkflowCall struct {
