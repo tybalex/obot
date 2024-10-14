@@ -44,6 +44,7 @@ func (c *Controller) setupRoutes() error {
 	// Threads
 	root.Type(&v1.Thread{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.CreateWorkspaces)
+	root.Type(&v1.Thread{}).HandlerFunc(threads.CreateKnowledgeSet)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.WorkflowState)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.PurgeSystemThread)
 
@@ -91,7 +92,7 @@ func (c *Controller) setupRoutes() error {
 	// KnowledgeSets
 	root.Type(&v1.KnowledgeSet{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.KnowledgeSet{}).HandlerFunc(knowledgeset.GenerateDataDescription)
-	root.Type(&v1.KnowledgeSet{}).HandlerFunc(knowledgeset.CreateKnowledgeSet)
+	root.Type(&v1.KnowledgeSet{}).HandlerFunc(knowledgeset.CreateWorkspace)
 
 	// Webhooks
 	root.Type(&v1.Webhook{}).HandlerFunc(cleanup.Cleanup)

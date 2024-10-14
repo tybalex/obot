@@ -57,3 +57,28 @@ func CreateWorkspaces(req router.Request, resp router.Response) error {
 
 	return nil
 }
+
+func CreateKnowledgeSet(req router.Request, _ router.Response) error {
+	thread := req.Object.(*v1.Thread)
+	if len(thread.Status.KnowledgeSetNames) == 0 {
+		ws := &v1.KnowledgeSet{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace:    req.Namespace,
+				GenerateName: system.KnowledgeSetPrefix,
+			},
+			Spec: v1.KnowledgeSetSpec{
+				ThreadName: thread.Name,
+			},
+		}
+		if err := req.Client.Create(req.Ctx, ws); err != nil {
+			return err
+		}
+
+		thread.Status.KnowledgeSetNames = append(thread.Status.KnowledgeSetNames, ws.Name)
+		if err := req.Client.Status().Update(req.Ctx, thread); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

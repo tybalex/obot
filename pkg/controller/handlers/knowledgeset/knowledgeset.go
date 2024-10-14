@@ -82,7 +82,7 @@ func generatePrompt(files v1.KnowledgeFileList) string {
 	return prompt
 }
 
-func (h *Handler) CreateKnowledgeSet(req router.Request, resp router.Response) error {
+func (h *Handler) CreateWorkspace(req router.Request, resp router.Response) error {
 	ks := req.Object.(*v1.KnowledgeSet)
 
 	if ks.Status.WorkspaceName != "" {
@@ -96,6 +96,8 @@ func (h *Handler) CreateKnowledgeSet(req router.Request, resp router.Response) e
 			Namespace:    ks.Namespace,
 		},
 		Spec: v1.WorkspaceSpec{
+			AgentName:        ks.Spec.AgentName,
+			ThreadName:       ks.Spec.ThreadName,
 			KnowledgeSetName: ks.Name,
 			IsKnowledge:      true,
 		},
