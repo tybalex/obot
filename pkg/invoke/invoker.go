@@ -25,6 +25,7 @@ import (
 	wclient "github.com/otto8-ai/workspace-provider/pkg/client"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/util/retry"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -305,8 +306,14 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 		return nil, err
 	}
 
-	thread.Status.CurrentRunName = run.Name
-	if err := c.Status().Update(ctx, thread); err != nil {
+	err = retry.RetryOnConflict(retry.DefaultBackoff, func() error {
+		if err := c.Get(ctx, kclient.ObjectKeyFromObject(thread), thread); err != nil {
+			return err
+		}
+		thread.Status.CurrentRunName = run.Name
+		return c.Status().Update(ctx, thread)
+	})
+	if err != nil {
 		return nil, err
 	}
 
