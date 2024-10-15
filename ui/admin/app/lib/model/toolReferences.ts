@@ -5,7 +5,7 @@ export type ToolReferenceBase = {
     name: string;
     toolType: ToolReferenceType;
     reference: string;
-    metadata: Record<string, string>;
+    metadata?: Record<string, string>;
 };
 
 export type ToolReferenceType = "tool" | "stepTemplate";

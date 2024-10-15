@@ -67,7 +67,7 @@ export function Message({ message }: MessageProps) {
                         )}
                     >
                         <div className="max-w-full overflow-hidden p-4 flex gap-2 items-center pl-[20px]">
-                            {toolCall?.metadata.icon && (
+                            {toolCall?.metadata?.icon && (
                                 <ToolIcon
                                     icon={toolCall.metadata.icon}
                                     category={toolCall.metadata.category}
