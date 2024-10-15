@@ -35,7 +35,7 @@ export const runsToMessages = (runs: Run[]) => {
 export const toolCallMessage = (toolCall: ToolCall) => {
     return {
         sender: "agent",
-        text: `Tool call: ${[toolCall.metadata.category, toolCall.name].filter((x) => !!x).join(" - ")}`,
+        text: `Tool call: ${[toolCall.metadata?.category, toolCall.name].filter((x) => !!x).join(" - ")}`,
         tools: [toolCall],
     } as Message;
 };
