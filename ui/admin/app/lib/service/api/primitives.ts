@@ -1,5 +1,5 @@
 // TODO: Add default configurations with auth tokens, etc. When ready
-import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse, isAxiosError } from "axios";
 import { toast } from "sonner";
 
 export const ResponseHeaders = {
@@ -9,7 +9,8 @@ export const ResponseHeaders = {
 
 const internalFetch = axios.request;
 
-interface ExtendedAxiosRequestConfig<D = unknown> extends AxiosRequestConfig<D> {
+interface ExtendedAxiosRequestConfig<D = unknown>
+    extends AxiosRequestConfig<D> {
     throwErrors?: boolean;
     errorMessage?: string;
 }
@@ -26,7 +27,7 @@ export async function request<T, R = AxiosResponse<T>, D = unknown>({
         });
     } catch (error) {
         handleRequestError(error, errorMessage);
-        
+
         if (throwErrors) {
             throw error;
         }
@@ -35,9 +36,9 @@ export async function request<T, R = AxiosResponse<T>, D = unknown>({
 }
 
 function handleRequestError(error: unknown, errorMessage: string): void {
-    if (axios.isAxiosError(error) && error.response) {
+    if (isAxiosError(error) && error.response) {
         const { status, config } = error.response;
-        const method = config.method?.toUpperCase() || 'UNKNOWN';
+        const method = config.method?.toUpperCase() || "UNKNOWN";
         toast.error(`${status} ${method}`, {
             description: errorMessage,
         });
