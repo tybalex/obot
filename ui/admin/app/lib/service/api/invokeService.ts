@@ -16,6 +16,7 @@ async function invokeWithStream({
         headers: { Accept: "text/event-stream" },
         responseType: "stream",
         data: prompt,
+        errorMessage: "Failed to invoke agent",
     });
 
     const reader = response.data

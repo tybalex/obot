@@ -9,6 +9,7 @@ import {
 
 import { LayoutProvider } from "~/components/layout/LayoutProvider";
 import { ThemeProvider } from "~/components/theme";
+import { Toaster } from "~/components/ui/sonner";
 
 import "./tailwind.css";
 
@@ -39,6 +40,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </head>
             <body>
                 {children}
+                <Toaster closeButton />
                 <ScrollRestoration />
                 <Scripts />
             </body>

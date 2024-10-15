@@ -5,6 +5,7 @@ import { request } from "~/lib/service/api/primitives";
 async function getAgents() {
     const res = await request<{ items: Agent[] }>({
         url: ApiRoutes.agents.base().url,
+        errorMessage: "Failed to fetch agents",
     });
 
     return res.data.items ?? ([] as Agent[]);
@@ -14,6 +15,7 @@ getAgents.key = () => ({ url: ApiRoutes.agents.base().path }) as const;
 const getAgentById = async (agentId: string) => {
     const res = await request<Agent>({
         url: ApiRoutes.agents.getById(agentId).url,
+        errorMessage: "Failed to fetch agent",
     });
 
     if (!res.data) return null;
@@ -31,6 +33,7 @@ async function createAgent({ agent }: { agent: CreateAgent }) {
         url: ApiRoutes.agents.base().url,
         method: "POST",
         data: agent,
+        errorMessage: "Failed to create agent",
     });
 
     return res.data;
@@ -41,6 +44,7 @@ async function updateAgent({ id, agent }: { id: string; agent: UpdateAgent }) {
         url: ApiRoutes.agents.getById(id).url,
         method: "PUT",
         data: agent,
+        errorMessage: "Failed to update agent",
     });
 
     return res.data;
@@ -50,6 +54,7 @@ async function deleteAgent(id: string) {
     await request({
         url: ApiRoutes.agents.getById(id).url,
         method: "DELETE",
+        errorMessage: "Failed to delete agent",
     });
 }
 
