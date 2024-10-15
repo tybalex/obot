@@ -45,6 +45,7 @@ type (
 type Config struct {
 	HTTPListenPort int    `usage:"HTTP port to listen on" default:"8080" name:"http-listen-port"`
 	DevMode        bool   `usage:"Enable development mode" default:"false" name:"dev-mode" env:"OTTO_DEV_MODE"`
+	DevUIPort      int    `usage:"The port on localhost running the dev instance of the UI" default:"5173"`
 	AllowedOrigin  string `usage:"Allowed origin for CORS"`
 	ToolRegistry   string `usage:"The tool reference for the tool registry" default:"github.com/gptscript-ai/tools"`
 
@@ -55,6 +56,7 @@ type Config struct {
 
 type Services struct {
 	ToolRegistryURL string
+	DevUIPort       int
 	Events          *events.Emitter
 	StorageClient   storage.Client
 	Router          *router.Router
@@ -118,7 +120,7 @@ func (n anonymous) AuthenticateRequest(*http.Request) (*authenticator.Response, 
 func New(ctx context.Context, config Config) (*Services, error) {
 	system.SetBinToSelf()
 
-	config = configureDevMode(config)
+	devPort, config := configureDevMode(config)
 
 	storageClient, restConfig, dbAccess, err := storage.Start(ctx, config.Config)
 	if err != nil {
@@ -199,6 +201,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 
 	// For now, always auto-migrate the gateway database
 	return &Services{
+		DevUIPort:       devPort,
 		ToolRegistryURL: config.ToolRegistry,
 		Events:          events,
 		StorageClient:   storageClient,
@@ -214,9 +217,9 @@ func New(ctx context.Context, config Config) (*Services, error) {
 	}, nil
 }
 
-func configureDevMode(config Config) Config {
+func configureDevMode(config Config) (int, Config) {
 	if !config.DevMode {
-		return config
+		return 0, config
 	}
 
 	if config.StorageListenPort == 0 {
@@ -231,7 +234,7 @@ func configureDevMode(config Config) Config {
 	}
 	_ = os.Setenv("BAAAH_DEV_MODE", "true")
 	_ = os.Setenv("WORKSPACE_PROVIDER_IGNORE_WORKSPACE_NOT_FOUND", "true")
-	return config
+	return config.DevUIPort, config
 }
 
 func startDevMode(ctx context.Context, storageClient storage.Client) {

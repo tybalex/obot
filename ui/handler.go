@@ -2,17 +2,28 @@ package ui
 
 import (
 	"embed"
+	"fmt"
 	"io/fs"
 	"net/http"
+	"net/http/httputil"
 	"path"
 	"strings"
 )
 
-//go:embed admin/build/client admin/build/client/assets/_*
+//go:embed admin/build*/client* admin/build*/client*/assets*/_*
 var embedded embed.FS
 
-func Handler() http.Handler {
-	return http.HandlerFunc(serve)
+func Handler(devPort int) http.Handler {
+	if devPort == 0 {
+		return http.HandlerFunc(serve)
+	}
+	rp := httputil.ReverseProxy{
+		Director: func(r *http.Request) {
+			r.URL.Scheme = "http"
+			r.URL.Host = fmt.Sprintf("localhost:%d", devPort)
+		},
+	}
+	return &rp
 }
 
 func serve(w http.ResponseWriter, r *http.Request) {

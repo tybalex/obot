@@ -133,7 +133,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	services.GatewayServer.AddRoutes(w, mux)
 
 	// UI
-	mux.Handle("/", ui.Handler())
+	mux.Handle("/", services.ProxyServer.Wrap(ui.Handler(services.DevUIPort)))
 
 	return mux, nil
 }
