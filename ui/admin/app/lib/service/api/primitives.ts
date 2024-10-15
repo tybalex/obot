@@ -11,12 +11,10 @@ const internalFetch = axios.request;
 
 interface ExtendedAxiosRequestConfig<D = unknown>
     extends AxiosRequestConfig<D> {
-    throwErrors?: boolean;
     errorMessage?: string;
 }
 
 export async function request<T, R = AxiosResponse<T>, D = unknown>({
-    throwErrors = true,
     errorMessage = "Request failed",
     ...config
 }: ExtendedAxiosRequestConfig<D>): Promise<R> {
@@ -27,11 +25,7 @@ export async function request<T, R = AxiosResponse<T>, D = unknown>({
         });
     } catch (error) {
         handleRequestError(error, errorMessage);
-
-        if (throwErrors) {
-            throw error;
-        }
-        return error as R;
+        throw error;
     }
 }
 
