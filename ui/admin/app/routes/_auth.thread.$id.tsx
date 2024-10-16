@@ -33,6 +33,10 @@ import {
 export const clientLoader = async ({ params }: ClientLoaderFunctionArgs) => {
     const { id } = $params("/thread/:id", params);
 
+    if (!id) {
+        throw redirect("/threads");
+    }
+
     const thread = await ThreadsService.getThreadById(id);
     if (!thread) throw redirect("/threads");
 

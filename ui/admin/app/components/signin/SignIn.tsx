@@ -30,7 +30,7 @@ const SignIn: React.FC<SignInProps> = ({ className }) => {
             </CardHeader>
             <CardFooter className="border-t pt-4">
                 <Button
-                    variant="destructive"
+                    variant="secondary"
                     className="w-full"
                     onClick={() => {
                         window.location.href = "/oauth2/start?rd=/admin/";
