@@ -61,6 +61,13 @@ func defaultRules() []rule {
 
 	// Build mux that anyone can access
 	anyMux := http.NewServeMux()
+	// Allow access to the UI
+	anyMux.Handle("/admin/", f)
+	// Allow access to the oauth2 endpoints
+	anyMux.Handle("/oauth2/", f)
+	// Allow access to the sign-in page
+	anyMux.Handle("/sign-in", f)
+
 	anyMux.Handle("POST /api/webhooks/{id}", f)
 
 	anyMux.Handle("GET /api/token-request/{id}", f)
