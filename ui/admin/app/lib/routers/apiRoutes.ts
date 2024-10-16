@@ -11,7 +11,10 @@ const buildUrl = (path: string, params?: object) => {
         ? queryString.stringify(params, { skipNull: true })
         : "";
 
-    if (process.env.NODE_ENV === "production" || import.meta.env.VITE_API_IN_BROWSER === "true") {
+    if (
+        process.env.NODE_ENV === "production" ||
+        import.meta.env.VITE_API_IN_BROWSER === "true"
+    ) {
         return {
             url: prodBaseUrl + path + (query ? "?" + query : ""),
             path,
@@ -95,6 +98,16 @@ export const ApiRoutes = {
         return threadId
             ? buildUrl(`/invoke/${id}/threads/${threadId}`)
             : buildUrl(`/invoke/${id}`);
+    },
+    oauthApps: {
+        base: () => buildUrl("/oauth-apps"),
+        getOauthApps: () => buildUrl("/oauth-apps"),
+        createOauthApp: () => buildUrl(`/oauth-apps`),
+        getOauthAppById: (id: string) => buildUrl(`/oauth-apps/${id}`),
+        updateOauthApp: (id: string) => buildUrl(`/oauth-apps/${id}`),
+        deleteOauthApp: (id: string) => buildUrl(`/oauth-apps/${id}`),
+        supportedOauthAppTypes: () => buildUrl("/supported-oauth-app-types"),
+        supportedAuthTypes: () => buildUrl("/supported-auth-types"),
     },
 };
 
