@@ -23,4 +23,20 @@ dev: ui
 	@echo "Starting dev otto server and admin UI..."
 	./dev.sh
 
-.PHONY: ui build all clean dev
+# Lint the project
+lint: lint-admin
+
+lint-admin:
+	cd ui/admin && \
+	npm run format && \
+	npm run lint
+
+no-changes:
+	@if [ -n "$$(git status --porcelain)" ]; then \
+		git status --porcelain; \
+		git --no-pager diff; \
+		echo "Encountered dirty repo!"; \
+		exit 1; \
+	fi
+
+.PHONY: ui build all clean dev lint lint-admin lint-api no-changes fmt tidy
