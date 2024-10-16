@@ -146,8 +146,8 @@ func ValidateAndSetDefaultsOAuthAppManifest(r *types.OAuthAppManifest) error {
 	return errors.Join(errs...)
 }
 
-func MergeOAuthAppManifests(r, other *types.OAuthAppManifest) *types.OAuthAppManifest {
-	retVal := *r
+func MergeOAuthAppManifests(r, other types.OAuthAppManifest) types.OAuthAppManifest {
+	retVal := r
 
 	if other.RefName != "" {
 		retVal.RefName = other.RefName
@@ -167,8 +167,11 @@ func MergeOAuthAppManifests(r, other *types.OAuthAppManifest) *types.OAuthAppMan
 	if other.TenantID != "" {
 		retVal.TenantID = other.TenantID
 	}
+	if other.Name != "" {
+		retVal.Name = other.Name
+	}
 
-	return &retVal
+	return retVal
 }
 
 // OAuthTokenResponse represents a response from the /token endpoint on an OAuth server.

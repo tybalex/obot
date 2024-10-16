@@ -3,7 +3,7 @@ package types
 type Webhook struct {
 	Metadata
 	WebhookManifest
-	WebhookExternalStatus
+	RefNameAssigned            bool  `json:"refNameAssigned,omitempty"`
 	LastSuccessfulRunCompleted *Time `json:"lastSuccessfulRunCompleted,omitempty"`
 }
 

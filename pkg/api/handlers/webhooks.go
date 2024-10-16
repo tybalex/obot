@@ -108,10 +108,12 @@ func convertWebhook(webhook v1.Webhook, urlPrefix string) *types.Webhook {
 		links = []string{"invoke", fmt.Sprintf("%s/webhooks/%s", urlPrefix, webhook.Status.External.RefName)}
 	}
 
+	manifest := webhook.Spec.WebhookManifest
+	manifest.RefName = webhook.Status.External.RefName
 	wh := &types.Webhook{
 		Metadata:                   MetadataFrom(&webhook, links...),
-		WebhookManifest:            webhook.Spec.WebhookManifest,
-		WebhookExternalStatus:      webhook.Status.External,
+		WebhookManifest:            manifest,
+		RefNameAssigned:            webhook.Status.External.RefNameAssigned,
 		LastSuccessfulRunCompleted: v1.NewTime(webhook.Status.LastSuccessfulRunCompleted),
 	}
 

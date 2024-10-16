@@ -1198,18 +1198,18 @@ func schema_otto8_ai_otto8_apiclient_types_OAuthApp(ref common.ReferenceCallback
 							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.OAuthAppManifest"),
 						},
 					},
-					"OAuthAppExternalStatus": {
+					"refNameAssigned": {
 						SchemaProps: spec.SchemaProps{
-							Default: map[string]interface{}{},
-							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.OAuthAppExternalStatus"),
+							Type:   []string{"boolean"},
+							Format: "",
 						},
 					},
 				},
-				Required: []string{"OAuthAppManifest", "OAuthAppExternalStatus"},
+				Required: []string{"OAuthAppManifest"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/apiclient/types.OAuthAppExternalStatus", "github.com/otto8-ai/otto8/apiclient/types.OAuthAppManifest"},
+			"github.com/otto8-ai/otto8/apiclient/types.OAuthAppManifest"},
 	}
 }
 
@@ -2644,10 +2644,10 @@ func schema_otto8_ai_otto8_apiclient_types_Webhook(ref common.ReferenceCallback)
 							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.WebhookManifest"),
 						},
 					},
-					"WebhookExternalStatus": {
+					"refNameAssigned": {
 						SchemaProps: spec.SchemaProps{
-							Default: map[string]interface{}{},
-							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.WebhookExternalStatus"),
+							Type:   []string{"boolean"},
+							Format: "",
 						},
 					},
 					"lastSuccessfulRunCompleted": {
@@ -2656,11 +2656,11 @@ func schema_otto8_ai_otto8_apiclient_types_Webhook(ref common.ReferenceCallback)
 						},
 					},
 				},
-				Required: []string{"Metadata", "WebhookManifest", "WebhookExternalStatus"},
+				Required: []string{"Metadata", "WebhookManifest"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/apiclient/types.Metadata", "github.com/otto8-ai/otto8/apiclient/types.Time", "github.com/otto8-ai/otto8/apiclient/types.WebhookExternalStatus", "github.com/otto8-ai/otto8/apiclient/types.WebhookManifest"},
+			"github.com/otto8-ai/otto8/apiclient/types.Metadata", "github.com/otto8-ai/otto8/apiclient/types.Time", "github.com/otto8-ai/otto8/apiclient/types.WebhookManifest"},
 	}
 }
 

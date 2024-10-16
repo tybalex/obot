@@ -124,8 +124,8 @@ func (s *Server) createOAuthApp(apiContext api.Context) error {
 
 // updateOAuthApp updates an existing OAuth app registration in the database (admin only).
 func (s *Server) updateOAuthApp(apiContext api.Context) error {
-	appManifest := new(types2.OAuthAppManifest)
-	if err := apiContext.Read(appManifest); err != nil {
+	var appManifest types2.OAuthAppManifest
+	if err := apiContext.Read(&appManifest); err != nil {
 		return apierrors.NewBadRequest(fmt.Sprintf("invalid OAuth app: %s", err))
 	}
 
@@ -135,13 +135,13 @@ func (s *Server) updateOAuthApp(apiContext api.Context) error {
 		return err
 	}
 
-	merged := types.MergeOAuthAppManifests(&originalApp.Spec.Manifest, appManifest)
-	if err := types.ValidateAndSetDefaultsOAuthAppManifest(merged); err != nil {
+	merged := types.MergeOAuthAppManifests(originalApp.Spec.Manifest, appManifest)
+	if err := types.ValidateAndSetDefaultsOAuthAppManifest(&merged); err != nil {
 		return apierrors.NewBadRequest(fmt.Sprintf("invalid OAuth app: %s", err))
 	}
 
 	// Update the app.
-	originalApp.Spec.Manifest = *merged
+	originalApp.Spec.Manifest = merged
 	if err := apiContext.Update(&originalApp); err != nil {
 		return err
 	}
@@ -512,9 +512,10 @@ func convertOAuthAppRegistrationToOAuthApp(app v1.OAuthApp, baseURL string) type
 		links = append(links, "refreshURL", refreshURL)
 	}
 	appManifest.Metadata = handlers.MetadataFrom(&app, links...)
+	appManifest.RefName = app.Status.External.RefName
 	return types2.OAuthApp{
-		OAuthAppManifest:       appManifest,
-		OAuthAppExternalStatus: app.Status.External,
+		OAuthAppManifest: appManifest,
+		RefNameAssigned:  app.Status.External.RefNameAssigned,
 	}
 }
 
