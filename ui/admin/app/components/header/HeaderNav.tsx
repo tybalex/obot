@@ -8,12 +8,12 @@ import { ThreadsService } from "~/lib/service/api/threadsService";
 import { QueryParamSchemas } from "~/lib/service/queryParamService";
 import { cn, parseQueryParams } from "~/lib/utils";
 
+import { DarkModeToggle } from "~/components/DarkModeToggle";
 import { TypographyH4, TypographySmall } from "~/components/Typography";
 import { OttoLogo } from "~/components/branding/OttoLogo";
 import { useLayout } from "~/components/layout/LayoutProvider";
 import { Button } from "~/components/ui/button";
-
-import { DarkModeToggle } from "../DarkModeToggle";
+import { UserMenu } from "~/components/user/UserMenu";
 
 export function HeaderNav() {
     const {
@@ -66,6 +66,7 @@ export function HeaderNav() {
                     </div>
 
                     <div className="flex items-center justify-center p-4 mr-4">
+                        <UserMenu className="pr-4 border-r mr-4" />
                         <DarkModeToggle />
                     </div>
                 </div>

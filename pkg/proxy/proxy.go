@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"errors"
+
 	oauth2proxy "github.com/oauth2-proxy/oauth2-proxy/v7"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/apis/options"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/validation"
@@ -88,8 +90,8 @@ func (p *Proxy) Wrap(h http.Handler) http.Handler {
 			return
 		}
 
-		session, err := p.proxy.LoadCookiedSession(r)
-		if err != nil || session == nil {
+		_, err := p.proxy.LoadCookiedSession(r)
+		if strings.HasPrefix(r.URL.Path, "/oauth2") || err != nil && !errors.Is(err, http.ErrNoCookie) {
 			p.proxy.ServeHTTP(w, r)
 		} else {
 			h.ServeHTTP(w, r)

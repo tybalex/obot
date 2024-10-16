@@ -7,10 +7,12 @@ import {
     ScrollRestoration,
 } from "@remix-run/react";
 
+import { AuthProvider } from "~/components/auth/AuthContext";
 import { LayoutProvider } from "~/components/layout/LayoutProvider";
 import { ThemeProvider } from "~/components/theme";
 import { Toaster } from "~/components/ui/sonner";
 
+import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import "./tailwind.css";
 
 export const links: LinksFunction = () => [
@@ -50,14 +52,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
     return (
-        <ThemeProvider>
-            <LayoutProvider>
-                <Outlet />
-            </LayoutProvider>
-        </ThemeProvider>
+        <AuthProvider>
+            <ThemeProvider>
+                <LayoutProvider>
+                    <Outlet />
+                </LayoutProvider>
+            </ThemeProvider>
+        </AuthProvider>
     );
 }
 
 export function HydrateFallback() {
-    return <p>Loading...</p>;
+    return (
+        <div className="flex min-h-screen w-full items-center justify-center p-4">
+            <LoadingSpinner />
+        </div>
+    );
 }
