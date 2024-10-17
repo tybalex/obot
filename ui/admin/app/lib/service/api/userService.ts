@@ -2,6 +2,16 @@ import { User } from "~/lib/model/users";
 import { ApiRoutes, revalidateWhere } from "~/lib/routers/apiRoutes";
 import { request } from "~/lib/service/api/primitives";
 
+async function getUsers() {
+    const res = await request<{ items: User[] }>({
+        url: ApiRoutes.users.base().url,
+        errorMessage: "Failed to fetch users",
+    });
+
+    return res.data.items ?? ([] as User[]);
+}
+getUsers.key = () => ({ url: ApiRoutes.users.base().path }) as const;
+
 async function getMe() {
     const res = await request<User>({
         url: ApiRoutes.me().url,
@@ -17,5 +27,6 @@ const revalidateMe = () =>
 
 export const UserService = {
     getMe,
+    getUsers,
     revalidateMe,
 };

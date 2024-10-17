@@ -94,6 +94,9 @@ export const ApiRoutes = {
         getById: (toolReferenceId: string) =>
             buildUrl(`/toolreferences/${toolReferenceId}`),
     },
+    users: {
+        base: () => buildUrl("/users"),
+    },
     me: () => buildUrl("/me"),
     invoke: (id: string, threadId?: Nullish<string>) => {
         return threadId

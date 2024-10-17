@@ -4,6 +4,8 @@ import useSWR from "swr";
 import { Role, User } from "~/lib/model/users";
 import { UserService } from "~/lib/service/api/userService";
 
+export const AuthDisabledUsername = "nobody";
+
 interface AuthContextType {
     me: User;
     isLoading: boolean;

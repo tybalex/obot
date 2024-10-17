@@ -1,4 +1,4 @@
-import { Key, MessageSquare, User } from "lucide-react";
+import { BotIcon, Key, MessageSquare, User } from "lucide-react";
 import { $path } from "remix-routes";
 
 import { cn } from "~/lib/utils";
@@ -16,12 +16,17 @@ export function SidebarFull({ className }: SidebarFullProps) {
                     <SidebarSection
                         title="Agents"
                         linkTo={$path("/agents")}
-                        icon={<User className="w-5 h-5" />}
+                        icon={<BotIcon className="w-5 h-5 mb-1" />}
                     />
                     <SidebarSection
                         title="Threads"
                         linkTo={$path("/threads")}
                         icon={<MessageSquare className="w-5 h-5" />}
+                    />
+                    <SidebarSection
+                        title="Users"
+                        linkTo={$path("/users")}
+                        icon={<User className="w-5 h-5" />}
                     />
                     <SidebarSection
                         title="OAuth Apps"
