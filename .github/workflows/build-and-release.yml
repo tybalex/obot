@@ -15,9 +15,12 @@ jobs:
           - os: ubuntu-latest
             goos: linux
             goarch: amd64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
           - os: macos-latest
             goos: darwin
-            goarch: amd64
+            goarch: arm64
 
     steps:
     - name: Checkout code
