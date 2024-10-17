@@ -4,15 +4,14 @@ import React from "react";
 import { roleToString } from "~/lib/model/users";
 import { cn } from "~/lib/utils";
 
+import { AuthDisabledUsername, useAuth } from "~/components/auth/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { Button } from "~/components/ui/button";
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "~/components/ui/popover";
-
-import { useAuth } from "../auth/AuthContext";
-import { Button } from "../ui/button";
 
 interface UserMenuProps {
     className?: string;
@@ -21,7 +20,7 @@ interface UserMenuProps {
 export const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
     const { me } = useAuth();
 
-    if (me.username === "nobody") {
+    if (me.username === AuthDisabledUsername) {
         return null;
     }
 

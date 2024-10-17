@@ -91,7 +91,13 @@ function getHeaderContent(route: string) {
     if (new RegExp($path("/thread/:id", { id: "(.*)" })).test(route)) {
         return <ThreadContent />;
     }
+
+    if (new RegExp($path("/users")).test(route)) {
+        return <UsersContent />;
+    }
 }
+
+const UsersContent = () => <>Users</>;
 
 const AgentsContent = () => <>Agents</>;
 
