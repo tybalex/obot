@@ -17,10 +17,10 @@ clean:
 
 # Build the project
 build:
-	go build -o bin/otto -v
+	go build -o bin/otto8 -v
 
 dev: ui
-	@echo "Starting dev otto server and admin UI..."
+	@echo "Starting dev otto8 server and admin UI..."
 	./dev.sh
 
 # Lint the project
