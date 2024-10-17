@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/acorn-io/baaah"
 	"github.com/acorn-io/baaah/pkg/leader"
@@ -97,6 +98,10 @@ func New(ctx context.Context, config Config) (*Services, error) {
 	system.SetBinToSelf()
 
 	devPort, config := configureDevMode(config)
+
+	if strings.HasPrefix(config.DSN, "postgres://") {
+		_ = os.Setenv("KNOW_VECTOR_DB", strings.Replace(config.DSN, "postgres://", "pgvector://", 1))
+	}
 
 	storageClient, restConfig, dbAccess, err := storage.Start(ctx, config.Config)
 	if err != nil {
