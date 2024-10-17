@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"strings"
 	"sync"
 	"time"
@@ -68,6 +69,7 @@ type Options struct {
 	WorkflowExecutionName string
 	WorkflowStepName      string
 	WorkflowStepID        string
+	WaitForThread         bool
 	Env                   []string
 }
 
@@ -633,6 +635,17 @@ func toSubCall(output string) *v1.SubCall {
 	}
 }
 
+func getCredentialCallingTool(runResp *gptscript.Run) (result gptscript.Tool) {
+	calls := runResp.Calls()
+	// Look for an in progress cred tool and just assume that's it
+	for _, call := range calls {
+		if call.ToolCategory == gptscript.CredentialToolCategory && call.End.IsZero() && call.ParentID != "" {
+			return calls[call.ParentID].Tool
+		}
+	}
+	return
+}
+
 func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName string, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run) (retErr error) {
 	var (
 		runEvent = runResp.Events()
@@ -709,13 +722,19 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName s
 				if !strings.HasSuffix(msg, "\n") {
 					msg += "\n"
 				}
+				callingTool := getCredentialCallingTool(runResp)
+				metadata := map[string]string{}
+				maps.Copy(metadata, frame.Prompt.Metadata)
+				maps.Copy(metadata, callingTool.MetaData)
 				prompt := &types.Prompt{
-					ID:        frame.Prompt.ID,
-					Time:      types.NewTime(frame.Prompt.Time),
-					Message:   frame.Prompt.Message,
-					Fields:    frame.Prompt.Fields,
-					Sensitive: frame.Prompt.Sensitive,
-					Metadata:  frame.Prompt.Metadata,
+					ID:          frame.Prompt.ID,
+					Name:        callingTool.Name,
+					Description: callingTool.Description,
+					Time:        types.NewTime(frame.Prompt.Time),
+					Message:     frame.Prompt.Message,
+					Fields:      frame.Prompt.Fields,
+					Sensitive:   frame.Prompt.Sensitive,
+					Metadata:    metadata,
 				}
 				contentID := hash.String(prompt)[:8]
 				i.events.SubmitProgress(run, types.Progress{
@@ -750,10 +769,10 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName s
 
 			if frame.Call != nil {
 				switch frame.Call.Type {
-				case gptscript.EventTypeCallProgress, gptscript.EventTypeCallFinish:
+				case gptscript.EventTypeCallFinish:
 					abortTimeout()
 					fallthrough
-				case gptscript.EventTypeCallStart:
+				case gptscript.EventTypeCallProgress, gptscript.EventTypeCallStart:
 					i.events.Submit(run, prg, runResp.Calls())
 				}
 			}

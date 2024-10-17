@@ -11,6 +11,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/api"
 	"github.com/otto8-ai/otto8/pkg/events"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/otto8-ai/otto8/pkg/system"
 	wclient "github.com/otto8-ai/workspace-provider/pkg/client"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
@@ -55,14 +56,19 @@ func convertThread(thread v1.Thread) types.Thread {
 
 func (a *ThreadHandler) Events(req api.Context) error {
 	var (
-		id           = req.PathValue("id")
-		follow       = req.URL.Query().Get("follow") == "true"
-		runID        = req.URL.Query().Get("runID")
-		maxRunString = req.URL.Query().Get("maxRuns")
-		maxRuns      int
-		err          error
-		thread       v1.Thread
+		id            = req.PathValue("id")
+		follow        = req.URL.Query().Get("follow") == "true"
+		runID         = req.URL.Query().Get("runID")
+		maxRunString  = req.URL.Query().Get("maxRuns")
+		maxRuns       int
+		err           error
+		thread        v1.Thread
+		waitForThread = req.URL.Query().Get("waitForThread") == "true"
 	)
+
+	if id == "user" {
+		id = system.ThreadPrefix + req.User.GetUID()
+	}
 
 	if maxRunString != "" {
 		maxRuns, err = strconv.Atoi(maxRunString)
@@ -78,12 +84,13 @@ func (a *ThreadHandler) Events(req api.Context) error {
 	}
 
 	_, events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
-		Follow:      follow,
-		History:     runID == "",
-		LastRunName: strings.TrimSuffix(runID, ":after"),
-		MaxRuns:     maxRuns,
-		After:       strings.HasSuffix(runID, ":after"),
-		ThreadName:  thread.Name,
+		Follow:        follow,
+		History:       runID == "",
+		LastRunName:   strings.TrimSuffix(runID, ":after"),
+		MaxRuns:       maxRuns,
+		After:         strings.HasSuffix(runID, ":after"),
+		ThreadName:    thread.Name,
+		WaitForThread: waitForThread,
 	})
 	if err != nil {
 		return err

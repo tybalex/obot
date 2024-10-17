@@ -55,6 +55,7 @@ type WatchOptions struct {
 	ThreadResourceVersion string
 	Follow                bool
 	Run                   *v1.Run
+	WaitForThread         bool
 }
 
 type Frames map[string]gptscript.CallFrame
@@ -159,6 +160,30 @@ func (e *Emitter) findRunByThreadName(ctx context.Context, threadNamespace, thre
 	return nil, fmt.Errorf("no run found for thread: %s", threadName)
 }
 
+func (e *Emitter) getThread(ctx context.Context, namespace, name string, wait bool) (*v1.Thread, error) {
+	var thread v1.Thread
+	if err := e.client.Get(ctx, router.Key(namespace, name), &thread); apierrors.IsNotFound(err) && wait {
+		w, err := e.client.Watch(ctx, &v1.ThreadList{}, kclient.MatchingFields{"metadata.name": name}, kclient.InNamespace(namespace))
+		if err != nil {
+			return nil, err
+		}
+		defer func() {
+			w.Stop()
+			for range w.ResultChan() {
+			}
+		}()
+		for event := range w.ResultChan() {
+			if thread, ok := event.Object.(*v1.Thread); ok {
+				return thread, nil
+			}
+		}
+		return nil, fmt.Errorf("failed to find thread %s", name)
+	} else if err != nil {
+		return nil, err
+	}
+	return &thread, nil
+}
+
 func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions) (*v1.Run, chan types.Progress, error) {
 	var (
 		run v1.Run
@@ -174,8 +199,8 @@ func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions
 			return nil, nil, fmt.Errorf("run %s is not associated with thread %s", opts.LastRunName, opts.ThreadName)
 		}
 	} else if opts.ThreadName != "" {
-		var thread v1.Thread
-		if err := e.client.Get(ctx, router.Key(namespace, opts.ThreadName), &thread); err != nil {
+		thread, err := e.getThread(ctx, namespace, opts.ThreadName, opts.WaitForThread)
+		if err != nil {
 			return nil, nil, err
 		}
 		if thread.Status.LastRunName == "" {
@@ -204,7 +229,7 @@ func (e *Emitter) Watch(ctx context.Context, namespace string, opts WatchOptions
 	return &run, result, nil
 }
 
-func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, result chan types.Progress) error {
+func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, result chan types.Progress, historical bool) error {
 	var (
 		liveIndex    int
 		broadcast    = make(chan struct{}, 1)
@@ -318,6 +343,12 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 			if err := gz.Decompress(&callFrames, runState.Spec.CallFrame); err != nil {
 				return err
 			}
+
+			// Don't log historical runs that have errored
+			if runState.Spec.Done && runState.Spec.Error != "" && historical {
+				return nil
+			}
+
 			if err := e.callToEvents(ctx, run.Namespace, run.Name, &prg, callFrames, state, result); err != nil {
 				return err
 			}
@@ -362,7 +393,7 @@ func (e *Emitter) printParent(ctx context.Context, remaining int, state *printSt
 		}
 	}
 
-	return errors.Join(errNotFound, e.printRun(ctx, state, parent, result))
+	return errors.Join(errNotFound, e.printRun(ctx, state, parent, result, true))
 }
 
 func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOptions, result chan types.Progress) (retErr error) {
@@ -393,7 +424,7 @@ func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOption
 		if opts.After {
 			opts.After = false
 		} else {
-			if err := e.printRun(ctx, state, run, result); err != nil {
+			if err := e.printRun(ctx, state, run, result, false); err != nil {
 				return err
 			}
 		}
@@ -493,7 +524,7 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1
 	w, err := e.client.Watch(ctx, &v1.RunList{}, append(criteria, &kclient.ListOptions{
 		Raw: &metav1.ListOptions{
 			ResourceVersion: runs.ResourceVersion,
-			TimeoutSeconds:  typed.Pointer(int64(15)),
+			TimeoutSeconds:  typed.Pointer(int64(15 * 60)),
 		},
 	})...)
 	if err != nil {

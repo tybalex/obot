@@ -33,6 +33,10 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 		async    = req.URL.Query().Get("async") == "true"
 	)
 
+	if threadID == "user" {
+		threadID = system.ThreadPrefix + req.User.GetUID()
+	}
+
 	if threadID == "" {
 		threadID = req.Request.Header.Get("X-Otto-Thread-Id")
 	}

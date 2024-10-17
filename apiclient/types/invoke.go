@@ -64,12 +64,14 @@ type StepTemplateInvoke struct {
 }
 
 type Prompt struct {
-	ID        string            `json:"id,omitempty"`
-	Time      *Time             `json:"time,omitempty"`
-	Message   string            `json:"message,omitempty"`
-	Fields    []string          `json:"fields,omitempty"`
-	Sensitive bool              `json:"sensitive,omitempty"`
-	Metadata  map[string]string `json:"metadata,omitempty"`
+	ID          string            `json:"id,omitempty"`
+	Name        string            `json:"name,omitempty"`
+	Description string            `json:"description,omitempty"`
+	Time        *Time             `json:"time,omitempty"`
+	Message     string            `json:"message,omitempty"`
+	Fields      []string          `json:"fields,omitempty"`
+	Sensitive   bool              `json:"sensitive,omitempty"`
+	Metadata    map[string]string `json:"metadata,omitempty"`
 }
 
 type ToolInput struct {
