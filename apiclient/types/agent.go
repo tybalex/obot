@@ -27,6 +27,7 @@ type AgentManifest struct {
 	Workflows            []string          `json:"workflows,omitempty"`
 	Tools                []string          `json:"tools"`
 	AvailableThreadTools []string          `json:"availableThreadTools"`
+	DefaultThreadTools   []string          `json:"defaultThreadTools"`
 	OAuthApps            []string          `json:"oauthApps"`
 	MaxThreadTools       int               `json:"maxThreadTools"`
 	Params               map[string]string `json:"params,omitempty"`

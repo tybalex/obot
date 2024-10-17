@@ -151,7 +151,7 @@ func (a *ThreadHandler) Update(req api.Context) error {
 		}
 		max := agent.Spec.Manifest.MaxThreadTools
 		if max == 0 {
-			max = 3
+			max = 5
 		}
 		if len(newThread.Tools) > max {
 			return api.NewErrBadRequest("too many tools, max %d", max)

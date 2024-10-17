@@ -407,6 +407,20 @@ func schema_otto8_ai_otto8_apiclient_types_AgentManifest(ref common.ReferenceCal
 							},
 						},
 					},
+					"defaultThreadTools": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
 					"oauthApps": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
@@ -444,7 +458,7 @@ func schema_otto8_ai_otto8_apiclient_types_AgentManifest(ref common.ReferenceCal
 						},
 					},
 				},
-				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools", "availableThreadTools", "oauthApps", "maxThreadTools"},
+				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools"},
 			},
 		},
 	}
@@ -1548,6 +1562,18 @@ func schema_otto8_ai_otto8_apiclient_types_Prompt(ref common.ReferenceCallback) 
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
 					"id": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"description": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -3136,6 +3162,20 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref common.Reference
 							},
 						},
 					},
+					"defaultThreadTools": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
 					"oauthApps": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
@@ -3192,7 +3232,7 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref common.Reference
 						},
 					},
 				},
-				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools", "availableThreadTools", "oauthApps", "maxThreadTools"},
+				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools"},
 			},
 		},
 		Dependencies: []string{

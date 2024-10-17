@@ -61,7 +61,6 @@ require (
 	github.com/Microsoft/go-winio v0.6.1 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
-	github.com/a-h/templ v0.2.778 // indirect
 	github.com/a8m/envsubst v1.4.2 // indirect
 	github.com/acorn-io/broadcaster v0.0.0-20240105011354-bfadd4a7b45d // indirect
 	github.com/alecthomas/chroma/v2 v2.8.0 // indirect
