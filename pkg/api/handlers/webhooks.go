@@ -109,7 +109,6 @@ func convertWebhook(webhook v1.Webhook, urlPrefix string) *types.Webhook {
 	}
 
 	manifest := webhook.Spec.WebhookManifest
-	manifest.RefName = webhook.Status.External.RefName
 	wh := &types.Webhook{
 		Metadata:                   MetadataFrom(&webhook, links...),
 		WebhookManifest:            manifest,
