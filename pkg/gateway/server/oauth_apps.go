@@ -512,7 +512,6 @@ func convertOAuthAppRegistrationToOAuthApp(app v1.OAuthApp, baseURL string) type
 		links = append(links, "refreshURL", refreshURL)
 	}
 	appManifest.Metadata = handlers.MetadataFrom(&app, links...)
-	appManifest.RefName = app.Status.External.RefName
 	return types2.OAuthApp{
 		OAuthAppManifest: appManifest,
 		RefNameAssigned:  app.Status.External.RefNameAssigned,
