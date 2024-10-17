@@ -43,6 +43,10 @@ export const clientLoader = async ({
     const { threadId, from } =
         parseQueryParams(request.url, paramSchema).data || {};
 
+    if (!agentId) {
+        throw redirect("/agents");
+    }
+
     // preload the agent
     const agent = await AgentService.getAgentById(agentId).catch(noop);
 
