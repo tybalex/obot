@@ -39,7 +39,10 @@ export async function readStream<T>({
 
             // Process complete messages
             for (const message of messages) {
-                const dataString = message.replace(/^data: /, "").trim();
+                const dataString = message
+                    .replace(/^id:.*\n/, "")
+                    .replace(/^data: /, "")
+                    .trim();
                 if (dataString) {
                     try {
                         const data = JSON.parse(dataString) as T;
