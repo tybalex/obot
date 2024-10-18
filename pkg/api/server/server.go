@@ -78,7 +78,7 @@ func (s *Server) wrap(f api.HandlerFunc) http.HandlerFunc {
 
 func GetURLPrefix(req api.Context) string {
 	if req.Request.TLS == nil {
-		return "http://" + req.Request.Host
+		return "http://" + req.Request.Host + "/api"
 	}
-	return "https://" + req.Request.Host
+	return "https://" + req.Request.Host + "/api"
 }

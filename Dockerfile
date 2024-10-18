@@ -12,22 +12,19 @@ COPY . .
 
 # Use build cache for Go modules and build
 RUN --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/go/pkg/mod \
     go build -o otto8 main.go
 
 # Second Stage: Final
 FROM cgr.dev/chainguard/wolfi-base
 
-# Set the working directory
-WORKDIR /app
+RUN apk add --no-cache git tini
 
 # Copy the compiled application from the builder stage
-COPY --from=builder /app/otto8 .
-
-VOLUME /data
+COPY --link --from=builder /app/otto8 /bin/
 
 ENV HOME=/data
-
 WORKDIR /data
+VOLUME /data
 # Command to run the application
-CMD ["../otto8", "server"]
+CMD ["tini", "--", "otto8", "server"]
