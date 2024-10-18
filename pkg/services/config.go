@@ -103,8 +103,8 @@ func New(ctx context.Context, config Config) (*Services, error) {
 	devPort, config := configureDevMode(config)
 
 	if strings.HasPrefix(config.DSN, "postgres://") {
-		_ = os.Setenv("KNOW_VECTOR_DB", strings.Replace(config.DSN, "postgres://", "pgvector://", 1))
-		_ = os.Setenv("KNOW_INDEX_DSN", strings.Replace(config.DSN, "postgres://", "pgvector://", 1))
+		_ = os.Setenv("KNOW_VECTOR_DSN", strings.Replace(config.DSN, "postgres://", "pgvector://", 1))
+		_ = os.Setenv("KNOW_INDEX_DSN", config.DSN)
 	}
 
 	storageClient, restConfig, dbAccess, err := storage.Start(ctx, config.Config)
