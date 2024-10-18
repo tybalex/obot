@@ -10,6 +10,7 @@ import { $params } from "remix-routes";
 import { Agent } from "~/lib/model/agents";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
+import { noop } from "~/lib/utils";
 
 import { Chat } from "~/components/chat";
 import { ChatProvider } from "~/components/chat/ChatContext";
@@ -39,7 +40,7 @@ export const clientLoader = async ({ params }: ClientLoaderFunctionArgs) => {
     if (!thread) throw redirect("/threads");
 
     const agent = thread.agentID
-        ? await AgentService.getAgentById(thread.agentID)
+        ? await AgentService.getAgentById(thread.agentID).catch(noop)
         : null;
     const files = await ThreadsService.getFiles(id);
     const knowledge = await ThreadsService.getKnowledge(id);
