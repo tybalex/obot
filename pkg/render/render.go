@@ -3,6 +3,8 @@ package render
 import (
 	"context"
 	"fmt"
+	"maps"
+	"slices"
 	"sort"
 	"strings"
 
@@ -88,6 +90,15 @@ func setupOAuthApps(ctx context.Context, db kclient.Client, agent *v1.Agent) (ex
 		return nil, err
 	}
 
+	activeIntegrations := map[string]v1.OAuthApp{}
+	for _, name := range slices.Sorted(maps.Keys(apps)) {
+		app := apps[name]
+		if app.Spec.Manifest.Integration == "" || !app.Spec.Manifest.Global {
+			continue
+		}
+		activeIntegrations[app.Spec.Manifest.Integration] = app
+	}
+
 	for _, appRef := range agent.Spec.Manifest.OAuthApps {
 		app, ok := apps[appRef]
 		if !ok {
@@ -100,7 +111,11 @@ func setupOAuthApps(ctx context.Context, db kclient.Client, agent *v1.Agent) (ex
 		if !app.Status.External.RefNameAssigned {
 			return nil, fmt.Errorf("oauth app %s has no ref name assigned", app.Name)
 		}
+		activeIntegrations[app.Spec.Manifest.Integration] = app
+	}
 
+	for _, integration := range slices.Sorted(maps.Keys(activeIntegrations)) {
+		app := activeIntegrations[integration]
 		integrationEnv := strings.ReplaceAll(strings.ToUpper(app.Spec.Manifest.Integration), "-", "_")
 
 		extraEnv = append(extraEnv,
