@@ -202,7 +202,7 @@ func (u *UploadHandler) HandleUploadRun(req router.Request, resp router.Response
 	file, err := u.gptscript.ReadFileInWorkspace(req.Ctx, thread.Spec.WorkspaceID, ".metadata.json")
 	if err != nil {
 		// Purposely ignore not found errors.
-		if !strings.HasPrefix(err.Error(), "file not found") {
+		if !strings.HasPrefix(err.Error(), "not found") {
 			return err
 		}
 	} else {

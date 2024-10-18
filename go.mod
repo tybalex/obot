@@ -19,7 +19,7 @@ require (
 	github.com/google/go-github/v62 v62.0.0
 	github.com/google/uuid v1.6.0
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
-	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241017193234-657dcee11924
+	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241018130719-82a0de4f919f
 	github.com/gptscript-ai/gptscript v0.9.6-0.20241017191944-c3a3279b0c2c
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/oauth2-proxy/oauth2-proxy/v7 v7.0.0-00010101000000-000000000000
