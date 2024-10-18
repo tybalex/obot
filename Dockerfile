@@ -2,7 +2,7 @@
 FROM cgr.dev/chainguard/wolfi-base AS builder
 
 # Install build dependencies
-RUN apk add --no-cache go build-base
+RUN apk add --no-cache go build-base npm make
 
 # Set the working directory
 WORKDIR /app
@@ -10,6 +10,7 @@ WORKDIR /app
 # Copy the source code
 COPY . .
 
+RUN make ui
 # Use build cache for Go modules and build
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
