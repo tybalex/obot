@@ -20,13 +20,11 @@ var DefaultAgentParams = []string{
 	"message", "Message to send",
 }
 
-var OAuthServerURL = "http://localhost:8080"
-
 type AgentOptions struct {
 	Thread *v1.Thread
 }
 
-func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, opts AgentOptions) (_ []gptscript.ToolDef, extraEnv []string, _ error) {
+func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, oauthServerURL string, opts AgentOptions) (_ []gptscript.ToolDef, extraEnv []string, _ error) {
 	mainTool := gptscript.ToolDef{
 		Name:         agent.Spec.Manifest.Name,
 		Description:  agent.Spec.Manifest.Description,
@@ -71,7 +69,7 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, opts AgentOp
 		return nil, nil, err
 	}
 
-	if oauthEnv, err := setupOAuthApps(ctx, db, agent); err != nil {
+	if oauthEnv, err := setupOAuthApps(ctx, db, agent, oauthServerURL); err != nil {
 		return nil, nil, err
 	} else {
 		extraEnv = append(extraEnv, oauthEnv...)
@@ -80,7 +78,7 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, opts AgentOp
 	return append([]gptscript.ToolDef{mainTool}, otherTools...), extraEnv, nil
 }
 
-func setupOAuthApps(ctx context.Context, db kclient.Client, agent *v1.Agent) (extraEnv []string, _ error) {
+func setupOAuthApps(ctx context.Context, db kclient.Client, agent *v1.Agent, serverURL string) (extraEnv []string, _ error) {
 	if len(agent.Spec.Manifest.OAuthApps) == 0 {
 		return nil, nil
 	}
@@ -119,9 +117,9 @@ func setupOAuthApps(ctx context.Context, db kclient.Client, agent *v1.Agent) (ex
 		integrationEnv := strings.ReplaceAll(strings.ToUpper(app.Spec.Manifest.Integration), "-", "_")
 
 		extraEnv = append(extraEnv,
-			fmt.Sprintf("GPTSCRIPT_OAUTH_%s_AUTH_URL=%s", integrationEnv, app.AuthorizeURL(OAuthServerURL)),
-			fmt.Sprintf("GPTSCRIPT_OAUTH_%s_REFRESH_URL=%s", integrationEnv, app.RefreshURL(OAuthServerURL)),
-			fmt.Sprintf("GPTSCRIPT_OAUTH_%s_TOKEN_URL=%s", integrationEnv, v1.OAuthAppGetTokenURL(OAuthServerURL)))
+			fmt.Sprintf("GPTSCRIPT_OAUTH_%s_AUTH_URL=%s", integrationEnv, app.AuthorizeURL(serverURL)),
+			fmt.Sprintf("GPTSCRIPT_OAUTH_%s_REFRESH_URL=%s", integrationEnv, app.RefreshURL(serverURL)),
+			fmt.Sprintf("GPTSCRIPT_OAUTH_%s_TOKEN_URL=%s", integrationEnv, v1.OAuthAppGetTokenURL(serverURL)))
 	}
 
 	return extraEnv, nil

@@ -17,14 +17,14 @@ import (
 )
 
 type AgentHandler struct {
-	gptscript         *gptscript.GPTScript
-	workspaceProvider string
+	gptscript *gptscript.GPTScript
+	serverURL string
 }
 
-func NewAgentHandler(gClient *gptscript.GPTScript, wp string) *AgentHandler {
+func NewAgentHandler(gClient *gptscript.GPTScript, serverURL string) *AgentHandler {
 	return &AgentHandler{
-		workspaceProvider: wp,
-		gptscript:         gClient,
+		serverURL: serverURL,
+		gptscript: gClient,
 	}
 }
 
@@ -221,7 +221,7 @@ func (a *AgentHandler) Script(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	tools, extraEnv, err := render.Agent(req.Context(), req.Storage, &agent, render.AgentOptions{})
+	tools, extraEnv, err := render.Agent(req.Context(), req.Storage, &agent, a.serverURL, render.AgentOptions{})
 	if err != nil {
 		return err
 	}

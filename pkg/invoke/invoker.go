@@ -37,15 +37,17 @@ type Invoker struct {
 	tokenService            *jwt.TokenService
 	events                  *events.Emitter
 	threadWorkspaceProvider string
+	serverURL               string
 }
 
-func NewInvoker(c kclient.Client, gptClient *gptscript.GPTScript, workspaceProviderType string, tokenService *jwt.TokenService, events *events.Emitter) *Invoker {
+func NewInvoker(c kclient.Client, gptClient *gptscript.GPTScript, serverURL, workspaceProviderType string, tokenService *jwt.TokenService, events *events.Emitter) *Invoker {
 	return &Invoker{
 		uncached:                c,
 		gptClient:               gptClient,
 		tokenService:            tokenService,
 		events:                  events,
 		threadWorkspaceProvider: workspaceProviderType,
+		serverURL:               serverURL,
 	}
 }
 
@@ -205,7 +207,7 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.Client, agent *v1.Agent, 
 	}
 	credContextIDs = append(credContextIDs, agent.Namespace)
 
-	tools, extraEnv, err := render.Agent(ctx, c, agent, render.AgentOptions{
+	tools, extraEnv, err := render.Agent(ctx, c, agent, i.serverURL, render.AgentOptions{
 		Thread: thread,
 	})
 	if err != nil {

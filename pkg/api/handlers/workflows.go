@@ -17,14 +17,14 @@ import (
 )
 
 type WorkflowHandler struct {
-	gptscript         *gptscript.GPTScript
-	workspaceProvider string
+	gptscript *gptscript.GPTScript
+	serverURL string
 }
 
-func NewWorkflowHandler(gClient *gptscript.GPTScript, wp string) *WorkflowHandler {
+func NewWorkflowHandler(gClient *gptscript.GPTScript, serverURL string) *WorkflowHandler {
 	return &WorkflowHandler{
-		gptscript:         gClient,
-		workspaceProvider: wp,
+		gptscript: gClient,
+		serverURL: serverURL,
 	}
 }
 
@@ -189,7 +189,7 @@ func (a *WorkflowHandler) Script(req api.Context) error {
 		return err
 	}
 
-	tools, extraEnv, err := render.Agent(req.Context(), req.Storage, agent, render.AgentOptions{})
+	tools, extraEnv, err := render.Agent(req.Context(), req.Storage, agent, a.serverURL, render.AgentOptions{})
 	if err != nil {
 		return err
 	}

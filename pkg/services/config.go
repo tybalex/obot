@@ -57,6 +57,7 @@ type Config struct {
 type Services struct {
 	ToolRegistryURL       string
 	WorkspaceProviderType string
+	ServerURL             string
 	DevUIPort             int
 	Events                *events.Emitter
 	StorageClient         storage.Client
@@ -155,7 +156,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 
 	if config.GoogleClientID != "" && config.GoogleClientSecret != "" {
 		// "Authentication Enabled" flow
-		proxyServer, err = proxy.New(authProviderID, proxy.Config(config.AuthConfig))
+		proxyServer, err = proxy.New(config.Hostname, authProviderID, proxy.Config(config.AuthConfig))
 		if err != nil {
 			return nil, fmt.Errorf("failed to start auth server: %w", err)
 		}
@@ -184,6 +185,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 	// For now, always auto-migrate the gateway database
 	return &Services{
 		WorkspaceProviderType: config.WorkspaceProviderType,
+		ServerURL:             config.Hostname,
 		DevUIPort:             devPort,
 		ToolRegistryURL:       config.ToolRegistry,
 		Events:                events,
@@ -192,7 +194,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		GPTClient:             c,
 		APIServer:             server.NewServer(storageClient, c, authn.NewAuthenticator(authenticators), authz.NewAuthorizer()),
 		TokenServer:           tokenServer,
-		Invoker:               invoke.NewInvoker(storageClient, c, config.WorkspaceProviderType, tokenServer, events),
+		Invoker:               invoke.NewInvoker(storageClient, c, config.Hostname, config.WorkspaceProviderType, tokenServer, events),
 		AIHelper:              aihelper.New(c, config.HelperModel),
 		GatewayServer:         gatewayServer,
 		ProxyServer:           proxyServer,

@@ -1,12 +1,11 @@
 package proxy
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
-
-	"errors"
 
 	oauth2proxy "github.com/oauth2-proxy/oauth2-proxy/v7"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/apis/options"
@@ -19,7 +18,6 @@ import (
 var log = mvl.Package()
 
 type Config struct {
-	AuthBaseURI        string   `usage:"Base URI for authentication" default:"http://localhost:8080"`
 	AuthCookieSecret   string   `usage:"Secret used to encrypt cookie"`
 	AuthEmailDomains   string   `usage:"Email domains allowed for authentication" default:"*"`
 	AuthAdminEmails    []string `usage:"Emails admin users"`
@@ -32,7 +30,7 @@ type Proxy struct {
 	authProviderID string
 }
 
-func New(authProviderID uint, cfg Config) (*Proxy, error) {
+func New(serverURL string, authProviderID uint, cfg Config) (*Proxy, error) {
 	oauthProxyOpts, err := options.NewLegacyOptions().ToOptions()
 	if err != nil {
 		return nil, err
@@ -44,7 +42,7 @@ func New(authProviderID uint, cfg Config) (*Proxy, error) {
 	oauthProxyOpts.Cookie.Refresh = time.Hour
 	oauthProxyOpts.Cookie.Name = "otto_access_token"
 	oauthProxyOpts.Cookie.Secret = cfg.AuthCookieSecret
-	oauthProxyOpts.Cookie.Secure = strings.HasPrefix(cfg.AuthBaseURI, "https://")
+	oauthProxyOpts.Cookie.Secure = strings.HasPrefix(serverURL, "https://")
 	oauthProxyOpts.UpstreamServers = options.UpstreamConfig{
 		Upstreams: []options.Upstream{
 			{
@@ -56,7 +54,7 @@ func New(authProviderID uint, cfg Config) (*Proxy, error) {
 		},
 	}
 
-	oauthProxyOpts.RawRedirectURL = cfg.AuthBaseURI + "/oauth2/callback"
+	oauthProxyOpts.RawRedirectURL = serverURL + "/oauth2/callback"
 	oauthProxyOpts.Providers[0].ClientID = cfg.GoogleClientID
 	oauthProxyOpts.Providers[0].ClientSecret = cfg.GoogleClientSecret
 	oauthProxyOpts.ReverseProxy = true
