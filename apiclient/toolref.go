@@ -12,7 +12,7 @@ type ListToolReferencesOptions struct {
 }
 
 func (c *Client) GetToolReference(ctx context.Context, id string) (result *types.ToolReference, _ error) {
-	_, resp, err := c.doRequest(ctx, "GET", fmt.Sprintf("/toolreferences/%s", id), nil)
+	_, resp, err := c.doRequest(ctx, "GET", fmt.Sprintf("/tool-references/%s", id), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -22,9 +22,9 @@ func (c *Client) GetToolReference(ctx context.Context, id string) (result *types
 }
 
 func (c *Client) ListToolReferences(ctx context.Context, opts ListToolReferencesOptions) (result types.ToolReferenceList, _ error) {
-	path := "/toolreferences"
+	path := "/tool-references"
 	if opts.ToolType != "" {
-		path = fmt.Sprintf("/toolreferences?type=%s", opts.ToolType)
+		path = fmt.Sprintf("/tool-references?type=%s", opts.ToolType)
 	}
 	_, resp, err := c.doRequest(ctx, "GET", path, nil)
 	if err != nil {
@@ -37,7 +37,7 @@ func (c *Client) ListToolReferences(ctx context.Context, opts ListToolReferences
 }
 
 func (c *Client) UpdateToolReference(ctx context.Context, id, reference string) (*types.ToolReference, error) {
-	_, resp, err := c.putJSON(ctx, fmt.Sprintf("/toolreferences/%s", id), map[string]string{
+	_, resp, err := c.putJSON(ctx, fmt.Sprintf("/tool-references/%s", id), map[string]string{
 		"reference": reference,
 	})
 	if err != nil {
@@ -49,9 +49,9 @@ func (c *Client) UpdateToolReference(ctx context.Context, id, reference string) 
 }
 
 func (c *Client) DeleteToolReference(ctx context.Context, id string, toolType types.ToolReferenceType) error {
-	path := fmt.Sprintf("/toolreferences/%s", id)
+	path := fmt.Sprintf("/tool-references/%s", id)
 	if toolType != "" {
-		path = fmt.Sprintf("/toolreferences/%s?type=%s", id, toolType)
+		path = fmt.Sprintf("/tool-references/%s?type=%s", id, toolType)
 	}
 	_, resp, err := c.doRequest(ctx, "DELETE", path, nil)
 	if err != nil {
@@ -62,7 +62,7 @@ func (c *Client) DeleteToolReference(ctx context.Context, id string, toolType ty
 }
 
 func (c *Client) CreateToolReference(ctx context.Context, manifest types.ToolReferenceManifest) (*types.ToolReference, error) {
-	_, resp, err := c.postJSON(ctx, fmt.Sprintf("/toolreferences"), &manifest)
+	_, resp, err := c.postJSON(ctx, fmt.Sprintf("/tool-references"), &manifest)
 	if err != nil {
 		return nil, err
 	}

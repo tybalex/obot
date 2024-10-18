@@ -84,6 +84,13 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("DELETE /api/threads/{id}/knowledge/{file...}", threads.DeleteKnowledge)
 
 	// ToolRefs
+	mux.HandleFunc("GET /api/tool-references", toolRefs.List)
+	mux.HandleFunc("GET /api/tool-references/{id}", toolRefs.ByID)
+	mux.HandleFunc("POST /api/tool-references", toolRefs.Create)
+	mux.HandleFunc("DELETE /api/tool-references/{id}", toolRefs.Delete)
+	mux.HandleFunc("PUT /api/tool-references/{id}", toolRefs.Update)
+
+	// Deprecated routes
 	mux.HandleFunc("GET /api/toolreferences", toolRefs.List)
 	mux.HandleFunc("GET /api/toolreferences/{id}", toolRefs.ByID)
 	mux.HandleFunc("POST /api/toolreferences", toolRefs.Create)

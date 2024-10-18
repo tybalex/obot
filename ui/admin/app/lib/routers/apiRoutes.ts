@@ -90,9 +90,9 @@ export const ApiRoutes = {
     },
     toolReferences: {
         base: (params?: { type?: ToolReferenceType }) =>
-            buildUrl("/toolreferences", params),
+            buildUrl("/tool-references", params),
         getById: (toolReferenceId: string) =>
-            buildUrl(`/toolreferences/${toolReferenceId}`),
+            buildUrl(`/tool-references/${toolReferenceId}`),
     },
     users: {
         base: () => buildUrl("/users"),
