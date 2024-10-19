@@ -1,33 +1,32 @@
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
+import { KeyIcon } from "lucide-react";
 import { useMemo } from "react";
 import useSWR from "swr";
 
-import { OAuthApp, OAuthAppSpec } from "~/lib/model/oauthApps";
+import { OAuthApp } from "~/lib/model/oauthApps";
 import { OauthAppService } from "~/lib/service/api/oauthAppService";
 import { cn } from "~/lib/utils";
 
 import { DataTable } from "~/components/composed/DataTable";
+import { useOAuthAppSpec } from "~/hooks/oauthApps/useOAuthAppSpec";
 
 import { DeleteOAuthApp } from "./DeleteOAuthApp";
+import { EditOAuthApp } from "./EditOAuthApp";
 
 type Row = OAuthApp & { created?: string; isGateway?: boolean };
 const columnHelper = createColumnHelper<Row>();
 
-export function OAuthAppList({
-    defaultData,
-    spec,
-}: {
-    defaultData: OAuthApp[];
-    spec: OAuthAppSpec;
-}) {
+export function OAuthAppList() {
+    const { data: spec } = useOAuthAppSpec();
+
     const { data: apps } = useSWR(
         OauthAppService.getOauthApps.key(),
         OauthAppService.getOauthApps,
-        { fallbackData: defaultData }
+        { fallbackData: [] }
     );
 
     const rows = useMemo<Row[]>(() => {
-        const typesWithNoApps = Object.entries(spec)
+        const typesWithNoApps = Array.from(spec.entries())
             .map(([type, { displayName }]) => {
                 if (apps.some((app) => app.type === type)) return null;
 
@@ -61,13 +60,34 @@ export function OAuthAppList({
 
     function getColumns(): ColumnDef<Row, string>[] {
         return [
+            columnHelper.display({
+                id: "icon",
+                cell: ({ row }) => {
+                    const app = row.original;
+                    const { icon } = spec.get(app.type) || {};
+                    return icon ? (
+                        <img
+                            src={icon}
+                            alt={app.type}
+                            className={cn("w-4 h-4", {
+                                invisible: !icon,
+                            })}
+                        />
+                    ) : (
+                        <KeyIcon className="w-4 h-4" />
+                    );
+                },
+            }),
+            columnHelper.accessor(
+                (app) => spec.get(app.type)?.displayName ?? app.type,
+                {
+                    id: "type",
+                    header: "Type",
+                }
+            ),
             columnHelper.accessor((app) => app.name ?? app.id, {
                 id: "name",
                 header: "Name / Id",
-            }),
-            columnHelper.accessor((app) => spec[app.type].displayName, {
-                id: "type",
-                header: "Type",
             }),
             columnHelper.accessor(
                 (app) =>
@@ -79,6 +99,7 @@ export function OAuthAppList({
                 cell: ({ row }) =>
                     !row.original.isGateway && (
                         <div className="flex justify-end gap-2">
+                            <EditOAuthApp oauthApp={row.original} />
                             <DeleteOAuthApp id={row.original.id} />
                         </div>
                     ),

@@ -3,7 +3,6 @@ import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { mutate } from "swr";
 
-import { OAuthAppSpec, OAuthAppType } from "~/lib/model/oauthApps";
 import { OauthAppService } from "~/lib/service/api/oauthAppService";
 
 import { Button } from "~/components/ui/button";
@@ -20,21 +19,17 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "~/components/ui/popover";
+import { useOAuthAppSpec } from "~/hooks/oauthApps/useOAuthAppSpec";
 import { useAsync } from "~/hooks/useAsync";
 import { useDisclosure } from "~/hooks/useDisclosure";
 
 import { OAuthAppForm } from "./OAuthAppForm";
 
-type CreateOauthAppProps = {
-    spec: OAuthAppSpec;
-};
-
-export function CreateOauthApp({ spec }: CreateOauthAppProps) {
+export function CreateOauthApp() {
     const selectModal = useDisclosure();
+    const { data: spec } = useOAuthAppSpec();
 
-    const [selectedAppKey, setSelectedAppKey] = useState<OAuthAppType | null>(
-        null
-    );
+    const [selectedAppKey, setSelectedAppKey] = useState<string | null>(null);
 
     const createApp = useAsync(OauthAppService.createOauthApp, {
         onSuccess: () => {
@@ -42,6 +37,8 @@ export function CreateOauthApp({ spec }: CreateOauthAppProps) {
             setSelectedAppKey(null);
         },
     });
+
+    const selectedSpec = selectedAppKey ? spec.get(selectedAppKey) : null;
 
     return (
         <>
@@ -62,15 +59,13 @@ export function CreateOauthApp({ spec }: CreateOauthAppProps) {
 
                         <CommandList>
                             <CommandGroup>
-                                {Object.entries(spec).map(
+                                {Array.from(spec.entries()).map(
                                     ([key, { displayName }]) => (
                                         <CommandItem
                                             key={key}
                                             value={displayName}
                                             onSelect={() => {
-                                                setSelectedAppKey(
-                                                    key as OAuthAppType
-                                                );
+                                                setSelectedAppKey(key);
                                                 selectModal.onClose();
                                             }}
                                         >
@@ -89,20 +84,19 @@ export function CreateOauthApp({ spec }: CreateOauthAppProps) {
                 onOpenChange={() => setSelectedAppKey(null)}
             >
                 <DialogContent>
-                    {selectedAppKey && spec[selectedAppKey] && (
+                    {selectedAppKey && selectedSpec && (
                         <>
                             <DialogTitle>
-                                Create {spec[selectedAppKey].displayName} OAuth
-                                App
+                                Create {selectedSpec.displayName} OAuth App
                             </DialogTitle>
 
                             <DialogDescription>
                                 Create a new OAuth app for{" "}
-                                {spec[selectedAppKey].displayName}
+                                {selectedSpec.displayName}
                             </DialogDescription>
 
                             <OAuthAppForm
-                                appSpec={spec[selectedAppKey]}
+                                appSpec={selectedSpec}
                                 onSubmit={(data) =>
                                     createApp.execute({
                                         type: selectedAppKey,
