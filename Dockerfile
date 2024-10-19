@@ -17,9 +17,9 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
     go build -o otto8 main.go
 
 # Second Stage: Final
-FROM cgr.dev/chainguard/wolfi-base
+FROM ubuntu:22.04
 
-RUN apk add --no-cache git tini
+RUN apt-get update && apt install -y git tini
 
 # Copy the compiled application from the builder stage
 COPY --link --from=builder /app/otto8 /bin/

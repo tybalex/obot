@@ -73,8 +73,8 @@ github.com/acorn-io/baaah v0.0.0-20241017212231-096ce8555b5f h1:T6XYeXfrspHSwOCJ
 github.com/acorn-io/baaah v0.0.0-20241017212231-096ce8555b5f/go.mod h1:FTdfwOSepj32acbdMwoqe5pwFTYhNG0UQhCXxgHuEzM=
 github.com/acorn-io/broadcaster v0.0.0-20240105011354-bfadd4a7b45d h1:hfpNQkJ4I2b8+DbMr8m97gG67ku0uPsMzUfskVu3cHU=
 github.com/acorn-io/broadcaster v0.0.0-20240105011354-bfadd4a7b45d/go.mod h1:WF6FYrEqW0+ZtY5OKb21JhSL0aeL5VJoVrm+u0d4gOE=
-github.com/acorn-io/mink v0.0.0-20241017214326-9ad08ca68c7a h1:UJuG4PLuGZQ5cDjdqBbiDO2OQr2UuLwMfLAX3XX3LXs=
-github.com/acorn-io/mink v0.0.0-20241017214326-9ad08ca68c7a/go.mod h1:8oQd22FJQbhQLTI+i4llI34+sGQC/ZS6reayoALk8eo=
+github.com/acorn-io/mink v0.0.0-20241019043522-c80c1a36ee59 h1:bPs5d5p4eqhHsM651VKDnyuT96RpMm+lUHX2IzCgC2I=
+github.com/acorn-io/mink v0.0.0-20241019043522-c80c1a36ee59/go.mod h1:8oQd22FJQbhQLTI+i4llI34+sGQC/ZS6reayoALk8eo=
 github.com/adrg/xdg v0.5.1 h1:Im8iDbEFARltY09yOJlSGu4Asjk2vF85+3Dyru8uJ0U=
 github.com/adrg/xdg v0.5.1/go.mod h1:nlTsY+NNiCBGCK2tpm09vRqfVzrc2fLmXGpBLF0zlTQ=
 github.com/alecthomas/assert/v2 v2.7.0 h1:QtqSACNS3tF7oasA8CU6A6sXZSBDqnm7RfpLl9bZqbE=
