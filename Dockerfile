@@ -19,7 +19,7 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 # Second Stage: Final
 FROM ubuntu:22.04
 
-RUN apt-get update && apt install -y git tini
+RUN apt-get update && apt install -y git tini openssh-server
 
 # Copy the compiled application from the builder stage
 COPY --link --from=builder /app/otto8 /bin/
