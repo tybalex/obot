@@ -4,7 +4,7 @@ import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import { SquarePen, Trash } from "lucide-react";
 import { useMemo } from "react";
 import { $path } from "remix-routes";
-import useSWR from "swr";
+import useSWR, { preload } from "swr";
 
 import { Agent } from "~/lib/model/agents";
 import { AgentService } from "~/lib/service/api/agentService";
@@ -22,6 +22,14 @@ import {
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { useAsync } from "~/hooks/useAsync";
+
+export async function clientLoader() {
+    await Promise.all([
+        preload(AgentService.getAgents.key(), AgentService.getAgents),
+        preload(ThreadsService.getThreads.key(), ThreadsService.getThreads),
+    ]);
+    return null;
+}
 
 export default function Threads() {
     const navigate = useNavigate();
