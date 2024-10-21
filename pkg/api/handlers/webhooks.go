@@ -15,15 +15,26 @@ import (
 	"github.com/otto8-ai/otto8/pkg/api/server"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
+	"golang.org/x/crypto/bcrypt"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	PasswordHTTPHeader = "X-Otto8-Webhook-Password"
+	PasswordQueryParam = "webhookPassword"
 )
 
 type WebhookHandler struct{}
 
 func NewWebhookHandler() *WebhookHandler {
 	return new(WebhookHandler)
+}
+
+type webhookRequest struct {
+	types.WebhookManifest `json:",inline"`
+	Password              string `json:"password"`
 }
 
 func (a *WebhookHandler) Update(req api.Context) error {
@@ -36,16 +47,25 @@ func (a *WebhookHandler) Update(req api.Context) error {
 		return err
 	}
 
-	var manifest types.WebhookManifest
-	if err := req.Read(&manifest); err != nil {
+	var webhookReq webhookRequest
+	if err := req.Read(&webhookReq); err != nil {
 		return err
 	}
 
-	if err := validateManifest(req, manifest); err != nil {
+	if err := validateManifest(req, webhookReq.WebhookManifest); err != nil {
 		return err
 	}
 
-	wh.Spec.WebhookManifest = manifest
+	if webhookReq.Password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(webhookReq.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return fmt.Errorf("failed to hash password: %w", err)
+		}
+		wh.Spec.PasswordHash = hash
+		webhookReq.Password = ""
+	}
+
+	wh.Spec.WebhookManifest = webhookReq.WebhookManifest
 	for i, h := range wh.Spec.Headers {
 		wh.Spec.Headers[i] = textproto.CanonicalMIMEHeaderKey(h)
 	}
@@ -71,12 +91,12 @@ func (a *WebhookHandler) Delete(req api.Context) error {
 }
 
 func (a *WebhookHandler) Create(req api.Context) error {
-	var manifest types.WebhookManifest
-	if err := req.Read(&manifest); err != nil {
+	var webhookReq webhookRequest
+	if err := req.Read(&webhookReq); err != nil {
 		return err
 	}
 
-	if err := validateManifest(req, manifest); err != nil {
+	if err := validateManifest(req, webhookReq.WebhookManifest); err != nil {
 		return err
 	}
 
@@ -86,8 +106,17 @@ func (a *WebhookHandler) Create(req api.Context) error {
 			Namespace:    req.Namespace(),
 		},
 		Spec: v1.WebhookSpec{
-			WebhookManifest: manifest,
+			WebhookManifest: webhookReq.WebhookManifest,
 		},
+	}
+
+	if webhookReq.Password != "" {
+		hash, err := bcrypt.GenerateFromPassword([]byte(webhookReq.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return fmt.Errorf("failed to hash password: %w", err)
+		}
+		webhookReq.Password = ""
+		wh.Spec.PasswordHash = hash
 	}
 
 	for i, h := range wh.Spec.Headers {
@@ -162,6 +191,18 @@ func (a *WebhookHandler) Execute(req api.Context) error {
 
 	if webhook.Spec.ValidationHeader != "" {
 		if err = validateSecretHeader(webhook.Spec.Secret, body, req.Request.Header.Values(webhook.Spec.ValidationHeader)); err != nil {
+			req.WriteHeader(http.StatusForbidden)
+			return nil
+		}
+	}
+
+	if webhook.Spec.PasswordHash != nil {
+		password := req.Request.Header.Get(PasswordHTTPHeader)
+		if password == "" {
+			password = req.Request.URL.Query().Get(PasswordQueryParam)
+		}
+
+		if err := bcrypt.CompareHashAndPassword(webhook.Spec.PasswordHash, []byte(password)); err != nil {
 			req.WriteHeader(http.StatusForbidden)
 			return nil
 		}

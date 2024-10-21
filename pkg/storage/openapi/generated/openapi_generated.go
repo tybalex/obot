@@ -6035,6 +6035,12 @@ func schema_storage_apis_ottogptscriptai_v1_WebhookSpec(ref common.ReferenceCall
 							Format: "",
 						},
 					},
+					"passwordHash": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "byte",
+						},
+					},
 				},
 			},
 		},

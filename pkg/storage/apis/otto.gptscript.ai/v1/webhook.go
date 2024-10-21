@@ -43,6 +43,7 @@ func (w *Webhook) GetConditions() *[]metav1.Condition {
 
 type WebhookSpec struct {
 	types.WebhookManifest `json:",inline"`
+	PasswordHash          []byte `json:"passwordHash,omitempty"`
 }
 
 type WebhookStatus struct {
