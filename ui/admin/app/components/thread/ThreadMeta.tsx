@@ -1,5 +1,6 @@
 import { Link } from "@remix-run/react";
 import { EditIcon, FileIcon, FilesIcon } from "lucide-react";
+import { $path } from "remix-routes";
 
 import { Agent } from "~/lib/model/agents";
 import { KnowledgeFile } from "~/lib/model/knowledge";
@@ -61,7 +62,20 @@ export function ThreadMeta({
                                                 asChild
                                             >
                                                 <Link
-                                                    to={`/agent/${agent.id}?from=/thread/${thread.id}`}
+                                                    to={$path(
+                                                        "/agents/:agent",
+                                                        {
+                                                            agent: agent.id,
+                                                        },
+                                                        {
+                                                            from: $path(
+                                                                "/thread/:id",
+                                                                {
+                                                                    id: thread.id,
+                                                                }
+                                                            ),
+                                                        }
+                                                    )}
                                                 >
                                                     <EditIcon className="w-4 h-4" />
                                                 </Link>

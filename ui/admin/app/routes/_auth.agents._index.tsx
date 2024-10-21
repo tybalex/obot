@@ -5,11 +5,11 @@ import { SquarePen, Trash } from "lucide-react";
 import { useMemo } from "react";
 import { $path } from "remix-routes";
 import useSWR, { preload } from "swr";
+import { z } from "zod";
 
 import { Agent } from "~/lib/model/agents";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
-import { generateRandomName } from "~/lib/service/nameGenerator";
 import { timeSince } from "~/lib/utils";
 
 import { TypographyP } from "~/components/Typography";
@@ -22,6 +22,10 @@ import {
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { useAsync } from "~/hooks/useAsync";
+
+export const agentEditParamSchema = z.object({
+    from: z.string().optional(),
+});
 
 export async function clientLoader() {
     await Promise.all([
@@ -74,7 +78,7 @@ export default function Threads() {
                             onClick={() => {
                                 AgentService.createAgent({
                                     agent: {
-                                        name: generateRandomName(),
+                                        name: "New Agent",
                                     } as Agent,
                                 }).then((agent) => {
                                     navigate(

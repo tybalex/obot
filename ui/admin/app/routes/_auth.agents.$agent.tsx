@@ -1,7 +1,5 @@
-import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import {
     ClientLoaderFunctionArgs,
-    Link,
     redirect,
     useLoaderData,
     useNavigate,
@@ -15,18 +13,11 @@ import { noop, parseQueryParams } from "~/lib/utils";
 
 import { Agent } from "~/components/agent";
 import { Chat, ChatProvider } from "~/components/chat";
-import { Button } from "~/components/ui/button";
 import {
     ResizableHandle,
     ResizablePanel,
     ResizablePanelGroup,
 } from "~/components/ui/resizable";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "~/components/ui/tooltip";
 
 const paramSchema = z.object({
     threadId: z.string().optional(),
@@ -57,7 +48,7 @@ export const clientLoader = async ({
 };
 
 export default function ChatAgent() {
-    const { agent, threadId, from } = useLoaderData<typeof clientLoader>();
+    const { agent, threadId } = useLoaderData<typeof clientLoader>();
     const navigate = useNavigate();
 
     const updateThreadId = useCallback(
@@ -85,26 +76,11 @@ export default function ChatAgent() {
                     className="flex-auto"
                 >
                     <ResizablePanel>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="m-4"
-                                    asChild
-                                >
-                                    <TooltipTrigger>
-                                        <Link to={from ?? "/agents"}>
-                                            <ArrowLeftIcon className="h-4 w-4" />
-                                        </Link>
-                                    </TooltipTrigger>
-                                </Button>
-                                <TooltipContent>Go Back</TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
                         <Agent
                             agent={agent}
-                            onRefresh={() => updateThreadId(null)}
+                            onRefresh={(threadId: string | null) =>
+                                updateThreadId(threadId)
+                            }
                         />
                     </ResizablePanel>
                     <ResizableHandle withHandle />

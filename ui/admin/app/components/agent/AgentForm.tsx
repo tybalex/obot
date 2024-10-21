@@ -5,11 +5,9 @@ import { z } from "zod";
 
 import { Agent } from "~/lib/model/agents";
 
-import {
-    ControlledInput,
-    ControlledTextarea,
-} from "~/components/form/controlledInputs";
 import { Form } from "~/components/ui/form";
+
+import { ControlledInput } from "../form/controlledInputs";
 
 const formSchema = z.object({
     name: z.string().min(1, {
@@ -60,28 +58,19 @@ export function AgentForm({ agent, onSubmit, onChange }: AgentFormProps) {
 
     return (
         <Form {...form}>
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-4">
                 <ControlledInput
+                    autoComplete="off"
                     control={form.control}
                     name="name"
-                    label="Name"
-                    placeholder="Give the agent a name."
+                    className="text-3xl shadow-none cursor-pointer hover:border-primary px-0 mb-0 font-bold outline-none border-transparent focus:border-primary"
                 />
-
-                <ControlledTextarea
+                <ControlledInput
                     control={form.control}
-                    rows={4}
+                    autoComplete="off"
                     name="description"
-                    label="Description"
-                    placeholder="Describe the agent."
-                />
-
-                <ControlledTextarea
-                    control={form.control}
-                    rows={4}
-                    name="prompt"
-                    label="Prompt"
-                    placeholder="What should the agent do?"
+                    placeholder="Add a description..."
+                    className="text-xl text-muted-foreground font-semibold shadow-none cursor-pointer hover:border-primary px-0 outline-none border-transparent focus:border-primary"
                 />
             </form>
         </Form>

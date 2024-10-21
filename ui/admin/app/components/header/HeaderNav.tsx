@@ -1,5 +1,5 @@
-import { useLocation, useParams } from "@remix-run/react";
-import { MenuIcon } from "lucide-react";
+import { Link, useLocation, useParams } from "@remix-run/react";
+import { ArrowLeftIcon, MenuIcon } from "lucide-react";
 import { $params, $path } from "remix-routes";
 import useSWR from "swr";
 
@@ -98,6 +98,10 @@ function getHeaderContent(route: string) {
 }
 
 const AgentEditContent = () => {
+    const { from } =
+        parseQueryParams(window.location.href, QueryParamSchemas.Agents).data ||
+        {};
+
     const params = useParams();
     const { agent: agentId } = $params("/agents/:agent", params);
 
@@ -106,7 +110,18 @@ const AgentEditContent = () => {
         ({ agentId }) => AgentService.getAgentById(agentId)
     );
 
-    return <>{agent?.name || "New Agent"}</>;
+    return (
+        <div className="flex items-center gap-1">
+            {from && (
+                <Button variant="ghost" size="icon" asChild>
+                    <Link to={from ?? $path("/agents")}>
+                        <ArrowLeftIcon className="h-4 w-4" />
+                    </Link>
+                </Button>
+            )}
+            {agent?.name || "New Agent"}
+        </div>
+    );
 };
 
 const ThreadsContent = () => {

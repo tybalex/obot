@@ -71,27 +71,6 @@ export function ToolForm({
     return (
         <Form {...form}>
             <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-                <div className="flex justify-end w-full my-4">
-                    <Popover>
-                        <PopoverTrigger>
-                            <Button variant="secondary">
-                                <PlusIcon className="w-4 h-4 mr-2" /> Add Tool
-                            </Button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                            side="left"
-                            className="p-0 border-none"
-                            align="end"
-                            sideOffset={20}
-                        >
-                            <ToolCatalog
-                                tools={toolValues}
-                                onChangeTools={handleToolsChange}
-                                invert={true}
-                            />
-                        </PopoverContent>
-                    </Popover>
-                </div>
                 <FormField
                     control={form.control}
                     name="tools"
@@ -127,6 +106,31 @@ export function ToolForm({
                                         </Button>
                                     </div>
                                 ))}
+                            </div>
+                            <div className="flex justify-end w-full my-4">
+                                <Popover>
+                                    <PopoverTrigger>
+                                        <Button
+                                            variant="secondary"
+                                            className="mt-4 mb-4"
+                                        >
+                                            <PlusIcon className="w-4 h-4 mr-2" />{" "}
+                                            Add Tool
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent
+                                        side="left"
+                                        className="p-0 border-none"
+                                        align="end"
+                                        sideOffset={20}
+                                    >
+                                        <ToolCatalog
+                                            tools={toolValues}
+                                            onChangeTools={handleToolsChange}
+                                            invert={true}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
                             </div>
                             <FormMessage />
                         </FormItem>

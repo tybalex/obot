@@ -103,7 +103,7 @@ export function ControlledTextarea<
                     {label && <FormLabel>{label}</FormLabel>}
 
                     {description && (
-                        <FormDescription hidden>{description}</FormDescription>
+                        <FormDescription>{description}</FormDescription>
                     )}
 
                     <FormControl>

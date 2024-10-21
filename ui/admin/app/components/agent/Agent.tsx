@@ -1,12 +1,15 @@
-import { LibraryIcon, RotateCcw, WrenchIcon } from "lucide-react";
+import { LibraryIcon, PlusIcon, SettingsIcon, WrenchIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { Agent as AgentType } from "~/lib/model/agents";
 import { cn } from "~/lib/utils";
 
 import { TypographyP } from "~/components/Typography";
+import { AdvancedForm } from "~/components/agent/AdvancedForm";
 import { AgentProvider, useAgent } from "~/components/agent/AgentContext";
 import { AgentForm } from "~/components/agent/AgentForm";
+import { PastThreads } from "~/components/agent/PastThreads";
+import { ToolForm } from "~/components/agent/ToolForm";
 import { AgentKnowledgePanel } from "~/components/knowledge";
 import {
     Accordion,
@@ -18,12 +21,10 @@ import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { useDebounce } from "~/hooks/useDebounce";
 
-import { ToolForm } from "./ToolForm";
-
 type AgentProps = {
     agent: AgentType;
     className?: string;
-    onRefresh?: () => void;
+    onRefresh?: (threadId: string | null) => void;
 };
 
 export function Agent(props: AgentProps) {
@@ -52,6 +53,13 @@ function AgentContent({ className, onRefresh }: AgentProps) {
 
     const debouncedSetAgentInfo = useDebounce(partialSetAgent, 1000);
 
+    const handleThreadSelect = useCallback(
+        (threadId: string) => {
+            onRefresh?.(threadId);
+        },
+        [onRefresh]
+    );
+
     return (
         <div className="h-full flex flex-col">
             <ScrollArea className={cn("h-full", className)}>
@@ -62,15 +70,27 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                     />
                 </div>
 
-                <Accordion type="multiple" className="p-4 flex-auto">
-                    <AccordionItem value="tools-form">
-                        <AccordionTrigger>
-                            <span className="flex items-center gap-2 justify-center">
-                                <WrenchIcon className="w-4 h-4" />
+                <Accordion
+                    type="multiple"
+                    className="p-4 flex-auto space-y-4"
+                    defaultValue={["tools-form", "knowledge-form"]}
+                >
+                    <AccordionItem
+                        value="tools-form"
+                        className="border rounded-lg px-4 shadow-md"
+                    >
+                        <AccordionTrigger className="hover:no-underline">
+                            <span className="flex items-center gap-2 justify-center border-success/50 text-lg bg-success-foreground border w-full rounded-lg mr-2 p-2 hover:bg-success/20 text-success">
+                                <WrenchIcon className="w-6 h-6" />
                                 Tools
                             </span>
                         </AccordionTrigger>
                         <AccordionContent className="p-2">
+                            <p className="text-muted-foreground flex items-center gap-2">
+                                Add tools the allow the agent to perform useful
+                                actions such as searching the web, reading
+                                files, or interacting with other systems.
+                            </p>
                             <ToolForm
                                 agent={agentUpdates}
                                 onChange={debouncedSetAgentInfo}
@@ -78,16 +98,42 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                         </AccordionContent>
                     </AccordionItem>
 
-                    <AccordionItem value="knowledge-form">
-                        <AccordionTrigger>
-                            <span className="flex items-center gap-2 justify-center">
-                                <LibraryIcon className="w-4 h-4" />
+                    <AccordionItem
+                        value="knowledge-form"
+                        className="border rounded-lg px-4 shadow-md"
+                    >
+                        <AccordionTrigger className="hover:no-underline">
+                            <span className="flex items-center gap-2 justify-center text-lg border-info/50 bg-info-foreground border w-full rounded-lg mr-2 p-2 hover:bg-info/20 text-info">
+                                <LibraryIcon className="w-6 h-6" />
                                 Knowledge
                             </span>
                         </AccordionTrigger>
 
-                        <AccordionContent>
+                        <AccordionContent className="p-2 mb-4">
+                            <p className="text-sm text-muted-foreground mb-2 pb-4">
+                                Provide knowledge to the agent in the form of
+                                files, website, or external links in order to
+                                give it context about various topics.
+                            </p>
                             <AgentKnowledgePanel agentId={agent.id} />
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    <AccordionItem
+                        value="advanced-form"
+                        className="border rounded-lg px-4 shadow-md"
+                    >
+                        <AccordionTrigger className="hover:no-underline">
+                            <span className="flex items-center gap-2 justify-center text-lg border-muted-foreground/50 bg-muted border w-full rounded-lg mr-2 p-2 hover:bg-muted-foreground/20 dark:hover:bg-muted-foreground/10 text-muted-foreground">
+                                <SettingsIcon className="w-6 h-6" />
+                                Advanced
+                            </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="p-2 mb-4">
+                            <AdvancedForm
+                                agent={agentUpdates}
+                                onChange={debouncedSetAgentInfo}
+                            />
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
@@ -102,13 +148,22 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                     <div />
                 )}
 
-                <Button
-                    variant="secondary"
-                    className="flex gap-2"
-                    onClick={onRefresh}
-                >
-                    <RotateCcw className="w-4 h-4" /> Restart Chat
-                </Button>
+                <div className="flex gap-2">
+                    <PastThreads
+                        agentId={agent.id}
+                        onThreadSelect={handleThreadSelect}
+                    />
+                    <Button
+                        variant="secondary"
+                        className="flex gap-2"
+                        onClick={() => {
+                            onRefresh?.(null);
+                        }}
+                    >
+                        <PlusIcon className="w-4 h-4" />
+                        New Thread
+                    </Button>
+                </div>
             </footer>
         </div>
     );
