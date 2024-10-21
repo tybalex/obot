@@ -2,8 +2,8 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -15,12 +15,12 @@ jobs:
           - os: ubuntu-latest
             goos: linux
             goarch: amd64
-              #- os: ubuntu-latest
-              #  goos: linux
-              #  goarch: arm64
-              #- os: macos-latest
-              #  goos: darwin
-              #  goarch: arm64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
 
     steps:
     - name: Checkout code
@@ -69,7 +69,8 @@ jobs:
       id: checksum
       run: |
         LINUX_SHA256=$(sha256sum ./artifacts/otto8-linux-amd64 | awk '{ print $1 }')
-        MACOS_SHA256=$(sha256sum ./artifacts/otto8-darwin-amd64 | awk '{ print $1 }')
+        LINUX_ARM_SHA256=$(sha256sum ./artifacts/otto8-linux-arm64 | awk '{ print $1 }')
+        MACOS_SHA256=$(sha256sum ./artifacts/otto8-darwin-arm64 | awk '{ print $1 }')
         echo "LINUX_SHA256=$LINUX_SHA256" >> $GITHUB_ENV
         echo "MACOS_SHA256=$MACOS_SHA256" >> $GITHUB_ENV
 
@@ -77,6 +78,7 @@ jobs:
       run: |
         cp Formula/otto8.rb.tmpl Formula/otto8.rb
         sed -i "s/__LINUX_SHA256__/$LINUX_SHA256/g" Formula/otto8.rb
+        sed -i "s/__LINUX_ARM_SHA256__/$LINUX_ARM_SHA256/g" Formula/otto8.rb
         sed -i "s/__MACOS_SHA256__/$MACOS_SHA256/g" Formula/otto8.rb
         sed -i "s/__VERSION__/${{ github.run_number }}/g" Formula/otto8.rb
 

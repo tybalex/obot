@@ -31,4 +31,4 @@ jobs:
       with:
         context: .
         push: true
-        tags: ghcr.io/${{ github.repository }}/otto8:main
+        tags: ghcr.io/${{ github.repository }}:main
