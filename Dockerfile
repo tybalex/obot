@@ -25,9 +25,9 @@ RUN mkdir /run/sshd && /usr/sbin/sshd
 
 
 # Copy the compiled application from the builder stage
-COPY --link --from=builder /app/bin/otto8 /bin/
+COPY --from=builder /app/bin/otto8 /bin/
 COPY --link --from=builder /app/otto8-tools /otto8-tools
-COPY --chmod=0755 --link <<EOF /bin/run.sh
+COPY --chmod=0755 <<EOF /bin/run.sh
 #!/bin/bash
 mkdir -p /run/sshd
 /usr/sbin/sshd -D &
