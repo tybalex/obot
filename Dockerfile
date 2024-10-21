@@ -2,7 +2,7 @@
 FROM cgr.dev/chainguard/wolfi-base AS builder
 
 # Install build dependencies
-RUN apk add --no-cache go build-base npm make
+RUN apk add --no-cache go build-base npm make git
 
 # Set the working directory
 WORKDIR /app
@@ -10,11 +10,9 @@ WORKDIR /app
 # Copy the source code
 COPY . .
 
-RUN make ui
-# Use build cache for Go modules and build
 RUN --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
-    go build -o otto8 main.go
+    make in-docker-build
 
 # Second Stage: Final
 FROM ubuntu:22.04
@@ -27,8 +25,9 @@ RUN mkdir /run/sshd && /usr/sbin/sshd
 
 
 # Copy the compiled application from the builder stage
-COPY --link --from=builder /app/otto8 /bin/
-COPY --link <<EOF /bin/run.sh
+COPY --link --from=builder /app/bin/otto8 /bin/
+COPY --link --from=builder /app/otto8-tools /otto8-tools
+COPY --chmod=0755 --link <<EOF /bin/run.sh
 #!/bin/bash
 mkdir -p /run/sshd
 /usr/sbin/sshd -D &
@@ -37,6 +36,8 @@ EOF
 
 EXPOSE 22
 ENV HOME=/data
+ENV OTTO_SERVER_TOOL_REGISTRY=/otto8-tools
+ENV OTTO_SERVER_WORKSPACE_TOOL=/otto8-tools/workspace-provider
 WORKDIR /data
 VOLUME /data
 CMD ["run.sh"]

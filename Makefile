@@ -31,6 +31,12 @@ lint-admin:
 	npm run format && \
 	npm run lint
 
+package-tools:
+	./tools/package-tools.sh
+
+in-docker-build: all
+	$(MAKE) package-tools
+
 no-changes:
 	@if [ -n "$$(git status --porcelain)" ]; then \
 		git status --porcelain; \
