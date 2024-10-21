@@ -31,6 +31,19 @@ func (i *Ingester) IngestKnowledge(ctx context.Context, namespace, knowledgeSetN
 	)
 }
 
+func (i *Ingester) DeleteKnowledgeFiles(ctx context.Context, namespace, knowledgeFilePath string, knowledgeSetName string) (*invoke.Response, error) {
+	return i.invoker.SystemAction(
+		ctx,
+		"ingest-delete-file-",
+		namespace,
+		system.KnowledgeDeleteFileTool,
+		knowledgeFilePath,
+		"GPTSCRIPT_DATASET="+knowledgeSetName,
+		"KNOW_JSON=true",
+	)
+
+}
+
 func (i *Ingester) DeleteKnowledge(ctx context.Context, namespace, knowledgeSetName string) (*invoke.Response, error) {
 	return i.invoker.SystemAction(
 		ctx,

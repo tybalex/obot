@@ -1,48 +1,34 @@
-import { CheckIcon, Info, PlusIcon, XCircleIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import useSWR from "swr";
+import { Globe, SettingsIcon, UploadIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import useSWR, { SWRResponse } from "swr";
 
 import {
     IngestionStatus,
     KnowledgeFile,
-    KnowledgeIngestionStatus,
+    RemoteKnowledgeSourceType,
+    getIngestedFilesCount,
     getIngestionStatus,
-    getMessage,
-    getRemoteFileDisplayName,
 } from "~/lib/model/knowledge";
 import { ApiRoutes } from "~/lib/routers/apiRoutes";
 import { KnowledgeService } from "~/lib/service/api/knowledgeService";
-import { cn, getErrorMessage } from "~/lib/utils";
+import { assetUrl } from "~/lib/utils";
 
 import { Button } from "~/components/ui/button";
-import { ScrollArea } from "~/components/ui/scroll-area";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "~/components/ui/tooltip";
-import { useAsync } from "~/hooks/useAsync";
-import { useMultiAsync } from "~/hooks/useMultiAsync";
 
-import { LoadingSpinner } from "../ui/LoadingSpinner";
-import { Input } from "../ui/input";
-import { AddFileModal } from "./AddFileModal";
-import { FileChip } from "./FileItem";
-import RemoteFileItemChip from "./RemoteFileItemChip";
-import RemoteKnowledgeSourceStatus from "./RemoteKnowledgeSourceStatus";
+import { Avatar } from "../ui/avatar";
+import FileModal from "./file/FileModal";
+import { NotionModal } from "./notion/NotionModal";
+import { OnedriveModal } from "./onedrive/OneDriveModal";
+import { WebsiteModal } from "./website/WebsiteModal";
 
-export function AgentKnowledgePanel({
-    agentId,
-    className,
-}: {
-    agentId: string;
-    className?: string;
-}) {
+export function AgentKnowledgePanel({ agentId }: { agentId: string }) {
     const [blockPolling, setBlockPolling] = useState(false);
     const [isAddFileModalOpen, setIsAddFileModalOpen] = useState(false);
+    const [isOnedriveModalOpen, setIsOnedriveModalOpen] = useState(false);
+    const [isNotionModalOpen, setIsNotionModalOpen] = useState(false);
+    const [isWebsiteModalOpen, setIsWebsiteModalOpen] = useState(false);
 
-    const getKnowledge = useSWR(
+    const getKnowledgeFiles: SWRResponse<KnowledgeFile[], Error> = useSWR(
         KnowledgeService.getKnowledgeForAgent.key(agentId),
         ({ agentId }) =>
             KnowledgeService.getKnowledgeForAgent(agentId).then((items) =>
@@ -67,7 +53,10 @@ export function AgentKnowledgePanel({
             refreshInterval: blockPolling ? undefined : 1000,
         }
     );
-    const knowledge = getKnowledge.data || [];
+    const knowledge = useMemo(
+        () => getKnowledgeFiles.data || [],
+        [getKnowledgeFiles.data]
+    );
 
     const getRemoteKnowledgeSources = useSWR(
         KnowledgeService.getRemoteKnowledgeSource.key(agentId),
@@ -82,120 +71,20 @@ export function AgentKnowledgePanel({
         [getRemoteKnowledgeSources.data]
     );
 
-    const deleteKnowledge = useAsync(async (item: KnowledgeFile) => {
-        await KnowledgeService.deleteKnowledgeFromAgent(agentId, item.fileName);
-
-        const remoteKnowledgeSource = remoteKnowledgeSources?.find(
-            (source) => source.sourceType === item.remoteKnowledgeSourceType
-        );
-        if (remoteKnowledgeSource) {
-            await KnowledgeService.updateRemoteKnowledgeSource(
-                agentId,
-                remoteKnowledgeSource.id,
-                {
-                    ...remoteKnowledgeSource,
-                    exclude: [
-                        ...(remoteKnowledgeSource.exclude || []),
-                        item.uploadID || "",
-                    ],
-                }
+    useEffect(() => {
+        if (knowledge.length > 0) {
+            setBlockPolling(
+                remoteKnowledgeSources.every((source) => !source.runID) &&
+                    knowledge.every(
+                        (item) =>
+                            item.ingestionStatus?.status ===
+                                IngestionStatus.Finished ||
+                            item.ingestionStatus?.status ===
+                                IngestionStatus.Skipped
+                    )
             );
         }
-
-        // optomistic update without cache revalidation
-        getKnowledge.mutate((prev) =>
-            prev?.filter((prevItem) => prevItem.fileName !== item.fileName)
-        );
-    });
-
-    const handleAddKnowledge = useCallback(
-        async (_index: number, file: File) => {
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            await KnowledgeService.addKnowledgeToAgent(agentId, file);
-
-            // once added, we can immediately mutate the cache value
-            // without revalidating.
-            // Revalidating here would cause knowledge to be refreshed
-            // for each file being uploaded, which is not desirable.
-            const newItem: KnowledgeFile = {
-                fileName: file.name,
-                agentID: agentId,
-                // set ingestion status to starting to ensure polling is enabled
-                ingestionStatus: { status: IngestionStatus.Queued },
-                fileDetails: {},
-            };
-
-            getKnowledge.mutate(
-                (prev) => {
-                    const existingItemIndex = prev?.findIndex(
-                        (item) => item.fileName === newItem.fileName
-                    );
-                    if (existingItemIndex !== -1 && prev) {
-                        const updatedPrev = [...prev];
-                        updatedPrev[existingItemIndex!] = newItem;
-                        return updatedPrev;
-                    } else {
-                        return [newItem, ...(prev || [])];
-                    }
-                },
-                {
-                    revalidate: false,
-                }
-            );
-        },
-        [agentId, getKnowledge]
-    );
-
-    // use multi async to handle uploading multiple files at once
-    const uploadKnowledge = useMultiAsync(handleAddKnowledge);
-
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const startUpload = (files: FileList) => {
-        if (!files.length) return;
-
-        setIgnoredFiles([]);
-
-        uploadKnowledge.execute(
-            Array.from(files).map((file) => [file] as const)
-        );
-
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    };
-
-    const [ignoredFiles, setIgnoredFiles] = useState<string[]>([]);
-
-    const uploadingFiles = useMemo(
-        () =>
-            uploadKnowledge.states.filter(
-                (state) =>
-                    !state.isSuccessful &&
-                    !ignoredFiles.includes(state.params[0].name)
-            ),
-        [ignoredFiles, uploadKnowledge.states]
-    );
-
-    useEffect(() => {
-        // we can assume that the knowledge is completely ingested if all items have a status of completed or skipped
-        // if that is the case, then we can block polling for updates
-        const hasCompleteIngestion = getKnowledge.data?.every((item) => {
-            const ingestionStatus = getIngestionStatus(item.ingestionStatus);
-            return (
-                ingestionStatus === IngestionStatus.Finished ||
-                ingestionStatus === IngestionStatus.Skipped
-            );
-        });
-
-        const hasIncompleteUpload = uploadKnowledge.states.some(
-            (state) => state.isLoading
-        );
-
-        setBlockPolling(
-            hasCompleteIngestion ||
-                hasIncompleteUpload ||
-                deleteKnowledge.isLoading
-        );
-    }, [uploadKnowledge.states, deleteKnowledge.isLoading, getKnowledge.data]);
+    }, [remoteKnowledgeSources, knowledge]);
 
     useEffect(() => {
         remoteKnowledgeSources?.forEach((source) => {
@@ -233,273 +122,268 @@ export function AgentKnowledgePanel({
         });
     }, [remoteKnowledgeSources]);
 
-    const handleRemoteKnowledgeSourceSync = useCallback(async () => {
+    let notionSource = remoteKnowledgeSources.find(
+        (source) => source.sourceType === "notion"
+    );
+    let onedriveSource = remoteKnowledgeSources.find(
+        (source) => source.sourceType === "onedrive"
+    );
+    const websiteSource = remoteKnowledgeSources.find(
+        (source) => source.sourceType === "website"
+    );
+
+    const onClickNotion = async () => {
+        // For notion, we need to ensure the remote knowledge source is created so that client can fetch a list of pages
+        if (!notionSource) {
+            await KnowledgeService.createRemoteKnowledgeSource(agentId, {
+                sourceType: "notion",
+            });
+            const intervalId = setInterval(() => {
+                getRemoteKnowledgeSources.mutate();
+                notionSource = remoteKnowledgeSources.find(
+                    (source) => source.sourceType === "notion"
+                );
+                if (notionSource?.runID) {
+                    clearInterval(intervalId);
+                }
+            }, 1000);
+            setTimeout(() => {
+                clearInterval(intervalId);
+            }, 10000);
+        }
+        setIsNotionModalOpen(true);
+    };
+
+    const onClickOnedrive = async () => {
+        if (!onedriveSource) {
+            await KnowledgeService.createRemoteKnowledgeSource(agentId, {
+                sourceType: "onedrive",
+            });
+            const intervalId = setInterval(() => {
+                getRemoteKnowledgeSources.mutate();
+                onedriveSource = remoteKnowledgeSources.find(
+                    (source) => source.sourceType === "onedrive"
+                );
+                if (onedriveSource?.runID) {
+                    clearInterval(intervalId);
+                }
+            }, 1000);
+            setTimeout(() => {
+                clearInterval(intervalId);
+            }, 10000);
+        }
+        setIsOnedriveModalOpen(true);
+    };
+
+    const onClickWebsite = async () => {
+        if (!websiteSource) {
+            await KnowledgeService.createRemoteKnowledgeSource(agentId, {
+                sourceType: "website",
+            });
+            getRemoteKnowledgeSources.mutate();
+        }
+        setIsWebsiteModalOpen(true);
+    };
+
+    const startPolling = () => {
+        getRemoteKnowledgeSources.mutate();
+        getKnowledgeFiles.mutate();
+        setBlockPolling(false);
+    };
+
+    const handleRemoteKnowledgeSourceSync = async (
+        knowledgeSourceType: RemoteKnowledgeSourceType
+    ) => {
         try {
-            for (const source of remoteKnowledgeSources!) {
+            const source = remoteKnowledgeSources?.find(
+                (source) => source.sourceType === knowledgeSourceType
+            );
+            if (source) {
                 await KnowledgeService.resyncRemoteKnowledgeSource(
                     agentId,
                     source.id
                 );
             }
-            setTimeout(() => {
+            const intervalId = setInterval(() => {
                 getRemoteKnowledgeSources.mutate();
+                const updatedSource = remoteKnowledgeSources?.find(
+                    (source) => source.sourceType === knowledgeSourceType
+                );
+                if (updatedSource?.runID) {
+                    clearInterval(intervalId);
+                }
             }, 1000);
+            // this is a failsafe to clear the interval as source should be updated with runID in 10 seconds once the source is resynced
+            setTimeout(() => {
+                clearInterval(intervalId);
+                startPolling();
+            }, 10000);
         } catch (error) {
             console.error("Failed to resync remote knowledge source:", error);
-        } finally {
-            setBlockPolling(false);
         }
-    }, [agentId, getRemoteKnowledgeSources, remoteKnowledgeSources]);
+    };
+
+    const notionFiles = knowledge.filter(
+        (item) => item.remoteKnowledgeSourceType === "notion"
+    );
+    const onedriveFiles = knowledge.filter(
+        (item) => item.remoteKnowledgeSourceType === "onedrive"
+    );
+    const websiteFiles = knowledge.filter(
+        (item) => item.remoteKnowledgeSourceType === "website"
+    );
+    const localFiles = knowledge.filter(
+        (item) => !item.remoteKnowledgeSourceType
+    );
 
     return (
-        <div className={cn("flex flex-col", className)}>
-            <ScrollArea className="max-h-[400px]">
-                {uploadingFiles.length > 0 && (
-                    <div className="p-2 flex flex-wrap gap-2">
-                        {uploadingFiles.map((state, index) => (
-                            <FileChip
-                                key={index}
-                                isLoading={state.isLoading}
-                                error={getErrorMessage(state.error)}
-                                onAction={() =>
-                                    setIgnoredFiles((prev) => [
-                                        ...prev,
-                                        state.params[0].name,
-                                    ])
-                                }
-                                fileName={state.params[0].name}
-                            />
-                        ))}
-
-                        <div /* spacer */ />
-                    </div>
-                )}
-
-                <div className={cn("p-2 flex flex-wrap gap-2")}>
-                    {knowledge.map((item) => {
-                        if (item.remoteKnowledgeSourceType) {
-                            return (
-                                <RemoteFileItemChip
-                                    key={item.fileName}
-                                    url={item.fileDetails.url!}
-                                    displayName={
-                                        getRemoteFileDisplayName(item)!
-                                    }
-                                    onAction={() =>
-                                        deleteKnowledge.execute(item)
-                                    }
-                                    statusIcon={renderStatusIcon(
-                                        item.ingestionStatus
-                                    )}
-                                    isLoading={
-                                        deleteKnowledge.isLoading &&
-                                        deleteKnowledge.lastCallParams?.[0]
-                                            .fileName === item.fileName
-                                    }
-                                    remoteKnowledgeSourceType={
-                                        item.remoteKnowledgeSourceType
-                                    }
-                                />
-                            );
-                        }
-                        return (
-                            <FileChip
-                                key={item.fileName}
-                                onAction={() => deleteKnowledge.execute(item)}
-                                statusIcon={renderStatusIcon(
-                                    item.ingestionStatus
-                                )}
-                                isLoading={
-                                    deleteKnowledge.isLoading &&
-                                    deleteKnowledge.lastCallParams?.[0]
-                                        .fileName === item.fileName
-                                }
-                                fileName={item.fileName}
-                            />
-                        );
-                    })}
+        <div className="flex flex-col gap-4 justify-center items-center">
+            <div className="flex w-full items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent">
+                <div className="flex items-center gap-2">
+                    <UploadIcon className="h-5 w-5" />
+                    <span className="text-lg font-semibold">Files</span>
                 </div>
-            </ScrollArea>
-            <footer className="flex p-2 sticky bottom-0 justify-between items-center">
-                <div className="flex flex-col items-start">
-                    <div className="flex items-center">
-                        {(() => {
-                            const ingestingCount = knowledge.filter(
-                                (item) =>
-                                    item.ingestionStatus?.status ===
-                                        IngestionStatus.Starting ||
-                                    item.ingestionStatus?.status ===
-                                        IngestionStatus.Completed
-                            ).length;
-                            const queuedCount = knowledge.filter(
-                                (item) =>
-                                    item.ingestionStatus?.status ===
-                                    IngestionStatus.Queued
-                            ).length;
-                            const notSupportedCount = knowledge.filter(
-                                (item) =>
-                                    item.ingestionStatus?.status ===
-                                    IngestionStatus.Unsupported
-                            ).length;
-                            const ingestedCount = knowledge.filter(
-                                (item) =>
-                                    item.ingestionStatus?.status ===
-                                        IngestionStatus.Finished ||
-                                    item.ingestionStatus?.status ===
-                                        IngestionStatus.Skipped
-                            ).length;
-                            const totalCount = knowledge.length;
-
-                            if (ingestingCount > 0 || queuedCount > 0) {
-                                return (
-                                    <>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <div className="flex items-center">
-                                                        <LoadingSpinner className="w-4 h-4 mr-2" />
-                                                        <span className="text-sm text-gray-500">
-                                                            Ingesting...
-                                                        </span>
-                                                    </div>
-                                                </TooltipTrigger>
-                                                <TooltipContent
-                                                    side="right"
-                                                    align="start"
-                                                    alignOffset={-8}
-                                                >
-                                                    <p className="font-semibold">
-                                                        Ingestion Status:
-                                                    </p>
-                                                    <p>
-                                                        Files ingesting:{" "}
-                                                        {ingestingCount}
-                                                    </p>
-                                                    <p>
-                                                        Files ingested:{" "}
-                                                        {ingestedCount}
-                                                    </p>
-                                                    <p>
-                                                        Files queued:{" "}
-                                                        {queuedCount}
-                                                    </p>
-                                                    <p>
-                                                        Files not supported:{" "}
-                                                        {notSupportedCount}
-                                                    </p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    </>
-                                );
-                            } else if (
-                                totalCount > 0 &&
-                                queuedCount === 0 &&
-                                ingestingCount === 0
-                            ) {
-                                return (
-                                    <>
-                                        <CheckIcon className="w-4 h-4 text-green-500 mr-2" />
-                                        <span className="text-sm text-gray-500">
-                                            {ingestedCount} file
-                                            {ingestedCount !== 1
-                                                ? "s"
-                                                : ""}{" "}
-                                            ingested
-                                        </span>
-                                    </>
-                                );
-                            }
-                            return null;
-                        })()}
-                    </div>
-                    {remoteKnowledgeSources?.map((source) => {
-                        if (source.runID) {
-                            return (
-                                <RemoteKnowledgeSourceStatus
-                                    key={source.id}
-                                    source={source}
-                                />
-                            );
-                        }
-                    })}
-                </div>
-                <div className="flex">
-                    {remoteKnowledgeSources &&
-                        remoteKnowledgeSources.length > 0 && (
-                            <Button
-                                onClick={handleRemoteKnowledgeSourceSync}
-                                className={cn("mr-2")}
-                            >
-                                Sync Files
-                            </Button>
+                <div className="flex flex-row items-center gap-2">
+                    <div className="flex items-center gap-2">
+                        {getIngestedFilesCount(localFiles) > 0 && (
+                            <span className="text-sm font-medium text-gray-500">
+                                {getIngestedFilesCount(localFiles)}{" "}
+                                {getIngestedFilesCount(localFiles) === 1
+                                    ? "file"
+                                    : "files"}{" "}
+                                ingested
+                            </span>
                         )}
+                    </div>
                     <Button
-                        variant="secondary"
                         onClick={() => setIsAddFileModalOpen(true)}
+                        className="flex items-center gap-2"
+                        variant="ghost"
                     >
-                        <PlusIcon className="w-4 h-4 mr-2" />
-                        Add Knowledge
+                        <SettingsIcon className="h-5 w-5" />
                     </Button>
-
-                    <Input
-                        ref={fileInputRef}
-                        type="file"
-                        className="hidden"
-                        multiple
-                        onChange={(e) => {
-                            if (!e.target.files) return;
-                            startUpload(e.target.files);
-                        }}
-                    />
                 </div>
-            </footer>
-            <AddFileModal
+            </div>
+            <div className="flex w-full items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent">
+                <div className="flex items-center gap-2">
+                    <Avatar className="h-5 w-5">
+                        <img src={assetUrl("/notion.svg")} alt="Notion logo" />
+                    </Avatar>
+                    <span className="text-lg font-semibold">Notion</span>
+                </div>
+                <div className="flex flex-row items-center gap-2">
+                    {getIngestedFilesCount(notionFiles) > 0 && (
+                        <span className="text-sm font-medium text-gray-500">
+                            {getIngestedFilesCount(notionFiles)}{" "}
+                            {getIngestedFilesCount(notionFiles) === 1
+                                ? "file"
+                                : "files"}{" "}
+                            ingested
+                        </span>
+                    )}
+                    <Button
+                        onClick={() => onClickNotion()}
+                        className="flex items-center gap-2"
+                        variant="ghost"
+                    >
+                        <SettingsIcon className="h-5 w-5" />
+                    </Button>
+                </div>
+            </div>
+            <div className="flex w-full items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent">
+                <div className="flex items-center gap-2">
+                    <Avatar className="h-5 w-5">
+                        <img
+                            src={assetUrl("/onedrive.svg")}
+                            alt="OneDrive logo"
+                        />
+                    </Avatar>
+                    <span className="text-lg font-semibold">OneDrive</span>
+                </div>
+                <div className="flex flex-row items-center gap-2">
+                    {getIngestedFilesCount(onedriveFiles) > 0 && (
+                        <span className="text-sm font-medium text-gray-500">
+                            {getIngestedFilesCount(onedriveFiles)}{" "}
+                            {getIngestedFilesCount(onedriveFiles) === 1
+                                ? "file"
+                                : "files"}{" "}
+                            ingested
+                        </span>
+                    )}
+                    <Button
+                        onClick={() => onClickOnedrive()}
+                        className="flex items-center gap-2"
+                        variant="ghost"
+                    >
+                        <SettingsIcon className="h-5 w-5" />
+                    </Button>
+                </div>
+            </div>
+            <div className="flex w-full items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent">
+                <div className="flex items-center gap-2">
+                    <Globe className="h-5 w-5" />
+                    <span className="text-lg font-semibold">Website</span>
+                </div>
+                <div className="flex flex-row items-center gap-2">
+                    {getIngestedFilesCount(websiteFiles) > 0 && (
+                        <span className="text-sm font-medium text-gray-500">
+                            {getIngestedFilesCount(websiteFiles)}{" "}
+                            {getIngestedFilesCount(websiteFiles) === 1
+                                ? "file"
+                                : "files"}{" "}
+                            ingested
+                        </span>
+                    )}
+                    <Button
+                        onClick={() => onClickWebsite()}
+                        className="flex items-center gap-2"
+                        variant="ghost"
+                    >
+                        <SettingsIcon className="h-5 w-5" />
+                    </Button>
+                </div>
+            </div>
+            <FileModal
                 agentId={agentId}
-                fileInputRef={fileInputRef}
                 isOpen={isAddFileModalOpen}
                 onOpenChange={setIsAddFileModalOpen}
-                startPolling={() => {
-                    setBlockPolling(false);
-                }}
+                startPolling={startPolling}
+                knowledge={localFiles}
+                getKnowledgeFiles={getKnowledgeFiles}
+            />
+            <NotionModal
+                agentId={agentId}
+                isOpen={isNotionModalOpen}
+                onOpenChange={setIsNotionModalOpen}
                 remoteKnowledgeSources={remoteKnowledgeSources}
+                startPolling={startPolling}
+                knowledgeFiles={notionFiles}
+                handleRemoteKnowledgeSourceSync={
+                    handleRemoteKnowledgeSourceSync
+                }
+            />
+            <OnedriveModal
+                agentId={agentId}
+                isOpen={isOnedriveModalOpen}
+                onOpenChange={setIsOnedriveModalOpen}
+                remoteKnowledgeSources={remoteKnowledgeSources}
+                startPolling={startPolling}
+                knowledgeFiles={onedriveFiles}
+                handleRemoteKnowledgeSourceSync={
+                    handleRemoteKnowledgeSourceSync
+                }
+            />
+            <WebsiteModal
+                agentId={agentId}
+                isOpen={isWebsiteModalOpen}
+                onOpenChange={setIsWebsiteModalOpen}
+                remoteKnowledgeSources={remoteKnowledgeSources}
+                startPolling={startPolling}
+                knowledgeFiles={websiteFiles}
+                handleRemoteKnowledgeSourceSync={
+                    handleRemoteKnowledgeSourceSync
+                }
             />
         </div>
     );
 }
-
-function renderStatusIcon(status?: KnowledgeIngestionStatus) {
-    if (!status || !status.status) return null;
-    const [Icon, className] = ingestionIcons[status.status];
-
-    return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <div>
-                        {Icon === LoadingSpinner ? (
-                            <LoadingSpinner
-                                className={cn("w-4 h-4", className)}
-                            />
-                        ) : (
-                            <Icon className={cn("w-4 h-4", className)} />
-                        )}
-                    </div>
-                </TooltipTrigger>
-                <TooltipContent className="whitespace-normal break-words max-w-[300px] max-h-full">
-                    {getMessage(status.status, status.msg, status.error)}
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
-    );
-}
-
-const ingestionIcons = {
-    [IngestionStatus.Queued]: [LoadingSpinner, ""],
-    [IngestionStatus.Finished]: [CheckIcon, "text-green-500"],
-    [IngestionStatus.Completed]: [LoadingSpinner, ""],
-    [IngestionStatus.Skipped]: [CheckIcon, "text-green-500"],
-    [IngestionStatus.Starting]: [LoadingSpinner, ""],
-    [IngestionStatus.Failed]: [XCircleIcon, "text-destructive"],
-    [IngestionStatus.Unsupported]: [Info, "text-yellow-500"],
-} as const;

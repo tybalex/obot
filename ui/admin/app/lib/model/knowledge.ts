@@ -48,9 +48,9 @@ export type RemoteKnowledgeSource = {
 } & RemoteKnowledgeSourceInput;
 
 export type RemoteKnowledgeSourceInput = {
+    syncSchedule?: string;
     sourceType?: RemoteKnowledgeSourceType;
-    exclude?: string[];
-    disableIngestionAfterSync?: boolean;
+    autoApprove?: boolean;
     onedriveConfig?: OneDriveConfig;
     notionConfig?: NotionConfig;
     websiteCrawlingConfig?: WebsiteCrawlingConfig;
@@ -77,6 +77,12 @@ type RemoteKnowledgeSourceState = {
 type OneDriveLinksConnectorState = {
     folders?: FolderSet;
     files?: Record<string, FileState>;
+    links?: Record<string, LinkState>;
+};
+
+type LinkState = {
+    name?: string;
+    isFolder?: boolean;
 };
 
 type FileState = {
@@ -96,9 +102,13 @@ type NotionPage = {
 };
 
 type WebsiteCrawlingConnectorState = {
-    pages?: Record<string, unknown>;
+    pages?: Record<string, PageDetails>;
     scrapeJobIds?: Record<string, string>;
     folders?: FolderSet;
+};
+
+type PageDetails = {
+    parentUrl?: string;
 };
 
 type FolderSet = {
@@ -112,6 +122,7 @@ type FileDetails = {
 };
 
 export type KnowledgeFile = {
+    id: string;
     deleted?: string;
     fileName: string;
     agentID?: string;
@@ -122,6 +133,7 @@ export type KnowledgeFile = {
     ingestionStatus: KnowledgeIngestionStatus;
     fileDetails: FileDetails;
     uploadID?: string;
+    approved?: boolean;
 };
 
 export function getRemoteFileDisplayName(item: KnowledgeFile) {
@@ -165,7 +177,7 @@ export function getMessage(
         status === IngestionStatus.Finished ||
         status === IngestionStatus.Skipped
     ) {
-        return "Completed";
+        return "Exclude file from ingestion";
     }
 
     if (status === IngestionStatus.Failed) {
@@ -177,4 +189,12 @@ export function getMessage(
     }
 
     return msg || "Queued";
+}
+
+export function getIngestedFilesCount(knowledge: KnowledgeFile[]) {
+    return knowledge.filter(
+        (item) =>
+            item.ingestionStatus?.status === IngestionStatus.Finished ||
+            item.ingestionStatus?.status === IngestionStatus.Skipped
+    ).length;
 }

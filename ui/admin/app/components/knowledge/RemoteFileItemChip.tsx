@@ -1,11 +1,13 @@
-import { XIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 
-import { RemoteKnowledgeSourceType } from "~/lib/model/knowledge";
+import {
+    KnowledgeFile,
+    RemoteKnowledgeSourceType,
+    getRemoteFileDisplayName,
+} from "~/lib/model/knowledge";
 import { cn } from "~/lib/utils";
 
 import { TypographyP } from "~/components/Typography";
-import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
-import { Button } from "~/components/ui/button";
 import {
     Tooltip,
     TooltipContent,
@@ -13,29 +15,25 @@ import {
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
+import { Button } from "../ui/button";
+import FileStatusIcon from "./FileStatusIcon";
 import RemoteFileAvatar from "./RemoteFileAvatar";
 
 type RemoteFileItemProps = {
-    displayName: string;
-    url: string;
-    onAction?: () => void;
-    actionIcon?: React.ReactNode;
-    isLoading?: boolean;
+    file: KnowledgeFile;
     error?: string;
-    statusIcon?: React.ReactNode;
     remoteKnowledgeSourceType: RemoteKnowledgeSourceType;
+    approveFile: (file: KnowledgeFile, approved: boolean) => void;
+    subTitle?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export default function RemoteFileItemChip({
-    displayName,
-    url,
+    file,
     className,
-    onAction,
-    actionIcon,
-    isLoading,
     error,
-    statusIcon,
     remoteKnowledgeSourceType,
+    subTitle,
+    approveFile,
     ...props
 }: RemoteFileItemProps) {
     return (
@@ -46,11 +44,11 @@ export default function RemoteFileItemChip({
                 <TooltipTrigger asChild>
                     <div
                         className={cn(
-                            "flex justify-between flex-nowrap items-center gap-4 rounded-lg px-2 border w-full",
+                            "flex justify-between flex-nowrap items-center gap-4 rounded-lg px-2 border w-full hover:cursor-pointer",
                             {
-                                "bg-destructive-background border-destructive text-foreground cursor-pointer":
+                                "bg-destructive-background border-destructive hover:cursor-pointer":
                                     error,
-                                "grayscale opacity-60": isLoading,
+                                "grayscale opacity-60": !file.approved,
                             },
                             className
                         )}
@@ -61,38 +59,50 @@ export default function RemoteFileItemChip({
                                 remoteKnowledgeSourceType
                             }
                         />
-                        <a
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex flex-col overflow-hidden flex-auto hover:underline"
-                        >
-                            <TypographyP className="w-full overflow-hidden text-ellipsis">
-                                {displayName}
-                            </TypographyP>
-                        </a>
+                        <div className="flex flex-col overflow-hidden flex-auto">
+                            <a
+                                href={file.fileDetails.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex flex-col overflow-hidden flex-auto hover:underline"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                }}
+                            >
+                                <TypographyP className="w-full overflow-hidden text-ellipsis">
+                                    {getRemoteFileDisplayName(file)}
+                                </TypographyP>
+                            </a>
+                            <span className="text-gray-400 text-xs">
+                                {subTitle}
+                            </span>
+                        </div>
 
-                        {statusIcon}
-
-                        {isLoading ? (
-                            <Button disabled variant="ghost" size="icon">
-                                <LoadingSpinner className="w-4 h-4" />
-                            </Button>
-                        ) : (
-                            onAction && (
+                        <div className="mr-2">
+                            {file.approved ? (
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    onClick={onAction}
+                                    onClick={() => {
+                                        approveFile(file, false);
+                                    }}
                                 >
-                                    {actionIcon ? (
-                                        actionIcon
-                                    ) : (
-                                        <XIcon className="w-4 h-4" />
-                                    )}
+                                    <FileStatusIcon
+                                        status={file.ingestionStatus}
+                                    />
                                 </Button>
-                            )
-                        )}
+                            ) : (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                        approveFile(file, true);
+                                    }}
+                                >
+                                    <PlusIcon className="w-4 h-4" />
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </TooltipTrigger>
             </Tooltip>
