@@ -11,7 +11,7 @@ replace (
 require (
 	github.com/MicahParks/keyfunc/v3 v3.3.5
 	github.com/acorn-io/baaah v0.0.0-20241017212231-096ce8555b5f
-	github.com/acorn-io/mink v0.0.0-20241021151948-78ca55fc5887
+	github.com/acorn-io/mink v0.0.0-20241021194041-5eb71f0079dc
 	github.com/adrg/xdg v0.5.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.17.0
