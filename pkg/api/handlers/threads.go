@@ -62,7 +62,6 @@ func (a *ThreadHandler) Events(req api.Context) error {
 		maxRunString  = req.URL.Query().Get("maxRuns")
 		maxRuns       int
 		err           error
-		thread        v1.Thread
 		waitForThread = req.URL.Query().Get("waitForThread") == "true"
 	)
 
@@ -79,17 +78,13 @@ func (a *ThreadHandler) Events(req api.Context) error {
 		maxRuns = 20
 	}
 
-	if err := req.Get(&thread, id); err != nil {
-		return err
-	}
-
 	_, events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
 		Follow:        follow,
 		History:       runID == "",
 		LastRunName:   strings.TrimSuffix(runID, ":after"),
 		MaxRuns:       maxRuns,
 		After:         strings.HasSuffix(runID, ":after"),
-		ThreadName:    thread.Name,
+		ThreadName:    id,
 		WaitForThread: waitForThread,
 	})
 	if err != nil {
@@ -187,11 +182,18 @@ func (a *ThreadHandler) List(req api.Context) error {
 }
 
 func (a *ThreadHandler) Files(req api.Context) error {
-	var workspaces v1.WorkspaceList
+	var (
+		workspaces v1.WorkspaceList
+		threadID   = req.PathValue("id")
+	)
+	if threadID == "user" {
+		threadID = system.ThreadPrefix + req.User.GetUID()
+	}
+
 	if err := req.Storage.List(req.Context(), &workspaces, &client.ListOptions{
 		Namespace: req.Namespace(),
 		FieldSelector: fields.SelectorFromSet(map[string]string{
-			"spec.threadName": req.PathValue("id"),
+			"spec.threadName": threadID,
 		}),
 	}); err != nil {
 		return err
@@ -199,11 +201,13 @@ func (a *ThreadHandler) Files(req api.Context) error {
 
 	for _, workspace := range workspaces.Items {
 		if !workspace.Spec.IsKnowledge {
-			return listFileFromWorkspace(req.Context(), req, a.gptscript, workspace)
+			return listFileFromWorkspace(req.Context(), req, a.gptscript, workspace, gptscript.ListFilesInWorkspaceOptions{
+				Prefix: "files/",
+			})
 		}
 	}
 
-	return fmt.Errorf("no workspace found for thread %s", req.PathValue("id"))
+	return req.Write(types.FileList{})
 }
 
 func (a *ThreadHandler) UploadFile(req api.Context) error {
@@ -219,7 +223,7 @@ func (a *ThreadHandler) UploadFile(req api.Context) error {
 
 	for _, workspace := range workspaces.Items {
 		if !workspace.Spec.IsKnowledge {
-			if err := uploadFileToWorkspace(req.Context(), req, a.gptscript, workspace); err != nil {
+			if err := uploadFileToWorkspace(req.Context(), req, a.gptscript, workspace, "files/"); err != nil {
 				return err
 			}
 
@@ -232,11 +236,18 @@ func (a *ThreadHandler) UploadFile(req api.Context) error {
 }
 
 func (a *ThreadHandler) DeleteFile(req api.Context) error {
-	var workspaces v1.WorkspaceList
+	var (
+		workspaces v1.WorkspaceList
+		threadID   = req.PathValue("id")
+	)
+	if threadID == "user" {
+		threadID = system.ThreadPrefix + req.User.GetUID()
+	}
+
 	if err := req.Storage.List(req.Context(), &workspaces, &client.ListOptions{
 		Namespace: req.Namespace(),
 		FieldSelector: fields.SelectorFromSet(map[string]string{
-			"spec.threadName": req.PathValue("id"),
+			"spec.threadName": threadID,
 		}),
 	}); err != nil {
 		return err
@@ -244,19 +255,27 @@ func (a *ThreadHandler) DeleteFile(req api.Context) error {
 
 	for _, workspace := range workspaces.Items {
 		if !workspace.Spec.IsKnowledge {
-			return deleteFileFromWorkspaceID(req.Context(), req, a.gptscript, workspace.Status.WorkspaceID)
+			return deleteFileFromWorkspaceID(req.Context(), req, a.gptscript, workspace.Status.WorkspaceID, "files/")
 		}
 	}
 
-	return fmt.Errorf("no workspace found for thread %s", req.PathValue("id"))
+	req.WriteHeader(http.StatusNoContent)
+	return nil
 }
 
 func (a *ThreadHandler) Knowledge(req api.Context) error {
-	var workspaces v1.WorkspaceList
+	var (
+		workspaces v1.WorkspaceList
+		threadID   = req.PathValue("id")
+	)
+	if threadID == "user" {
+		threadID = system.ThreadPrefix + req.User.GetUID()
+	}
+
 	if err := req.Storage.List(req.Context(), &workspaces, &client.ListOptions{
 		Namespace: req.Namespace(),
 		FieldSelector: fields.SelectorFromSet(map[string]string{
-			"spec.threadName": req.PathValue("id"),
+			"spec.threadName": threadID,
 		}),
 	}); err != nil {
 		return err
@@ -268,15 +287,23 @@ func (a *ThreadHandler) Knowledge(req api.Context) error {
 		}
 	}
 
-	return fmt.Errorf("no knowledge workspace found for thread %s", req.PathValue("id"))
+	return req.Write(types.KnowledgeFileList{})
 }
 
 func (a *ThreadHandler) UploadKnowledge(req api.Context) error {
-	var workspaces v1.WorkspaceList
+	var (
+		workspaces v1.WorkspaceList
+		threadID   = req.PathValue("id")
+	)
+
+	if threadID == "user" {
+		threadID = system.ThreadPrefix + req.User.GetUID()
+	}
+
 	if err := req.Storage.List(req.Context(), &workspaces, &client.ListOptions{
 		Namespace: req.Namespace(),
 		FieldSelector: fields.SelectorFromSet(map[string]string{
-			"spec.threadName": req.PathValue("id"),
+			"spec.threadName": threadID,
 		}),
 	}); err != nil {
 		return err
@@ -292,11 +319,17 @@ func (a *ThreadHandler) UploadKnowledge(req api.Context) error {
 }
 
 func (a *ThreadHandler) DeleteKnowledge(req api.Context) error {
-	var workspaces v1.WorkspaceList
+	var (
+		workspaces v1.WorkspaceList
+		threadID   = req.PathValue("id")
+	)
+	if threadID == "user" {
+		threadID = system.ThreadPrefix + req.User.GetUID()
+	}
 	if err := req.Storage.List(req.Context(), &workspaces, &client.ListOptions{
 		Namespace: req.Namespace(),
 		FieldSelector: fields.SelectorFromSet(map[string]string{
-			"spec.threadName": req.PathValue("id"),
+			"spec.threadName": threadID,
 		}),
 	}); err != nil {
 		return err

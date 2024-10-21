@@ -22,7 +22,6 @@ import (
 	"github.com/otto8-ai/otto8/pkg/render"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
-	"github.com/otto8-ai/otto8/pkg/workspace"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
@@ -379,7 +378,7 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Threa
 			),
 		},
 		Input:              run.Spec.Input,
-		Workspace:          workspace.GetDir(run.Spec.WorkspaceID),
+		Workspace:          run.Spec.WorkspaceID,
 		CredentialContexts: run.Spec.CredentialContextIDs,
 		ChatState:          chatState,
 		IncludeEvents:      true,

@@ -14,7 +14,6 @@ type Config struct {
 	StorageListenPort int    `usage:"Port to storage backend will listen on (default: random port)"`
 	StorageToken      string `usage:"Token for storage access, will be generated if not passed"`
 	DSN               string `usage:"Database dsn in driver://connection_string format" default:"sqlite://file:otto8.db?_journal=WAL&cache=shared&_busy_timeout=30000"`
-	HelperModel       string `usage:"The model used to generate names and descriptions" default:"gpt-4o-mini"`
 }
 
 type Services struct {

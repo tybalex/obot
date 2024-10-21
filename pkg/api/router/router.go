@@ -76,7 +76,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	// Thread files
 	mux.HandleFunc("GET /api/threads/{id}/files", threads.Files)
 	mux.HandleFunc("POST /api/threads/{id}/files/{file}", threads.UploadFile)
-	mux.HandleFunc("DELETE /api/threads/{id}/files/{file}", threads.DeleteFile)
+	mux.HandleFunc("DELETE /api/threads/{id}/files/{file...}", threads.DeleteFile)
 
 	// Thread knowledge files
 	mux.HandleFunc("GET /api/threads/{id}/knowledge", threads.Knowledge)

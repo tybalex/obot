@@ -21,11 +21,22 @@ FROM ubuntu:22.04
 
 RUN apt-get update && apt install -y git tini openssh-server
 
+RUN sed -E 's/^#(PermitRootLogin)no/\1yes/' /etc/ssh/sshd_config -i
+RUN ssh-keygen -A
+RUN mkdir /run/sshd && /usr/sbin/sshd
+
+
 # Copy the compiled application from the builder stage
 COPY --link --from=builder /app/otto8 /bin/
+COPY --link <<EOF /bin/run.sh
+#!/bin/bash
+mkdir -p /run/sshd
+/usr/sbin/sshd -D &
+exec tini -- otto8 server
+EOF
 
+EXPOSE 22
 ENV HOME=/data
 WORKDIR /data
 VOLUME /data
-# Command to run the application
-CMD ["tini", "--", "otto8", "server"]
+CMD ["run.sh"]

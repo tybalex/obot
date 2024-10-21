@@ -11,7 +11,7 @@ replace (
 require (
 	github.com/MicahParks/keyfunc/v3 v3.3.5
 	github.com/acorn-io/baaah v0.0.0-20241017212231-096ce8555b5f
-	github.com/acorn-io/mink v0.0.0-20241019043522-c80c1a36ee59
+	github.com/acorn-io/mink v0.0.0-20241021151948-78ca55fc5887
 	github.com/adrg/xdg v0.5.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.17.0
@@ -20,7 +20,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
 	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241020145205-d72fa0553119
-	github.com/gptscript-ai/gptscript v0.9.6-0.20241020145319-366104477158
+	github.com/gptscript-ai/gptscript v0.9.6-0.20241021152632-87863a7ef640
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/oauth2-proxy/oauth2-proxy/v7 v7.0.0-00010101000000-000000000000
 	github.com/otto8-ai/otto8/apiclient v0.0.0-00010101000000-000000000000

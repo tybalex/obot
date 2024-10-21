@@ -168,7 +168,7 @@ func (a *WorkflowHandler) DeleteFile(req api.Context) error {
 		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
 	}
 
-	return deleteFile(req.Context(), req, a.gptscript, workflow.Status.WorkspaceName)
+	return deleteFile(req.Context(), req, a.gptscript, workflow.Status.WorkspaceName, "files/")
 }
 
 func (a *WorkflowHandler) Script(req api.Context) error {

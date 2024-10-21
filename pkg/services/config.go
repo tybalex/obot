@@ -48,6 +48,8 @@ type Config struct {
 	AllowedOrigin         string `usage:"Allowed origin for CORS"`
 	ToolRegistry          string `usage:"The tool reference for the tool registry" default:"github.com/gptscript-ai/tools"`
 	WorkspaceProviderType string `usage:"The type of workspace provider to use for non-knowledge workspaces" default:"directory" env:"OTTO_WORKSPACE_PROVIDER_TYPE"`
+	WorkspaceTool         string `usage:"The tool reference for the workspace provider" default:"github.com/gptscript-ai/workspace-provider"`
+	HelperModel           string `usage:"The model used to generate names and descriptions" default:"gpt-4o-mini"`
 
 	AuthConfig
 	GatewayConfig
@@ -72,11 +74,11 @@ type Services struct {
 	GatewayServer         *gserver.Server
 }
 
-func newGPTScript(ctx context.Context) (*gptscript.GPTScript, error) {
+func newGPTScript(ctx context.Context, workspaceTool string) (*gptscript.GPTScript, error) {
 	if os.Getenv("GPTSCRIPT_URL") != "" {
 		return gptscript.NewGPTScript(gptscript.GlobalOptions{
 			URL:           os.Getenv("GPTSCRIPT_URL"),
-			WorkspaceTool: "github.com/gptscript-ai/workspace-provider",
+			WorkspaceTool: workspaceTool,
 		})
 	}
 
@@ -94,7 +96,7 @@ func newGPTScript(ctx context.Context) (*gptscript.GPTScript, error) {
 
 	return gptscript.NewGPTScript(gptscript.GlobalOptions{
 		URL:           url,
-		WorkspaceTool: "github.com/gptscript-ai/workspace-provider",
+		WorkspaceTool: workspaceTool,
 	})
 }
 
@@ -118,7 +120,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		config.GatewayDebug = true
 	}
 
-	c, err := newGPTScript(ctx)
+	c, err := newGPTScript(ctx, config.WorkspaceTool)
 	if err != nil {
 		return nil, err
 	}

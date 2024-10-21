@@ -49,6 +49,11 @@ var staticRules = map[string][]string{
 	AuthenticatedGroup: {
 		"POST /api/invoke/otto/threads/user",
 		"GET /api/threads/user/events",
+		"GET /api/threads/user/files",
+		"DELETE /api/threads/user/files/{file...}",
+		"GET /api/threads/user/knowledge",
+		"POST /api/threads/user/knowledge/{file}",
+		"DELETE /api/threads/user/knowledge/{file}",
 		"GET /api/me",
 	},
 }

@@ -165,7 +165,7 @@ func (a *AgentHandler) DeleteFile(req api.Context) error {
 		return fmt.Errorf("failed to get agent with id %s: %w", id, err)
 	}
 
-	return deleteFile(req.Context(), req, a.gptscript, agent.Status.WorkspaceName)
+	return deleteFile(req.Context(), req, a.gptscript, agent.Status.WorkspaceName, "files/")
 }
 
 func (a *AgentHandler) Knowledge(req api.Context) error {

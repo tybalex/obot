@@ -106,6 +106,7 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 
 	if async {
 		req.WriteHeader(http.StatusCreated)
+		req.ResponseWriter.Header().Set("Content-Type", "application/json")
 		return req.Write(map[string]string{
 			"threadID": resp.Thread.Name,
 		})

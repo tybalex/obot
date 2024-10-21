@@ -27,16 +27,18 @@ func listFiles(ctx context.Context, req api.Context, gClient *gptscript.GPTScrip
 		return err
 	}
 
-	return listFileFromWorkspace(ctx, req, gClient, ws)
+	return listFileFromWorkspace(ctx, req, gClient, ws, gptscript.ListFilesInWorkspaceOptions{
+		Prefix: "files/",
+	})
 }
 
-func listFileFromWorkspace(ctx context.Context, req api.Context, gClient *gptscript.GPTScript, ws v1.Workspace) error {
-	files, err := gClient.ListFilesInWorkspace(ctx, ws.Status.WorkspaceID)
+func listFileFromWorkspace(ctx context.Context, req api.Context, gClient *gptscript.GPTScript, ws v1.Workspace, opts gptscript.ListFilesInWorkspaceOptions) error {
+	files, err := gClient.ListFilesInWorkspace(ctx, ws.Status.WorkspaceID, opts)
 	if err != nil {
 		return fmt.Errorf("failed to list files in workspace %q: %w", ws.Status.WorkspaceID, err)
 	}
 
-	return req.Write(types.FileList{Items: compileFileNames(files)})
+	return req.Write(types.FileList{Items: compileFileNames(files, opts)})
 }
 
 func getWorkspaceFromKnowledgeSet(req api.Context, knowledgeSetNames ...string) (ws v1.Workspace, ok bool, err error) {
@@ -97,7 +99,7 @@ func uploadKnowledge(req api.Context, gClient *gptscript.GPTScript, knowledgeSet
 func uploadKnowledgeToWorkspace(req api.Context, gClient *gptscript.GPTScript, ws v1.Workspace) error {
 	filename := req.PathValue("file")
 
-	if err := uploadFileToWorkspace(req.Context(), req, gClient, ws); err != nil {
+	if err := uploadFileToWorkspace(req.Context(), req, gClient, ws, ""); err != nil {
 		return err
 	}
 
@@ -115,7 +117,7 @@ func uploadKnowledgeToWorkspace(req api.Context, gClient *gptscript.GPTScript, w
 	}
 
 	if err := req.Storage.Create(req.Context(), &file); err != nil && !apierrors.IsAlreadyExists(err) {
-		_ = deleteFile(req.Context(), req, gClient, ws.Status.WorkspaceID)
+		_ = deleteFile(req.Context(), req, gClient, ws.Status.WorkspaceID, "")
 		return err
 	}
 
@@ -137,18 +139,18 @@ func convertKnowledgeFile(file v1.KnowledgeFile, ws v1.Workspace) types.Knowledg
 	}
 }
 
-func compileFileNames(files []string) []types.File {
+func compileFileNames(files []string, opts gptscript.ListFilesInWorkspaceOptions) []types.File {
 	resp := make([]types.File, 0, len(files))
 	for _, file := range files {
-		resp = append(resp, convertFile(file))
+		resp = append(resp, convertFile(file, opts.Prefix))
 	}
 
 	return resp
 }
 
-func convertFile(file string) types.File {
+func convertFile(file, prefix string) types.File {
 	return types.File{
-		Name: file,
+		Name: strings.TrimPrefix(file, prefix),
 	}
 }
 
@@ -158,10 +160,10 @@ func uploadFile(ctx context.Context, req api.Context, gClient *gptscript.GPTScri
 		return fmt.Errorf("failed to get workspace with id %s: %w", workspaceName, err)
 	}
 
-	return uploadFileToWorkspace(ctx, req, gClient, ws)
+	return uploadFileToWorkspace(ctx, req, gClient, ws, "files/")
 }
 
-func uploadFileToWorkspace(ctx context.Context, req api.Context, gClient *gptscript.GPTScript, ws v1.Workspace) error {
+func uploadFileToWorkspace(ctx context.Context, req api.Context, gClient *gptscript.GPTScript, ws v1.Workspace, prefix string) error {
 	file := req.PathValue("file")
 	if file == "" {
 		return fmt.Errorf("file path parameter is required")
@@ -172,7 +174,7 @@ func uploadFileToWorkspace(ctx context.Context, req api.Context, gClient *gptscr
 		return fmt.Errorf("failed to read request body: %w", err)
 	}
 
-	if err = gClient.WriteFileInWorkspace(ctx, ws.Status.WorkspaceID, file, contents); err != nil {
+	if err = gClient.WriteFileInWorkspace(ctx, ws.Status.WorkspaceID, prefix+file, contents); err != nil {
 		return fmt.Errorf("failed to upload file %q to workspace %q: %w", file, ws.Status.WorkspaceID, err)
 	}
 
@@ -211,19 +213,19 @@ func deleteKnowledgeFromWorkspace(req api.Context, filename string, ws v1.Worksp
 	return nil
 }
 
-func deleteFile(ctx context.Context, req api.Context, gClient *gptscript.GPTScript, workspaceName string) error {
+func deleteFile(ctx context.Context, req api.Context, gClient *gptscript.GPTScript, workspaceName, prefix string) error {
 	var ws v1.Workspace
 	if err := req.Get(&ws, workspaceName); err != nil {
 		return err
 	}
 
-	return deleteFileFromWorkspaceID(ctx, req, gClient, ws.Status.WorkspaceID)
+	return deleteFileFromWorkspaceID(ctx, req, gClient, ws.Status.WorkspaceID, prefix)
 }
 
-func deleteFileFromWorkspaceID(ctx context.Context, req api.Context, gClient *gptscript.GPTScript, workspaceID string) error {
+func deleteFileFromWorkspaceID(ctx context.Context, req api.Context, gClient *gptscript.GPTScript, workspaceID, prefix string) error {
 	filename := req.PathValue("file")
 
-	if err := gClient.DeleteFileInWorkspace(ctx, workspaceID, filename); err != nil {
+	if err := gClient.DeleteFileInWorkspace(ctx, workspaceID, prefix+filename); err != nil {
 		return fmt.Errorf("failed to delete file %q from workspace %q: %w", filename, workspaceID, err)
 	}
 

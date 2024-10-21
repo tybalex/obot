@@ -9,5 +9,5 @@ func GetDir(workspaceID string) string {
 	if provider == "directory" {
 		return path
 	}
-	return ""
+	panic("workspaceID must start with directory://")
 }
