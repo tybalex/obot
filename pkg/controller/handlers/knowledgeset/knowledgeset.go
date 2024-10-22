@@ -58,6 +58,7 @@ func (h *Handler) GenerateDataDescription(req router.Request, resp router.Respon
 		return nil
 	}
 
+	ks.Status.IsEmpty = false
 	ks.Status.ObservedIngestionGeneration = ws.Status.IngestionGeneration
 	return h.aiHelper.GenerateObject(req.Ctx, &ks.Status.SuggestedDataDescription, generatePrompt(files), "")
 }
