@@ -1,39 +1,23 @@
-import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import {
     ClientLoaderFunctionArgs,
-    Link,
     redirect,
     useLoaderData,
     useNavigate,
 } from "@remix-run/react";
 import { useCallback } from "react";
 import { $params, $path } from "remix-routes";
-import { z } from "zod";
 
 import { AgentService } from "~/lib/service/api/agentService";
+import { QueryParamSchemas } from "~/lib/service/routeQueryParams";
 import { noop, parseQueryParams } from "~/lib/utils";
 
 import { Agent } from "~/components/agent";
 import { Chat, ChatProvider } from "~/components/chat";
-import { Button } from "~/components/ui/button";
 import {
     ResizableHandle,
     ResizablePanel,
     ResizablePanelGroup,
 } from "~/components/ui/resizable";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "~/components/ui/tooltip";
-
-const paramSchema = z.object({
-    threadId: z.string().optional(),
-    from: z.string().optional(),
-});
-
-export type SearchParams = z.infer<typeof paramSchema>;
 
 export const clientLoader = async ({
     params,
@@ -41,7 +25,7 @@ export const clientLoader = async ({
 }: ClientLoaderFunctionArgs) => {
     const { agent: agentId } = $params("/agents/:agent", params);
     const { threadId, from } =
-        parseQueryParams(request.url, paramSchema).data || {};
+        parseQueryParams(request.url, QueryParamSchemas.Agents).data || {};
 
     if (!agentId) {
         throw redirect("/agents");
@@ -57,7 +41,7 @@ export const clientLoader = async ({
 };
 
 export default function ChatAgent() {
-    const { agent, threadId, from } = useLoaderData<typeof clientLoader>();
+    const { agent, threadId } = useLoaderData<typeof clientLoader>();
     const navigate = useNavigate();
 
     const updateThreadId = useCallback(
@@ -85,27 +69,7 @@ export default function ChatAgent() {
                     className="flex-auto"
                 >
                     <ResizablePanel>
-                        <TooltipProvider>
-                            <Tooltip>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="m-4"
-                                    asChild
-                                >
-                                    <TooltipTrigger>
-                                        <Link to={from ?? "/agents"}>
-                                            <ArrowLeftIcon className="h-4 w-4" />
-                                        </Link>
-                                    </TooltipTrigger>
-                                </Button>
-                                <TooltipContent>Go Back</TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-                        <Agent
-                            agent={agent}
-                            onRefresh={() => updateThreadId(null)}
-                        />
+                        <Agent agent={agent} onRefresh={updateThreadId} />
                     </ResizablePanel>
                     <ResizableHandle withHandle />
                     <ResizablePanel>

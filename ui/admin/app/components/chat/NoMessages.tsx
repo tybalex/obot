@@ -1,3 +1,5 @@
+import { BrainCircuit, Handshake, Rocket } from "lucide-react";
+
 import { useChat } from "~/components/chat/ChatContext";
 import { Button } from "~/components/ui/button";
 
@@ -19,19 +21,26 @@ export function NoMessages() {
                     variant="secondary"
                     onClick={() => handleAddMessage("Hello, how are you?")}
                 >
-                    👋 Greeting
+                    <Handshake className="w-4 h-4 mr-2" />
+                    Greeting
                 </Button>
                 <Button
                     variant="secondary"
                     onClick={() => handleAddMessage("What can you do?")}
                 >
-                    🚀 Capabilities
+                    <Rocket className="w-4 h-4 mr-2" />
+                    Capabilities
                 </Button>
                 <Button
                     variant="secondary"
-                    onClick={() => handleAddMessage("Tell me a joke")}
+                    onClick={() =>
+                        handleAddMessage(
+                            "Using your knowledge tools, tell me about your knowledge set."
+                        )
+                    }
                 >
-                    😄 Joke
+                    <BrainCircuit className="w-4 h-4 mr-2" />
+                    Knowledge
                 </Button>
             </div>
         </div>

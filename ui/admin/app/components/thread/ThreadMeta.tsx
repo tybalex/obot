@@ -1,5 +1,6 @@
 import { Link } from "@remix-run/react";
 import { EditIcon, FileIcon, FilesIcon } from "lucide-react";
+import { $path } from "remix-routes";
 
 import { Agent } from "~/lib/model/agents";
 import { KnowledgeFile } from "~/lib/model/knowledge";
@@ -33,6 +34,7 @@ export function ThreadMeta({
     files,
     className,
 }: ThreadMetaProps) {
+    const from = $path("/thread/:id", { id: thread.id });
     return (
         <Card className={cn("h-full bg-0", className)}>
             <CardContent className="space-y-4 pt-6">
@@ -61,7 +63,11 @@ export function ThreadMeta({
                                                 asChild
                                             >
                                                 <Link
-                                                    to={`/agent/${agent.id}?from=/thread/${thread.id}`}
+                                                    to={$path(
+                                                        "/agents/:agent",
+                                                        { agent: agent.id },
+                                                        { from }
+                                                    )}
                                                 >
                                                     <EditIcon className="w-4 h-4" />
                                                 </Link>
