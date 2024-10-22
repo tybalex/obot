@@ -32,3 +32,8 @@ jobs:
         context: .
         push: true
         tags: ghcr.io/${{ github.repository }}:main
+
+    - name: Deploy to Render
+      uses: joelwmale/webhook-action@2.4.1
+      with:
+        url: ${{ secrets.RENDER_DEPLOY_URL }}
