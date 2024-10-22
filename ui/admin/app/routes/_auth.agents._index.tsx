@@ -125,7 +125,10 @@ export default function Threads() {
                                     className="px-0"
                                 >
                                     <TypographyP>
-                                        {info.getValue()} Threads
+                                        {info.getValue() +
+                                            (info.getValue() === "1"
+                                                ? " Thread"
+                                                : " Threads")}
                                     </TypographyP>
                                 </Link>
                             </Button>
