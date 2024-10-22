@@ -60,17 +60,19 @@ export function AgentForm({ agent, onSubmit, onChange }: AgentFormProps) {
         <Form {...form}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <ControlledInput
+                    variant="ghost"
                     autoComplete="off"
                     control={form.control}
                     name="name"
-                    className="text-3xl shadow-none cursor-pointer hover:border-primary px-0 mb-0 font-bold outline-none border-transparent focus:border-primary"
+                    className="text-3xl"
                 />
                 <ControlledInput
+                    variant="ghost"
                     control={form.control}
                     autoComplete="off"
                     name="description"
                     placeholder="Add a description..."
-                    className="text-xl text-muted-foreground font-semibold shadow-none cursor-pointer hover:border-primary px-0 outline-none border-transparent focus:border-primary"
+                    className="text-xl text-muted-foreground"
                 />
             </form>
         </Form>

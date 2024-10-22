@@ -5,7 +5,6 @@ import { SquarePen, Trash } from "lucide-react";
 import { useMemo } from "react";
 import { $path } from "remix-routes";
 import useSWR, { preload } from "swr";
-import { z } from "zod";
 
 import { Agent } from "~/lib/model/agents";
 import { AgentService } from "~/lib/service/api/agentService";
@@ -22,10 +21,6 @@ import {
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { useAsync } from "~/hooks/useAsync";
-
-export const agentEditParamSchema = z.object({
-    from: z.string().optional(),
-});
 
 export async function clientLoader() {
     await Promise.all([
