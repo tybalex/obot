@@ -20,7 +20,7 @@ import { WorkflowService } from "~/lib/service/api/workflowService";
 import { QueryParamSchemas } from "~/lib/service/routeQueryParams";
 import { parseQueryParams, timeSince } from "~/lib/utils";
 
-import { TypographyP } from "~/components/Typography";
+import { TypographyH2, TypographyP } from "~/components/Typography";
 import { DataTable } from "~/components/composed/DataTable";
 import { Button } from "~/components/ui/button";
 import {
@@ -107,6 +107,7 @@ export default function Threads() {
     return (
         <div className="h-full flex flex-col">
             <div className="flex-auto overflow-hidden p-8">
+                <TypographyH2 className="mb-8">Threads</TypographyH2>
                 <DataTable
                     columns={getColumns()}
                     data={threads}

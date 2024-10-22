@@ -1,1 +1,1 @@
-export { Sidebar } from "~/components/sidebar/Sidebar";
+export { AppSidebar as Sidebar } from "~/components/sidebar/Sidebar";

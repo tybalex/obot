@@ -5,7 +5,7 @@ import { User, roleToString } from "~/lib/model/users";
 import { UserService } from "~/lib/service/api/userService";
 import { timeSince } from "~/lib/utils";
 
-import { TypographyP } from "~/components/Typography";
+import { TypographyH2, TypographyP } from "~/components/Typography";
 import { DataTable } from "~/components/composed/DataTable";
 
 export default function Users() {
@@ -16,6 +16,7 @@ export default function Users() {
     return (
         <div>
             <div className="h-full p-8 flex flex-col gap-4">
+                <TypographyH2 className="mb-4">Users</TypographyH2>
                 <DataTable
                     columns={getColumns()}
                     data={users}

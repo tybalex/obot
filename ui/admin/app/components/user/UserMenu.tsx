@@ -15,9 +15,13 @@ import {
 
 interface UserMenuProps {
     className?: string;
+    avatarOnly?: boolean;
 }
 
-export const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
+export const UserMenu: React.FC<UserMenuProps> = ({
+    className,
+    avatarOnly,
+}) => {
     const { me } = useAuth();
 
     if (me.username === AuthDisabledUsername) {
@@ -33,23 +37,25 @@ export const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
                         className
                     )}
                 >
-                    <Avatar className="mr-4">
+                    <Avatar className={cn("mr-4", { "w-full": avatarOnly })}>
                         <AvatarImage />
                         <AvatarFallback>
                             <User className="w-5 h-5" />
                         </AvatarFallback>
                     </Avatar>
-                    <div className="truncate max-w-full">
-                        <p className="text-sm font-medium truncate">
-                            {me?.email}
-                        </p>
-                        <p className="text-muted-foreground text-left text-xs truncate">
-                            {roleToString(me?.role)}
-                        </p>
-                    </div>
+                    {!avatarOnly && (
+                        <div className="truncate max-w-full">
+                            <p className="text-sm font-medium truncate">
+                                {me?.email}
+                            </p>
+                            <p className="text-muted-foreground text-left text-xs truncate">
+                                {roleToString(me?.role)}
+                            </p>
+                        </div>
+                    )}
                 </div>
             </PopoverTrigger>
-            <PopoverContent className="w-auto" side="bottom">
+            <PopoverContent className="w-auto" side="bottom" align="center">
                 <Button
                     variant="destructive"
                     onClick={() => {

@@ -20,15 +20,13 @@ export const clientLoader = async () => {
 
 export default function AuthLayout() {
     return (
-        <div className="flex flex-col h-screen w-screen">
-            <HeaderNav />
-
-            <div className="flex flex-auto overflow-y-hidden">
-                <Sidebar className="flex-shrink-0" />
-
-                <div className="flex-grow overflow-auto">
+        <div className="flex h-screen w-screen overflow-hidden">
+            <Sidebar />
+            <div className="flex flex-col flex-grow overflow-hidden">
+                <HeaderNav />
+                <main className="flex-grow overflow-auto">
                     <Outlet />
-                </div>
+                </main>
             </div>
         </div>
     );
