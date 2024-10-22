@@ -109,7 +109,7 @@ export function ToolForm({
                             </div>
                             <div className="flex justify-end w-full my-4">
                                 <Popover>
-                                    <PopoverTrigger>
+                                    <PopoverTrigger asChild>
                                         <Button
                                             variant="secondary"
                                             className="mt-4 mb-4"

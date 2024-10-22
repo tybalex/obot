@@ -21,6 +21,8 @@ import {
     PopoverTrigger,
 } from "~/components/ui/popover";
 
+import { TypographyH4, TypographyP } from "../Typography";
+
 interface PastThreadsProps {
     agentId: string;
     onThreadSelect: (threadId: string) => void;
@@ -83,17 +85,17 @@ export const PastThreads: React.FC<PastThreadsProps> = ({
                                         className="cursor-pointer"
                                     >
                                         <div>
-                                            <h3 className="font-semibold">
+                                            <TypographyP className="font-semibold">
                                                 Thread
                                                 <span className="ml-2 text-muted-foreground">
                                                     {thread.id}
                                                 </span>
-                                            </h3>
-                                            <p className="text-sm text-gray-500">
+                                            </TypographyP>
+                                            <TypographyP className="text-sm text-gray-500">
                                                 {new Date(
                                                     thread.created
                                                 ).toLocaleString()}
-                                            </p>
+                                            </TypographyP>
                                         </div>
                                     </CommandItem>
                                 ))}

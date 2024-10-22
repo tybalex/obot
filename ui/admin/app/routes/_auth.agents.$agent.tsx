@@ -9,6 +9,7 @@ import { $params, $path } from "remix-routes";
 import { z } from "zod";
 
 import { AgentService } from "~/lib/service/api/agentService";
+import { QueryParamSchemas } from "~/lib/service/routeQueryParams";
 import { noop, parseQueryParams } from "~/lib/utils";
 
 import { Agent } from "~/components/agent";
@@ -19,20 +20,13 @@ import {
     ResizablePanelGroup,
 } from "~/components/ui/resizable";
 
-const paramSchema = z.object({
-    threadId: z.string().optional(),
-    from: z.string().optional(),
-});
-
-export type SearchParams = z.infer<typeof paramSchema>;
-
 export const clientLoader = async ({
     params,
     request,
 }: ClientLoaderFunctionArgs) => {
     const { agent: agentId } = $params("/agents/:agent", params);
     const { threadId, from } =
-        parseQueryParams(request.url, paramSchema).data || {};
+        parseQueryParams(request.url, QueryParamSchemas.Agents).data || {};
 
     if (!agentId) {
         throw redirect("/agents");
@@ -76,12 +70,7 @@ export default function ChatAgent() {
                     className="flex-auto"
                 >
                     <ResizablePanel>
-                        <Agent
-                            agent={agent}
-                            onRefresh={(threadId: string | null) =>
-                                updateThreadId(threadId)
-                            }
-                        />
+                        <Agent agent={agent} onRefresh={updateThreadId} />
                     </ResizablePanel>
                     <ResizableHandle withHandle />
                     <ResizablePanel>

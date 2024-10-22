@@ -9,6 +9,7 @@ export const QueryParamSchemas = {
         workflowId: z.string().optional(),
     }),
     Agents: z.object({
+        threadId: z.string().optional(),
         from: z.string().optional(),
     }),
 };

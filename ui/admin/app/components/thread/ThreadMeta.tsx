@@ -34,6 +34,7 @@ export function ThreadMeta({
     files,
     className,
 }: ThreadMetaProps) {
+    const from = $path("/thread/:id", { id: thread.id });
     return (
         <Card className={cn("h-full bg-0", className)}>
             <CardContent className="space-y-4 pt-6">
@@ -64,17 +65,8 @@ export function ThreadMeta({
                                                 <Link
                                                     to={$path(
                                                         "/agents/:agent",
-                                                        {
-                                                            agent: agent.id,
-                                                        },
-                                                        {
-                                                            from: $path(
-                                                                "/thread/:id",
-                                                                {
-                                                                    id: thread.id,
-                                                                }
-                                                            ),
-                                                        }
+                                                        { agent: agent.id },
+                                                        { from }
                                                     )}
                                                 >
                                                     <EditIcon className="w-4 h-4" />

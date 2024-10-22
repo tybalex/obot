@@ -86,11 +86,11 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                             </span>
                         </AccordionTrigger>
                         <AccordionContent className="p-2">
-                            <p className="text-muted-foreground flex items-center gap-2">
+                            <TypographyP className="text-muted-foreground flex items-center gap-2">
                                 Add tools the allow the agent to perform useful
                                 actions such as searching the web, reading
                                 files, or interacting with other systems.
-                            </p>
+                            </TypographyP>
                             <ToolForm
                                 agent={agentUpdates}
                                 onChange={debouncedSetAgentInfo}
@@ -110,11 +110,11 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                         </AccordionTrigger>
 
                         <AccordionContent className="p-2 mb-4">
-                            <p className="text-sm text-muted-foreground mb-2 pb-4">
+                            <TypographyP className="text-sm text-muted-foreground mb-2 pb-4">
                                 Provide knowledge to the agent in the form of
                                 files, website, or external links in order to
                                 give it context about various topics.
-                            </p>
+                            </TypographyP>
                             <AgentKnowledgePanel agentId={agent.id} />
                         </AccordionContent>
                     </AccordionItem>
