@@ -46,6 +46,7 @@ type KnowledgeSetStatus struct {
 	ObservedIngestionGeneration int64  `json:"observedIngestionGeneration,omitempty"`
 	SuggestedDataDescription    string `json:"suggestedDataDescription,omitempty"`
 	WorkspaceName               string `json:"workspaceName,omitempty"`
+	IsEmpty                     bool   `json:"isEmpty,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

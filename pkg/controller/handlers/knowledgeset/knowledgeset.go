@@ -54,6 +54,7 @@ func (h *Handler) GenerateDataDescription(req router.Request, resp router.Respon
 	}
 
 	if len(files.Items) == 0 {
+		ks.Status.IsEmpty = true
 		return nil
 	}
 

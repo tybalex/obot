@@ -3949,6 +3949,12 @@ func schema_storage_apis_ottogptscriptai_v1_KnowledgeSetStatus(ref common.Refere
 							Format: "",
 						},
 					},
+					"isEmpty": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},

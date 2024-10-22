@@ -154,7 +154,7 @@ func addKnowledgeTools(ctx context.Context, db kclient.Client, agent *v1.Agent, 
 			dataDescription = ks.Status.SuggestedDataDescription
 		}
 
-		if dataDescription == "" {
+		if ks.Status.IsEmpty || dataDescription == "" {
 			continue
 		}
 
