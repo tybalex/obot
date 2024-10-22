@@ -20,6 +20,3 @@ cd otto8-tools
 git clone --depth=1 https://github.com/gptscript-ai/workspace-provider
 cd workspace-provider
 go build -o bin/gptscript-go-tool .
-rm -rf .git
-cd ..
-rm -rf .git
