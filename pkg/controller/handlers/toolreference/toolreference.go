@@ -80,6 +80,7 @@ func (h *Handler) toolsToToolReferences(ctx context.Context, toolType types.Tool
 					Spec: v1.ToolReferenceSpec{
 						Type:      toolType,
 						Reference: entry.Reference,
+						Builtin:   true,
 					},
 				})
 			}
@@ -103,6 +104,7 @@ func (h *Handler) toolsToToolReferences(ctx context.Context, toolType types.Tool
 						Spec: v1.ToolReferenceSpec{
 							Type:      toolType,
 							Reference: fmt.Sprintf("%s from %s", peerTool.Name, entry.Reference),
+							Builtin:   true,
 						},
 					})
 				}
@@ -116,6 +118,7 @@ func (h *Handler) toolsToToolReferences(ctx context.Context, toolType types.Tool
 				Spec: v1.ToolReferenceSpec{
 					Type:      toolType,
 					Reference: entry.Reference,
+					Builtin:   true,
 				},
 			})
 		}

@@ -2,7 +2,11 @@ package handlers
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
 
+	"github.com/acorn-io/baaah/pkg/name"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/api"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
@@ -24,7 +28,13 @@ func convertToolReference(toolRef v1.ToolReference) types.ToolReference {
 			ToolType:  toolRef.Spec.Type,
 			Reference: toolRef.Spec.Reference,
 		},
-		Error: toolRef.Status.Error,
+		Builtin: toolRef.Spec.Builtin,
+		Error:   toolRef.Status.Error,
+	}
+	if toolRef.Spec.Active == nil {
+		tf.Active = true
+	} else {
+		tf.Active = *toolRef.Spec.Active
 	}
 	if toolRef.Status.Tool != nil {
 		tf.Params = toolRef.Status.Tool.Params
@@ -49,7 +59,35 @@ func (a *ToolReferenceHandler) ByID(req api.Context) error {
 	return req.Write(convertToolReference(toolRef))
 }
 
-func (a *ToolReferenceHandler) Create(req api.Context) error {
+var validCharsRegexp = regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
+
+func normalizeName(reference string) string {
+	newName := validCharsRegexp.ReplaceAllString(strings.ToLower(reference), "-") // Replace invalid characters with '-'
+	newName = regexp.MustCompile(`-+`).ReplaceAllString(newName, "-")
+	newName = strings.Trim(newName, "-")
+	if newName == "" {
+		return "tool" // Fallback name if all characters are invalid
+	}
+	return newName
+}
+
+func (a *ToolReferenceHandler) pickNameForReference(req api.Context, reference string) (string, error) {
+	newName := normalizeName(reference)
+	for i := 0; i < 100; i++ {
+		testName := name.SafeConcatName(newName)
+		if i > 0 {
+			testName = name.SafeConcatName(newName, strconv.Itoa(i))
+		}
+		if err := req.Get(&v1.ToolReference{}, testName); apierrors.IsNotFound(err) {
+			return testName, nil
+		} else if err != nil {
+			return "", err
+		}
+	}
+	return "", fmt.Errorf("could not generate unique name for %s", reference)
+}
+
+func (a *ToolReferenceHandler) Create(req api.Context) (err error) {
 	var (
 		newToolReference types.ToolReferenceManifest
 	)
@@ -58,12 +96,15 @@ func (a *ToolReferenceHandler) Create(req api.Context) error {
 		return err
 	}
 
-	if newToolReference.Name == "" {
-		return apierrors.NewBadRequest("name is required")
-	}
-
 	if newToolReference.Reference == "" {
 		return apierrors.NewBadRequest("reference is required")
+	}
+
+	if newToolReference.Name == "" {
+		newToolReference.Name, err = a.pickNameForReference(req, newToolReference.Reference)
+		if err != nil {
+			return err
+		}
 	}
 
 	switch newToolReference.ToolType {
@@ -104,6 +145,17 @@ func (a *ToolReferenceHandler) Delete(req api.Context) error {
 			return apierrors.NewBadRequest(fmt.Sprintf("tool reference %s is of type %s not requested type %s", id, toolRef.Spec.Type, toolType))
 		}
 	}
+	var toolRef v1.ToolReference
+	if err := req.Get(&toolRef, id); apierrors.IsNotFound(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	if toolRef.Spec.Builtin {
+		return api.NewErrBadRequest("cannot delete builtin tool reference %s", id)
+	}
+
 	return req.Delete(&v1.ToolReference{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      id,
@@ -130,6 +182,7 @@ func (a *ToolReferenceHandler) Update(req api.Context) error {
 	if newToolReference.Reference != "" {
 		existing.Spec.Reference = newToolReference.Reference
 	}
+	existing.Spec.Active = &newToolReference.Active
 
 	if err := req.Update(&existing); err != nil {
 		return err

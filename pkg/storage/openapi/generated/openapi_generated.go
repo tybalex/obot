@@ -1608,6 +1608,13 @@ func schema_otto8_ai_otto8_apiclient_types_Progress(ref common.ReferenceCallback
 							Format:      "",
 						},
 					},
+					"replayComplete": {
+						SchemaProps: spec.SchemaProps{
+							Description: "ReplayComplete indicates that all existing events have been sent and future events will be new events",
+							Type:        []string{"boolean"},
+							Format:      "",
+						},
+					},
 				},
 				Required: []string{"content"},
 			},

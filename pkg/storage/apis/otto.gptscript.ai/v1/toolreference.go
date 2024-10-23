@@ -35,7 +35,9 @@ func (in *ToolReference) GetConditions() *[]metav1.Condition {
 
 type ToolReferenceSpec struct {
 	Type      types.ToolReferenceType `json:"type,omitempty"`
+	Builtin   bool                    `json:"builtin,omitempty"`
 	Reference string                  `json:"reference,omitempty"`
+	Active    *bool                   `json:"active,omitempty"`
 }
 
 type ToolShortDescription struct {
