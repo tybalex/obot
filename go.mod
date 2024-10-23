@@ -14,13 +14,13 @@ require (
 	github.com/acorn-io/mink v0.0.0-20241023012843-90a3b0f07a1d
 	github.com/adrg/xdg v0.5.1
 	github.com/dustin/go-humanize v1.0.1
-	github.com/fatih/color v1.17.0
+	github.com/fatih/color v1.18.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/go-github/v62 v62.0.0
 	github.com/google/uuid v1.6.0
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
-	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241021182853-3901872ceda9
-	github.com/gptscript-ai/gptscript v0.9.6-0.20241021233527-e7e923134d63
+	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241023195750-c09e0f56b39b
+	github.com/gptscript-ai/gptscript v0.9.6-0.20241023192603-dd84ea22db09
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/oauth2-proxy/oauth2-proxy/v7 v7.0.0-00010101000000-000000000000
 	github.com/otto8-ai/otto8/apiclient v0.0.0-00010101000000-000000000000
@@ -84,7 +84,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
 	github.com/charmbracelet/glamour v0.8.0 // indirect
-	github.com/charmbracelet/lipgloss v0.13.0 // indirect
+	github.com/charmbracelet/lipgloss v0.13.1 // indirect
 	github.com/charmbracelet/x/ansi v0.3.2 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cloudflare/circl v1.5.0 // indirect
@@ -113,7 +113,7 @@ require (
 	github.com/glebarez/sqlite v1.11.0 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
-	github.com/go-git/go-billy/v5 v5.5.0 // indirect
+	github.com/go-git/go-billy/v5 v5.6.0 // indirect
 	github.com/go-git/go-git/v5 v5.12.0 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.3 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.4 // indirect
