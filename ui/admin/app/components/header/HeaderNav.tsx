@@ -104,6 +104,11 @@ function getBreadcrumbs(route: string, params: Readonly<Params<string>>) {
                         </BreadcrumbItem>
                     </>
                 )}
+                {new RegExp($path("/tools")).test(route) && (
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>Tools</BreadcrumbPage>
+                    </BreadcrumbItem>
+                )}
                 {new RegExp($path("/users")).test(route) && (
                     <BreadcrumbItem>
                         <BreadcrumbPage>Users</BreadcrumbPage>

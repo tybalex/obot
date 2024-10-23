@@ -5,6 +5,7 @@ import {
     MessageSquare,
     SettingsIcon,
     User,
+    Wrench,
 } from "lucide-react";
 import { $path } from "remix-routes";
 
@@ -43,6 +44,11 @@ const items = [
         title: "Threads",
         url: $path("/threads"),
         icon: MessageSquare,
+    },
+    {
+        title: "Tools",
+        url: $path("/tools"),
+        icon: Wrench,
     },
     {
         title: "Users",
