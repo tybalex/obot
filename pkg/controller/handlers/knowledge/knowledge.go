@@ -103,6 +103,7 @@ func (a *Handler) IngestKnowledge(req router.Request, resp router.Response) erro
 	}
 
 	if len(approvedFiles.Items) == 0 {
+		ws.Status.IngestionRunHash = ""
 		return nil
 	}
 

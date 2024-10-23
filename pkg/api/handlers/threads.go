@@ -211,6 +211,34 @@ func (a *ThreadHandler) Files(req api.Context) error {
 	return req.Write(types.FileList{})
 }
 
+func (a *ThreadHandler) GetFile(req api.Context) error {
+	var (
+		workspaces v1.WorkspaceList
+		threadID   = req.PathValue("id")
+	)
+
+	if threadID == "user" {
+		threadID = system.ThreadPrefix + req.User.GetUID()
+	}
+
+	if err := req.Storage.List(req.Context(), &workspaces, &client.ListOptions{
+		Namespace: req.Namespace(),
+		FieldSelector: fields.SelectorFromSet(map[string]string{
+			"spec.threadName": threadID,
+		}),
+	}); err != nil {
+		return err
+	}
+
+	for _, workspace := range workspaces.Items {
+		if !workspace.Spec.IsKnowledge {
+			return getFileInWorkspace(req.Context(), req, a.gptscript, workspace.Status.WorkspaceID, "files/")
+		}
+	}
+
+	return types.NewErrNotFound("no workspace found for thread %s", req.PathValue("id"))
+}
+
 func (a *ThreadHandler) UploadFile(req api.Context) error {
 	var workspaces v1.WorkspaceList
 	if err := req.Storage.List(req.Context(), &workspaces, &client.ListOptions{

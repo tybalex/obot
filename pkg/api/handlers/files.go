@@ -166,6 +166,22 @@ func uploadFile(ctx context.Context, req api.Context, gClient *gptscript.GPTScri
 	return uploadFileToWorkspace(ctx, req, gClient, ws.Status.WorkspaceID, "files/")
 }
 
+func getFileInWorkspace(ctx context.Context, req api.Context, gClient *gptscript.GPTScript, workspaceID, prefix string) error {
+	file := req.PathValue("file")
+	if file == "" {
+		return fmt.Errorf("file path parameter is required")
+	}
+
+	data, err := gClient.ReadFileInWorkspace(ctx, prefix+file, gptscript.ReadFileInWorkspaceOptions{WorkspaceID: workspaceID})
+	if err != nil {
+		return fmt.Errorf("failed to get file %q to workspace %q: %w", file, workspaceID, err)
+	}
+
+	req.ResponseWriter.Header().Set("Content-Type", "application/octet-stream")
+	_, err = req.ResponseWriter.Write(data)
+	return err
+}
+
 func uploadFileToWorkspace(ctx context.Context, req api.Context, gClient *gptscript.GPTScript, workspaceID, prefix string) error {
 	file := req.PathValue("file")
 	if file == "" {

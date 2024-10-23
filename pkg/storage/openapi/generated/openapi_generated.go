@@ -2509,6 +2509,12 @@ func schema_otto8_ai_otto8_apiclient_types_ToolReference(ref common.ReferenceCal
 							Format: "",
 						},
 					},
+					"builtin": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 					"description": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -2596,6 +2602,12 @@ func schema_otto8_ai_otto8_apiclient_types_ToolReferenceManifest(ref common.Refe
 					"reference": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"active": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
 							Format: "",
 						},
 					},
@@ -5639,9 +5651,21 @@ func schema_storage_apis_ottogptscriptai_v1_ToolReferenceSpec(ref common.Referen
 							Format: "",
 						},
 					},
+					"builtin": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 					"reference": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"active": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
 							Format: "",
 						},
 					},

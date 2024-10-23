@@ -50,6 +50,7 @@ var staticRules = map[string][]string{
 		"POST /api/invoke/otto/threads/user",
 		"GET /api/threads/user/events",
 		"GET /api/threads/user/files",
+		"GET /api/threads/user/file/{file...}",
 		"DELETE /api/threads/user/files/{file...}",
 		"GET /api/threads/user/knowledge",
 		"POST /api/threads/user/knowledge/{file}",
