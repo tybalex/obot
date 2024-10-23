@@ -75,7 +75,7 @@ func (a *ThreadHandler) Events(req api.Context) error {
 			return api.NewErrBadRequest("maxEvents must be an integer")
 		}
 	} else {
-		maxRuns = 20
+		maxRuns = 10
 	}
 
 	_, events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{

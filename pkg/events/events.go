@@ -337,11 +337,15 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 				prg        gptscript.Program
 				callFrames = Frames{}
 			)
-			if err := gz.Decompress(&prg, runState.Spec.Program); err != nil {
-				return err
+			if len(runState.Spec.Program) != 0 {
+				if err := gz.Decompress(&prg, runState.Spec.Program); err != nil {
+					return err
+				}
 			}
-			if err := gz.Decompress(&callFrames, runState.Spec.CallFrame); err != nil {
-				return err
+			if len(runState.Spec.CallFrame) != 0 {
+				if err := gz.Decompress(&callFrames, runState.Spec.CallFrame); err != nil {
+					return err
+				}
 			}
 
 			// Don't log historical runs that have errored
@@ -418,6 +422,9 @@ func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOption
 		if opts.History {
 			if err := e.printParent(ctx, opts.MaxRuns-1, state, run, result); !apierrors.IsNotFound(err) && err != nil {
 				return err
+			}
+			result <- types.Progress{
+				ReplayComplete: true,
 			}
 		}
 

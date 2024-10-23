@@ -54,6 +54,8 @@ type Progress struct {
 	Error string `json:"error,omitempty"`
 	// The run is done, either success or failure
 	RunComplete bool `json:"runComplete,omitempty"`
+	// ReplayComplete indicates that all existing events have been sent and future events will be new events
+	ReplayComplete bool `json:"replayComplete,omitempty"`
 }
 
 type StepTemplateInvoke struct {
