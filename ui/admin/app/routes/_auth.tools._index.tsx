@@ -6,7 +6,7 @@ import { ToolReferenceService } from "~/lib/service/api/toolreferenceService";
 
 import { TypographyH2 } from "~/components/Typography";
 import { CreateTool } from "~/components/tools/CreateTool";
-import { ToolTable } from "~/components/tools/ToolTable";
+import { ToolGrid } from "~/components/tools/toolGrid";
 import { Button } from "~/components/ui/button";
 import {
     Dialog,
@@ -80,7 +80,7 @@ export default function Tools() {
             </div>
 
             {tools && (
-                <ToolTable
+                <ToolGrid
                     tools={tools}
                     filter={searchQuery}
                     onDelete={handleDelete}
