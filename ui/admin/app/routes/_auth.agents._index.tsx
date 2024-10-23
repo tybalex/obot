@@ -11,7 +11,7 @@ import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
 import { timeSince } from "~/lib/utils";
 
-import { TypographyP } from "~/components/Typography";
+import { TypographyH2, TypographyP } from "~/components/Typography";
 import { DataTable } from "~/components/composed/DataTable";
 import { Button } from "~/components/ui/button";
 import {
@@ -66,7 +66,8 @@ export default function Threads() {
         <div>
             <div className="h-full p-8 flex flex-col gap-4">
                 <div className="flex-auto overflow-hidden">
-                    <div className="flex space-x-2 width-full justify-end mb-8">
+                    <div className="flex space-x-2 width-full justify-between mb-8">
+                        <TypographyH2>Agents</TypographyH2>
                         <Button
                             variant="outline"
                             className="justify-start"
