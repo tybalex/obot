@@ -20,7 +20,6 @@
 		es.onerror = (e: Event) => {
 			if (e.eventPhase === EventSource.CLOSED) {
 				disconnect();
-				console.log('connection closed');
 				setTimeout(connect, 5000);
 				return;
 			}

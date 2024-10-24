@@ -16,9 +16,6 @@
 	let dispatch = createEventDispatcher();
 
 	$: content = msg.message ? msg.message.join('') : '';
-	$: {
-		console.log(msg);
-	}
 
 	afterUpdate(() => {
 		const blocks = document.querySelectorAll('.message-content pre > code');

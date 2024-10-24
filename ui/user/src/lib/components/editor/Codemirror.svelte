@@ -218,7 +218,6 @@
 
 		const updater = EditorView.updateListener.of((update) => {
 			if (update.docChanged && focused) {
-				console.log('changed codemirror', file.name);
 				dispatch('changed', {
 					name: file.name,
 					contents: update.state.doc.toString()

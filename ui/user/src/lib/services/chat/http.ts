@@ -1,7 +1,11 @@
 // import from stores/errors and not stores to avoid a circular dependency
 import errors from '$lib/stores/errors';
 
-export const baseURL = 'http://localhost:8080/api';
+export let baseURL = 'http://localhost:8080/api';
+
+if (typeof window !== 'undefined') {
+	baseURL = baseURL.replace('http://localhost:8080', window.location.origin);
+}
 
 interface GetOptions {
 	text?: boolean;
