@@ -7,15 +7,15 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [depot-ubuntu-22.04, macos-latest]
         include:
-          - os: ubuntu-latest
+          - os: depot-ubuntu-22.04
             goos: linux
             goarch: amd64
-          - os: ubuntu-latest
+          - os: depot-ubuntu-22.04
             goos: linux
             goarch: arm64
           - os: macos-latest
@@ -42,7 +42,7 @@ jobs:
         path: otto8
 
   release:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04
     needs: build
     steps:
     - name: Download artifacts
@@ -56,7 +56,7 @@ jobs:
         files: ./artifacts/**
 
   update-tap:
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-22.04
     needs: release
     steps:
     - name: Checkout tap repository
