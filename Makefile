@@ -38,8 +38,9 @@ lint-admin:
 package-tools:
 	./tools/package-tools.sh
 
-in-docker-build: all
+in-docker-build:
 	$(MAKE) ui-user
+	$(MAKE) all
 	$(MAKE) package-tools
 
 no-changes:
