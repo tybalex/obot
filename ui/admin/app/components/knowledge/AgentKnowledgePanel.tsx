@@ -238,8 +238,8 @@ export function AgentKnowledgePanel({ agentId }: { agentId: string }) {
 
     return (
         <div className="flex flex-col gap-4 justify-center items-center">
-            <div className="flex w-full items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent">
-                <div className="flex items-center gap-2">
+            <div className="flex w-full items-center justify-between gap-3 rounded-md bg-background px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-muted-foreground/20 focus-visible:ring-transparent">
+                <div className="flex items-center gap-2 text-foreground">
                     <UploadIcon className="h-5 w-5" />
                     <span className="text-lg font-semibold">Files</span>
                 </div>
@@ -260,12 +260,12 @@ export function AgentKnowledgePanel({ agentId }: { agentId: string }) {
                         className="flex items-center gap-2"
                         variant="ghost"
                     >
-                        <SettingsIcon className="h-5 w-5" />
+                        <SettingsIcon className="h-5 w-5 text-foreground" />
                     </Button>
                 </div>
             </div>
-            <div className="flex w-full items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent">
-                <div className="flex items-center gap-2">
+            <div className="flex w-full items-center justify-between gap-3 rounded-md bg-background px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-muted-foreground/20 focus-visible:ring-transparent">
+                <div className="flex items-center gap-2 text-foreground">
                     <Avatar className="h-5 w-5">
                         <img src={assetUrl("/notion.svg")} alt="Notion logo" />
                     </Avatar>
@@ -286,12 +286,12 @@ export function AgentKnowledgePanel({ agentId }: { agentId: string }) {
                         className="flex items-center gap-2"
                         variant="ghost"
                     >
-                        <SettingsIcon className="h-5 w-5" />
+                        <SettingsIcon className="h-5 w-5 text-foreground" />
                     </Button>
                 </div>
             </div>
-            <div className="flex w-full items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent">
-                <div className="flex items-center gap-2">
+            <div className="flex w-full items-center justify-between gap-3 rounded-md bg-background px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-muted-foreground/20 focus-visible:ring-transparent">
+                <div className="flex items-center gap-2 text-foreground">
                     <Avatar className="h-5 w-5">
                         <img
                             src={assetUrl("/onedrive.svg")}
@@ -315,12 +315,12 @@ export function AgentKnowledgePanel({ agentId }: { agentId: string }) {
                         className="flex items-center gap-2"
                         variant="ghost"
                     >
-                        <SettingsIcon className="h-5 w-5" />
+                        <SettingsIcon className="h-5 w-5 text-foreground" />
                     </Button>
                 </div>
             </div>
-            <div className="flex w-full items-center justify-between gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent">
-                <div className="flex items-center gap-2">
+            <div className="flex w-full items-center justify-between gap-3 rounded-md bg-background px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-muted-foreground/20 focus-visible:ring-transparent">
+                <div className="flex items-center gap-2 text-foreground">
                     <Globe className="h-5 w-5" />
                     <span className="text-lg font-semibold">Website</span>
                 </div>
@@ -339,7 +339,7 @@ export function AgentKnowledgePanel({ agentId }: { agentId: string }) {
                         className="flex items-center gap-2"
                         variant="ghost"
                     >
-                        <SettingsIcon className="h-5 w-5" />
+                        <SettingsIcon className="h-5 w-5 text-foreground" />
                     </Button>
                 </div>
             </div>
