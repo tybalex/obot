@@ -13,6 +13,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Setup Depot
+      uses: depot/setup-action@v1
+
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
@@ -27,8 +30,9 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build and push Docker image
-      uses: docker/build-push-action@v6
+      uses: depot/build-push-action@v1
       with:
+        project: bbqjs4tj1g
         context: .
         push: true
         tags: ghcr.io/${{ github.repository }}:main
