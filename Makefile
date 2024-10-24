@@ -11,6 +11,11 @@ ui:
 	cd ui/admin && \
 	npm install
 
+ui-user:
+	cd ui/user && \
+	npm install && \
+	npm run build
+
 clean:
 	rm -rf ui/admin/build
 	rm -rf ui/user/build
@@ -34,6 +39,7 @@ package-tools:
 	./tools/package-tools.sh
 
 in-docker-build: all
+	$(MAKE) ui-user
 	$(MAKE) package-tools
 
 no-changes:
