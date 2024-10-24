@@ -19,17 +19,19 @@ import { Input } from "~/components/ui/input";
 
 export async function clientLoader() {
     await Promise.all([
-        preload(ToolReferenceService.getToolReferences.key("tool"), () =>
-            ToolReferenceService.getToolReferences("tool")
+        preload(
+            ToolReferenceService.getToolReferencesCategoryMap.key("tool"),
+            () => ToolReferenceService.getToolReferencesCategoryMap("tool")
         ),
     ]);
     return null;
 }
 
 export default function Tools() {
-    const { data: tools, mutate } = useSWR(
-        ToolReferenceService.getToolReferences.key("tool"),
-        () => ToolReferenceService.getToolReferences("tool")
+    const { data: toolCategories, mutate } = useSWR(
+        ToolReferenceService.getToolReferencesCategoryMap.key("tool"),
+        () => ToolReferenceService.getToolReferencesCategoryMap("tool"),
+        { fallbackData: {} }
     );
 
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -79,9 +81,9 @@ export default function Tools() {
                 </div>
             </div>
 
-            {tools && (
+            {toolCategories && (
                 <ToolGrid
-                    tools={tools}
+                    toolCategories={toolCategories}
                     filter={searchQuery}
                     onDelete={handleDelete}
                 />

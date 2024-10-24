@@ -54,13 +54,8 @@ async function getToolReferencesCategoryMap(type?: ToolReferenceType) {
 }
 getToolReferencesCategoryMap.key = (type?: ToolReferenceType) =>
     ({
-        // tylerslaton: This is a workaround to make the SWR caching work
-        // nicely with the getToolReferences function. The reason we do this
-        // is because otherwise the SWR cache will not be invalidated between
-        // the two function calls and thus break type safety since types in
-        // TypeScript are erased at runtime. as-map=true does not exist in
-        // the API.
-        url: ApiRoutes.toolReferences.base({ type }).path + "?as-map=true",
+        url: ApiRoutes.toolReferences.base({ type }).path,
+        responseType: "map",
     }) as const;
 
 const getToolReferenceById = async (toolReferenceId: string) => {
