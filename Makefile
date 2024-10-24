@@ -13,7 +13,7 @@ ui:
 
 ui-user:
 	cd ui/user && \
-	npm install && \
+	pnpm install && \
 	npm run build
 
 clean:

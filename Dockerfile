@@ -2,7 +2,7 @@
 FROM cgr.dev/chainguard/wolfi-base AS builder
 
 # Install build dependencies
-RUN apk add --no-cache go build-base npm make git
+RUN apk add --no-cache go npm make git pnpm
 
 # Set the working directory
 WORKDIR /app
@@ -10,7 +10,8 @@ WORKDIR /app
 # Copy the source code
 COPY . .
 
-RUN --mount=type=cache,target=/root/.cache/go-build \
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    --mount=type=cache,target=/root/.cache/go-build \
     --mount=type=cache,target=/root/go/pkg/mod \
     make in-docker-build
 
