@@ -34,6 +34,7 @@ jobs:
       with:
         project: bbqjs4tj1g
         context: .
+        token: ${{ secrets.DEPOT_TOKEN }}
         push: true
         tags: ghcr.io/${{ github.repository }}:main
 
