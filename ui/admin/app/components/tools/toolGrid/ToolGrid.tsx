@@ -1,57 +1,59 @@
 import { useMemo } from "react";
 
 import { ToolReference } from "~/lib/model/toolReferences";
+import { ToolCategoryMap } from "~/lib/service/api/toolreferenceService";
 
 import { CategoryHeader } from "~/components/tools/toolGrid/CategoryHeader";
 import { CategoryTools } from "~/components/tools/toolGrid/CategoryTools";
 
 interface ToolGridProps {
-    tools: ToolReference[];
+    toolCategories: ToolCategoryMap;
     filter: string;
     onDelete: (id: string) => void;
 }
 
-export function ToolGrid({ tools, filter, onDelete }: ToolGridProps) {
-    const filteredTools = useMemo(() => {
-        return tools?.filter(
-            (tool) =>
-                tool.name?.toLowerCase().includes(filter.toLowerCase()) ||
-                tool.metadata?.category
-                    ?.toLowerCase()
-                    .includes(filter.toLowerCase()) ||
-                tool.description?.toLowerCase().includes(filter.toLowerCase())
-        );
-    }, [tools, filter]);
-
-    const sortedCategories = useMemo(() => {
-        const categorizedTools = filteredTools?.reduce(
-            (acc, tool) => {
-                const category = tool.metadata?.category ?? "Uncategorized";
-                if (!acc[category]) {
-                    acc[category] = [];
-                }
-                acc[category].push(tool);
-                return acc;
-            },
-            {} as Record<string, ToolReference[]>
-        );
-
-        // Sort categories to put "Uncategorized" first
-        return Object.entries(categorizedTools).sort(([a], [b]) => {
-            if (a === "Uncategorized") return -1;
-            if (b === "Uncategorized") return 1;
-            return a.localeCompare(b);
-        });
-    }, [filteredTools]);
+export function ToolGrid({ toolCategories, filter, onDelete }: ToolGridProps) {
+    const filteredCategories = useMemo(() => {
+        const result: ToolCategoryMap = {};
+        for (const [category, { tools, bundleTool }] of Object.entries(
+            toolCategories
+        )) {
+            const filteredTools = tools.filter(
+                (tool) =>
+                    tool.name?.toLowerCase().includes(filter.toLowerCase()) ||
+                    tool.metadata?.category
+                        ?.toLowerCase()
+                        .includes(filter.toLowerCase()) ||
+                    tool.description
+                        ?.toLowerCase()
+                        .includes(filter.toLowerCase())
+            );
+            if (filteredTools.length > 0 || bundleTool) {
+                result[category] = {
+                    tools: filteredTools,
+                    bundleTool: bundleTool,
+                };
+            }
+        }
+        return result;
+    }, [toolCategories, filter]);
 
     return (
         <div className="space-y-8 pb-16">
-            {sortedCategories.map(([category, categoryTools]) => (
-                <div key={category} className="space-y-4">
-                    <CategoryHeader category={category} tools={categoryTools} />
-                    <CategoryTools tools={categoryTools} onDelete={onDelete} />
-                </div>
-            ))}
+            {Object.entries(filteredCategories).map(
+                ([category, { tools, bundleTool }]) => (
+                    <div key={category} className="space-y-4">
+                        <CategoryHeader category={category} tools={tools} />
+                        <CategoryTools
+                            tools={[
+                                bundleTool || ({} as ToolReference),
+                                ...tools,
+                            ]}
+                            onDelete={onDelete}
+                        />
+                    </div>
+                )
+            )}
         </div>
     );
 }

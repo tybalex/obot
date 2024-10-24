@@ -55,6 +55,7 @@ async function getToolReferencesCategoryMap(type?: ToolReferenceType) {
 getToolReferencesCategoryMap.key = (type?: ToolReferenceType) =>
     ({
         url: ApiRoutes.toolReferences.base({ type }).path,
+        responseType: "map",
     }) as const;
 
 const getToolReferenceById = async (toolReferenceId: string) => {
