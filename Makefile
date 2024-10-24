@@ -9,7 +9,7 @@ all:
 
 ui:
 	cd ui/admin && \
-	npm install
+	pnpm install
 
 ui-user:
 	cd ui/user && \
