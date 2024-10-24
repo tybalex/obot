@@ -1,8 +1,8 @@
 <script lang="ts">
-	import Upload from '$lib/components/icons/Upload.svelte';
+	import { Upload } from '$lib/icons';
 	import { ChatService } from '$lib/services/index.js';
 	import type { KnowledgeFile } from '$lib/services';
-	import Loading from '$lib/components/icons/Loading.svelte';
+	import Loading from '$lib/icons/Loading.svelte';
 	import Error from '$lib/components/Error.svelte';
 	import { createEventDispatcher } from 'svelte';
 

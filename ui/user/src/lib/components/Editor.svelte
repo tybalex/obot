@@ -54,8 +54,7 @@
 </script>
 
 <script lang="ts">
-	import { DocumentText, XMark } from '@steeze-ui/heroicons';
-	import Icon from '$lib/components/icons/Icon.svelte';
+	import { FileText, X } from '$lib/icons';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import Milkdown from '$lib/components/editor/Milkdown.svelte';
 	import Codemirror from '$lib/components/editor/Codemirror.svelte';
@@ -115,7 +114,7 @@
 						class="selected active group flex items-center justify-center gap-2 rounded-t-lg p-4 text-black dark:border-blue-500 dark:text-white"
 						aria-current="page"
 					>
-						<Icon src={DocumentText} />
+						<FileText />
 						<span>{file.name}</span>
 						<button
 							class="ml-2"
@@ -123,7 +122,7 @@
 								remove(i);
 							}}
 						>
-							<Icon class="h-4 w-4" src={XMark} />
+							<X />
 						</button>
 					</button>
 				</li>
@@ -135,7 +134,7 @@
 				dispatch('editor-close');
 			}}
 		>
-			<Icon src={XMark} />
+			<X />
 		</button>
 	</div>
 

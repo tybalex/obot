@@ -1,9 +1,7 @@
 <script lang="ts">
-	import Trash from '$lib/components/icons/Trash.svelte';
+	import { Trash, FileText } from '$lib/icons';
 	import { ChatService, type File as FileType } from '$lib/services';
 	import { createEventDispatcher } from 'svelte';
-	import { DocumentText } from '@steeze-ui/heroicons';
-	import Icon from '$lib/components/icons/Icon.svelte';
 
 	export let file: FileType;
 	let dispatch = createEventDispatcher();
@@ -22,7 +20,7 @@
 		dispatch('loadfile', file.name);
 	}}
 >
-	<Icon class="mr-2 text-gray-500 dark:text-gray-500" src={DocumentText} />
+	<FileText class="mr-2 text-gray-500 dark:text-gray-500" />
 	<span class="inline-flex flex-1 text-sm text-black group-hover:text-white dark:text-gray-100">
 		{file.name}
 	</span>

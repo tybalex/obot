@@ -2,7 +2,7 @@
 	import File from '$lib/components/drawer/File.svelte';
 	import { ChatService } from '$lib/services';
 	import Error from '$lib/components/Error.svelte';
-	import Loading from '$lib/components/icons/Loading.svelte';
+	import Loading from '$lib/icons/Loading.svelte';
 
 	let req = ChatService.getFiles();
 

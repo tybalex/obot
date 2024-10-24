@@ -1,26 +1,16 @@
 <script lang="ts">
-	import Otto from '$lib/components/icons/Otto.svelte';
+	import Otto from '$lib/icons/Otto.svelte';
 	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
 	import type { Message } from '$lib/services';
-	import Icon from '$lib/components/icons/Icon.svelte';
-	import type { IconSource } from '@steeze-ui/svelte-icon';
-	import { onMount } from 'svelte';
+	import { Pencil } from '$lib/icons';
 
 	export let msg: Message;
-	let stockIcon: IconSource;
-
-	onMount(async () => {
-		if (msg.icon?.startsWith('stock:')) {
-			const icons = await import(`@steeze-ui/heroicons`);
-			stockIcon = icons[msg.icon.replace('stock:', '')] as IconSource;
-		}
-	});
 </script>
 
 {#if !msg.icon}
 	<!-- Nothing -->
-{:else if msg.icon.startsWith('stock:')}
-	<Icon src={stockIcon} class="ml-1 mr-3 h-8 w-8" />
+{:else if msg.icon === 'stock:Pencil'}
+	<Pencil class="ml-1 mr-3 h-8 w-8" />
 {:else if msg.icon === 'Otto'}
 	<Otto />
 {:else if msg.icon === 'Profile'}

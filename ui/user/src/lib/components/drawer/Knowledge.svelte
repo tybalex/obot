@@ -1,11 +1,11 @@
 <script>
-	import Brain from '$lib/components/icons/Brain.svelte';
 	import { ChatService } from '$lib/services';
 	import Error from '$lib/components/Error.svelte';
-	import Loading from '$lib/components/icons/Loading.svelte';
+	import Loading from '$lib/icons/Loading.svelte';
 	import KnowledgeFile from '$lib/components/drawer/KnowledgeFile.svelte';
 	import KnowledgeUpload from '$lib/components/drawer/KnowledgeUpload.svelte';
 	import { onMount } from 'svelte';
+	import { Brain } from '$lib/icons';
 
 	let req = ChatService.getKnowledgeFiles();
 
@@ -25,7 +25,7 @@
 <div>
 	<hr class="my-8 h-px border-0 bg-gray-200 dark:bg-gray-700" />
 	<h5 class="mb-4 inline-flex items-center text-base font-semibold text-black dark:text-gray-100">
-		<Brain />
+		<Brain class="mr-2 h-4 w-4" />
 		Knowledge
 	</h5>
 	<p class="mb-6 text-sm text-black dark:text-gray-100">Searchable content</p>

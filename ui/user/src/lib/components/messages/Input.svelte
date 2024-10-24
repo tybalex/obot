@@ -11,9 +11,9 @@
 
 <script lang="ts">
 	import { ChatService } from '$lib/services';
-	import Arrow from '$lib/components/icons/Arrow.svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { editorFiles } from '$lib/stores';
+	import { SendHorizontal } from '$lib/icons';
 
 	let value = '';
 	let chat: HTMLTextAreaElement;
@@ -123,7 +123,7 @@
 				on:focus={() => {
 					dispatcher('focus');
 				}}
-				class="mx-4 block w-full resize-none rounded-lg border-2 border-gray-300 bg-white p-2.5 text-sm text-gray-900
+				class="ml-4 mr-2 block w-full resize-none rounded-lg border-2 border-gray-300 bg-white p-2.5 text-sm text-gray-900
 								outline-none focus:border-blue-500 focus:ring-blue-500 dark:border-gray-300 dark:bg-black
 								 dark:text-white dark:placeholder-gray-300 dark:focus:border-blue-500 dark:focus:ring-blue-500"
 				placeholder="Your message..."
@@ -134,7 +134,7 @@
 				class="inline-flex cursor-pointer justify-center rounded-full p-2 text-blue-600
 							 hover:bg-blue-100 dark:text-blue-500 dark:hover:bg-gray-800"
 			>
-				<Arrow class="rotate-90 rtl:-rotate-90" />
+				<SendHorizontal class="text-blue-500 dark:text-blue-500" />
 				<span class="sr-only">Send message</span>
 			</button>
 		</div>

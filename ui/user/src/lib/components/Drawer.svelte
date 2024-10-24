@@ -1,8 +1,7 @@
 <script lang="ts">
 	import Files from '$lib/components/drawer/Files.svelte';
 	import Knowledge from '$lib/components/drawer/Knowledge.svelte';
-	import { InfoCircleSolid } from 'flowbite-svelte-icons';
-	import Close from '$lib/components/icons/Close.svelte';
+	import { X, CircleAlert } from '$lib/icons';
 
 	export let visible = true;
 </script>
@@ -16,7 +15,7 @@
 		tabindex="-1"
 	>
 		<h5 class="mb-4 inline-flex items-center text-base font-semibold text-black dark:text-white">
-			<InfoCircleSolid class="me-2.5 h-5 w-5" />
+			<CircleAlert class="me-2.5 h-5 w-5" />
 			Content
 		</h5>
 
@@ -27,7 +26,7 @@
 				w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900
 				 dark:hover:bg-gray-600 dark:hover:text-white"
 		>
-			<Close />
+			<X />
 			<span class="sr-only">Close menu</span>
 		</button>
 

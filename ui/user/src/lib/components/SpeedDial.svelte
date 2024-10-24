@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Plus from '$lib/components/icons/Plus.svelte';
-	import { PenSolid } from 'flowbite-svelte-icons';
+	import { Plus } from '$lib/icons';
+	import { Pencil } from '$lib/icons';
 	import { onMount } from 'svelte';
 
 	export let drawerVisible = false;
@@ -28,7 +28,7 @@
 						  focus:outline-none focus:ring-4 focus:ring-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400
 						   dark:hover:bg-gray-600 dark:hover:text-white dark:focus:ring-gray-400"
 		>
-			<PenSolid class="h-5 w-5" />
+			<Pencil class="h-5 w-5" />
 			<span class="sr-only">Editor</span>
 		</button>
 	</div>

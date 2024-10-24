@@ -1,11 +1,10 @@
 <script lang="ts">
 	import type { Message } from '$lib/services';
-	import Loading from '$lib/components/icons/Loading.svelte';
+	import Loading from '$lib/icons/Loading.svelte';
 	import highlight from 'highlight.js';
 	import { afterUpdate, createEventDispatcher } from 'svelte';
 	import MessageIcon from '$lib/components/messages/MessageIcon.svelte';
-	import Icon from '$lib/components/icons/Icon.svelte';
-	import { DocumentText } from '@steeze-ui/heroicons';
+	import { FileText } from '$lib/icons';
 	import { toHTMLFromMarkdown } from '$lib/markdown.js';
 
 	export let msg: Message;
@@ -67,7 +66,7 @@
 				{#if msg.sent}
 					{#if msg.explain}
 						<div class="flex items-center gap-1 pb-3 pl-1">
-							<Icon src={DocumentText} class="h-4 w-4 text-white" />
+							<FileText class="h-4 w-4 text-white" />
 							<span>{msg.explain.filename}</span>
 						</div>
 						<pre
@@ -85,7 +84,7 @@
 						on:click={() => dispatch('loadfile', msg.file?.filename)}
 						class="flex items-center gap-2 rounded border border-gray-200 p-2 px-4 text-black shadow hover:bg-gray-100 dark:bg-gray-900 dark:text-white hover:dark:bg-gray-700"
 					>
-						<Icon src={DocumentText} class="text-black" />
+						<FileText class="text-black" />
 						<span>{msg.file.filename}</span>
 					</button>
 				</div>

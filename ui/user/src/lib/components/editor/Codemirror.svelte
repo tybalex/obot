@@ -43,8 +43,7 @@
 	import { showTooltip } from '@codemirror/view';
 	import { StateField } from '@codemirror/state';
 	import { oneDark } from '@codemirror/theme-one-dark';
-	import Icon from '$lib/components/icons/Icon.svelte';
-	import { ChatBubbleBottomCenterText, QuestionMarkCircle } from '@steeze-ui/heroicons';
+	import { MessageSquareText, CircleHelp } from '$lib/icons';
 	import { darkMode } from '$lib/stores';
 
 	const cursorTooltipField = StateField.define<readonly Tooltip[]>({
@@ -275,13 +274,13 @@
 				class="explain-button flex h-12 items-center justify-center gap-2 rounded-s bg-blue-500 px-4 py-2 text-white hover:bg-ablue2-400"
 			>
 				<span class="font-bold">Explain</span>
-				<Icon src={QuestionMarkCircle} class="h-4 w-4 text-white dark:text-white" />
+				<CircleHelp class="h-4 w-4 text-white dark:text-white" />
 			</button>
 			<button
 				class="improve-button flex h-12 items-center justify-center gap-2 rounded-e border-l border-ablue2-400 bg-blue-500 px-4 py-2 text-white hover:bg-ablue2-400"
 			>
 				<span class="font-bold">Improve</span>
-				<Icon src={ChatBubbleBottomCenterText} class="h-4 w-4 text-white dark:text-white" />
+				<MessageSquareText class="h-4 w-4 text-white dark:text-white" />
 			</button>
 			<button
 				class="improve-text hidden h-12 items-center justify-center gap-2 rounded-e border-l border-ablue2-400 bg-blue-500 px-2 py-2 text-white hover:bg-ablue2-400"

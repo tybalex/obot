@@ -16,9 +16,9 @@
 </script>
 
 <script lang="ts">
-	import CircleCheck from '$lib/components/icons/CircleCheck.svelte';
-	import CircleX from '$lib/components/icons/CircleX.svelte';
-	import Close from '$lib/components/icons/Close.svelte';
+	import { CircleCheck } from '$lib/icons';
+	import { CircleX } from '$lib/icons';
+	import { X } from '$lib/icons';
 	import { errors } from '$lib/stores';
 
 	let notifications: NotificationMessage[] = [];
@@ -49,7 +49,7 @@
 				class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white"
 			>
 				<span class="sr-only">Close</span>
-				<Close />
+				<X />
 			</button>
 		</div>
 	{/each}
@@ -74,7 +74,7 @@
 				class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white"
 			>
 				<span class="sr-only">Close</span>
-				<Close />
+				<X />
 			</button>
 		</div>
 	{/each}

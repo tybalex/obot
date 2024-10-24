@@ -1,5 +1,5 @@
 <script>
-	import { MoonSolid, SunSolid } from 'flowbite-svelte-icons';
+	import { Moon, Sun } from '$lib/icons';
 	import { darkMode } from '$lib/stores';
 </script>
 
@@ -11,8 +11,8 @@
 	class="icon-button"
 >
 	{#if $darkMode}
-		<SunSolid class="h-5 w-5" />
+		<Sun class="h-5 w-5" />
 	{:else}
-		<MoonSolid class="h-5 w-5" />
+		<Moon class="h-5 w-5" />
 	{/if}
 </button>
