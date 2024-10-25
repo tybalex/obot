@@ -2,6 +2,7 @@ package reference
 
 import (
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/acorn-io/baaah/pkg/uncached"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,8 +37,12 @@ func AssociateWithReference(req router.Request, _ router.Response) error {
 
 	var existingRef v1.Reference
 	if err := req.Get(&existingRef, ref.Namespace, ref.Name); apierrors.IsNotFound(err) {
-		if err := req.Client.Create(req.Ctx, &ref); err != nil {
-			return err
+		if err := req.Client.Create(req.Ctx, &ref); apierrors.IsAlreadyExists(err) {
+			if err := req.Get(uncached.Get(&existingRef), ref.Namespace, ref.Name); err != nil {
+				return err
+			}
+		} else if err != nil {
+			return nil
 		}
 	} else if err != nil {
 		return nil
