@@ -345,8 +345,9 @@ func compileKnowledgeFiles(ctx context.Context, c client.Client,
 		knowledgeFileNamesFromOutput[name] = struct{}{}
 		newKnowledgeFile := &v1.KnowledgeFile{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: remoteKnowledgeSource.Namespace,
+				Name:       name,
+				Namespace:  remoteKnowledgeSource.Namespace,
+				Finalizers: []string{v1.KnowledgeFileFinalizer},
 			},
 			Spec: v1.KnowledgeFileSpec{
 				WorkspaceName:             ws.Name,
