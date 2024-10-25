@@ -14,7 +14,7 @@ for gomod in $(find otto8-tools -name go.mod); do
     (
         cd $(dirname $gomod)
         echo Building $PWD
-        go build -o bin/gptscript-go-tool .
+        CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/gptscript-go-tool .
     )
 done
 
@@ -35,11 +35,11 @@ if [ ! -e workspace-provider ]; then
 fi
 
 cd workspace-provider
-go build -o bin/gptscript-go-tool .
+CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/gptscript-go-tool .
 
 cd ..
 if [ ! -e knowledge-tool ]; then
-    git clone https://github.com/gptscript-ai/knowledge knowledge-tool
+    git clone --depth=1 https://github.com/gptscript-ai/knowledge knowledge-tool
 fi
 cd knowledge-tool
 make

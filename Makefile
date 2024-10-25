@@ -22,7 +22,7 @@ clean:
 
 # Build the project
 build:
-	go build -o bin/otto8 -v
+	CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/otto8 .
 
 dev: ui
 	./tools/dev.sh

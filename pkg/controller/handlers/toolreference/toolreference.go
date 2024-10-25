@@ -14,6 +14,7 @@ import (
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/logger"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/otto8-ai/otto8/pkg/system"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
@@ -75,7 +76,7 @@ func (h *Handler) toolsToToolReferences(ctx context.Context, toolType types.Tool
 				result = append(result, &v1.ToolReference{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      normalize(name, toolName),
-						Namespace: "default",
+						Namespace: system.DefaultNamespace,
 					},
 					Spec: v1.ToolReferenceSpec{
 						Type:      toolType,
@@ -99,7 +100,7 @@ func (h *Handler) toolsToToolReferences(ctx context.Context, toolType types.Tool
 					result = append(result, &v1.ToolReference{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      normalize(name, toolName),
-							Namespace: "default",
+							Namespace: system.DefaultNamespace,
 						},
 						Spec: v1.ToolReferenceSpec{
 							Type:      toolType,
@@ -113,7 +114,7 @@ func (h *Handler) toolsToToolReferences(ctx context.Context, toolType types.Tool
 			result = append(result, &v1.ToolReference{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      name,
-					Namespace: "default",
+					Namespace: system.DefaultNamespace,
 				},
 				Spec: v1.ToolReferenceSpec{
 					Type:      toolType,
@@ -179,7 +180,7 @@ func (h *Handler) PollRegistry(ctx context.Context, c client.Client) {
 	}
 
 	for {
-		if err := c.List(ctx, &v1.ToolReferenceList{}, client.InNamespace("default")); err != nil {
+		if err := c.List(ctx, &v1.ToolReferenceList{}, client.InNamespace(system.DefaultNamespace)); err != nil {
 			time.Sleep(1 * time.Second)
 			continue
 		}

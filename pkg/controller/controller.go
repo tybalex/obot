@@ -5,9 +5,10 @@ import (
 	"fmt"
 
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/otto8-ai/otto8/pkg/controller/data"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/toolreference"
 	"github.com/otto8-ai/otto8/pkg/services"
-	// Enabled logrus logging in baaah
+	// Enable logrus logging in baaah
 	_ "github.com/acorn-io/baaah/pkg/logrus"
 )
 
@@ -32,6 +33,9 @@ func New(ctx context.Context, services *services.Services) (*Controller, error) 
 }
 
 func (c *Controller) PostStart(ctx context.Context) error {
+	if err := data.Data(ctx, c.services.StorageClient); err != nil {
+		return fmt.Errorf("failed to apply data: %w", err)
+	}
 	go c.toolRefHandler.PollRegistry(ctx, c.services.Router.Backend())
 	return nil
 }

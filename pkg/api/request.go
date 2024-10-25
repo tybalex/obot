@@ -14,6 +14,7 @@ import (
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/api/authz"
 	"github.com/otto8-ai/otto8/pkg/storage"
+	"github.com/otto8-ai/otto8/pkg/system"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -217,7 +218,7 @@ func (r *Context) Update(obj client.Object) error {
 }
 
 func (r *Context) Namespace() string {
-	return "default"
+	return system.DefaultNamespace
 }
 
 func (r *Context) UserIsAdmin() bool {

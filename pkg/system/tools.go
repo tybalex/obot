@@ -5,4 +5,6 @@ const (
 	KnowledgeDeleteTool     = "knowledge-delete"
 	KnowledgeDeleteFileTool = "knowledge-delete-file"
 	KnowledgeRetrievalTool  = "knowledge-retrieval"
+
+	DefaultNamespace = "default"
 )
