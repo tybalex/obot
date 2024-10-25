@@ -1,2 +1,10 @@
-export const BaseUrl = "http://localhost:8080/admin";
-export const DomainUrl = "http://localhost:8080";
+export const BaseUrl = () => {
+    if (typeof window === "undefined") return "";
+
+    return window.location.origin + "/admin";
+};
+export const DomainUrl = () => {
+    if (typeof window === "undefined") return "";
+
+    return window.location.origin;
+};
