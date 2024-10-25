@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusIcon, TrashIcon } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -22,6 +22,8 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "~/components/ui/popover";
+
+import { ToolEntry } from "./ToolEntry";
 
 const formSchema = z.object({
     tools: z.array(z.string()),
@@ -83,28 +85,18 @@ export function ToolForm({
 
                             <div className="mt-2 w-full">
                                 {field.value?.map((tool, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center space-x-2 justify-between mt-1"
-                                    >
-                                        <div className="border text-sm px-3 shadow-sm rounded-md p-2 w-full">
-                                            {tool}
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            variant="destructive"
-                                            size="icon"
-                                            onClick={() => {
-                                                const newTools =
-                                                    field.value?.filter(
-                                                        (_, i) => i !== index
-                                                    );
-                                                field.onChange(newTools);
-                                            }}
-                                        >
-                                            <TrashIcon className="w-4 h-4" />
-                                        </Button>
-                                    </div>
+                                    <ToolEntry
+                                        key={tool}
+                                        tool={tool}
+                                        onDelete={() => {
+                                            const newTools =
+                                                field.value?.filter(
+                                                    (_, i) => i !== index
+                                                );
+
+                                            field.onChange(newTools);
+                                        }}
+                                    />
                                 ))}
                             </div>
                             <div className="flex justify-end w-full my-4">
