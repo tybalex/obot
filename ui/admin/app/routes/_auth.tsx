@@ -1,22 +1,32 @@
-import { Outlet, redirect } from "@remix-run/react";
-import { isAxiosError } from "axios";
-import { $path } from "remix-routes";
+import { Outlet, isRouteErrorResponse, useRouteError } from "@remix-run/react";
+import { AxiosError } from "axios";
 
-import { UserService } from "~/lib/service/api/userService";
-
+import { AuthDisabledUsername, useAuth } from "~/components/auth/AuthContext";
+import { Error, RouteError, Unauthorized } from "~/components/errors";
 import { HeaderNav } from "~/components/header/HeaderNav";
 import { Sidebar } from "~/components/sidebar";
+import { SignIn } from "~/components/signin/SignIn";
 
-export const clientLoader = async () => {
-    try {
-        await UserService.getMe();
-    } catch (error) {
-        if (isAxiosError(error) && error.response?.status === 403) {
-            throw redirect($path("/sign-in"));
-        }
+export function ErrorBoundary() {
+    const error = useRouteError();
+    const { me } = useAuth();
+
+    switch (true) {
+        case error instanceof AxiosError:
+            if (
+                error.response?.status === 403 &&
+                me.username &&
+                me.username !== AuthDisabledUsername
+            ) {
+                return <Unauthorized />;
+            }
+            return <SignIn />;
+        case isRouteErrorResponse(error):
+            return <RouteError error={error} />;
+        default:
+            return <Error error={error as Error} />;
     }
-    return null;
-};
+}
 
 export default function AuthLayout() {
     return (
