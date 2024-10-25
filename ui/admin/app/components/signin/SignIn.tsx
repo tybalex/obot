@@ -1,4 +1,3 @@
-import React from "react";
 import { FaGoogle } from "react-icons/fa";
 
 import { cn } from "~/lib/utils";
@@ -17,31 +16,33 @@ interface SignInProps {
     className?: string;
 }
 
-const SignIn: React.FC<SignInProps> = ({ className }) => {
+export function SignIn({ className }: SignInProps) {
     return (
-        <Card className={cn("flex flex-col justify-between", className)}>
-            <CardHeader>
-                <CardTitle className="flex items-center justify-center">
-                    <OttoLogo />
-                </CardTitle>
-                <CardDescription className="text-center w-3/4 mx-auto pt-4">
-                    Please sign in using the button below.
-                </CardDescription>
-            </CardHeader>
-            <CardFooter className="border-t pt-4">
-                <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={() => {
-                        window.location.href = "/oauth2/start?rd=/admin/";
-                    }}
-                >
-                    <FaGoogle className="mr-2" />
-                    Sign In with Google
-                </Button>
-            </CardFooter>
-        </Card>
+        <div className="flex min-h-screen w-full items-center justify-center p-4">
+            <Card
+                className={cn("flex flex-col justify-between w-96", className)}
+            >
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-center">
+                        <OttoLogo />
+                    </CardTitle>
+                    <CardDescription className="text-center w-3/4 mx-auto pt-4">
+                        Please sign in using the button below.
+                    </CardDescription>
+                </CardHeader>
+                <CardFooter className="border-t pt-4">
+                    <Button
+                        variant="secondary"
+                        className="w-full"
+                        onClick={() => {
+                            window.location.href = "/oauth2/start?rd=/admin/";
+                        }}
+                    >
+                        <FaGoogle className="mr-2" />
+                        Sign In with Google
+                    </Button>
+                </CardFooter>
+            </Card>
+        </div>
     );
-};
-
-export default SignIn;
+}
