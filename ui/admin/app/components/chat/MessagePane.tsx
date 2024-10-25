@@ -6,6 +6,7 @@ import { Message } from "~/components/chat/Message";
 import { NoMessages } from "~/components/chat/NoMessages";
 import { ScrollArea } from "~/components/ui/scroll-area";
 
+import { LoadingSpinner } from "../ui/LoadingSpinner";
 import { useChat } from "./ChatContext";
 
 interface MessagePaneProps {
@@ -25,27 +26,23 @@ export function MessagePane({
     classNames = {},
     generatingMessage,
 }: MessagePaneProps) {
-    const { mode, readOnly } = useChat();
+    const { readOnly, isLoading } = useChat();
+
+    const isEmpty = messages.length === 0 && !generatingMessage && !readOnly;
 
     return (
         <div className={cn("flex flex-col h-full", className, classNames.root)}>
-            {messages.length === 0 &&
-            !generatingMessage &&
-            mode === "agent" &&
-            !readOnly ? (
-                <div className="flex-grow flex items-center justify-center">
+            <ScrollArea
+                startScrollAt="bottom"
+                enableScrollTo="bottom"
+                enableScrollStick="bottom"
+                className={cn("h-full w-full relative", classNames.messageList)}
+            >
+                {isLoading && isEmpty ? (
+                    <LoadingSpinner fillContainer />
+                ) : isEmpty ? (
                     <NoMessages />
-                </div>
-            ) : (
-                <ScrollArea
-                    startScrollAt="bottom"
-                    enableScrollTo="bottom"
-                    enableScrollStick="bottom"
-                    className={cn(
-                        "h-full w-full relative",
-                        classNames.messageList
-                    )}
-                >
+                ) : (
                     <div className="p-4 space-y-6 w-full">
                         {messages.map((message, i) => (
                             <Message key={i} message={message} />
@@ -54,8 +51,8 @@ export function MessagePane({
                             <Message message={generatingMessage} />
                         )}
                     </div>
-                </ScrollArea>
-            )}
+                )}
+            </ScrollArea>
         </div>
     );
 }

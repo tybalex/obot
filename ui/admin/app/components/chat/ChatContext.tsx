@@ -35,6 +35,7 @@ interface ChatContextType {
     invoke: (prompt?: string) => void;
     readOnly?: boolean;
     isRunning: boolean;
+    isLoading: boolean;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -58,8 +59,15 @@ export function ChatProvider({
     const [generatingMessage, setGeneratingMessage] = useState<string | null>(
         null
     );
-    const [isRunning, setIsRunning] = useState(false);
+    const [isRunning, _setIsRunning] = useState(false);
+    const isRunningRef = useRef(false);
     const isRunningToolCall = useRef(false);
+
+    const setIsRunning = (value: boolean) => {
+        isRunningRef.current = value;
+        _setIsRunning(value);
+    };
+
     // todo(tylerslaton): this is a huge hack to get the generating message and runId to be
     // interactable during workflow invokes. take a look at invokeWorkflow to see why this is
     // currently needed.
@@ -83,19 +91,22 @@ export function ChatProvider({
         ({ threadId }) => ThreadsService.getThreadEvents(threadId),
         {
             onSuccess: () => setInsertedMessages([]),
-            revalidateIfStale: false,
             revalidateOnFocus: false,
             revalidateOnReconnect: false,
         }
     );
 
     const messages = useMemo(
-        () => chatEventsToMessages(getThreadEvents.data || []),
+        () =>
+            chatEventsToMessages(combineChatEvents(getThreadEvents.data || [])),
         [getThreadEvents.data]
     );
 
     // clear out inserted messages when the threadId changes
-    useEffect(() => setInsertedMessages([]), [threadId]);
+    useEffect(() => {
+        if (isRunningRef.current) return;
+        setInsertedMessages([]);
+    }, [threadId]);
 
     /** inserts message optimistically */
     const insertMessage = (message: Message) => {
@@ -149,6 +160,14 @@ export function ChatProvider({
 
             setIsRunning(true);
 
+            if (responseThreadId && !threadId) {
+                // persist the threadId
+                onCreateThreadId?.(responseThreadId);
+
+                // revalidate threads
+                mutate(ThreadsService.getThreads.key());
+            }
+
             readStream<ChatEvent>({
                 reader,
                 onChunk: (chunk) =>
@@ -184,29 +203,8 @@ export function ChatProvider({
                         }
                     }),
                 onComplete: async (chunks) => {
-                    const compactEvents = combineChatEvents(chunks);
-
-                    if (responseThreadId && !threadId) {
-                        // if this is a new thread, persist it by
-                        // prepopulating the cache with the events before setting the threadId
-                        // to avoid a flash of no messages
-                        await mutate(
-                            ThreadsService.getThreadEvents.key(
-                                responseThreadId
-                            ),
-                            compactEvents,
-                            { revalidate: false }
-                        );
-
-                        // persist the threadId
-                        onCreateThreadId?.(responseThreadId);
-
-                        // revalidate threads
-                        mutate(ThreadsService.getThreads.key());
-                        clearGeneratingMessage();
-                    } else {
-                        insertGeneratingMessage(chunks[0]?.runID);
-                    }
+                    insertGeneratingMessage(chunks[0]?.runID);
+                    clearGeneratingMessage();
 
                     invokeAgent.clear();
                     generatingRunIdRef.current = null;
@@ -255,6 +253,7 @@ export function ChatProvider({
                 generatingMessage: outGeneratingMessage,
                 invoke,
                 isRunning,
+                isLoading: getThreadEvents.isLoading,
                 readOnly,
             }}
         >
