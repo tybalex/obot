@@ -13,6 +13,8 @@ import (
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/adrg/xdg"
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/gptscript/pkg/cache"
+	gptscriptai "github.com/gptscript-ai/gptscript/pkg/gptscript"
 	"github.com/gptscript-ai/gptscript/pkg/sdkserver"
 	"github.com/otto8-ai/otto8/pkg/aihelper"
 	"github.com/otto8-ai/otto8/pkg/api/authn"
@@ -83,7 +85,15 @@ func newGPTScript(ctx context.Context, workspaceTool string) (*gptscript.GPTScri
 		})
 	}
 
-	url, err := sdkserver.EmbeddedStart(ctx)
+	url, err := sdkserver.EmbeddedStart(ctx, sdkserver.Options{
+		Options: gptscriptai.Options{
+			Cache: cache.Options{
+				CacheDir: os.Getenv("GPTSCRIPT_CACHE_DIR"),
+			},
+			SystemToolsDir: os.Getenv("GPTSCRIPT_SYSTEM_TOOLS_DIR"),
+		},
+		WorkspaceTool: workspaceTool,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -106,9 +116,11 @@ func New(ctx context.Context, config Config) (*Services, error) {
 
 	devPort, config := configureDevMode(config)
 
-	if strings.HasPrefix(config.DSN, "postgres://") {
-		_ = os.Setenv("KNOW_VECTOR_DSN", strings.Replace(config.DSN, "postgres://", "pgvector://", 1))
-		_ = os.Setenv("KNOW_INDEX_DSN", config.DSN)
+	for _, pgPrefix := range []string{"postgres://", "posgresql://"} {
+		if strings.HasPrefix(config.DSN, pgPrefix) {
+			_ = os.Setenv("KNOW_VECTOR_DSN", strings.Replace(config.DSN, pgPrefix, "pgvector://", 1))
+			_ = os.Setenv("KNOW_INDEX_DSN", strings.Replace(config.DSN, pgPrefix, "postgres://", 1))
+		}
 	}
 
 	storageClient, restConfig, dbAccess, err := storage.Start(ctx, config.Config)

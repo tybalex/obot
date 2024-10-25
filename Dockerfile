@@ -2,7 +2,7 @@
 FROM cgr.dev/chainguard/wolfi-base AS builder
 
 # Install build dependencies
-RUN apk add --no-cache go npm make git pnpm
+RUN apk add --no-cache go npm make git pnpm curl
 
 # Set the working directory
 WORKDIR /app
@@ -41,15 +41,16 @@ set -e
 mkdir -p /run/sshd
 /usr/sbin/sshd -D &
 mkdir -p /data/cache
-ln -sf /otto8-tools /data/cache/system
 exec tini -- otto8 server
 EOF
 
 EXPOSE 22
 ENV HOME=/data
 ENV XDG_CACHE_HOME=/data/cache
-ENV OTTO_SERVER_TOOL_REGISTRY=/data/cache/system
-ENV OTTO_SERVER_WORKSPACE_TOOL=/data/cache/system/workspace-provider
+ENV GPTSCRIPT_SYSTEM_TOOLS_DIR=/otto8-tools/
+ENV OTTO_SERVER_WORKSPACE_TOOL=/otto8-tools/workspace-provider
+ENV OTTO_SERVER_TOOL_REGISTRY=/otto8-tools
+ENV PATH=/otto8-tools/chrome:$PATH
 WORKDIR /data
 VOLUME /data
 CMD ["run.sh"]
