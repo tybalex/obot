@@ -19,7 +19,7 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
 FROM cgr.dev/chainguard/wolfi-base AS final
 
 # Install build dependencies
-RUN apk add --no-cache git py3.12-pip openssh-server nodejs bash tini
+RUN apk add --no-cache git py3.12-pip openssh-server npm bash tini chromium
 RUN ln -s /usr/bin/python3.12 /usr/bin/python3
 
 RUN sed -E 's/^#(PermitRootLogin)no/\1yes/' /etc/ssh/sshd_config -i
@@ -50,7 +50,6 @@ ENV XDG_CACHE_HOME=/data/cache
 ENV GPTSCRIPT_SYSTEM_TOOLS_DIR=/otto8-tools/
 ENV OTTO_SERVER_WORKSPACE_TOOL=/otto8-tools/workspace-provider
 ENV OTTO_SERVER_TOOL_REGISTRY=/otto8-tools
-ENV PATH=/otto8-tools/chrome:$PATH
 WORKDIR /data
 VOLUME /data
 CMD ["run.sh"]

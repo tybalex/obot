@@ -47,9 +47,3 @@ ln -sf knowledge bin/gptscript-go-tool
 
 cd ..
 sed -e 's!github.com/gptscript-ai/knowledge!./knowledge-tool!g' -e 's/@main//g' -i index.yaml
-
-curl https://raw.githubusercontent.com/scheib/chromium-latest-linux/4f4e9b85ea02a109e071452de936389cc2fd7376/update.sh | bash -
-if [ -e chrome ]; then
-    rm -rf chrome
-fi
-mv */chrome-linux chrome
