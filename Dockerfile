@@ -21,6 +21,7 @@ FROM cgr.dev/chainguard/wolfi-base AS final
 # Install build dependencies
 RUN apk add --no-cache git py3.12-pip openssh-server npm bash tini chromium
 RUN ln -s /usr/bin/python3.12 /usr/bin/python3
+RUN mkdir -p /opt/google/chrome && ln -sf /usr/bin/chromium-browser /opt/google/chrome/chrome
 
 RUN sed -E 's/^#(PermitRootLogin)no/\1yes/' /etc/ssh/sshd_config -i
 RUN ssh-keygen -A
