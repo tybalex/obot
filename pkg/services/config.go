@@ -162,6 +162,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		DefaultRESTConfig: restConfig,
 		Scheme:            scheme.Scheme,
 		ElectionConfig:    leader.NewDefaultElectionConfig("", "otto-controller", restConfig),
+		HealthzPort:       -1,
 	})
 	if err != nil {
 		return nil, err
