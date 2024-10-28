@@ -10,8 +10,12 @@ interface CategoryToolsProps {
 export function CategoryTools({ tools, onDelete }: CategoryToolsProps) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tools.map((tool) => (
-                <ToolCard key={tool.id} tool={tool} onDelete={onDelete} />
+            {tools.map((tool, index) => (
+                <ToolCard
+                    key={`${tool.id}-${index}`}
+                    tool={tool}
+                    onDelete={onDelete}
+                />
             ))}
         </div>
     );
