@@ -21,6 +21,9 @@ const (
 
 	GoogleAuthorizeURL = "https://accounts.google.com/o/oauth2/v2/auth"
 	GoogleTokenURL     = "https://oauth2.googleapis.com/token"
+
+	GitHubAuthorizeUrl = "https://github.com/login/oauth/authorize"
+	GitHubTokenURL     = "https://github.com/login/oauth/access_token"
 )
 
 type OAuthAppTypeConfig struct {
@@ -134,6 +137,9 @@ func ValidateAndSetDefaultsOAuthAppManifest(r *types.OAuthAppManifest) error {
 	case types.OAuthAppTypeGoogle:
 		r.AuthURL = GoogleAuthorizeURL
 		r.TokenURL = GoogleTokenURL
+	case types.OAuthAppTypeGitHub:
+		r.AuthURL = GitHubAuthorizeUrl
+		r.TokenURL = GitHubTokenURL
 	}
 
 	// Validate URLs.
