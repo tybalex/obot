@@ -52,14 +52,14 @@ func (h *Handler) IngestFile(req router.Request, _ router.Response) error {
 	if file.Spec.KnowledgeSourceName != "" {
 		if err := req.Client.Get(req.Ctx, router.Key(file.Namespace, file.Spec.KnowledgeSourceName), &source); err != nil {
 			// NotFound is fine, Cleanup handler will handle things and end up deleting this file
-			return err
+			return kclient.IgnoreNotFound(err)
 		}
 	}
 
 	var ks v1.KnowledgeSet
 	if err := req.Client.Get(req.Ctx, router.Key(file.Namespace, file.Spec.KnowledgeSetName), &ks); err != nil {
 		// NotFound is fine, Cleanup handler will handle things and end up deleting this file
-		return err
+		return kclient.IgnoreNotFound(err)
 	}
 
 	thread, err := getThread(req.Ctx, req.Client, &ks, &source)

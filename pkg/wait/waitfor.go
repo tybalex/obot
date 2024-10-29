@@ -116,6 +116,8 @@ func For[T kclient.Object](ctx context.Context, c kclient.WithWatch, obj T, cond
 			if condition(event.Object.(T)) {
 				return event.Object.(T), nil
 			}
+		} else if event.Type == watch.Error {
+			return def, apierrors.FromObject(event.Object)
 		}
 	}
 

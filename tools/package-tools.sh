@@ -7,16 +7,7 @@ if [ ! -e otto8-tools ]; then
     git clone --depth=1 https://github.com/otto8-ai/tools otto8-tools
 fi
 
-for gomod in $(find otto8-tools -name go.mod); do
-    if [ $(basename $(dirname $gomod)) == common ]; then
-        continue
-    fi
-    (
-        cd $(dirname $gomod)
-        echo Building $PWD
-        CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/gptscript-go-tool .
-    )
-done
+./otto8-tools/scripts/build.sh
 
 for pj in $(find otto8-tools -name package.json | grep -v node_modules); do
     if [ $(basename $(dirname $pj)) == common ]; then

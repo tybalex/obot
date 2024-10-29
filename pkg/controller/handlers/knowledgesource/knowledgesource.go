@@ -64,7 +64,6 @@ func safeStatusSave(ctx context.Context, c kclient.Client, source *v1.KnowledgeS
 	// This should be the error from the last loop, which should be a conflict
 	return err
 }
-
 func (k *Handler) saveProgress(ctx context.Context, c kclient.Client, source *v1.KnowledgeSource, thread *v1.Thread, complete bool) error {
 	files, syncMetadata, err := k.getMetadata(ctx, source, thread)
 	if err != nil {
@@ -144,7 +143,7 @@ func getThread(ctx context.Context, c kclient.WithWatch, source *v1.KnowledgeSou
 		}
 	}
 
-	return wait.For(ctx, c, thread, func(t *v1.Thread) bool {
+	return wait.For(ctx, c, thread, func(thread *v1.Thread) bool {
 		return thread.Status.WorkspaceID != ""
 	})
 }
