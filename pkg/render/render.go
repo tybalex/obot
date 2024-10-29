@@ -165,7 +165,7 @@ func addKnowledgeTools(ctx context.Context, db kclient.Client, agent *v1.Agent, 
 			Instructions: "#!sys.echo",
 			Arguments: gptscript.ObjectSchema(
 				"query", "A search query that will be evaluated against the knowledge set"),
-			OutputFilters: []string{knowledgeTool + fmt.Sprintf(fmt.Sprintf(" with %s as datasets and ${query} as query", ks.Name))},
+			OutputFilters: []string{knowledgeTool + fmt.Sprintf(fmt.Sprintf(" with %s/%s as datasets and ${query} as query", ks.Namespace, ks.Name))},
 		}
 
 		contentTool := gptscript.ToolDef{
