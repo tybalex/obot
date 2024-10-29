@@ -27,6 +27,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         return (
             <input
                 type={type}
+                data-1p-ignore={type !== "password"}
                 className={cn(inputVariants({ variant, className }))}
                 ref={ref}
                 {...props}
