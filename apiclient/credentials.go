@@ -3,6 +3,7 @@ package apiclient
 import (
 	"context"
 	"net/http"
+	"net/url"
 
 	"github.com/otto8-ai/otto8/apiclient/types"
 )
@@ -40,7 +41,7 @@ type DeleteCredentialsOptions struct {
 }
 
 func (c *Client) DeleteCredential(ctx context.Context, name string, opts DeleteCredentialsOptions) (err error) {
-	path := "/credentials/" + name
+	path := "/credentials/" + url.PathEscape(name)
 	if opts.AgentID != "" {
 		path = "/agents/" + opts.AgentID + path
 	} else if opts.WorkflowID != "" {
