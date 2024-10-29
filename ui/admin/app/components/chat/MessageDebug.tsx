@@ -1,4 +1,4 @@
-import { CodeIcon } from "lucide-react";
+import { CodeIcon, Maximize2Icon, Minimize2Icon } from "lucide-react";
 import { useState } from "react";
 
 import { Calls } from "~/lib/model/runs";
@@ -29,6 +29,7 @@ type MessageDebugProps = {
 
 export function MessageDebug({ runId, variant }: MessageDebugProps) {
     const [runDebug, setRunDebug] = useState<Calls>({});
+    const [isFullscreen, setIsFullscreen] = useState(false);
 
     return (
         <Dialog>
@@ -56,11 +57,31 @@ export function MessageDebug({ runId, variant }: MessageDebugProps) {
                     </TooltipContent>
                 </Tooltip>
             </TooltipProvider>
-            <DialogContent className=" w-[50vw] max-w-[80vw] h-[80vh] flex flex-col">
+            <DialogContent
+                className={`transition-all duration-300 ease-in-out ${
+                    isFullscreen
+                        ? "w-screen h-screen max-w-screen max-h-screen !rounded-none !p-6"
+                        : "w-[50vw] max-w-[80vw] h-[80vh]"
+                } flex flex-col`}
+            >
                 <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <CodeIcon className="w-4 h-4" />
-                        Run {runId}
+                    <DialogTitle>
+                        <div className="flex items-center gap-2">
+                            <CodeIcon className="w-4 h-4" />
+                            Run {runId}
+                        </div>
+                        <Button
+                            variant="ghost"
+                            className="text-muted-foreground absolute right-10 top-2"
+                            size="icon"
+                            onClick={() => setIsFullscreen(!isFullscreen)}
+                        >
+                            {isFullscreen ? (
+                                <Minimize2Icon className="w-3.5 h-3.5" />
+                            ) : (
+                                <Maximize2Icon className="w-3.5 h-3.5" />
+                            )}
+                        </Button>
                     </DialogTitle>
                 </DialogHeader>
                 <DialogDescription>
