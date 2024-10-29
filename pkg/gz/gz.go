@@ -21,6 +21,9 @@ func Decompress(out any, input []byte) error {
 	case *string:
 		*v = string(data)
 		return nil
+	case *[]byte:
+		*v = data
+		return nil
 	default:
 		return json.Unmarshal(data, out)
 	}

@@ -11,8 +11,8 @@ import (
 
 func convertRemoteKnowledgeSource(agentName string, knowledgeSource v1.KnowledgeSource) types.KnowledgeSource {
 	var syncDetails []byte
-	if len(knowledgeSource.Status.SyncState) > 0 {
-		_ = gz.Decompress(syncDetails, knowledgeSource.Status.SyncDetails)
+	if len(knowledgeSource.Status.SyncDetails) > 0 {
+		_ = gz.Decompress(&syncDetails, knowledgeSource.Status.SyncDetails)
 	}
 	return types.KnowledgeSource{
 		Metadata:                MetadataFrom(&knowledgeSource),
