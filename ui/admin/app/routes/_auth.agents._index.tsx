@@ -4,7 +4,7 @@ import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import { SquarePen, Trash } from "lucide-react";
 import { useMemo } from "react";
 import { $path } from "remix-routes";
-import useSWR, { preload } from "swr";
+import useSWR, { mutate, preload } from "swr";
 
 import { Agent } from "~/lib/model/agents";
 import { AgentService } from "~/lib/service/api/agentService";
@@ -23,6 +23,7 @@ import {
 import { useAsync } from "~/hooks/useAsync";
 
 export async function clientLoader() {
+    mutate(AgentService.getAgents.key(), ThreadsService.getThreads.key());
     await Promise.all([
         preload(AgentService.getAgents.key(), AgentService.getAgents),
         preload(ThreadsService.getThreads.key(), ThreadsService.getThreads),
@@ -77,6 +78,7 @@ export default function Threads() {
                                         name: "New Agent",
                                     } as Agent,
                                 }).then((agent) => {
+                                    mutate(AgentService.getAgents.key());
                                     navigate(
                                         $path("/agents/:agent", {
                                             agent: agent.id,
