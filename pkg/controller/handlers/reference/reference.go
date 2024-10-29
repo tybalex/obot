@@ -25,7 +25,7 @@ func AssociateWithReference(req router.Request, _ router.Response) error {
 	case *v1.Agent:
 		ref.Name = v.Spec.Manifest.RefName
 		ref.Spec.AgentName = v.Name
-		assigned = &v.Status.External.RefNameAssigned
+		assigned = &v.Status.RefNameAssigned
 	}
 
 	if ref.Name == "" {

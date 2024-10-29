@@ -150,7 +150,7 @@ func addKnowledgeTools(ctx context.Context, db kclient.Client, agent *v1.Agent, 
 			dataDescription = ks.Status.SuggestedDataDescription
 		}
 
-		if ks.Status.IsEmpty || dataDescription == "" {
+		if dataDescription == "" {
 			continue
 		}
 
@@ -311,7 +311,7 @@ func agentsByName(ctx context.Context, db kclient.Client, namespace string) (map
 	}
 
 	for _, agent := range agents.Items {
-		if agent.Spec.Manifest.RefName != "" && agent.Status.External.RefNameAssigned {
+		if agent.Spec.Manifest.RefName != "" && agent.Status.RefNameAssigned {
 			result[agent.Spec.Manifest.RefName] = agent
 		}
 	}

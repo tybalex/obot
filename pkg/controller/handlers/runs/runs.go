@@ -33,7 +33,7 @@ func (*Handler) DeleteRunState(req router.Request, resp router.Response) error {
 	}))
 }
 
-func (h *Handler) Resume(req router.Request, resp router.Response) error {
+func (h *Handler) Resume(req router.Request, _ router.Response) error {
 	run := req.Object.(*v1.Run)
 	var thread v1.Thread
 
@@ -57,6 +57,15 @@ func (h *Handler) Resume(req router.Request, resp router.Response) error {
 		} else if err != nil {
 			return err
 		}
+	}
+
+	if run.Spec.Synchronous {
+		if h.invoker.IsSynchronousPending(run.Name) {
+			return nil
+		}
+		run.Status.Error = "run was interrupted most likely due to a system reset"
+		run.Status.State = gptscript.Error
+		return req.Client.Status().Update(req.Ctx, run)
 	}
 
 	return h.invoker.Resume(req.Ctx, req.Client, &thread, run)

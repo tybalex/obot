@@ -2,7 +2,6 @@ package api
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/otto8-ai/otto8/apiclient/types"
@@ -23,10 +22,6 @@ func IsHTTPCode(err error, code int) bool {
 
 func IsConflict(err error) bool {
 	return IsHTTPCode(err, http.StatusConflict)
-}
-
-func NewErrBadRequest(message string, args ...interface{}) *types.ErrHTTP {
-	return types.NewErrHttp(http.StatusBadRequest, fmt.Sprintf(message, args...))
 }
 
 var ErrMustAuth = &types.ErrHTTP{

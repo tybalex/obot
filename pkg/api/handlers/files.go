@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -34,6 +33,9 @@ func listFiles(ctx context.Context, req api.Context, gClient *gptscript.GPTScrip
 }
 
 func listFileFromWorkspace(ctx context.Context, req api.Context, gClient *gptscript.GPTScript, opts gptscript.ListFilesInWorkspaceOptions) error {
+	if opts.WorkspaceID == "" {
+		return types.NewErrHttp(http.StatusTooEarly, "workspace is not available yet")
+	}
 	files, err := gClient.ListFilesInWorkspace(ctx, opts)
 	if err != nil {
 		return fmt.Errorf("failed to list files in workspace %q: %w", opts.WorkspaceID, err)
@@ -42,62 +44,40 @@ func listFileFromWorkspace(ctx context.Context, req api.Context, gClient *gptscr
 	return req.Write(types.FileList{Items: compileFileNames(files, opts)})
 }
 
-func getWorkspaceFromKnowledgeSet(req api.Context, knowledgeSetNames ...string) (ws v1.Workspace, ok bool, err error) {
-	if len(knowledgeSetNames) == 0 {
-		return ws, false, nil
-	}
-
+func getWorkspaceFromKnowledgeSet(req api.Context, knowledgeSetName string) (*v1.Workspace, error) {
 	var knowledgeSet v1.KnowledgeSet
-	if err := req.Get(&knowledgeSet, knowledgeSetNames[0]); err != nil {
-		return ws, false, err
+	if err := req.Get(&knowledgeSet, knowledgeSetName); err != nil {
+		return nil, err
 	}
 
-	if knowledgeSet.Status.WorkspaceName == "" {
-		return ws, false, nil
-	}
-
-	err = req.Get(&ws, knowledgeSet.Status.WorkspaceName)
-	return ws, true, err
+	var ws v1.Workspace
+	return &ws, req.Get(&ws, knowledgeSet.Status.WorkspaceName)
 }
 
-func listKnowledgeFiles(req api.Context, knowledgeSetNames ...string) error {
-	ws, ok, err := getWorkspaceFromKnowledgeSet(req, knowledgeSetNames...)
-	if err != nil || !ok {
-		return err
-	}
-
-	return listKnowledgeFilesFromWorkspace(req, ws)
-}
-
-func listKnowledgeFilesFromWorkspace(req api.Context, ws v1.Workspace) error {
+func listKnowledgeFiles(req api.Context, agentName, threadName, knowledgeSetName, knowledgeSourceName string) error {
 	var files v1.KnowledgeFileList
 	if err := req.Storage.List(req.Context(), &files, &client.ListOptions{
 		FieldSelector: fields.SelectorFromSet(selectors.RemoveEmpty(map[string]string{
-			"spec.workspaceName": ws.Name,
+			"spec.knowledgeSetName":    knowledgeSetName,
+			"spec.knowledgeSourceName": knowledgeSourceName,
 		})),
-		Namespace: ws.Namespace,
+		Namespace: req.Namespace(),
 	}); err != nil {
 		return err
 	}
 
 	resp := make([]types.KnowledgeFile, 0, len(files.Items))
 	for _, file := range files.Items {
-		resp = append(resp, convertKnowledgeFile(file, ws))
+		if knowledgeSourceName == "" && file.Spec.KnowledgeSourceName != "" {
+			continue
+		}
+		resp = append(resp, convertKnowledgeFile(agentName, threadName, file))
 	}
 
 	return req.Write(types.KnowledgeFileList{Items: resp})
 }
 
-func uploadKnowledge(req api.Context, gClient *gptscript.GPTScript, knowledgeSetNames ...string) error {
-	ws, ok, err := getWorkspaceFromKnowledgeSet(req, knowledgeSetNames...)
-	if err != nil || !ok {
-		return err
-	}
-
-	return uploadKnowledgeToWorkspace(req, gClient, ws)
-}
-
-func uploadKnowledgeToWorkspace(req api.Context, gClient *gptscript.GPTScript, ws v1.Workspace) error {
+func uploadKnowledgeToWorkspace(req api.Context, gClient *gptscript.GPTScript, ws *v1.Workspace, agentName, threadName, knowledgeSetName string) error {
 	filename := req.PathValue("file")
 
 	if err := uploadFileToWorkspace(req.Context(), req, gClient, ws.Status.WorkspaceID, ""); err != nil {
@@ -112,9 +92,9 @@ func uploadKnowledgeToWorkspace(req api.Context, gClient *gptscript.GPTScript, w
 			Namespace: ws.Namespace,
 		},
 		Spec: v1.KnowledgeFileSpec{
-			FileName:      filename,
-			WorkspaceName: ws.Name,
-			Approved:      &[]bool{true}[0],
+			FileName:         filename,
+			KnowledgeSetName: knowledgeSetName,
+			Approved:         &[]bool{true}[0],
 		},
 	}
 
@@ -123,22 +103,25 @@ func uploadKnowledgeToWorkspace(req api.Context, gClient *gptscript.GPTScript, w
 		return err
 	}
 
-	return req.Write(convertKnowledgeFile(file, ws))
+	return req.Write(convertKnowledgeFile(agentName, threadName, file))
 }
 
-func convertKnowledgeFile(file v1.KnowledgeFile, ws v1.Workspace) types.KnowledgeFile {
+func convertKnowledgeFile(agentName, threadName string, file v1.KnowledgeFile) types.KnowledgeFile {
 	return types.KnowledgeFile{
-		Metadata:                  MetadataFrom(&file),
-		FileName:                  file.Spec.FileName,
-		AgentID:                   ws.Spec.AgentName,
-		WorkflowID:                ws.Spec.WorkflowName,
-		ThreadID:                  ws.Spec.ThreadName,
-		IngestionStatus:           file.Status.IngestionStatus,
-		FileDetails:               file.Status.FileDetails,
-		RemoteKnowledgeSourceID:   file.Spec.RemoteKnowledgeSourceName,
-		RemoteKnowledgeSourceType: file.Spec.RemoteKnowledgeSourceType,
-		UploadID:                  file.Status.UploadID,
-		Approved:                  file.Spec.Approved,
+		Metadata:               MetadataFrom(&file),
+		FileName:               file.Spec.FileName,
+		State:                  file.PublicState(),
+		Approved:               file.Spec.Approved,
+		URL:                    file.Spec.URL,
+		UpdatedAt:              file.Spec.UpdatedAt,
+		Checksum:               file.Spec.Checksum,
+		LastIngestionStartTime: types.NewTime(file.Status.LastIngestionStartTime.Time),
+		LastIngestionEndTime:   types.NewTime(file.Status.LastIngestionStartTime.Time),
+		AgentID:                agentName,
+		ThreadID:               threadName,
+		KnowledgeSetID:         file.Spec.KnowledgeSetName,
+		KnowledgeSourceID:      file.Spec.KnowledgeSourceName,
+		LastRunID:              file.Status.RunName,
 	}
 }
 
@@ -202,29 +185,24 @@ func uploadFileToWorkspace(ctx context.Context, req api.Context, gClient *gptscr
 	return nil
 }
 
-func deleteKnowledge(req api.Context, filename string, knowledgeSetNames ...string) error {
-	ws, ok, err := getWorkspaceFromKnowledgeSet(req, knowledgeSetNames...)
-	if err != nil || !ok {
+func deleteKnowledge(req api.Context, filename string, knowledgeSetName string) error {
+	ws, err := getWorkspaceFromKnowledgeSet(req, knowledgeSetName)
+	if err != nil {
 		return err
 	}
 
 	return deleteKnowledgeFromWorkspace(req, filename, ws)
 }
 
-func deleteKnowledgeFromWorkspace(req api.Context, filename string, ws v1.Workspace) error {
+func deleteKnowledgeFromWorkspace(req api.Context, filename string, ws *v1.Workspace) error {
 	fileObjectName := v1.ObjectNameFromAbsolutePath(filepath.Join(workspace.GetDir(ws.Status.WorkspaceID), filename))
 
-	if err := req.Storage.Delete(req.Context(), &v1.KnowledgeFile{
+	if err := req.Delete(&v1.KnowledgeFile{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: ws.Namespace,
 			Name:      fileObjectName,
 		},
 	}); err != nil {
-		var apiErr *apierrors.StatusError
-		if errors.As(err, &apiErr) {
-			apiErr.ErrStatus.Details.Name = filename
-			apiErr.ErrStatus.Message = strings.ReplaceAll(apiErr.ErrStatus.Message, fileObjectName, filename)
-		}
 		return err
 	}
 

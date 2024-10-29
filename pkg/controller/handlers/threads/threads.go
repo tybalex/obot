@@ -1,13 +1,15 @@
 package threads
 
 import (
-	"time"
+	"context"
 
+	"github.com/acorn-io/baaah/pkg/name"
 	"github.com/acorn-io/baaah/pkg/router"
-	"github.com/otto8-ai/otto8/pkg/invoke"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
+	"github.com/otto8-ai/otto8/pkg/wait"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func WorkflowState(req router.Request, _ router.Response) error {
@@ -26,59 +28,71 @@ func WorkflowState(req router.Request, _ router.Response) error {
 	return nil
 }
 
-func PurgeSystemThread(req router.Request, _ router.Response) error {
+func getWorkspace(ctx context.Context, c kclient.WithWatch, thread *v1.Thread) (*v1.Workspace, error) {
+	if thread.Spec.WorkspaceName != "" {
+		return wait.For(ctx, c, &v1.Workspace{
+			ObjectMeta: metav1.ObjectMeta{
+				Namespace: thread.Namespace,
+				Name:      thread.Spec.WorkspaceName,
+			},
+		}, func(ws *v1.Workspace) bool {
+			return ws.Status.WorkspaceID != ""
+		})
+	}
+
+	return wait.For(ctx, c, &v1.Workspace{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace:  thread.Namespace,
+			Name:       system.WorkspacePrefix + thread.Name,
+			Finalizers: []string{v1.WorkspaceFinalizer},
+		},
+		Spec: v1.WorkspaceSpec{
+			ThreadName:         thread.Name,
+			FromWorkspaceNames: thread.Spec.FromWorkspaceNames,
+		},
+	}, func(ws *v1.Workspace) bool {
+		return ws.Status.WorkspaceID != ""
+	}, wait.Option{
+		Create: true,
+	})
+}
+
+func CreateWorkspaces(req router.Request, _ router.Response) error {
 	thread := req.Object.(*v1.Thread)
-	if thread.Labels[invoke.SystemThreadLabel] != "true" || !thread.Status.LastRunState.IsTerminal() {
+
+	if thread.Status.WorkspaceID != "" {
 		return nil
 	}
 
-	// Delete if the thread is older than the TTL
-	if thread.CreationTimestamp.Add(invoke.SystemThreadTTL).Before(time.Now()) {
-		return req.Delete(thread)
+	ws, err := getWorkspace(req.Ctx, req.Client, thread)
+	if err != nil {
+		return err
 	}
 
-	return nil
-}
-
-func CreateWorkspaces(req router.Request, resp router.Response) error {
-	thread := req.Object.(*v1.Thread)
-	resp.Objects(
-		&v1.Workspace{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace: thread.Namespace,
-				Name:      system.WorkspacePrefix + thread.Name,
-			},
-			Spec: v1.WorkspaceSpec{
-				ThreadName:  thread.Name,
-				WorkspaceID: thread.Spec.WorkspaceID,
-			},
-		},
-	)
-
-	return nil
+	thread.Status.WorkspaceID = ws.Status.WorkspaceID
+	return req.Client.Status().Update(req.Ctx, thread)
 }
 
 func CreateKnowledgeSet(req router.Request, _ router.Response) error {
 	thread := req.Object.(*v1.Thread)
-	if len(thread.Status.KnowledgeSetNames) == 0 && thread.Labels[invoke.SystemThreadLabel] != "true" {
-		ws := &v1.KnowledgeSet{
-			ObjectMeta: metav1.ObjectMeta{
-				Namespace:    req.Namespace,
-				GenerateName: system.KnowledgeSetPrefix,
-			},
-			Spec: v1.KnowledgeSetSpec{
-				ThreadName: thread.Name,
-			},
-		}
-		if err := req.Client.Create(req.Ctx, ws); err != nil {
-			return err
-		}
-
-		thread.Status.KnowledgeSetNames = append(thread.Status.KnowledgeSetNames, ws.Name)
-		if err := req.Client.Status().Update(req.Ctx, thread); err != nil {
-			return err
-		}
+	if len(thread.Status.KnowledgeSetNames) > 0 || thread.Spec.AgentName == "" {
+		return nil
 	}
 
-	return nil
+	ws := &v1.KnowledgeSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:       name.SafeConcatName(system.KnowledgeSetPrefix, thread.Name),
+			Namespace:  req.Namespace,
+			Finalizers: []string{v1.KnowledgeSetFinalizer},
+		},
+		Spec: v1.KnowledgeSetSpec{
+			ThreadName: thread.Name,
+		},
+	}
+	if err := req.Client.Create(req.Ctx, ws); err != nil {
+		return err
+	}
+
+	thread.Status.KnowledgeSetNames = append(thread.Status.KnowledgeSetNames, ws.Name)
+	return req.Client.Status().Update(req.Ctx, thread)
 }

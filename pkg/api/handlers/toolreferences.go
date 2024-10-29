@@ -153,7 +153,7 @@ func (a *ToolReferenceHandler) Delete(req api.Context) error {
 	}
 
 	if toolRef.Spec.Builtin {
-		return api.NewErrBadRequest("cannot delete builtin tool reference %s", id)
+		return types.NewErrBadRequest("cannot delete builtin tool reference %s", id)
 	}
 
 	return req.Delete(&v1.ToolReference{

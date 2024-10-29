@@ -23,6 +23,15 @@ type KnowledgeSetSpec struct {
 	ThreadName string `json:"threadName,omitempty"`
 }
 
+func (in *KnowledgeSet) GetColumns() [][]string {
+	return [][]string{
+		{"Name", "Name"},
+		{"Agent", "Spec.AgentName"},
+		{"Thread", "Spec.ThreadName"},
+		{"Created", "{{ago .CreationTimestamp}}"},
+	}
+}
+
 func (in *KnowledgeSet) DeleteRefs() []Ref {
 	return []Ref{
 		{&Agent{}, in.Spec.AgentName},
@@ -56,19 +65,10 @@ type KnowledgeSetManifest struct {
 	DataDescription string `json:"dataDescription,omitempty"`
 }
 
-type KnowledgeSource struct {
-	Tool         string            `json:"tool,omitempty"`
-	Args         map[string]string `json:"args,omitempty"`
-	SyncSchedule string            `json:"syncSchedule,omitempty"`
-	Exclude      []string          `json:"exclude,omitempty"`
-}
-
 type KnowledgeSetStatus struct {
-	ObservedIngestionGeneration int64  `json:"observedIngestionGeneration,omitempty"`
-	IngestionError              string `json:"ingestionError,omitempty"`
-	SuggestedDataDescription    string `json:"suggestedDataDescription,omitempty"`
-	WorkspaceName               string `json:"workspaceName,omitempty"`
-	IsEmpty                     bool   `json:"isEmpty,omitempty"`
+	SuggestedDataDescription string `json:"suggestedDataDescription,omitempty"`
+	WorkspaceName            string `json:"workspaceName,omitempty"`
+	ThreadName               string `json:"threadName,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

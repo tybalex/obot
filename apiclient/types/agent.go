@@ -11,8 +11,7 @@ import (
 type Agent struct {
 	Metadata
 	AgentManifest
-	AgentExternalStatus
-	AgentKnowledgeSetStatus
+	RefNameAssigned bool `json:"refNameAssigned,omitempty"`
 }
 
 type AgentList List[Agent]
@@ -42,17 +41,4 @@ func (m AgentManifest) GetParams() *openapi3.Schema {
 	}
 
 	return gptscript.ObjectSchema(args...)
-}
-
-type AgentExternalStatus struct {
-	RefNameAssigned bool `json:"refNameAssigned,omitempty"`
-}
-
-type AgentKnowledgeSetStatus struct {
-	KnowledgeSetStatues []KnowledgeSetStatus `json:"knowledgeSetStatues,omitempty"`
-}
-
-type KnowledgeSetStatus struct {
-	KnowledgeSetName string `json:"knowledgeSetName,omitempty"`
-	Error            string `json:"error,omitempty"`
 }

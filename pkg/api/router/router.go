@@ -31,22 +31,26 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("DELETE /api/agents/{id}", agents.Delete)
 
 	// Agent files
-	mux.HandleFunc("GET /api/agents/{id}/files", agents.Files)
+	mux.HandleFunc("GET /api/agents/{id}/files", agents.ListFiles)
 	mux.HandleFunc("POST /api/agents/{id}/files/{file}", agents.UploadFile)
 	mux.HandleFunc("DELETE /api/agents/{id}/files/{file}", agents.DeleteFile)
 
 	// Agent knowledge files
-	mux.HandleFunc("GET /api/agents/{id}/knowledge", agents.Knowledge)
-	mux.HandleFunc("POST /api/agents/{id}/knowledge/{file}", agents.UploadKnowledge)
-	mux.HandleFunc("PUT /api/agents/{id}/knowledge/{file_id}/approve", agents.ApproveKnowledgeFile)
-	mux.HandleFunc("DELETE /api/agents/{id}/knowledge/{file...}", agents.DeleteKnowledge)
+	mux.HandleFunc("GET /api/agents/{agent_id}/knowledge-files", agents.ListKnowledgeFiles)
+	mux.HandleFunc("POST /api/agents/{id}/knowledge-files/{file...}", agents.UploadKnowledgeFile)
+	mux.HandleFunc("DELETE /api/agents/{id}/knowledge-files/{file...}", agents.DeleteKnowledgeFile)
+
+	// Agent approve file
+	mux.HandleFunc("POST /api/agents/{id}/approve-file/{file_id}", agents.ApproveKnowledgeFile)
 
 	// Remote Knowledge Sources
-	mux.HandleFunc("POST /api/agents/{agent_id}/remote-knowledge-sources", agents.CreateRemoteKnowledgeSource)
-	mux.HandleFunc("GET /api/agents/{agent_id}/remote-knowledge-sources", agents.GetRemoteKnowledgeSources)
-	mux.HandleFunc("PATCH /api/agents/{agent_id}/remote-knowledge-sources/{id}", agents.ReSyncRemoteKnowledgeSource)
-	mux.HandleFunc("PUT /api/agents/{agent_id}/remote-knowledge-sources/{id}", agents.UpdateRemoteKnowledgeSource)
-	mux.HandleFunc("DELETE /api/agents/{agent_id}/remote-knowledge-sources/{id}", agents.DeleteRemoteKnowledgeSource)
+	mux.HandleFunc("POST /api/agents/{agent_id}/knowledge-sources", agents.CreateKnowledgeSource)
+	mux.HandleFunc("GET /api/agents/{agent_id}/knowledge-sources", agents.GetRemoteKnowledgeSources)
+	mux.HandleFunc("POST /api/agents/{agent_id}/knowledge-sources/{id}/sync", agents.ReSyncKnowledgeSource)
+	mux.HandleFunc("PUT /api/agents/{agent_id}/knowledge-sources/{id}", agents.UpdateRemoteKnowledgeSource)
+	mux.HandleFunc("DELETE /api/agents/{agent_id}/knowledge-sources/{id}", agents.DeleteRemoteKnowledgeSource)
+	mux.HandleFunc("GET /api/agents/{agent_id}/knowledge-sources/{knowledge_source_id}/knowledge-files", agents.ListKnowledgeFiles)
+	mux.HandleFunc("POST /api/agents/{agent_id}/knowledge-sources/{knowledge_source_id}/knowledge-files/{id}/ingest", agents.ReIngestKnowledgeFile)
 
 	// Workflows
 	mux.HandleFunc("GET /api/workflows", workflows.List)
@@ -92,13 +96,6 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("POST /api/tool-references", toolRefs.Create)
 	mux.HandleFunc("DELETE /api/tool-references/{id}", toolRefs.Delete)
 	mux.HandleFunc("PUT /api/tool-references/{id}", toolRefs.Update)
-
-	// Deprecated routes
-	mux.HandleFunc("GET /api/toolreferences", toolRefs.List)
-	mux.HandleFunc("GET /api/toolreferences/{id}", toolRefs.ByID)
-	mux.HandleFunc("POST /api/toolreferences", toolRefs.Create)
-	mux.HandleFunc("DELETE /api/toolreferences/{id}", toolRefs.Delete)
-	mux.HandleFunc("PUT /api/toolreferences/{id}", toolRefs.Update)
 
 	// Runs
 	mux.HandleFunc("GET /api/runs", runs.List)

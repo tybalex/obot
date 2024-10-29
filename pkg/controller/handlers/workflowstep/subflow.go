@@ -87,6 +87,7 @@ func (h *Handler) RunSubflow(req router.Request, resp router.Response) error {
 		if err != nil {
 			return err
 		}
+		defer resp.Close()
 
 		step.Status.RunNames = append(step.Status.RunNames, resp.Run.Name)
 		return req.Client.Status().Update(req.Ctx, step)

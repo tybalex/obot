@@ -37,26 +37,37 @@ func (in *Thread) GetConditions() *[]metav1.Condition {
 }
 
 type ThreadSpec struct {
-	Manifest                  types.ThreadManifest `json:"manifest,omitempty"`
-	ParentThreadName          string               `json:"parentThreadName,omitempty"`
-	AgentName                 string               `json:"agentName,omitempty"`
-	WorkflowName              string               `json:"workflowName,omitempty"`
-	WorkflowExecutionName     string               `json:"workflowExecutionName,omitempty"`
-	RemoteKnowledgeSourceName string               `json:"remoteKnowledgeSourceName,omitempty"`
-	WebhookName               string               `json:"webhookName,omitempty"`
-	CronJobName               string               `json:"cronJobName,omitempty"`
-	WorkspaceID               string               `json:"workspaceID,omitempty"`
+	Manifest              types.ThreadManifest `json:"manifest,omitempty"`
+	ParentThreadName      string               `json:"parentThreadName,omitempty"`
+	AgentName             string               `json:"agentName,omitempty"`
+	WorkflowName          string               `json:"workflowName,omitempty"`
+	WorkflowExecutionName string               `json:"workflowExecutionName,omitempty"`
+	KnowledgeSourceName   string               `json:"remoteKnowledgeSourceName,omitempty"`
+	KnowledgeSetName      string               `json:"knowledgeSetName,omitempty"`
+	WebhookName           string               `json:"webhookName,omitempty"`
+	CronJobName           string               `json:"cronJobName,omitempty"`
+	WorkspaceName         string               `json:"workspaceName,omitempty"`
+	FromWorkspaceNames    []string             `json:"fromWorkspaceNames,omitempty"`
+	OAuthAppLoginName     string               `json:"oAuthAppLoginName,omitempty"`
+	SystemTask            bool                 `json:"systemTask,omitempty"`
 }
 
 func (in *Thread) DeleteRefs() []Ref {
-	return []Ref{
+	refs := []Ref{
 		{&WorkflowExecution{}, in.Spec.WorkflowExecutionName},
 		{&Workflow{}, in.Spec.WorkflowName},
 		{&CronJob{}, in.Spec.CronJobName},
 		{&Webhook{}, in.Spec.WebhookName},
 		{&Thread{}, in.Status.PreviousThreadName},
-		{&RemoteKnowledgeSource{}, in.Spec.RemoteKnowledgeSourceName},
+		{&KnowledgeSource{}, in.Spec.KnowledgeSourceName},
+		{&KnowledgeSet{}, in.Spec.KnowledgeSetName},
+		{&Workspace{}, in.Spec.WorkspaceName},
+		{&OAuthAppLogin{}, in.Spec.OAuthAppLoginName},
 	}
+	for _, name := range in.Spec.FromWorkspaceNames {
+		refs = append(refs, Ref{&Workspace{}, name})
+	}
+	return refs
 }
 
 type ThreadStatus struct {
@@ -64,6 +75,7 @@ type ThreadStatus struct {
 	CurrentRunName     string                   `json:"currentRunName,omitempty"`
 	LastRunState       gptscriptclient.RunState `json:"lastRunState,omitempty"`
 	WorkflowState      types.WorkflowState      `json:"workflowState,omitempty"`
+	WorkspaceID        string                   `json:"workspaceID,omitempty"`
 	PreviousThreadName string                   `json:"previousThreadName,omitempty"`
 	KnowledgeSetNames  []string                 `json:"knowledgeSetNames,omitempty"`
 	Conditions         []metav1.Condition       `json:"conditions,omitempty"`

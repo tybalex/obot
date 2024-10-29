@@ -22,15 +22,15 @@ func NewInvokeHandler(invoker *invoke.Invoker) *InvokeHandler {
 
 func (i *InvokeHandler) Invoke(req api.Context) error {
 	var (
-		id       = req.PathValue("id")
-		agentID  string
-		wfID     string
-		agent    v1.Agent
-		wf       v1.Workflow
-		ref      v1.Reference
-		threadID = req.PathValue("thread")
-		stepID   = req.URL.Query().Get("step")
-		async    = req.URL.Query().Get("async") == "true"
+		id          = req.PathValue("id")
+		agentID     string
+		wfID        string
+		agent       v1.Agent
+		wf          v1.Workflow
+		ref         v1.Reference
+		threadID    = req.PathValue("thread")
+		stepID      = req.URL.Query().Get("step")
+		synchronous = req.URL.Query().Get("async") != "true"
 	)
 
 	if threadID == "user" {
@@ -85,32 +85,33 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 
 	if agentID != "" {
 		resp, err = i.invoker.Agent(req.Context(), req.Storage, &agent, string(input), invoke.Options{
-			ThreadName: threadID,
-			Events:     !async,
+			ThreadName:  threadID,
+			Synchronous: synchronous,
 		})
 		if err != nil {
 			return err
 		}
 	} else {
+		synchronous = false
 		resp, err = i.invoker.Workflow(req.Context(), req.Storage, &wf, string(input), invoke.WorkflowOptions{
 			ThreadName: threadID,
-			Events:     !async,
 			StepID:     stepID,
 		})
 		if err != nil {
 			return err
 		}
 	}
+	defer resp.Close()
 
 	req.ResponseWriter.Header().Set("X-Otto-Thread-Id", resp.Thread.Name)
 
-	if async {
-		req.WriteHeader(http.StatusCreated)
-		req.ResponseWriter.Header().Set("Content-Type", "application/json")
-		return req.Write(map[string]string{
-			"threadID": resp.Thread.Name,
-		})
+	if synchronous {
+		return req.WriteEvents(resp.Events)
 	}
 
-	return req.WriteEvents(resp.Events)
+	req.WriteHeader(http.StatusCreated)
+	req.ResponseWriter.Header().Set("Content-Type", "application/json")
+	return req.Write(map[string]string{
+		"threadID": resp.Thread.Name,
+	})
 }

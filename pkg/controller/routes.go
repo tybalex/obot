@@ -5,20 +5,19 @@ import (
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/agents"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/cleanup"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/cronjob"
-	knowledgehandler "github.com/otto8-ai/otto8/pkg/controller/handlers/knowledge"
+	"github.com/otto8-ai/otto8/pkg/controller/handlers/knowledgefile"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/knowledgeset"
+	"github.com/otto8-ai/otto8/pkg/controller/handlers/knowledgesource"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/oauthapp"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/reference"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/runs"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/threads"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/toolreference"
-	"github.com/otto8-ai/otto8/pkg/controller/handlers/uploads"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/webhook"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/workflow"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/workflowexecution"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/workflowstep"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/workspace"
-	"github.com/otto8-ai/otto8/pkg/knowledge"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 )
 
@@ -27,12 +26,11 @@ func (c *Controller) setupRoutes() error {
 
 	workflowExecution := workflowexecution.New(c.services.Invoker)
 	workflowStep := workflowstep.New(c.services.Invoker)
-	ingester := knowledge.NewIngester(c.services.Invoker)
 	toolRef := toolreference.New(c.services.GPTClient, c.services.ToolRegistryURL)
 	workspace := workspace.New(c.services.GPTClient, c.services.WorkspaceProviderType)
-	knowledge := knowledgehandler.New(c.services.GPTClient, ingester, c.services.Events)
-	knowledgeset := knowledgeset.New(c.services.AIHelper)
-	uploads := uploads.New(c.services.Invoker, c.services.GPTClient, "directory")
+	knowledgeset := knowledgeset.New(c.services.AIHelper, c.services.Invoker)
+	knowledgesource := knowledgesource.NewHandler(c.services.Invoker, c.services.GPTClient)
+	knowledgefile := knowledgefile.New(c.services.Invoker)
 	runs := runs.New(c.services.Invoker)
 	webHooks := webhook.New()
 	cronJobs := cronjob.New()
@@ -48,7 +46,6 @@ func (c *Controller) setupRoutes() error {
 	root.Type(&v1.Thread{}).HandlerFunc(threads.CreateWorkspaces)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.CreateKnowledgeSet)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.WorkflowState)
-	root.Type(&v1.Thread{}).HandlerFunc(threads.PurgeSystemThread)
 
 	// Workflows
 	root.Type(&v1.Workflow{}).HandlerFunc(workflow.WorkspaceObjects)
@@ -59,17 +56,12 @@ func (c *Controller) setupRoutes() error {
 	root.Type(&v1.WorkflowExecution{}).HandlerFunc(workflowExecution.Run)
 
 	// Agents
-	root.Type(&v1.Agent{}).HandlerFunc(agents.WorkspaceObjects)
+	root.Type(&v1.Agent{}).HandlerFunc(agents.CreateWorkspaceAndKnowledgeSet)
 
 	// Uploads
-	root.Type(&v1.RemoteKnowledgeSource{}).HandlerFunc(cleanup.Cleanup)
-	root.Type(&v1.RemoteKnowledgeSource{}).HandlerFunc(uploads.CreateThread)
-	root.Type(&v1.RemoteKnowledgeSource{}).HandlerFunc(uploads.RunUpload)
-	root.Type(&v1.RemoteKnowledgeSource{}).HandlerFunc(uploads.HandleUploadRun)
-	root.Type(&v1.RemoteKnowledgeSource{}).FinalizeFunc(v1.RemoteKnowledgeSourceFinalizer, uploads.Cleanup)
-
-	// ReSync requests
-	root.Type(&v1.SyncUploadRequest{}).HandlerFunc(uploads.CleanupSyncRequests)
+	root.Type(&v1.KnowledgeSource{}).HandlerFunc(cleanup.Cleanup)
+	root.Type(&v1.KnowledgeSource{}).HandlerFunc(knowledgesource.Reschedule)
+	root.Type(&v1.KnowledgeSource{}).HandlerFunc(knowledgesource.Sync)
 
 	// ToolReference
 	root.Type(&v1.ToolReference{}).HandlerFunc(toolRef.Populate)
@@ -82,18 +74,17 @@ func (c *Controller) setupRoutes() error {
 
 	// Knowledge files
 	root.Type(&v1.KnowledgeFile{}).HandlerFunc(cleanup.Cleanup)
-	root.Type(&v1.KnowledgeFile{}).FinalizeFunc(v1.KnowledgeFileFinalizer, knowledge.CleanupFile)
+	root.Type(&v1.KnowledgeFile{}).FinalizeFunc(v1.KnowledgeFileFinalizer, knowledgefile.Cleanup)
+	root.Type(&v1.KnowledgeFile{}).HandlerFunc(knowledgefile.IngestFile)
 
 	// Workspaces
-	root.Type(&v1.Workspace{}).FinalizeFunc(v1.WorkspaceFinalizer, workspace.RemoveWorkspace)
 	root.Type(&v1.Workspace{}).HandlerFunc(cleanup.Cleanup)
+	root.Type(&v1.Workspace{}).FinalizeFunc(v1.WorkspaceFinalizer, workspace.RemoveWorkspace)
 	root.Type(&v1.Workspace{}).HandlerFunc(workspace.CreateWorkspace)
-	root.Type(&v1.Workspace{}).HandlerFunc(knowledge.IngestKnowledge)
-	root.Type(&v1.Workspace{}).HandlerFunc(knowledge.UpdateFileStatus)
-	root.Type(&v1.Workspace{}).HandlerFunc(knowledge.UpdateIngestionError)
 
 	// KnowledgeSets
 	root.Type(&v1.KnowledgeSet{}).HandlerFunc(cleanup.Cleanup)
+	root.Type(&v1.KnowledgeSet{}).FinalizeFunc(v1.KnowledgeSetFinalizer, knowledgeset.Cleanup)
 	root.Type(&v1.KnowledgeSet{}).HandlerFunc(knowledgeset.GenerateDataDescription)
 	root.Type(&v1.KnowledgeSet{}).HandlerFunc(knowledgeset.CreateWorkspace)
 

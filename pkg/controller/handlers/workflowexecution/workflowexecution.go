@@ -9,6 +9,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/workflowstep"
 	"github.com/otto8-ai/otto8/pkg/invoke"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/otto8-ai/otto8/pkg/system"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -129,17 +130,20 @@ func (h *Handler) newThread(ctx context.Context, c kclient.Client, wf *v1.Workfl
 		workspaceName = wf.Status.WorkspaceName
 	}
 
-	var ws v1.Workspace
-	if err := c.Get(ctx, router.Key(wf.Namespace, workspaceName), &ws); err != nil {
-		return nil, err
+	thread := v1.Thread{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace:    wf.Namespace,
+			GenerateName: system.ThreadPrefix,
+		},
+		Spec: v1.ThreadSpec{
+			ParentThreadName:      we.Spec.ParentThreadName,
+			WorkflowName:          we.Spec.WorkflowName,
+			WorkflowExecutionName: we.Name,
+			WebhookName:           we.Spec.WebhookName,
+			CronJobName:           we.Spec.CronJobName,
+			FromWorkspaceNames:    []string{workspaceName},
+		},
 	}
 
-	return h.invoker.NewThread(ctx, c, wf.Namespace, invoke.NewThreadOptions{
-		ParentThreadName:      we.Spec.ParentThreadName,
-		WorkflowName:          we.Spec.WorkflowName,
-		WorkflowExecutionName: we.Name,
-		WebhookName:           we.Spec.WebhookName,
-		CronJobName:           we.Spec.CronJobName,
-		WorkspaceIDs:          []string{ws.Status.WorkspaceID},
-	})
+	return &thread, c.Create(ctx, &thread)
 }

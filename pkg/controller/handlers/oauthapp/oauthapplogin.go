@@ -3,14 +3,13 @@ package oauthapp
 import (
 	"context"
 	"errors"
-	"fmt"
-	"time"
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/otto8-ai/otto8/pkg/invoke"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -31,34 +30,42 @@ func (h *LoginHandler) RunTool(req router.Request, _ router.Response) error {
 		return nil
 	}
 
-	run, err := h.invoker.SystemAction(req.Ctx, system.ThreadPrefix+"login-", req.Namespace, invoke.SystemActionOptions{
-		Events: true,
-		Tools: []gptscript.ToolDef{
-			{
-				Credentials:  []string{login.Spec.CredentialTool},
-				Instructions: "#!sys.echo DONE",
-			},
+	thread := v1.Thread{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: system.ThreadPrefix,
+			Namespace:    login.Namespace,
 		},
-		CredContexts: []string{login.Spec.CredentialContext},
+		Spec: v1.ThreadSpec{
+			OAuthAppLoginName: login.Name,
+			SystemTask:        true,
+		},
+	}
+	if err := req.Client.Create(req.Ctx, &thread); err != nil {
+		return err
+	}
+
+	task, err := h.invoker.SystemTask(req.Ctx, &thread, []gptscript.ToolDef{
+		{
+			Credentials:  []string{login.Spec.CredentialTool},
+			Instructions: "#!sys.echo DONE",
+		},
+	}, "", invoke.SystemTaskOptions{
+		CredentialContextIDs: []string{login.Spec.CredentialContext},
 	})
 	if err != nil {
 		return err
 	}
+	defer task.Close()
 
 	if err = updateLoginExternalStatus(req.Ctx, req.Client, login, v1.OAuthAppLoginStatus{}); err != nil {
 		return err
 	}
 
-	for frame := range run.Events {
+	for frame := range task.Events {
 		if frame.Prompt != nil && frame.Prompt.Metadata["authURL"] != "" {
 			if err = updateLoginExternalStatus(req.Ctx, req.Client, login, v1.OAuthAppLoginStatus{
 				URL: frame.Prompt.Metadata["authURL"],
 			}); err != nil {
-				go func() {
-					// drain events
-					for range run.Events {
-					}
-				}()
 				if setErrorErr := updateLoginExternalStatus(req.Ctx, req.Client, login, v1.OAuthAppLoginStatus{
 					Error: err.Error(),
 				}); setErrorErr != nil {
@@ -69,26 +76,17 @@ func (h *LoginHandler) RunTool(req router.Request, _ router.Response) error {
 		}
 	}
 
-	r := run.Run
-	for i := 0; i < 10; i++ {
-		if err = req.Get(r, r.Namespace, r.Name); err != nil {
-			continue
-		}
-		if r.Status.State.IsTerminal() {
-			break
-		}
-
-		time.Sleep(2 * time.Second)
-	}
-
-	errMessage := r.Status.Error
-	if err != nil && r.Status.Error != "" {
-		errMessage = fmt.Sprintf("failed to get run: %v", err)
+	var errMessage string
+	result, err := task.Result(req.Ctx)
+	if err != nil {
+		errMessage = err.Error()
+	} else if result.Error != "" {
+		errMessage = result.Error
 	}
 
 	return updateLoginExternalStatus(req.Ctx, req.Client, login, v1.OAuthAppLoginStatus{
 		Error:    errMessage,
-		LoggedIn: r.Status.State == gptscript.Finished && errMessage == "",
+		LoggedIn: errMessage == "",
 		URL:      "",
 	})
 }

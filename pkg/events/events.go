@@ -513,7 +513,7 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1
 		runs     v1.RunList
 		criteria = []kclient.ListOption{
 			kclient.InNamespace(run.Namespace),
-			kclient.MatchingLabels{v1.PreviousRunNameLabel: run.Name},
+			kclient.MatchingFields{"spec.previousRunName": run.Name},
 		}
 	)
 

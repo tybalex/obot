@@ -15,10 +15,7 @@ const (
 	RunFinalizer           = "otto.gptscript.ai/run"
 	KnowledgeFileFinalizer = "otto.gptscript.ai/knowledge-file"
 	WorkspaceFinalizer     = "otto.gptscript.ai/workspace"
-)
-
-const (
-	PreviousRunNameLabel = "otto.gptscript.ai/previous-run-name"
+	KnowledgeSetFinalizer  = "otto.gptscript.ai/knowledge-set"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -68,13 +65,13 @@ func (in *Run) GetConditions() *[]metav1.Condition {
 }
 
 type RunSpec struct {
+	Synchronous           bool                    `json:"synchronous,omitempty"`
 	ThreadName            string                  `json:"threadName,omitempty"`
 	AgentName             string                  `json:"agentName,omitempty"`
 	WorkflowName          string                  `json:"workflowName,omitempty"`
 	WorkflowExecutionName string                  `json:"workflowExecutionName,omitempty"`
 	WorkflowStepName      string                  `json:"workflowStepName,omitempty"`
 	WorkflowStepID        string                  `json:"workflowStepID,omitempty"`
-	WorkspaceID           string                  `json:"workspaceID,omitempty"`
 	PreviousRunName       string                  `json:"previousRunName,omitempty"`
 	Input                 string                  `json:"input"`
 	Env                   []string                `json:"env,omitempty"`
@@ -95,6 +92,7 @@ type RunStatus struct {
 	Conditions []metav1.Condition       `json:"conditions,omitempty"`
 	State      gptscriptclient.RunState `json:"state,omitempty"`
 	Output     string                   `json:"output"`
+	EndTime    metav1.Time              `json:"endTime,omitempty"`
 	Error      string                   `json:"error,omitempty"`
 	SubCall    *SubCall                 `json:"subCall,omitempty"`
 }

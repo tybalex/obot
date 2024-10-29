@@ -19,10 +19,36 @@ type KnowledgeFile struct {
 	Status KnowledgeFileStatus `json:"status,omitempty"`
 }
 
+var _ fields.Fields = (*KnowledgeFile)(nil)
+
+func (k *KnowledgeFile) GetColumns() [][]string {
+	return [][]string{
+		{"Name", "Name"},
+		{"KnowledgeSource", "Spec.KnowledgeSourceName"},
+		{"State", "{{ .PublicState }}"},
+		{"Error", "Status.Error"},
+		{"Filename", "Spec.FileName"},
+		{"Created", "{{ago .CreationTimestamp}}"},
+	}
+}
+
+func (k *KnowledgeFile) PublicState() types.KnowledgeFileState {
+	state := k.Status.State
+	if k.Spec.Approved != nil && !*k.Spec.Approved {
+		state = types.KnowledgeFileStateUnapproved
+	}
+	if state == "" {
+		state = types.KnowledgeFileStatePending
+	}
+	if state == types.KnowledgeFileStatePending && k.Spec.Approved == nil {
+		state = types.KnowledgeFileStatePendingApproval
+	}
+	return state
+}
+
 func (k *KnowledgeFile) DeleteRefs() []Ref {
 	return []Ref{
-		{ObjType: new(Workspace), Name: k.Spec.WorkspaceName},
-		{ObjType: new(RemoteKnowledgeSource), Name: k.Spec.RemoteKnowledgeSourceName},
+		{ObjType: new(KnowledgeSource), Name: k.Spec.KnowledgeSourceName},
 	}
 }
 
@@ -36,35 +62,48 @@ func (k *KnowledgeFile) Get(field string) string {
 	}
 
 	switch field {
-	case "spec.workspaceName":
-		return k.Spec.WorkspaceName
-	case "spec.remoteKnowledgeSourceName":
-		return k.Spec.RemoteKnowledgeSourceName
-	case "spec.remoteKnowledgeSourceType":
-		return string(k.Spec.RemoteKnowledgeSourceType)
+	case "spec.knowledgeSourceName":
+		return k.Spec.KnowledgeSourceName
+	case "spec.knowledgeSetName":
+		return k.Spec.KnowledgeSetName
 	}
 
 	return ""
 }
 
 func (*KnowledgeFile) FieldNames() []string {
-	return []string{"spec.workspaceName", "spec.remoteKnowledgeSourceName", "spec.remoteKnowledgeSourceType"}
+	return []string{"spec.knowledgeSourceName", "spec.knowledgeSetName"}
 }
 
 var _ fields.Fields = (*KnowledgeFile)(nil)
 
 type KnowledgeFileSpec struct {
-	FileName                  string                          `json:"fileName"`
-	WorkspaceName             string                          `json:"workspaceName,omitempty"`
-	RemoteKnowledgeSourceName string                          `json:"remoteKnowledgeSourceName,omitempty"`
-	RemoteKnowledgeSourceType types.RemoteKnowledgeSourceType `json:"remoteKnowledgeSourceType,omitempty"`
-	Approved                  *bool                           `json:"approved,omitempty"`
+	KnowledgeSetName    string `json:"knowledgeSetName,omitempty"`
+	KnowledgeSourceName string `json:"knowledgeSourceName,omitempty"`
+	Approved            *bool  `json:"approved,omitempty"`
+
+	FileName  string `json:"fileName,omitempty"`
+	URL       string `json:"url,omitempty"`
+	UpdatedAt string `json:"updatedAt,omitempty"`
+	Checksum  string `json:"checksum,omitempty"`
+
+	IngestGeneration int64 `json:"ingestGeneration,omitempty"`
 }
 
 type KnowledgeFileStatus struct {
-	IngestionStatus types.IngestionStatus `json:"ingestionStatus,omitempty"`
-	FileDetails     types.FileDetails     `json:"fileDetails,omitempty"`
-	UploadID        string                `json:"uploadID,omitempty"`
+	State types.KnowledgeFileState `json:"state,omitempty"`
+	Error string                   `json:"error,omitempty"`
+
+	URL       string `json:"url,omitempty"`
+	UpdatedAt string `json:"updatedAt,omitempty"`
+	Checksum  string `json:"checksum,omitempty"`
+
+	ThreadName             string      `json:"threadName,omitempty"`
+	RunName                string      `json:"runName,omitempty"`
+	LastIngestionStartTime metav1.Time `json:"lastIngestionStartTime,omitempty"`
+	LastIngestionEndTime   metav1.Time `json:"lastIngestionEndTime,omitempty"`
+
+	IngestGeneration int64 `json:"ingestGeneration,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

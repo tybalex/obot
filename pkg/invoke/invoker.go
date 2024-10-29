@@ -22,6 +22,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/render"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
+	"github.com/otto8-ai/otto8/pkg/wait"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
@@ -32,14 +33,14 @@ var log = logger.Package()
 
 type Invoker struct {
 	gptClient               *gptscript.GPTScript
-	uncached                kclient.Client
+	uncached                kclient.WithWatch
 	tokenService            *jwt.TokenService
 	events                  *events.Emitter
 	threadWorkspaceProvider string
 	serverURL               string
 }
 
-func NewInvoker(c kclient.Client, gptClient *gptscript.GPTScript, serverURL, workspaceProviderType string, tokenService *jwt.TokenService, events *events.Emitter) *Invoker {
+func NewInvoker(c kclient.WithWatch, gptClient *gptscript.GPTScript, serverURL, workspaceProviderType string, tokenService *jwt.TokenService, events *events.Emitter) *Invoker {
 	return &Invoker{
 		uncached:                c,
 		gptClient:               gptClient,
@@ -51,98 +52,75 @@ func NewInvoker(c kclient.Client, gptClient *gptscript.GPTScript, serverURL, wor
 }
 
 type Response struct {
-	cancel context.CancelFunc
 	Run    *v1.Run
 	Thread *v1.Thread
 	Events <-chan types.Progress
+
+	uncached kclient.WithWatch
+	cancel   func()
+}
+
+type TaskResult struct {
+	// Task output
+	Output string
+	// Error will be set if there was an error during execution
+	Error string
+}
+
+func (r *Response) Close() {
+	r.cancel()
+	for range r.Events {
+	}
+}
+
+func (r *Response) Result(ctx context.Context) (TaskResult, error) {
+	if r.uncached == nil {
+		panic("can not get resource of asynchronous task")
+	}
+	for range r.Events {
+	}
+
+	run, err := wait.For(ctx, r.uncached, r.Run, func(run *v1.Run) bool {
+		return run.Status.State.IsTerminal() || run.Status.State == gptscript.Continue
+	})
+	if apierror.IsNotFound(err) {
+		return TaskResult{
+			Error: "run not found",
+		}, nil
+	} else if err != nil {
+		return TaskResult{}, err
+	}
+
+	r.Run = run
+	if run.Status.State == gptscript.Error {
+		return TaskResult{
+			Error: r.Run.Status.Error,
+		}, nil
+	}
+
+	var (
+		errString string
+		data      = map[string]any{}
+	)
+
+	_ = json.Unmarshal([]byte(run.Status.Output), &data)
+	if err, ok := data["error"].(string); ok {
+		errString = err
+	}
+
+	return TaskResult{
+		Output: r.Run.Status.Output,
+		Error:  errString,
+	}, nil
 }
 
 type Options struct {
-	Events                bool
-	ThreadName            string
-	PreviousRunName       string
-	ForceNoResume         bool
-	ParentThreadName      string
-	WorkflowName          string
-	WorkflowExecutionName string
-	WorkflowStepName      string
-	WorkflowStepID        string
-	WaitForThread         bool
-	Env                   []string
-}
-
-type NewThreadOptions struct {
-	Labels                map[string]string
-	AgentName             string
-	ThreadName            string
-	ThreadGenerateName    string
-	ParentThreadName      string
-	WorkflowName          string
-	WorkflowExecutionName string
-	WebhookName           string
-	CronJobName           string
-	WorkspaceIDs          []string
-}
-
-func (i *Invoker) NewThread(ctx context.Context, c kclient.Client, namespace string, opt NewThreadOptions) (*v1.Thread, error) {
-	var (
-		thread      v1.Thread
-		createName  string
-		workspaceID string
-		err         error
-	)
-
-	if opt.ThreadName != "" {
-		err := c.Get(ctx, router.Key(namespace, opt.ThreadName), &thread)
-		if apierror.IsNotFound(err) {
-			if system.IsThreadID(opt.ThreadName) {
-				createName = opt.ThreadName
-			} else {
-				return nil, err
-			}
-		} else {
-			return &thread, err
-		}
-	}
-
-	if len(opt.WorkspaceIDs) > 0 {
-		workspaceID, err = i.gptClient.CreateWorkspace(ctx, i.threadWorkspaceProvider, opt.WorkspaceIDs...)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	thread = v1.Thread{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:         createName,
-			GenerateName: system.ThreadPrefix,
-			Namespace:    namespace,
-			Labels:       opt.Labels,
-		},
-		Spec: v1.ThreadSpec{
-			ParentThreadName:      opt.ParentThreadName,
-			AgentName:             opt.AgentName,
-			WorkflowExecutionName: opt.WorkflowExecutionName,
-			WorkflowName:          opt.WorkflowName,
-			WebhookName:           opt.WebhookName,
-			CronJobName:           opt.CronJobName,
-			WorkspaceID:           workspaceID,
-		},
-	}
-
-	if opt.ThreadGenerateName != "" {
-		if system.IsThreadID(opt.ThreadGenerateName) {
-			thread.GenerateName = opt.ThreadGenerateName
-		} else {
-			thread.GenerateName = system.ThreadPrefix + opt.ThreadGenerateName
-		}
-	}
-
-	if err := c.Create(ctx, &thread); err != nil {
-		// If creating the thread fails, then ensure that the workspace is cleaned up, too.
-		return nil, errors.Join(err, i.gptClient.DeleteWorkspace(ctx, thread.Spec.WorkspaceID))
-	}
-	return &thread, nil
+	Synchronous      bool
+	ThreadName       string
+	WorkflowStepName string
+	WorkflowStepID   string
+	PreviousRunName  string
+	ForceNoResume    bool
 }
 
 func (i *Invoker) getChatState(ctx context.Context, c kclient.Client, run *v1.Run) (result, lastThreadName string, _ error) {
@@ -179,21 +157,33 @@ func (i *Invoker) getChatState(ctx context.Context, c kclient.Client, run *v1.Ru
 	return result, lastRun.Spec.ThreadName, err
 }
 
-func (i *Invoker) Agent(ctx context.Context, c kclient.Client, agent *v1.Agent, input string, opt Options) (*Response, error) {
-	threadOpt := NewThreadOptions{
-		AgentName:        agent.Name,
-		ThreadName:       opt.ThreadName,
-		ParentThreadName: opt.ParentThreadName,
-	}
-	if agent.Status.WorkspaceName != "" {
-		var ws v1.Workspace
-		if err := c.Get(ctx, kclient.ObjectKey{Namespace: agent.Namespace, Name: agent.Status.WorkspaceName}, &ws); err != nil {
-			return nil, err
-		}
-		threadOpt.WorkspaceIDs = append(threadOpt.WorkspaceIDs, ws.Status.WorkspaceID)
+func getThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, existingThreadName string) (*v1.Thread, error) {
+	if existingThreadName != "" {
+		var thread v1.Thread
+		return &thread, c.Get(ctx, router.Key(agent.Namespace, existingThreadName), &thread)
 	}
 
-	thread, err := i.NewThread(ctx, c, agent.Namespace, threadOpt)
+	agent, err := wait.For(ctx, c, agent, func(agent *v1.Agent) bool {
+		return agent.Status.WorkspaceName != ""
+	})
+	if err != nil {
+		return nil, err
+	}
+	thread := v1.Thread{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: system.ThreadPrefix,
+			Namespace:    agent.Namespace,
+		},
+		Spec: v1.ThreadSpec{
+			AgentName:          agent.Name,
+			FromWorkspaceNames: []string{agent.Status.WorkspaceName},
+		},
+	}
+	return &thread, c.Create(ctx, &thread)
+}
+
+func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, input string, opt Options) (_ *Response, err error) {
+	thread, err := getThreadForAgent(ctx, c, agent, opt.ThreadName)
 	if err != nil {
 		return nil, err
 	}
@@ -222,23 +212,21 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.Client, agent *v1.Agent, 
 		}
 	}
 
-	return i.createRunFromTools(ctx, c, thread, tools, input, runOptions{
-		Events:                opt.Events,
-		AgentName:             agent.Name,
-		Env:                   append(opt.Env, extraEnv...),
-		PreviousRunName:       opt.PreviousRunName,
-		ForceNoResume:         opt.ForceNoResume,
-		WorkflowName:          opt.WorkflowName,
-		WorkflowExecutionName: opt.WorkflowExecutionName,
-		WorkflowStepName:      opt.WorkflowStepName,
-		WorkflowStepID:        opt.WorkflowStepID,
-		CredentialContextIDs:  credContextIDs,
+	return i.createRun(ctx, c, thread, tools, input, runOptions{
+		Synchronous:          opt.Synchronous,
+		AgentName:            agent.Name,
+		Env:                  extraEnv,
+		CredentialContextIDs: credContextIDs,
+		WorkflowStepName:     opt.WorkflowStepName,
+		WorkflowStepID:       opt.WorkflowStepID,
+		PreviousRunName:      opt.PreviousRunName,
+		ForceNoResume:        opt.ForceNoResume,
 	})
 }
 
 type runOptions struct {
 	AgentName             string
-	Events                bool
+	Synchronous           bool
 	WorkflowName          string
 	WorkflowExecutionName string
 	WorkflowStepName      string
@@ -249,17 +237,19 @@ type runOptions struct {
 	CredentialContextIDs  []string
 }
 
-func (i *Invoker) createRunFromTools(ctx context.Context, c kclient.Client, thread *v1.Thread, tools []gptscript.ToolDef, input string, opts runOptions) (*Response, error) {
-	return i.createRun(ctx, c, thread, input, opts, tools)
+var (
+	synchronousPending = map[string]struct{}{}
+	synchrounousLock   sync.Mutex
+)
+
+func (i *Invoker) IsSynchronousPending(runName string) bool {
+	synchrounousLock.Lock()
+	defer synchrounousLock.Unlock()
+	_, ok := synchronousPending[runName]
+	return ok
 }
 
-func (i *Invoker) createRunFromRemoteTool(ctx context.Context, c kclient.Client, thread *v1.Thread, tool, input string, opts runOptions) (*Response, error) {
-	return i.createRun(ctx, c, thread, input, opts, tool)
-}
-
-// createRun is a low-level method that creates a Run object from a list of tools or a remote tool.
-// Callers should use createRunFromTools or createRunFromRemoteTool instead.
-func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Thread, input string, opts runOptions, tool any) (*Response, error) {
+func (i *Invoker) createRun(ctx context.Context, c kclient.WithWatch, thread *v1.Thread, tool any, input string, opts runOptions) (_ *Response, retErr error) {
 	previousRunName := thread.Status.LastRunName
 	if opts.PreviousRunName != "" {
 		previousRunName = opts.PreviousRunName
@@ -281,13 +271,13 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 			Finalizers:   []string{v1.RunFinalizer},
 		},
 		Spec: v1.RunSpec{
+			Synchronous:           opts.Synchronous,
 			ThreadName:            thread.Name,
 			AgentName:             opts.AgentName,
 			WorkflowName:          opts.WorkflowName,
 			WorkflowExecutionName: opts.WorkflowExecutionName,
 			WorkflowStepName:      opts.WorkflowStepName,
 			WorkflowStepID:        opts.WorkflowStepID,
-			WorkspaceID:           thread.Spec.WorkspaceID,
 			PreviousRunName:       previousRunName,
 			Input:                 input,
 			Tool:                  string(toolData),
@@ -296,58 +286,85 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.Client, thread *v1.Th
 		},
 	}
 
-	if previousRunName != "" {
-		run.Labels = map[string]string{
-			v1.PreviousRunNameLabel: previousRunName,
-		}
-	}
-
 	if err := c.Create(ctx, &run); err != nil {
 		return nil, err
 	}
 
-	err = retry.RetryOnConflict(retry.DefaultBackoff, func() error {
-		if err := c.Get(ctx, kclient.ObjectKeyFromObject(thread), thread); err != nil {
-			return err
-		}
-		thread.Status.CurrentRunName = run.Name
-		return c.Status().Update(ctx, thread)
-	})
-	if err != nil {
-		return nil, err
+	if opts.Synchronous {
+		synchrounousLock.Lock()
+		synchronousPending[run.Name] = struct{}{}
+		synchrounousLock.Unlock()
 	}
 
-	if !opts.Events {
+	defer func() {
+		if retErr != nil {
+			synchrounousLock.Lock()
+			delete(synchronousPending, run.Name)
+			synchrounousLock.Unlock()
+		}
+	}()
+
+	if !thread.Spec.SystemTask {
+		err = retry.RetryOnConflict(retry.DefaultBackoff, func() error {
+			if err := c.Get(ctx, kclient.ObjectKeyFromObject(thread), thread); err != nil {
+				return err
+			}
+			thread.Status.CurrentRunName = run.Name
+			return c.Status().Update(ctx, thread)
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	resp := &Response{
+		Run:    &run,
+		Thread: thread,
+	}
+
+	if !opts.Synchronous {
 		noEvents := make(chan types.Progress)
 		close(noEvents)
-		return &Response{
-			Run:    &run,
-			Thread: thread,
-			Events: noEvents,
-		}, nil
+		resp.Events = noEvents
+		resp.cancel = func() {}
+		return resp, nil
 	}
+
+	ctx, cancel := context.WithCancel(ctx)
 
 	_, events, err := i.events.Watch(ctx, thread.Namespace, events.WatchOptions{
 		Run: &run,
 	})
 	if err != nil {
+		cancel()
+		// Cleanup orphaned run
+		_ = i.uncached.Delete(ctx, &run)
 		return nil, err
 	}
 
-	return &Response{
-		Run:    &run,
-		Thread: thread,
-		Events: events,
-	}, nil
+	resp.Events = events
+	resp.uncached = i.uncached
+	resp.cancel = cancel
+	go func() {
+		if err := i.Resume(ctx, c, thread, &run); err != nil {
+			log.Errorf("run failed: %v", err)
+		}
+	}()
+
+	return resp, nil
 }
 
-func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Thread, run *v1.Run) error {
+func (i *Invoker) Resume(ctx context.Context, c kclient.WithWatch, thread *v1.Thread, run *v1.Run) error {
 	defer func() {
 		i.events.Done(run)
 		time.AfterFunc(5*time.Minute, func() {
 			i.events.ClearProgress(run)
 		})
 	}()
+
+	thread, err := wait.For(ctx, c, thread, func(thread *v1.Thread) bool {
+		return thread.Status.WorkspaceID != ""
+	})
 
 	chatState, prevThreadName, err := i.getChatState(ctx, c, run)
 	if err != nil {
@@ -378,7 +395,7 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.Client, thread *v1.Threa
 			),
 		},
 		Input:              run.Spec.Input,
-		Workspace:          run.Spec.WorkspaceID,
+		Workspace:          thread.Status.WorkspaceID,
 		CredentialContexts: run.Spec.CredentialContextIDs,
 		ChatState:          chatState,
 		IncludeEvents:      true,
@@ -563,35 +580,40 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, prevThreadN
 	}
 
 	if runChanged {
+		if run.Status.EndTime.IsZero() && final {
+			run.Status.EndTime = metav1.Now()
+		}
 		if err := c.Status().Update(ctx, run); err != nil {
 			return err
 		}
 	}
 
-	var workflowState types.WorkflowState
-	if thread.Spec.WorkflowExecutionName != "" {
-		var wfe v1.WorkflowExecution
-		if err := c.Get(ctx, router.Key(thread.Namespace, thread.Spec.WorkflowExecutionName), &wfe); err == nil {
-			workflowState = wfe.Status.State
+	if !thread.Spec.SystemTask {
+		var workflowState types.WorkflowState
+		if thread.Spec.WorkflowExecutionName != "" {
+			var wfe v1.WorkflowExecution
+			if err := c.Get(ctx, router.Key(thread.Namespace, thread.Spec.WorkflowExecutionName), &wfe); err == nil {
+				workflowState = wfe.Status.State
+			}
 		}
-	}
 
-	if final && thread.Status.LastRunName != run.Name {
-		if prevThreadName != "" && prevThreadName != thread.Name {
-			thread.Status.PreviousThreadName = prevThreadName
-		}
-		thread.Status.CurrentRunName = ""
-		thread.Status.LastRunName = run.Name
-		thread.Status.LastRunState = run.Status.State
-		if workflowState != "" {
-			thread.Status.WorkflowState = workflowState
-		}
-		if err := c.Status().Update(ctx, thread); err != nil {
-			return err
-		}
-	} else if workflowState != "" && thread.Status.WorkflowState != workflowState {
-		if err := c.Status().Update(ctx, thread); err != nil {
-			return err
+		if final && thread.Status.LastRunName != run.Name {
+			if prevThreadName != "" && prevThreadName != thread.Name {
+				thread.Status.PreviousThreadName = prevThreadName
+			}
+			thread.Status.CurrentRunName = ""
+			thread.Status.LastRunName = run.Name
+			thread.Status.LastRunState = run.Status.State
+			if workflowState != "" {
+				thread.Status.WorkflowState = workflowState
+			}
+			if err := c.Status().Update(ctx, thread); err != nil {
+				return err
+			}
+		} else if workflowState != "" && thread.Status.WorkflowState != workflowState {
+			if err := c.Status().Update(ctx, thread); err != nil {
+				return err
+			}
 		}
 	}
 

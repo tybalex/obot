@@ -14,6 +14,18 @@ type Workspace struct {
 	Status            WorkspaceStatus `json:"status,omitempty"`
 }
 
+func (in *Workspace) GetColumns() [][]string {
+	return [][]string{
+		{"Name", "Name"},
+		{"Agent", "Spec.AgentName"},
+		{"Workflow", "Spec.WorkflowName"},
+		{"Thread", "Spec.ThreadName"},
+		{"KnowledgeSet", "Spec.KnowledgeSetName"},
+		{"KnowledgeSource", "Spec.KnowledgeSourceName"},
+		{"Created", "{{ago .CreationTimestamp}}"},
+	}
+}
+
 func (in *Workspace) Has(field string) bool {
 	return in.Get(field) != ""
 }
@@ -49,31 +61,21 @@ func (in *Workspace) DeleteRefs() []Ref {
 		{ObjType: new(Agent), Name: in.Spec.AgentName},
 		{ObjType: new(Workflow), Name: in.Spec.WorkflowName},
 		{ObjType: new(KnowledgeSet), Name: in.Spec.KnowledgeSetName},
+		{ObjType: new(KnowledgeSource), Name: in.Spec.KnowledgeSourceName},
 	}
 }
 
 type WorkspaceSpec struct {
-	AgentName        string   `json:"agentName,omitempty"`
-	WorkflowName     string   `json:"workflowName,omitempty"`
-	ThreadName       string   `json:"threadName,omitempty"`
-	KnowledgeSetName string   `json:"knowledgeSetName,omitempty"`
-	IsKnowledge      bool     `json:"isKnowledge,omitempty"`
-	FromWorkspaces   []string `json:"fromWorkspaces,omitempty"`
-	WorkspaceID      string   `json:"workspaceID,omitempty"`
+	AgentName           string   `json:"agentName,omitempty"`
+	WorkflowName        string   `json:"workflowName,omitempty"`
+	ThreadName          string   `json:"threadName,omitempty"`
+	KnowledgeSetName    string   `json:"knowledgeSetName,omitempty"`
+	KnowledgeSourceName string   `json:"knowledgeSourceName,omitempty"`
+	FromWorkspaceNames  []string `json:"fromWorkspaceNames,omitempty"`
 }
 
 type WorkspaceStatus struct {
-	WorkspaceID             string            `json:"workspaceID,omitempty"`
-	IngestionGeneration     int64             `json:"ingestionGeneration,omitempty"`
-	IngestionRunHash        string            `json:"ingestionRunHash,omitempty"`
-	CurrentIngestionRunName string            `json:"currentIngestionRunName,omitempty"`
-	LastIngestionRunName    string            `json:"lastIngestionRunName,omitempty"`
-	IngestionLastRunTime    metav1.Time       `json:"ingestionLastRunTime,omitempty"`
-	LastNotFinished         map[string]string `json:"lastNotFinished,omitempty"`
-	NotFinished             map[string]string `json:"notFinished,omitempty"`
-	RetryCount              int               `json:"retryCount,omitempty"`
-	PendingApproval         []string          `json:"pendingApproval,omitempty"`
-	PendingRejections       []string          `json:"pendingRejections,omitempty"`
+	WorkspaceID string `json:"workspaceID,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

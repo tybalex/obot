@@ -36,6 +36,7 @@ func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {
 		if err != nil {
 			return err
 		}
+		defer invokeResp.Close()
 
 		step.Status.ThreadName = invokeResp.Thread.Name
 		step.Status.RunNames = []string{invokeResp.Run.Name}

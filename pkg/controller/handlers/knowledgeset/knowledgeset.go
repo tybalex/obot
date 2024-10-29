@@ -1,10 +1,15 @@
 package knowledgeset
 
 import (
+	"context"
+	"fmt"
 	"strings"
 
+	"github.com/acorn-io/baaah/pkg/name"
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/otto8-ai/otto8/pkg/aihelper"
+	"github.com/otto8-ai/otto8/pkg/create"
+	"github.com/otto8-ai/otto8/pkg/invoke"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -14,53 +19,18 @@ import (
 
 type Handler struct {
 	aiHelper *aihelper.AIHelper
+	invoker  *invoke.Invoker
 }
 
-func New(aihelper *aihelper.AIHelper) *Handler {
-	return &Handler{aiHelper: aihelper}
+func New(aiHelper *aihelper.AIHelper, invoker *invoke.Invoker) *Handler {
+	return &Handler{
+		aiHelper: aiHelper,
+		invoker:  invoker,
+	}
 }
 
-func (h *Handler) GenerateDataDescription(req router.Request, resp router.Response) error {
-	var (
-		ks = req.Object.(*v1.KnowledgeSet)
-		ws v1.Workspace
-	)
-
-	if ks.Status.WorkspaceName == "" || ks.Spec.Manifest.DataDescription != "" {
-		return nil
-	}
-
-	if err := req.Client.Get(req.Ctx, router.Key(ks.Namespace, ks.Status.WorkspaceName), &ws); apierrors.IsNotFound(err) {
-		return nil
-	} else if err != nil {
-		return err
-	}
-
-	// Check if in sync already
-	if ks.Status.ObservedIngestionGeneration == ws.Status.IngestionGeneration {
-		return nil
-	}
-
-	// Ignore if running
-	if ws.Status.CurrentIngestionRunName != "" {
-		return nil
-	}
-
-	var files v1.KnowledgeFileList
-	if err := req.Client.List(req.Ctx, &files, kclient.InNamespace(ws.Namespace), kclient.MatchingFields{
-		"spec.workspaceName": ws.Name,
-	}); err != nil {
-		return err
-	}
-
-	if len(files.Items) == 0 {
-		ks.Status.IsEmpty = true
-		return nil
-	}
-
-	ks.Status.IsEmpty = false
-	ks.Status.ObservedIngestionGeneration = ws.Status.IngestionGeneration
-	return h.aiHelper.GenerateObject(req.Ctx, &ks.Status.SuggestedDataDescription, generatePrompt(files), "")
+func (h *Handler) GenerateDataDescription(req router.Request, _ router.Response) error {
+	return nil
 }
 
 func generatePrompt(files v1.KnowledgeFileList) string {
@@ -84,30 +54,89 @@ func generatePrompt(files v1.KnowledgeFileList) string {
 	return prompt
 }
 
-func (h *Handler) CreateWorkspace(req router.Request, resp router.Response) error {
-	ks := req.Object.(*v1.KnowledgeSet)
-
+func createWorkspace(ctx context.Context, c kclient.Client, ks *v1.KnowledgeSet) error {
 	if ks.Status.WorkspaceName != "" {
 		return nil
 	}
 
 	ws := &v1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
-			GenerateName: system.WorkspacePrefix,
-			Namespace:    ks.Namespace,
+			Name:       name.SafeConcatName(system.WorkspacePrefix, ks.Name),
+			Namespace:  ks.Namespace,
+			Finalizers: []string{v1.WorkspaceFinalizer},
 		},
 		Spec: v1.WorkspaceSpec{
-			AgentName:        ks.Spec.AgentName,
-			ThreadName:       ks.Spec.ThreadName,
 			KnowledgeSetName: ks.Name,
-			IsKnowledge:      true,
 		},
 	}
-
-	if err := req.Client.Create(req.Ctx, ws); err != nil {
+	err := create.OrGet(ctx, c, ws)
+	if err != nil {
 		return err
 	}
 
 	ks.Status.WorkspaceName = ws.Name
-	return req.Client.Status().Update(req.Ctx, ks)
+	return c.Status().Update(ctx, ks)
+}
+
+func (h *Handler) createThread(ctx context.Context, c kclient.Client, ks *v1.KnowledgeSet) error {
+	thread := &v1.Thread{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name.SafeConcatName(system.ThreadPrefix, ks.Name),
+			Namespace: ks.Namespace,
+		},
+		Spec: v1.ThreadSpec{
+			KnowledgeSetName: ks.Name,
+			WorkspaceName:    ks.Status.WorkspaceName,
+			SystemTask:       true,
+		},
+	}
+	// Threads are special because we assume users might delete them randomly
+	err := create.IfNotExists(ctx, c, thread)
+	if err != nil {
+		return err
+	}
+
+	if ks.Status.ThreadName == "" {
+		ks.Status.ThreadName = thread.Name
+		return c.Status().Update(ctx, ks)
+	}
+	return nil
+}
+
+func (h *Handler) CreateWorkspace(req router.Request, _ router.Response) error {
+	ks := req.Object.(*v1.KnowledgeSet)
+
+	if err := createWorkspace(req.Ctx, req.Client, ks); err != nil {
+		return err
+	}
+
+	return h.createThread(req.Ctx, req.Client, ks)
+}
+
+func (h *Handler) Cleanup(req router.Request, _ router.Response) error {
+	ks := req.Object.(*v1.KnowledgeSet)
+	if ks.Status.ThreadName == "" {
+		return nil
+	}
+
+	var thread v1.Thread
+	if err := req.Client.Get(req.Ctx, router.Key(ks.Namespace, ks.Status.ThreadName), &thread); apierrors.IsNotFound(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	task, err := h.invoker.SystemTask(req.Ctx, &thread, system.KnowledgeDeleteTool, map[string]any{
+		"dataset": ks.Namespace + "/" + ks.Name,
+	})
+	if err != nil {
+		return err
+	}
+	defer task.Close()
+
+	_, err = task.Result(req.Ctx)
+	if err != nil {
+		return fmt.Errorf("failed to delete knowledge set: %w", err)
+	}
+	return nil
 }

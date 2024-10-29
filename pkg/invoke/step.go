@@ -16,7 +16,7 @@ type StepOptions struct {
 	Continue        *string
 }
 
-func (i *Invoker) Step(ctx context.Context, c kclient.Client, step *v1.WorkflowStep, opt StepOptions) (*Response, error) {
+func (i *Invoker) Step(ctx context.Context, c kclient.WithWatch, step *v1.WorkflowStep, opt StepOptions) (*Response, error) {
 	agent, err := i.toAgentFromStep(ctx, c, step)
 	if err != nil {
 		return nil, err
@@ -37,14 +37,11 @@ func (i *Invoker) Step(ctx context.Context, c kclient.Client, step *v1.WorkflowS
 	}
 
 	return i.Agent(ctx, c, &agent, input, Options{
-		ThreadName:            wfe.Status.ThreadName,
-		ParentThreadName:      wfe.Spec.ParentThreadName,
-		PreviousRunName:       opt.PreviousRunName,
-		ForceNoResume:         opt.PreviousRunName == "",
-		WorkflowName:          wfe.Spec.WorkflowName,
-		WorkflowExecutionName: step.Spec.WorkflowExecutionName,
-		WorkflowStepName:      step.Name,
-		WorkflowStepID:        step.Spec.Step.ID,
+		ThreadName:       wfe.Status.ThreadName,
+		WorkflowStepName: step.Name,
+		WorkflowStepID:   step.Spec.Step.ID,
+		PreviousRunName:  opt.PreviousRunName,
+		ForceNoResume:    opt.PreviousRunName == "",
 	})
 }
 

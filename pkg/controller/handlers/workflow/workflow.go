@@ -25,6 +25,7 @@ func WorkspaceObjects(req router.Request, _ router.Response) error {
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace:    req.Namespace,
 				GenerateName: system.WorkspacePrefix,
+				Finalizers:   []string{v1.WorkspaceFinalizer},
 			},
 			Spec: v1.WorkspaceSpec{
 				WorkflowName: workflow.Name,

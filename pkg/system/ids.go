@@ -3,21 +3,21 @@ package system
 import "strings"
 
 const (
-	ThreadPrefix                = "t1"
-	AgentPrefix                 = "a1"
-	RunPrefix                   = "r1"
-	WorkflowPrefix              = "w1"
-	WorkflowExecutionPrefix     = "we1"
-	WorkflowStepPrefix          = "ws1"
-	WorkspacePrefix             = "wksp1"
-	IngestRequestPrefix         = "ik1"
-	SyncRequestPrefix           = "su1"
-	WebhookPrefix               = "wh1"
-	CronJobPrefix               = "cj1"
-	RemoteKnowledgeSourcePrefix = "rks1"
-	OAuthAppPrefix              = "oa1"
-	KnowledgeSetPrefix          = "ks1"
-	OAuthAppLoginPrefix         = "oal1"
+	ThreadPrefix            = "t1"
+	AgentPrefix             = "a1"
+	RunPrefix               = "r1"
+	WorkflowPrefix          = "w1"
+	WorkflowExecutionPrefix = "we1"
+	WorkflowStepPrefix      = "ws1"
+	WorkspacePrefix         = "wksp1"
+	IngestRequestPrefix     = "ik1"
+	SyncRequestPrefix       = "su1"
+	WebhookPrefix           = "wh1"
+	CronJobPrefix           = "cj1"
+	KnowledgeSourcePrefix   = "ks1"
+	OAuthAppPrefix          = "oa1"
+	KnowledgeSetPrefix      = "kst1"
+	OAuthAppLoginPrefix     = "oal1"
 )
 
 var typePrefixes = []string{
@@ -33,6 +33,7 @@ var typePrefixes = []string{
 	WebhookPrefix,
 	CronJobPrefix,
 	KnowledgeSetPrefix,
+	KnowledgeSourcePrefix,
 }
 
 func IsThreadID(id string) bool {
@@ -49,33 +50,4 @@ func IsRunID(id string) bool {
 
 func IsWorkflowID(id string) bool {
 	return strings.HasPrefix(id, WorkflowPrefix)
-}
-
-func IsWebhookID(id string) bool {
-	return strings.HasPrefix(id, WebhookPrefix)
-}
-
-func IsWorkflowExecutionID(id string) bool {
-	return strings.HasPrefix(id, WorkflowExecutionPrefix)
-}
-
-func IsWorkflowStepID(id string) bool {
-	return strings.HasPrefix(id, WorkflowStepPrefix)
-}
-
-func IsOAuthAppID(id string) bool {
-	return strings.HasPrefix(id, OAuthAppPrefix)
-}
-
-func IsKnowledgeSetID(id string) bool {
-	return strings.HasPrefix(id, KnowledgeSetPrefix)
-}
-
-func IsSystemID(id string) bool {
-	for _, prefix := range typePrefixes {
-		if strings.HasPrefix(id, prefix) {
-			return true
-		}
-	}
-	return false
 }

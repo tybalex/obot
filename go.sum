@@ -69,8 +69,8 @@ github.com/ProtonMail/go-crypto v1.0.0 h1:LRuvITjQWX+WIfr930YHG2HNfjR1uOfyf5vE0k
 github.com/ProtonMail/go-crypto v1.0.0/go.mod h1:EjAoLdwvbIOoOQr3ihjnSoLZRtE8azugULFRteWMNc0=
 github.com/a8m/envsubst v1.4.2 h1:4yWIHXOLEJHQEFd4UjrWDrYeYlV7ncFWJOCBRLOZHQg=
 github.com/a8m/envsubst v1.4.2/go.mod h1:MVUTQNGQ3tsjOOtKCNd+fl8RzhsXcDvvAEzkhGtlsbY=
-github.com/acorn-io/baaah v0.0.0-20241025215218-ffe9aa24ec43 h1:yg/QJMI5tp/Vqb9V/lBfThc1i6CGFwGiDL0k8gKCjRo=
-github.com/acorn-io/baaah v0.0.0-20241025215218-ffe9aa24ec43/go.mod h1:FTdfwOSepj32acbdMwoqe5pwFTYhNG0UQhCXxgHuEzM=
+github.com/acorn-io/baaah v0.0.0-20241029035540-0083a3d0fcb8 h1:mDKTJQwMenBtEn4e0PnwU+2UAKQ3xuz1qI2uw7Ceg2k=
+github.com/acorn-io/baaah v0.0.0-20241029035540-0083a3d0fcb8/go.mod h1:FTdfwOSepj32acbdMwoqe5pwFTYhNG0UQhCXxgHuEzM=
 github.com/acorn-io/broadcaster v0.0.0-20240105011354-bfadd4a7b45d h1:hfpNQkJ4I2b8+DbMr8m97gG67ku0uPsMzUfskVu3cHU=
 github.com/acorn-io/broadcaster v0.0.0-20240105011354-bfadd4a7b45d/go.mod h1:WF6FYrEqW0+ZtY5OKb21JhSL0aeL5VJoVrm+u0d4gOE=
 github.com/acorn-io/mink v0.0.0-20241023012843-90a3b0f07a1d h1:Hld6E27E/RV9VTMiM9qncm3Vn3ImzopdFVA5dbU+4AI=
