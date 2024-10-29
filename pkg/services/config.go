@@ -116,11 +116,12 @@ func New(ctx context.Context, config Config) (*Services, error) {
 
 	devPort, config := configureDevMode(config)
 
-	for _, pgPrefix := range []string{"postgres://", "posgresql://"} {
-		if strings.HasPrefix(config.DSN, pgPrefix) {
-			_ = os.Setenv("KNOW_VECTOR_DSN", strings.Replace(config.DSN, pgPrefix, "pgvector://", 1))
-			_ = os.Setenv("KNOW_INDEX_DSN", strings.Replace(config.DSN, pgPrefix, "postgres://", 1))
-		}
+	// Just a common mistake where you put the wrong prefix for the DSN. This seems to be inconsistent across things
+	// that use postgres
+	config.DSN = strings.Replace(config.DSN, "postgresql://", "postgres://", 1)
+	if strings.HasPrefix(config.DSN, "postgres://") {
+		_ = os.Setenv("KNOW_VECTOR_DSN", strings.Replace(config.DSN, "postgres://", "pgvector://", 1))
+		_ = os.Setenv("KNOW_INDEX_DSN", config.DSN)
 	}
 
 	storageClient, restConfig, dbAccess, err := storage.Start(ctx, config.Config)

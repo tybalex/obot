@@ -87,6 +87,7 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 		closedChan := make(chan types.Progress)
 		close(closedChan)
 		return &Response{
+			cancel: func() {},
 			Thread: thread,
 			Events: closedChan,
 		}, nil
@@ -103,6 +104,7 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 	}
 
 	return &Response{
+		cancel: func() {},
 		Thread: thread,
 		Run:    run,
 		Events: prg,

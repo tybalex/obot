@@ -151,7 +151,7 @@ func addKnowledgeTools(ctx context.Context, db kclient.Client, agent *v1.Agent, 
 		}
 
 		if dataDescription == "" {
-			continue
+			dataDescription = "No data description available"
 		}
 
 		toolName := "knowledge_set_query"

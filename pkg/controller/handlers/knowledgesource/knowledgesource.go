@@ -17,6 +17,7 @@ import (
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
 	"github.com/otto8-ai/otto8/pkg/wait"
+	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -38,6 +39,30 @@ func NewHandler(invoker *invoke.Invoker, gptClient *gptscript.GPTScript) *Handle
 func shouldRerun(source *v1.KnowledgeSource) bool {
 	return source.Spec.SyncGeneration > source.Status.SyncGeneration ||
 		source.Status.SyncState == types.KnowledgeSourceStatePending
+}
+
+func safeStatusSave(ctx context.Context, c kclient.Client, source *v1.KnowledgeSource) (err error) {
+	// This logic is done mostly because a sync is a very long operation so a 409 is super impactful because it could
+	// force a restart. Where other thing we don't care so much if we have to restart, but restarting a 20 minute long
+	// thing really sucks
+	status := source.Status.DeepCopy()
+	for i := 0; i < 20; i++ {
+		if err = c.Status().Update(ctx, source); apierror.IsConflict(err) {
+			time.Sleep(500 * time.Millisecond)
+			if err := c.Get(ctx, kclient.ObjectKeyFromObject(source), source); err != nil {
+				return err
+			}
+			// restore full status we wanted to save
+			source.Status = *status
+			continue
+		} else if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	// This should be the error from the last loop, which should be a conflict
+	return err
 }
 
 func (k *Handler) saveProgress(ctx context.Context, c kclient.Client, source *v1.KnowledgeSource, thread *v1.Thread, complete bool) error {
@@ -62,7 +87,7 @@ func (k *Handler) saveProgress(ctx context.Context, c kclient.Client, source *v1
 		!bytes.Equal(syncDetails, source.Status.SyncDetails) {
 		source.Status.Status = syncMetadata.Status
 		source.Status.SyncDetails = syncDetails
-		if err := c.Status().Update(ctx, source); err != nil {
+		if err := safeStatusSave(ctx, c, source); err != nil {
 			return err
 		}
 	}
@@ -167,7 +192,7 @@ func (k *Handler) Sync(req router.Request, _ router.Response) error {
 		return err
 	}
 
-	ticker := time.NewTicker(15 * time.Second)
+	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 
 forLoop:
@@ -207,5 +232,5 @@ forLoop:
 	} else {
 		source.Status.SyncState = types.KnowledgeSourceStateError
 	}
-	return req.Client.Status().Update(req.Ctx, source)
+	return safeStatusSave(req.Ctx, req.Client, source)
 }

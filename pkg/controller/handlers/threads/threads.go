@@ -5,6 +5,7 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/name"
 	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/otto8-ai/otto8/pkg/create"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
 	"github.com/otto8-ai/otto8/pkg/wait"
@@ -89,7 +90,7 @@ func CreateKnowledgeSet(req router.Request, _ router.Response) error {
 			ThreadName: thread.Name,
 		},
 	}
-	if err := req.Client.Create(req.Ctx, ws); err != nil {
+	if err := create.OrGet(req.Ctx, req.Client, ws); err != nil {
 		return err
 	}
 
