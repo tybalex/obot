@@ -107,6 +107,11 @@ func uploadKnowledgeToWorkspace(req api.Context, gClient *gptscript.GPTScript, w
 }
 
 func convertKnowledgeFile(agentName, threadName string, file v1.KnowledgeFile) types.KnowledgeFile {
+	var lastRunID string
+	if len(file.Status.RunNames) > 0 {
+		lastRunID = file.Status.RunNames[len(file.Status.RunNames)-1]
+	}
+
 	return types.KnowledgeFile{
 		Metadata:               MetadataFrom(&file),
 		FileName:               file.Spec.FileName,
@@ -121,7 +126,7 @@ func convertKnowledgeFile(agentName, threadName string, file v1.KnowledgeFile) t
 		ThreadID:               threadName,
 		KnowledgeSetID:         file.Spec.KnowledgeSetName,
 		KnowledgeSourceID:      file.Spec.KnowledgeSourceName,
-		LastRunID:              file.Status.RunName,
+		LastRunID:              lastRunID,
 	}
 }
 

@@ -270,3 +270,24 @@ func (k *Handler) BackPopulateAuthStatus(req router.Request, _ router.Response) 
 	source.Status.Auth = oauthAppLogin.Status.OAuthAppLoginAuthStatus
 	return req.Client.Status().Update(req.Ctx, source)
 }
+
+func (k *Handler) Cleanup(req router.Request, resp router.Response) error {
+	var files v1.KnowledgeFileList
+	if err := req.Client.List(req.Ctx, &files, kclient.InNamespace(req.Namespace), kclient.MatchingFields{
+		"spec.knowledgeSourceName": req.Name,
+	}); err != nil {
+		return err
+	}
+
+	if len(files.Items) > 0 {
+		for _, file := range files.Items {
+			if file.DeletionTimestamp.IsZero() {
+				_ = req.Delete(&file)
+			}
+		}
+		resp.RetryAfter(5 * time.Second)
+		return nil
+	}
+
+	return nil
+}

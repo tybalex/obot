@@ -98,8 +98,7 @@ type KnowledgeFileStatus struct {
 	UpdatedAt string `json:"updatedAt,omitempty"`
 	Checksum  string `json:"checksum,omitempty"`
 
-	ThreadName             string      `json:"threadName,omitempty"`
-	RunName                string      `json:"runName,omitempty"`
+	RunNames               []string    `json:"runNames,omitempty"`
 	LastIngestionStartTime metav1.Time `json:"lastIngestionStartTime,omitempty"`
 	LastIngestionEndTime   metav1.Time `json:"lastIngestionEndTime,omitempty"`
 

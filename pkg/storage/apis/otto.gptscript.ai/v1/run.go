@@ -12,10 +12,11 @@ var (
 )
 
 const (
-	RunFinalizer           = "otto.gptscript.ai/run"
-	KnowledgeFileFinalizer = "otto.gptscript.ai/knowledge-file"
-	WorkspaceFinalizer     = "otto.gptscript.ai/workspace"
-	KnowledgeSetFinalizer  = "otto.gptscript.ai/knowledge-set"
+	RunFinalizer             = "otto.gptscript.ai/run"
+	KnowledgeFileFinalizer   = "otto.gptscript.ai/knowledge-file"
+	WorkspaceFinalizer       = "otto.gptscript.ai/workspace"
+	KnowledgeSetFinalizer    = "otto.gptscript.ai/knowledge-set"
+	KnowledgeSourceFinalizer = "otto.gptscript.ai/knowledge-source"
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

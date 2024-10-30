@@ -45,11 +45,11 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	// Remote Knowledge Sources
 	mux.HandleFunc("POST /api/agents/{agent_id}/knowledge-sources", agents.CreateKnowledgeSource)
-	mux.HandleFunc("GET /api/agents/{agent_id}/knowledge-sources", agents.GetRemoteKnowledgeSources)
+	mux.HandleFunc("GET /api/agents/{agent_id}/knowledge-sources", agents.ListKnowledgeSources)
 	mux.HandleFunc("POST /api/agents/{agent_id}/knowledge-sources/{id}/sync", agents.ReSyncKnowledgeSource)
 	mux.HandleFunc("POST /api/agents/{agent_id}/knowledge-sources/{id}/login", agents.EnsureCredentialForKnowledgeSource)
-	mux.HandleFunc("PUT /api/agents/{agent_id}/knowledge-sources/{id}", agents.UpdateRemoteKnowledgeSource)
-	mux.HandleFunc("DELETE /api/agents/{agent_id}/knowledge-sources/{id}", agents.DeleteRemoteKnowledgeSource)
+	mux.HandleFunc("PUT /api/agents/{agent_id}/knowledge-sources/{id}", agents.UpdateKnowledgeSource)
+	mux.HandleFunc("DELETE /api/agents/{agent_id}/knowledge-sources/{id}", agents.DeleteKnowledgeSource)
 	mux.HandleFunc("GET /api/agents/{agent_id}/knowledge-sources/{knowledge_source_id}/knowledge-files", agents.ListKnowledgeFiles)
 	mux.HandleFunc("POST /api/agents/{agent_id}/knowledge-sources/{knowledge_source_id}/knowledge-files/{id}/ingest", agents.ReIngestKnowledgeFile)
 

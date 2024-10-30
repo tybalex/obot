@@ -80,8 +80,13 @@ func (r *Response) Result(ctx context.Context) (TaskResult, error) {
 	for range r.Events {
 	}
 
-	run, err := wait.For(ctx, r.uncached, r.Run, func(run *v1.Run) bool {
-		return run.Status.State.IsTerminal() || run.Status.State == gptscript.Continue
+	runState, err := wait.For(ctx, r.uncached, &v1.RunState{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      r.Run.Name,
+			Namespace: r.Run.Namespace,
+		},
+	}, func(run *v1.RunState) bool {
+		return run.Spec.Done
 	})
 	if apierror.IsNotFound(err) {
 		return TaskResult{
@@ -91,25 +96,29 @@ func (r *Response) Result(ctx context.Context) (TaskResult, error) {
 		return TaskResult{}, err
 	}
 
-	r.Run = run
-	if run.Status.State == gptscript.Error {
+	if runState.Spec.Error != "" {
 		return TaskResult{
-			Error: r.Run.Status.Error,
+			Error: runState.Spec.Error,
 		}, nil
 	}
 
 	var (
 		errString string
+		content   string
 		data      = map[string]any{}
 	)
 
-	_ = json.Unmarshal([]byte(run.Status.Output), &data)
+	if err := gz.Decompress(&content, runState.Spec.Output); err != nil {
+		return TaskResult{}, err
+	}
+
+	_ = json.Unmarshal([]byte(content), &data)
 	if err, ok := data["error"].(string); ok {
 		errString = err
 	}
 
 	return TaskResult{
-		Output: r.Run.Status.Output,
+		Output: content,
 		Error:  errString,
 	}, nil
 }
@@ -488,6 +497,15 @@ func (i *Invoker) doSaveState(ctx context.Context, c kclient.Client, prevThreadN
 	runStateSpec.Done = runResp.State().IsTerminal() || runResp.State() == gptscript.Continue
 	if retErr != nil {
 		runStateSpec.Error = retErr.Error()
+	} else if runStateSpec.Done {
+		text, err := runResp.Text()
+		if err == nil {
+			// ignore errors, it will be recorded or handled elsewhere
+			runStateSpec.Output, err = gz.Compress(text)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	if prg := runResp.Program(); prg != nil {

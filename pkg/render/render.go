@@ -137,6 +137,11 @@ func addKnowledgeTools(ctx context.Context, db kclient.Client, agent *v1.Agent, 
 		return mainTool, nil, err
 	}
 
+	resultFormatter, err := ResolveToolReference(ctx, db, types.ToolReferenceTypeSystem, agent.Namespace, system.ResultFormatterTool)
+	if err != nil {
+		return mainTool, nil, err
+	}
+
 	for i, knowledgeSetName := range knowledgeSetNames {
 		var ks v1.KnowledgeSet
 		if err := db.Get(ctx, kclient.ObjectKey{Namespace: agent.Namespace, Name: knowledgeSetName}, &ks); apierror.IsNotFound(err) {
@@ -165,7 +170,10 @@ func addKnowledgeTools(ctx context.Context, db kclient.Client, agent *v1.Agent, 
 			Instructions: "#!sys.echo",
 			Arguments: gptscript.ObjectSchema(
 				"query", "A search query that will be evaluated against the knowledge set"),
-			OutputFilters: []string{knowledgeTool + fmt.Sprintf(fmt.Sprintf(" with %s/%s as datasets and ${query} as query", ks.Namespace, ks.Name))},
+			OutputFilters: []string{
+				knowledgeTool + fmt.Sprintf(fmt.Sprintf(" with %s/%s as datasets and ${query} as query", ks.Namespace, ks.Name)),
+				resultFormatter,
+			},
 		}
 
 		contentTool := gptscript.ToolDef{

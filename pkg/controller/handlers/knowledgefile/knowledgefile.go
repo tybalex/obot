@@ -4,25 +4,28 @@ import (
 	"context"
 	"fmt"
 	"path"
+	"strings"
 
 	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/acorn-io/baaah/pkg/typed"
+	"github.com/gptscript-ai/go-gptscript"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/invoke"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
-	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Handler struct {
-	invoker *invoke.Invoker
+	invoker   *invoke.Invoker
+	gptScript *gptscript.GPTScript
 }
 
-func New(invoker *invoke.Invoker) *Handler {
+func New(invoker *invoke.Invoker, gptScript *gptscript.GPTScript) *Handler {
 	return &Handler{
-		invoker: invoker,
+		invoker:   invoker,
+		gptScript: gptScript,
 	}
 }
 
@@ -33,13 +36,17 @@ func shouldReIngest(file *v1.KnowledgeFile) bool {
 		file.Spec.URL != file.Status.URL
 }
 
+func cleanInput(filename string) string {
+	return path.Join(".conversion", filename)
+}
+
 func outputFile(filename string) string {
-	return path.Join(".conversion", filename+".txt")
+	return path.Join(".conversion", filename+".json")
 }
 
 func getThread(ctx context.Context, c kclient.Client, ks *v1.KnowledgeSet, source *v1.KnowledgeSource) (*v1.Thread, error) {
 	var thread v1.Thread
-	if source.Status.ThreadName != "" {
+	if source != nil && source.Status.ThreadName != "" {
 		return &thread, c.Get(ctx, router.Key(ks.Namespace, source.Status.ThreadName), &thread)
 	}
 	return &thread, c.Get(ctx, router.Key(ks.Namespace, ks.Status.ThreadName), &thread)
@@ -107,7 +114,7 @@ func (h *Handler) IngestFile(req router.Request, _ router.Response) error {
 		return nil
 	}
 
-	if err := h.ingest(req.Ctx, req.Client, file, &ks, thread); err != nil {
+	if err := h.ingest(req.Ctx, req.Client, file, &ks, &source, thread); err != nil {
 		file.Status.State = types.KnowledgeFileStateError
 		file.Status.Error = err.Error()
 	} else {
@@ -124,31 +131,66 @@ func (h *Handler) IngestFile(req router.Request, _ router.Response) error {
 }
 
 func (h *Handler) ingest(ctx context.Context, client kclient.Client, file *v1.KnowledgeFile,
-	ks *v1.KnowledgeSet, thread *v1.Thread) error {
-
-	task, err := h.invoker.SystemTask(ctx, thread, system.KnowledgeLoadTool, map[string]any{
-		"input":  file.Spec.FileName,
-		"output": outputFile(file.Spec.FileName),
-		"metadata": map[string]string{
-			"url": file.Spec.URL,
-		},
-	})
-	if err != nil {
-		return err
-	}
-	defer task.Close()
+	ks *v1.KnowledgeSet, source *v1.KnowledgeSource, thread *v1.Thread) error {
 
 	file.Status.State = types.KnowledgeFileStateIngesting
 	file.Status.Error = ""
 	file.Status.LastIngestionStartTime = metav1.Now()
 	file.Status.LastIngestionEndTime = metav1.Time{}
-	file.Status.ThreadName = task.Thread.Name
-	file.Status.RunName = task.Run.Name
+	file.Status.RunNames = nil
 	if err := client.Status().Update(ctx, file); err != nil {
 		return err
 	}
 
-	result, err := task.Result(ctx)
+	inputName := file.Spec.FileName
+
+	if source.Spec.Manifest.GetType() == types.KnowledgeSourceTypeWebsite && strings.HasSuffix(file.Spec.FileName, ".md") {
+		content, err := h.gptScript.ReadFileInWorkspace(ctx, file.Spec.FileName, gptscript.ReadFileInWorkspaceOptions{
+			WorkspaceID: thread.Status.WorkspaceID,
+		})
+		if err != nil {
+			return err
+		}
+		if len(content) < 100_000 {
+			task, err := h.invoker.SystemTask(ctx, thread, system.WebsiteCleanTool, string(content))
+			if err != nil {
+				return err
+			}
+			defer task.Close()
+
+			file.Status.RunNames = append(file.Status.RunNames, task.Run.Name)
+
+			result, err := task.Result(ctx)
+			if err != nil {
+				return err
+			} else if result.Error != "" {
+				return fmt.Errorf("failed to clean website content: %s", result.Error)
+			}
+
+			if result.Output != "" {
+				inputName = cleanInput(file.Spec.FileName)
+				if err := h.gptScript.WriteFileInWorkspace(ctx, inputName, []byte(result.Output), gptscript.WriteFileInWorkspaceOptions{
+					WorkspaceID: thread.Status.WorkspaceID,
+				}); err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	loadTask, err := h.invoker.SystemTask(ctx, thread, system.KnowledgeLoadTool, map[string]any{
+		"input":    inputName,
+		"output":   outputFile(file.Spec.FileName),
+		"metadata": "url=" + file.Spec.URL,
+	})
+	if err != nil {
+		return err
+	}
+	defer loadTask.Close()
+
+	file.Status.RunNames = append(file.Status.RunNames, loadTask.Run.Name)
+
+	result, err := loadTask.Result(ctx)
 	if err != nil {
 		return err
 	}
@@ -156,21 +198,21 @@ func (h *Handler) ingest(ctx context.Context, client kclient.Client, file *v1.Kn
 		return fmt.Errorf("failed to convert file: %s", result.Error)
 	}
 
-	task, err = h.invoker.SystemTask(ctx, thread, system.KnowledgeIngestTool, map[string]any{
+	ingestTask, err := h.invoker.SystemTask(ctx, thread, system.KnowledgeIngestTool, map[string]any{
 		"input":   outputFile(file.Spec.FileName),
 		"dataset": ks.Namespace + "/" + ks.Name,
 	})
 	if err != nil {
 		return err
 	}
-	defer task.Close()
+	defer ingestTask.Close()
 
-	file.Status.RunName = task.Run.Name
+	file.Status.RunNames = append(file.Status.RunNames, ingestTask.Run.Name)
 	if err := client.Status().Update(ctx, file); err != nil {
 		return err
 	}
 
-	result, err = task.Result(ctx)
+	result, err = ingestTask.Result(ctx)
 	if err != nil {
 		return err
 	}
@@ -181,25 +223,69 @@ func (h *Handler) ingest(ctx context.Context, client kclient.Client, file *v1.Kn
 	return nil
 }
 
+func (h *Handler) getWorkspaceID(ctx context.Context, c kclient.Client, ks *v1.KnowledgeSet, source *v1.KnowledgeSource) (string, error) {
+	var workspace v1.Workspace
+
+	if source != nil && source.Status.WorkspaceName != "" {
+		if err := c.Get(ctx, router.Key(ks.Namespace, source.Status.WorkspaceName), &workspace); err != nil {
+			return "", err
+		}
+		return workspace.Status.WorkspaceID, nil
+	}
+
+	if err := c.Get(ctx, router.Key(ks.Namespace, ks.Status.WorkspaceName), &workspace); err != nil {
+		return "", err
+	}
+
+	return workspace.Status.WorkspaceID, nil
+}
+
 func (h *Handler) Cleanup(req router.Request, _ router.Response) error {
 	file := req.Object.(*v1.KnowledgeFile)
 
 	var ks v1.KnowledgeSet
-	if err := req.Client.Get(req.Ctx, router.Key(file.Namespace, file.Spec.KnowledgeSetName), &ks); apierror.IsNotFound(err) {
-		return nil
-	} else if err != nil {
+	if err := req.Client.Get(req.Ctx, router.Key(file.Namespace, file.Spec.KnowledgeSetName), &ks); err != nil {
+		return kclient.IgnoreNotFound(err)
+	}
+
+	var source *v1.KnowledgeSource
+	if file.Spec.KnowledgeSourceName != "" {
+		source = &v1.KnowledgeSource{}
+		if err := req.Client.Get(req.Ctx, router.Key(file.Namespace, file.Spec.KnowledgeSourceName), source); kclient.IgnoreNotFound(err) != nil {
+			return err
+		}
+	}
+
+	workspaceID, err := h.getWorkspaceID(req.Ctx, req.Client, &ks, source)
+	if err != nil {
+		return kclient.IgnoreNotFound(err)
+	}
+
+	if err := h.gptScript.DeleteFileInWorkspace(req.Ctx, file.Spec.FileName, gptscript.DeleteFileInWorkspaceOptions{
+		WorkspaceID: workspaceID,
+	}); err != nil {
 		return err
 	}
 
-	var thread v1.Thread
-	if err := req.Client.Get(req.Ctx, router.Key(ks.Namespace, file.Status.ThreadName), &thread); apierror.IsNotFound(err) {
-		return nil
-	} else if err != nil {
+	if err := h.gptScript.DeleteFileInWorkspace(req.Ctx, cleanInput(file.Spec.FileName), gptscript.DeleteFileInWorkspaceOptions{
+		WorkspaceID: workspaceID,
+	}); err != nil {
 		return err
 	}
 
-	task, err := h.invoker.SystemTask(req.Ctx, &thread, system.KnowledgeDeleteFileTool, map[string]any{
-		"file":    file.Spec.FileName,
+	if err := h.gptScript.DeleteFileInWorkspace(req.Ctx, outputFile(file.Spec.FileName), gptscript.DeleteFileInWorkspaceOptions{
+		WorkspaceID: workspaceID,
+	}); err != nil {
+		return err
+	}
+
+	thread, err := getThread(req.Ctx, req.Client, &ks, source)
+	if err != nil {
+		return kclient.IgnoreNotFound(err)
+	}
+
+	task, err := h.invoker.SystemTask(req.Ctx, thread, system.KnowledgeDeleteFileTool, map[string]any{
+		"file":    outputFile(file.Spec.FileName),
 		"dataset": ks.Namespace + "/" + ks.Name,
 	})
 	if err != nil {

@@ -1,7 +1,7 @@
 apiVersion: otto.gptscript.ai/v1
 kind: Agent
 metadata:
-  name: a1otto
+  name: a1-otto
   namespace: default
 spec:
   manifest:

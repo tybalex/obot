@@ -286,6 +286,7 @@ func (a *AgentHandler) CreateKnowledgeSource(req api.Context) error {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:    req.Namespace(),
 			GenerateName: system.KnowledgeSourcePrefix,
+			Finalizers:   []string{v1.KnowledgeSourceFinalizer},
 		},
 		Spec: v1.KnowledgeSourceSpec{
 			KnowledgeSetName: agent.Status.KnowledgeSetNames[0],
@@ -306,10 +307,10 @@ func (a *AgentHandler) CreateKnowledgeSource(req api.Context) error {
 	// This value will be persisted in the status in a controller.
 	source.Status.Auth.Required = &required
 
-	return req.Write(convertRemoteKnowledgeSource(agent.Name, source))
+	return req.Write(convertKnowledgeSource(agent.Name, source))
 }
 
-func (a *AgentHandler) UpdateRemoteKnowledgeSource(req api.Context) error {
+func (a *AgentHandler) UpdateKnowledgeSource(req api.Context) error {
 	var agent v1.Agent
 	if err := req.Get(&agent, req.PathValue("agent_id")); err != nil {
 		return err
@@ -346,7 +347,7 @@ func (a *AgentHandler) UpdateRemoteKnowledgeSource(req api.Context) error {
 		return err
 	}
 
-	return req.Write(convertRemoteKnowledgeSource(agent.Name, knowledgeSource))
+	return req.Write(convertKnowledgeSource(agent.Name, knowledgeSource))
 }
 
 func (a *AgentHandler) ReIngestKnowledgeFile(req api.Context) error {
@@ -413,7 +414,7 @@ func (a *AgentHandler) ReSyncKnowledgeSource(req api.Context) error {
 	return nil
 }
 
-func (a *AgentHandler) GetRemoteKnowledgeSources(req api.Context) error {
+func (a *AgentHandler) ListKnowledgeSources(req api.Context) error {
 	var agent v1.Agent
 	if err := req.Get(&agent, req.PathValue("agent_id")); err != nil {
 		return err
@@ -433,13 +434,13 @@ func (a *AgentHandler) GetRemoteKnowledgeSources(req api.Context) error {
 
 	var resp []types.KnowledgeSource
 	for _, source := range knowledgeSourceList.Items {
-		resp = append(resp, convertRemoteKnowledgeSource(agent.Name, source))
+		resp = append(resp, convertKnowledgeSource(agent.Name, source))
 	}
 
 	return req.Write(types.KnowledgeSourceList{Items: resp})
 }
 
-func (a *AgentHandler) DeleteRemoteKnowledgeSource(req api.Context) error {
+func (a *AgentHandler) DeleteKnowledgeSource(req api.Context) error {
 	var agent v1.Agent
 	if err := req.Get(&agent, req.PathValue("agent_id")); err != nil {
 		return err
@@ -487,7 +488,7 @@ func (a *AgentHandler) EnsureCredentialForKnowledgeSource(req api.Context) error
 
 	// If auth is not required, then don't continue.
 	if knowledgeSource.Status.Auth.Required != nil && !*knowledgeSource.Status.Auth.Required {
-		return req.Write(convertRemoteKnowledgeSource(agent.Name, knowledgeSource))
+		return req.Write(convertKnowledgeSource(agent.Name, knowledgeSource))
 	}
 
 	credentialTool, required, err := knowledgeSource.CredentialTool(req.Context(), req.Storage)
@@ -498,7 +499,7 @@ func (a *AgentHandler) EnsureCredentialForKnowledgeSource(req api.Context) error
 	if !required {
 		// The only way to get here is if the controller hasn't set the field yet.
 		knowledgeSource.Status.Auth.Required = &required
-		return req.Write(convertRemoteKnowledgeSource(agent.Name, knowledgeSource))
+		return req.Write(convertKnowledgeSource(agent.Name, knowledgeSource))
 	}
 
 	if credentialTool == "" {
@@ -531,7 +532,7 @@ func (a *AgentHandler) EnsureCredentialForKnowledgeSource(req api.Context) error
 
 	// Don't need to actually update the knowledge source, there is a controller that will do that.
 	knowledgeSource.Status.Auth = oauthLogin.Status.OAuthAppLoginAuthStatus
-	return req.Write(convertRemoteKnowledgeSource(agent.Name, knowledgeSource))
+	return req.Write(convertKnowledgeSource(agent.Name, knowledgeSource))
 }
 
 func (a *AgentHandler) Script(req api.Context) error {

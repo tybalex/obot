@@ -30,7 +30,7 @@ func (c *Controller) setupRoutes() error {
 	workspace := workspace.New(c.services.GPTClient, c.services.WorkspaceProviderType)
 	knowledgeset := knowledgeset.New(c.services.AIHelper, c.services.Invoker)
 	knowledgesource := knowledgesource.NewHandler(c.services.Invoker, c.services.GPTClient)
-	knowledgefile := knowledgefile.New(c.services.Invoker)
+	knowledgefile := knowledgefile.New(c.services.Invoker, c.services.GPTClient)
 	runs := runs.New(c.services.Invoker)
 	webHooks := webhook.New()
 	cronJobs := cronjob.New()
@@ -60,6 +60,7 @@ func (c *Controller) setupRoutes() error {
 
 	// Uploads
 	root.Type(&v1.KnowledgeSource{}).HandlerFunc(cleanup.Cleanup)
+	root.Type(&v1.KnowledgeSource{}).FinalizeFunc(v1.KnowledgeSourceFinalizer, knowledgesource.Cleanup)
 	root.Type(&v1.KnowledgeSource{}).HandlerFunc(knowledgesource.Reschedule)
 	root.Type(&v1.KnowledgeSource{}).HandlerFunc(knowledgesource.Sync)
 	root.Type(&v1.KnowledgeSource{}).HandlerFunc(knowledgesource.BackPopulateAuthStatus)
