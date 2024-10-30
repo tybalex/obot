@@ -103,6 +103,18 @@ func (h *Handler) createThread(ctx context.Context, c kclient.Client, ks *v1.Kno
 	return nil
 }
 
+func (h *Handler) CheckHasContent(req router.Request, _ router.Response) error {
+	ks := req.Object.(*v1.KnowledgeSet)
+	files := &v1.KnowledgeFileList{}
+	if err := req.Client.List(req.Ctx, files, kclient.InNamespace(ks.Namespace), kclient.MatchingFields{
+		"spec.knowledgeSetName": ks.Name,
+	}, kclient.Limit(1)); err != nil {
+		return err
+	}
+	ks.Status.HasContent = len(files.Items) > 0
+	return nil
+}
+
 func (h *Handler) CreateWorkspace(req router.Request, _ router.Response) error {
 	ks := req.Object.(*v1.KnowledgeSet)
 

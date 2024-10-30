@@ -27,14 +27,3 @@ fi
 
 cd workspace-provider
 CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/gptscript-go-tool .
-
-cd ..
-if [ ! -e knowledge-tool ]; then
-    git clone --depth=1 https://github.com/gptscript-ai/knowledge knowledge-tool
-fi
-cd knowledge-tool
-make
-ln -sf knowledge bin/gptscript-go-tool
-
-cd ..
-sed -e 's!github.com/gptscript-ai/knowledge!./knowledge-tool!g' -e 's/@main//g' -i index.yaml

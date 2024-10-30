@@ -769,6 +769,12 @@ func schema_otto8_ai_otto8_apiclient_types_KnowledgeFile(ref common.ReferenceCal
 							Format:  "",
 						},
 					},
+					"error": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"agentID": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -3567,6 +3573,12 @@ func schema_storage_apis_ottogptscriptai_v1_KnowledgeSetStatus(ref common.Refere
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
+					"hasContent": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 					"suggestedDataDescription": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},

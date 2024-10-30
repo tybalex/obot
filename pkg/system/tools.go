@@ -6,7 +6,7 @@ const (
 	KnowledgeDeleteTool     = "knowledge-delete"
 	KnowledgeDeleteFileTool = "knowledge-delete-file"
 	KnowledgeRetrievalTool  = "knowledge-retrieval"
-	WebsiteCleanTool        = "website-clean"
+	WebsiteCleanTool        = "website-cleaner"
 	ResultFormatterTool     = "result-formatter"
 
 	DefaultNamespace = "default"

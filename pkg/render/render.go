@@ -150,6 +150,10 @@ func addKnowledgeTools(ctx context.Context, db kclient.Client, agent *v1.Agent, 
 			return mainTool, nil, err
 		}
 
+		if !ks.Status.HasContent {
+			continue
+		}
+
 		dataDescription := ks.Spec.Manifest.DataDescription
 		if dataDescription == "" {
 			dataDescription = ks.Status.SuggestedDataDescription

@@ -178,10 +178,22 @@ func (h *Handler) ingest(ctx context.Context, client kclient.Client, file *v1.Kn
 		}
 	}
 
+	stat, err := h.gptScript.StatFileInWorkspace(ctx, inputName, gptscript.StatFileInWorkspaceOptions{
+		WorkspaceID: thread.Status.WorkspaceID,
+	})
+	if err != nil {
+		return err
+	}
+
 	loadTask, err := h.invoker.SystemTask(ctx, thread, system.KnowledgeLoadTool, map[string]any{
-		"input":    inputName,
-		"output":   outputFile(file.Spec.FileName),
-		"metadata": "url=" + file.Spec.URL,
+		"input":  inputName,
+		"output": outputFile(file.Spec.FileName),
+		"metadata_json": map[string]string{
+			"url":               file.Spec.URL,
+			"workspaceID":       thread.Status.WorkspaceID,
+			"workspaceFileName": inputName,
+			"size":              fmt.Sprintf("%d", stat.Size),
+		},
 	})
 	if err != nil {
 		return err
