@@ -22,6 +22,7 @@ type KnowledgeFile struct {
 	Metadata
 	FileName               string             `json:"fileName"`
 	State                  KnowledgeFileState `json:"state"`
+	Error                  string             `json:"error,omitempty"`
 	AgentID                string             `json:"agentID,omitempty"`
 	ThreadID               string             `json:"threadID,omitempty"`
 	KnowledgeSetID         string             `json:"knowledgeSetID,omitempty"`

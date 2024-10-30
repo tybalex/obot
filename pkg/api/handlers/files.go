@@ -116,6 +116,7 @@ func convertKnowledgeFile(agentName, threadName string, file v1.KnowledgeFile) t
 		Metadata:               MetadataFrom(&file),
 		FileName:               file.Spec.FileName,
 		State:                  file.PublicState(),
+		Error:                  file.Status.Error,
 		Approved:               file.Spec.Approved,
 		URL:                    file.Spec.URL,
 		UpdatedAt:              file.Spec.UpdatedAt,
