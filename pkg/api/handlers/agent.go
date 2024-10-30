@@ -204,9 +204,10 @@ func (a *AgentHandler) ListKnowledgeFiles(req api.Context) error {
 	}
 
 	knowledgeSourceName := req.PathValue("knowledge_source_id")
+	var knowledgeSource *v1.KnowledgeSource
 	if knowledgeSourceName != "" {
-		var knowledgeSource v1.KnowledgeSource
-		if err := req.Get(&knowledgeSource, knowledgeSourceName); err != nil {
+		knowledgeSource = &v1.KnowledgeSource{}
+		if err := req.Get(knowledgeSource, knowledgeSourceName); err != nil {
 			return err
 		}
 		if knowledgeSource.Spec.KnowledgeSetName != agent.Status.KnowledgeSetNames[0] {
@@ -214,7 +215,7 @@ func (a *AgentHandler) ListKnowledgeFiles(req api.Context) error {
 		}
 	}
 
-	return listKnowledgeFiles(req, agent.Name, "", agent.Status.KnowledgeSetNames[0], knowledgeSourceName)
+	return listKnowledgeFiles(req, agent.Name, "", agent.Status.KnowledgeSetNames[0], knowledgeSource)
 }
 
 func (a *AgentHandler) UploadKnowledgeFile(req api.Context) error {
@@ -384,6 +385,7 @@ func (a *AgentHandler) ReIngestKnowledgeFile(req api.Context) error {
 	}
 
 	knowledgeFile.Status.State = types.KnowledgeFileStatePending
+	knowledgeFile.Status.Error = ""
 	if err := req.Storage.Status().Update(req.Context(), &knowledgeFile); err != nil {
 		return err
 	}

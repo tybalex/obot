@@ -78,6 +78,7 @@ func (c *Controller) setupRoutes() error {
 	root.Type(&v1.KnowledgeFile{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.KnowledgeFile{}).FinalizeFunc(v1.KnowledgeFileFinalizer, knowledgefile.Cleanup)
 	root.Type(&v1.KnowledgeFile{}).HandlerFunc(knowledgefile.IngestFile)
+	root.Type(&v1.KnowledgeFile{}).HandlerFunc(knowledgefile.Unapproved)
 
 	// Workspaces
 	root.Type(&v1.Workspace{}).HandlerFunc(cleanup.Cleanup)

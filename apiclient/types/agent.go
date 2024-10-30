@@ -23,6 +23,7 @@ type AgentManifest struct {
 	Cache                *bool             `json:"cache"`
 	RefName              string            `json:"refName"`
 	Prompt               string            `json:"prompt"`
+	KnowledgeDescription string            `json:"knowledgeDescription"`
 	Agents               []string          `json:"agents"`
 	Workflows            []string          `json:"workflows,omitempty"`
 	Tools                []string          `json:"tools"`

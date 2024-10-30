@@ -10,7 +10,7 @@ replace (
 
 require (
 	github.com/MicahParks/keyfunc/v3 v3.3.5
-	github.com/acorn-io/baaah v0.0.0-20241029035540-0083a3d0fcb8
+	github.com/acorn-io/baaah v0.0.0-20241030212515-5241e9a6fa7c
 	github.com/acorn-io/mink v0.0.0-20241023012843-90a3b0f07a1d
 	github.com/adrg/xdg v0.5.1
 	github.com/dustin/go-humanize v1.0.1

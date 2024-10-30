@@ -151,7 +151,10 @@ func addKnowledgeTools(ctx context.Context, db kclient.Client, agent *v1.Agent, 
 			continue
 		}
 
-		dataDescription := ks.Spec.Manifest.DataDescription
+		dataDescription := agent.Spec.Manifest.KnowledgeDescription
+		if dataDescription == "" {
+			dataDescription = ks.Spec.Manifest.DataDescription
+		}
 		if dataDescription == "" {
 			dataDescription = ks.Status.SuggestedDataDescription
 		}
@@ -183,7 +186,7 @@ func addKnowledgeTools(ctx context.Context, db kclient.Client, agent *v1.Agent, 
 #!sys.echo
 # START INSTRUCTIONS: KNOWLEDGE SET: %n%
 
-Use the tool %k% to query knowledge set %n% if the described data would assist in your current task.
+Use the tool %k% to query knowledge set %n% to assist in Retrieval-Augmented Generation (RAG).
 The knowledge set %n% contains data described as:
 
 %d%

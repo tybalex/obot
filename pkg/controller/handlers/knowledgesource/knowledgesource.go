@@ -216,26 +216,23 @@ forLoop:
 		}
 	}
 
-	taskResult, err := task.Result(req.Ctx)
-	if err != nil {
-		return err
-	}
+	_, taskErr := task.Result(req.Ctx)
 
-	if err := k.saveProgress(req.Ctx, req.Client, source, thread, taskResult.Error == ""); err != nil {
+	if err := k.saveProgress(req.Ctx, req.Client, source, thread, taskErr == nil); err != nil {
 		log.Errorf("failed to save files for knowledgesource [%s]: %v", source.Name, err)
-		if taskResult.Error == "" {
-			taskResult.Error = err.Error()
+		if taskErr == nil {
+			taskErr = err
 		}
 	}
 
 	source.Status.LastSyncEndTime = metav1.Now()
 	source.Status.SyncGeneration = source.Spec.SyncGeneration
-	source.Status.RunName = ""
-	source.Status.Error = taskResult.Error
-	if taskResult.Error == "" {
+	if taskErr == nil {
 		source.Status.SyncState = types.KnowledgeSourceStateSynced
+		source.Status.Error = ""
 	} else {
 		source.Status.SyncState = types.KnowledgeSourceStateError
+		source.Status.Error = taskErr.Error()
 	}
 	return safeStatusSave(req.Ctx, req.Client, source)
 }

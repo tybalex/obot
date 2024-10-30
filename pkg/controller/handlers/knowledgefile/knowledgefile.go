@@ -162,9 +162,7 @@ func (h *Handler) ingest(ctx context.Context, client kclient.Client, file *v1.Kn
 
 			result, err := task.Result(ctx)
 			if err != nil {
-				return err
-			} else if result.Error != "" {
-				return fmt.Errorf("failed to clean website content: %s", result.Error)
+				return fmt.Errorf("failed to clean website content: %v", err)
 			}
 
 			if result.Output != "" {
@@ -178,41 +176,38 @@ func (h *Handler) ingest(ctx context.Context, client kclient.Client, file *v1.Kn
 		}
 	}
 
-	stat, err := h.gptScript.StatFileInWorkspace(ctx, inputName, gptscript.StatFileInWorkspaceOptions{
-		WorkspaceID: thread.Status.WorkspaceID,
-	})
-	if err != nil {
-		return err
-	}
-
 	loadTask, err := h.invoker.SystemTask(ctx, thread, system.KnowledgeLoadTool, map[string]any{
 		"input":  inputName,
 		"output": outputFile(file.Spec.FileName),
-		"metadata_json": map[string]string{
-			"url":               file.Spec.URL,
-			"workspaceID":       thread.Status.WorkspaceID,
-			"workspaceFileName": inputName,
-			"size":              fmt.Sprintf("%d", stat.Size),
-		},
 	})
 	if err != nil {
 		return err
 	}
 	defer loadTask.Close()
 
+	_, err = loadTask.Result(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to convert file: %v", err)
+	}
+
 	file.Status.RunNames = append(file.Status.RunNames, loadTask.Run.Name)
 
-	result, err := loadTask.Result(ctx)
+	stat, err := h.gptScript.StatFileInWorkspace(ctx, outputFile(file.Spec.FileName), gptscript.StatFileInWorkspaceOptions{
+		WorkspaceID: thread.Status.WorkspaceID,
+	})
 	if err != nil {
 		return err
-	}
-	if result.Error != "" {
-		return fmt.Errorf("failed to convert file: %s", result.Error)
 	}
 
 	ingestTask, err := h.invoker.SystemTask(ctx, thread, system.KnowledgeIngestTool, map[string]any{
 		"input":   outputFile(file.Spec.FileName),
 		"dataset": ks.Namespace + "/" + ks.Name,
+		"metadata_json": map[string]string{
+			"url":               file.Spec.URL,
+			"workspaceID":       thread.Status.WorkspaceID,
+			"workspaceFileName": outputFile(file.Spec.FileName),
+			"fileSize":          fmt.Sprintf("%d", stat.Size),
+		},
 	})
 	if err != nil {
 		return err
@@ -224,12 +219,9 @@ func (h *Handler) ingest(ctx context.Context, client kclient.Client, file *v1.Kn
 		return err
 	}
 
-	result, err = ingestTask.Result(ctx)
+	_, err = ingestTask.Result(ctx)
 	if err != nil {
-		return err
-	}
-	if result.Error != "" {
-		return fmt.Errorf("failed to ingest file: %s", result.Error)
+		return fmt.Errorf("failed to ingest file: %v", err)
 	}
 
 	return nil
@@ -250,6 +242,59 @@ func (h *Handler) getWorkspaceID(ctx context.Context, c kclient.Client, ks *v1.K
 	}
 
 	return workspace.Status.WorkspaceID, nil
+}
+
+func (h *Handler) Unapproved(req router.Request, _ router.Response) error {
+	file := req.Object.(*v1.KnowledgeFile)
+
+	// Basically if it's not approved and not pending
+	if !(file.Spec.Approved != nil && !*file.Spec.Approved &&
+		file.Status.State != types.KnowledgeFileStatePending) {
+		return nil
+	}
+
+	var ks v1.KnowledgeSet
+	if err := req.Client.Get(req.Ctx, router.Key(file.Namespace, file.Spec.KnowledgeSetName), &ks); err != nil {
+		return kclient.IgnoreNotFound(err)
+	}
+
+	var source *v1.KnowledgeSource
+	if file.Spec.KnowledgeSourceName != "" {
+		source = &v1.KnowledgeSource{}
+		if err := req.Client.Get(req.Ctx, router.Key(file.Namespace, file.Spec.KnowledgeSourceName), source); kclient.IgnoreNotFound(err) != nil {
+			return err
+		}
+	}
+
+	thread, err := getThread(req.Ctx, req.Client, &ks, source)
+	if err != nil {
+		return kclient.IgnoreNotFound(err)
+	}
+
+	task, err := h.invoker.SystemTask(req.Ctx, thread, system.KnowledgeDeleteFileTool, map[string]any{
+		"file":    outputFile(file.Spec.FileName),
+		"dataset": ks.Namespace + "/" + ks.Name,
+	})
+	if err != nil {
+		return err
+	}
+	defer task.Close()
+
+	_, err = task.Result(req.Ctx)
+	if err != nil {
+		if file.Status.State != types.KnowledgeFileStateError {
+			file.Status.State = types.KnowledgeFileStateError
+			file.Status.Error = err.Error()
+			return req.Client.Status().Update(req.Ctx, file)
+		}
+		// purposely ignore error, as the state is recorded
+		return nil
+	}
+
+	file.Status.State = types.KnowledgeFileStatePending
+	file.Status.RunNames = []string{task.Run.Name}
+	file.Status.Error = ""
+	return req.Client.Status().Update(req.Ctx, file)
 }
 
 func (h *Handler) Cleanup(req router.Request, _ router.Response) error {

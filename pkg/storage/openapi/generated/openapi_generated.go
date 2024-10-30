@@ -321,6 +321,13 @@ func schema_otto8_ai_otto8_apiclient_types_AgentManifest(ref common.ReferenceCal
 							Format:  "",
 						},
 					},
+					"knowledgeDescription": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
 					"agents": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
@@ -428,7 +435,7 @@ func schema_otto8_ai_otto8_apiclient_types_AgentManifest(ref common.ReferenceCal
 						},
 					},
 				},
-				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools"},
+				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "knowledgeDescription", "agents", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools"},
 			},
 		},
 	}
@@ -2688,6 +2695,13 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref common.Reference
 							Format:  "",
 						},
 					},
+					"knowledgeDescription": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
 					"agents": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
@@ -2814,7 +2828,7 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref common.Reference
 						},
 					},
 				},
-				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "agents", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools"},
+				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "knowledgeDescription", "agents", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools"},
 			},
 		},
 		Dependencies: []string{

@@ -83,11 +83,9 @@ func (h *LoginHandler) RunTool(req router.Request, _ router.Response) error {
 	}
 
 	var errMessage string
-	result, err := task.Result(req.Ctx)
+	_, err = task.Result(req.Ctx)
 	if err != nil {
 		errMessage = err.Error()
-	} else if result.Error != "" {
-		errMessage = result.Error
 	}
 
 	return updateLoginExternalStatus(req.Ctx, req.Client, login, v1.OAuthAppLoginStatus{

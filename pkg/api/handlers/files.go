@@ -54,8 +54,15 @@ func getWorkspaceFromKnowledgeSet(req api.Context, knowledgeSetName string) (*v1
 	return &ws, req.Get(&ws, knowledgeSet.Status.WorkspaceName)
 }
 
-func listKnowledgeFiles(req api.Context, agentName, threadName, knowledgeSetName, knowledgeSourceName string) error {
-	var files v1.KnowledgeFileList
+func listKnowledgeFiles(req api.Context, agentName, threadName, knowledgeSetName string, knowledgeSource *v1.KnowledgeSource) error {
+	var (
+		files               v1.KnowledgeFileList
+		knowledgeSourceName string
+	)
+	if knowledgeSource != nil {
+		knowledgeSourceName = knowledgeSource.Name
+	}
+
 	if err := req.Storage.List(req.Context(), &files, &client.ListOptions{
 		FieldSelector: fields.SelectorFromSet(selectors.RemoveEmpty(map[string]string{
 			"spec.knowledgeSetName":    knowledgeSetName,
@@ -66,10 +73,14 @@ func listKnowledgeFiles(req api.Context, agentName, threadName, knowledgeSetName
 		return err
 	}
 
+	autoApprove := knowledgeSource == nil || (knowledgeSource.Spec.Manifest.AutoApprove != nil && *knowledgeSource.Spec.Manifest.AutoApprove)
 	resp := make([]types.KnowledgeFile, 0, len(files.Items))
 	for _, file := range files.Items {
 		if knowledgeSourceName == "" && file.Spec.KnowledgeSourceName != "" {
 			continue
+		}
+		if file.Spec.Approved == nil && autoApprove {
+			file.Spec.Approved = &[]bool{true}[0]
 		}
 		resp = append(resp, convertKnowledgeFile(agentName, threadName, file))
 	}

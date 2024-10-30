@@ -63,14 +63,20 @@ type Response struct {
 type TaskResult struct {
 	// Task output
 	Output string
-	// Error will be set if there was an error during execution
-	Error string
 }
 
 func (r *Response) Close() {
 	r.cancel()
 	for range r.Events {
 	}
+}
+
+type ErrToolResult struct {
+	Message string
+}
+
+func (e ErrToolResult) Error() string {
+	return e.Message
 }
 
 func (r *Response) Result(ctx context.Context) (TaskResult, error) {
@@ -89,17 +95,17 @@ func (r *Response) Result(ctx context.Context) (TaskResult, error) {
 		return run.Spec.Done
 	})
 	if apierror.IsNotFound(err) {
-		return TaskResult{
-			Error: "run not found",
-		}, nil
+		return TaskResult{}, ErrToolResult{
+			Message: "run not found",
+		}
 	} else if err != nil {
 		return TaskResult{}, err
 	}
 
 	if runState.Spec.Error != "" {
-		return TaskResult{
-			Error: runState.Spec.Error,
-		}, nil
+		return TaskResult{}, ErrToolResult{
+			Message: runState.Spec.Error,
+		}
 	}
 
 	var (
@@ -117,9 +123,13 @@ func (r *Response) Result(ctx context.Context) (TaskResult, error) {
 		errString = err
 	}
 
+	if errString != "" {
+		return TaskResult{}, ErrToolResult{
+			Message: errString,
+		}
+	}
 	return TaskResult{
 		Output: content,
-		Error:  errString,
 	}, nil
 }
 

@@ -33,6 +33,10 @@ func (in *KnowledgeSource) PublicState() types.KnowledgeSourceState {
 	if in.Status.SyncState == "" {
 		return types.KnowledgeSourceStatePending
 	}
+	if (in.Status.SyncState == types.KnowledgeSourceStateSynced || in.Status.SyncState == types.KnowledgeSourceStateError) &&
+		in.Spec.SyncGeneration > in.Status.SyncGeneration {
+		return types.KnowledgeSourceStatePending
+	}
 	return in.Status.SyncState
 }
 

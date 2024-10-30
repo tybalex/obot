@@ -274,7 +274,7 @@ func (a *ThreadHandler) Knowledge(req api.Context) error {
 		return req.Write(types.KnowledgeFileList{Items: []types.KnowledgeFile{}})
 	}
 
-	return listKnowledgeFiles(req, "", thread.Name, thread.Status.KnowledgeSetNames[0], "")
+	return listKnowledgeFiles(req, "", thread.Name, thread.Status.KnowledgeSetNames[0], nil)
 }
 
 func (a *ThreadHandler) UploadKnowledge(req api.Context) error {
