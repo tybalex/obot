@@ -38,6 +38,8 @@ func (in *Run) Get(field string) string {
 		switch field {
 		case "spec.threadName":
 			return in.Spec.ThreadName
+		case "spec.previousRunName":
+			return in.Spec.PreviousRunName
 		}
 	}
 
@@ -45,7 +47,7 @@ func (in *Run) Get(field string) string {
 }
 
 func (in *Run) FieldNames() []string {
-	return []string{"spec.threadName"}
+	return []string{"spec.threadName", "spec.previousRunName"}
 }
 
 func (in *Run) GetColumns() [][]string {

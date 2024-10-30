@@ -140,6 +140,7 @@ type Options struct {
 	WorkflowStepID   string
 	PreviousRunName  string
 	ForceNoResume    bool
+	CreateThread     bool
 }
 
 func (i *Invoker) getChatState(ctx context.Context, c kclient.Client, run *v1.Run) (result, lastThreadName string, _ error) {
@@ -182,6 +183,10 @@ func getThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent
 		return &thread, c.Get(ctx, router.Key(agent.Namespace, existingThreadName), &thread)
 	}
 
+	return createThreadForAgent(ctx, c, agent, "")
+}
+
+func createThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, threadName string) (*v1.Thread, error) {
 	agent, err := wait.For(ctx, c, agent, func(agent *v1.Agent) bool {
 		return agent.Status.WorkspaceName != ""
 	})
@@ -191,6 +196,7 @@ func getThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent
 	thread := v1.Thread{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: system.ThreadPrefix,
+			Name:         threadName,
 			Namespace:    agent.Namespace,
 		},
 		Spec: v1.ThreadSpec{
@@ -203,6 +209,9 @@ func getThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent
 
 func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, input string, opt Options) (_ *Response, err error) {
 	thread, err := getThreadForAgent(ctx, c, agent, opt.ThreadName)
+	if apierror.IsNotFound(err) && opt.CreateThread && strings.HasPrefix(opt.ThreadName, system.ThreadPrefix) {
+		thread, err = createThreadForAgent(ctx, c, agent, opt.ThreadName)
+	}
 	if err != nil {
 		return nil, err
 	}

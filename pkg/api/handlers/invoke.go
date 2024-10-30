@@ -85,8 +85,9 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 
 	if agentID != "" {
 		resp, err = i.invoker.Agent(req.Context(), req.Storage, &agent, string(input), invoke.Options{
-			ThreadName:  threadID,
-			Synchronous: synchronous,
+			ThreadName:   threadID,
+			Synchronous:  synchronous,
+			CreateThread: true,
 		})
 		if err != nil {
 			return err
