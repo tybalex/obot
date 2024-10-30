@@ -1,11 +1,10 @@
-import { LibraryIcon, PlusIcon, SettingsIcon, WrenchIcon } from "lucide-react";
+import { LibraryIcon, PlusIcon, WrenchIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { Agent as AgentType } from "~/lib/model/agents";
 import { cn } from "~/lib/utils";
 
 import { TypographyP } from "~/components/Typography";
-import { AdvancedForm } from "~/components/agent/AdvancedForm";
 import { AgentProvider, useAgent } from "~/components/agent/AgentContext";
 import { AgentForm } from "~/components/agent/AgentForm";
 import { PastThreads } from "~/components/agent/PastThreads";
@@ -116,24 +115,6 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                                 give it context about various topics.
                             </TypographyP>
                             <AgentKnowledgePanel agentId={agent.id} />
-                        </AccordionContent>
-                    </AccordionItem>
-
-                    <AccordionItem
-                        value="advanced-form"
-                        className="border rounded-lg px-4 shadow-md"
-                    >
-                        <AccordionTrigger className="hover:no-underline">
-                            <span className="flex items-center gap-2 justify-center text-lg border-muted-foreground/50 bg-muted border w-full rounded-lg mr-2 p-2 hover:bg-muted-foreground/20 dark:hover:bg-muted-foreground/10 text-muted-foreground">
-                                <SettingsIcon className="w-6 h-6" />
-                                Advanced
-                            </span>
-                        </AccordionTrigger>
-                        <AccordionContent className="p-2 mb-4">
-                            <AdvancedForm
-                                agent={agentUpdates}
-                                onChange={debouncedSetAgentInfo}
-                            />
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
