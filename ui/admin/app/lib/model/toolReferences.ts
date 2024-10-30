@@ -13,6 +13,7 @@ export type ToolReferenceType = "tool" | "stepTemplate";
 export type ToolReference = {
     error: string;
     description: string;
+    builtin: boolean;
     params: Record<string, string>;
 } & EntityMeta &
     ToolReferenceBase;

@@ -66,7 +66,7 @@ export function OAuthAppForm({ type, onSubmit, isLoading }: OAuthAppFormProps) {
                     <Fragment key={i}>{renderStep(s)}</Fragment>
                 ))}
 
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading} variant="secondary">
                     {isLoading && <LoadingSpinner className="w-4 h-4 mr-2" />}{" "}
                     Submit
                 </Button>

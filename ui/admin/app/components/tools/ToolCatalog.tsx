@@ -22,6 +22,7 @@ type ToolCatalogProps = React.HTMLAttributes<HTMLDivElement> & {
     tools: string[];
     onChangeTools: (tools: string[]) => void;
     invert?: boolean;
+    classNames?: { list?: string };
 };
 
 export function ToolCatalog({
@@ -29,6 +30,7 @@ export function ToolCatalog({
     tools,
     invert = false,
     onChangeTools,
+    classNames,
 }: ToolCatalogProps) {
     const { data: toolCategories = [], isLoading } = useSWR(
         ToolReferenceService.getToolReferencesCategoryMap.key("tool"),
@@ -81,7 +83,7 @@ export function ToolCatalog({
         >
             <CommandInput placeholder="Search tools..." />
             <div className="border-t shadow-2xl" />
-            <CommandList className="py-2">
+            <CommandList className={cn("py-2", classNames?.list)}>
                 <CommandEmpty>
                     <h1 className="flex items-center justify-center">
                         <AlertTriangleIcon className="w-4 h-4 mr-2" />

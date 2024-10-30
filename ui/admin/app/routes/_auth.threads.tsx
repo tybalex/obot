@@ -3,6 +3,7 @@ import {
     ClientLoaderFunctionArgs,
     Link,
     useLoaderData,
+    useNavigate,
 } from "@remix-run/react";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import { Trash } from "lucide-react";
@@ -40,6 +41,7 @@ export function clientLoader({ request }: ClientLoaderFunctionArgs) {
 }
 
 export default function Threads() {
+    const navigate = useNavigate();
     const { agentId, workflowId } = useLoaderData<typeof clientLoader>();
 
     const getThreads = useSWR(
@@ -113,8 +115,14 @@ export default function Threads() {
                     data={threads}
                     sort={[{ id: "created", desc: true }]}
                     classNames={{
-                        row: "!max-h-[200px] grow-0  height-[200px]",
+                        row: "!max-h-[200px] grow-0 height-[200px]",
                         cell: "!max-h-[200px] grow-0 height-[200px]",
+                    }}
+                    disableClickPropagation={(cell) =>
+                        cell.id.includes("actions")
+                    }
+                    onRowClick={(row) => {
+                        navigate($path("/thread/:id", { id: row.id }));
                     }}
                 />
             </div>

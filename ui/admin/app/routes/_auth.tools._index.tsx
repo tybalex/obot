@@ -11,6 +11,7 @@ import { Button } from "~/components/ui/button";
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
@@ -69,11 +70,15 @@ export default function Tools() {
                                 Register New Tool
                             </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="max-w-2xl">
                             <DialogHeader>
                                 <DialogTitle>
                                     Create New Tool Reference
                                 </DialogTitle>
+                                <DialogDescription>
+                                    Register a new tool reference to use in your
+                                    agents.
+                                </DialogDescription>
                             </DialogHeader>
                             <CreateTool onSuccess={handleCreateSuccess} />
                         </DialogContent>

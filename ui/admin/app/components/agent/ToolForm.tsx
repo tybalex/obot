@@ -7,8 +7,10 @@ import { z } from "zod";
 import { Agent } from "~/lib/model/agents";
 import { noop } from "~/lib/utils";
 
+import { ToolEntry } from "~/components/agent/ToolEntry";
 import { ToolCatalog } from "~/components/tools/ToolCatalog";
 import { Button } from "~/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import {
     Form,
     FormDescription,
@@ -17,13 +19,6 @@ import {
     FormLabel,
     FormMessage,
 } from "~/components/ui/form";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "~/components/ui/popover";
-
-import { ToolEntry } from "./ToolEntry";
 
 const formSchema = z.object({
     tools: z.array(z.string()),
@@ -83,7 +78,7 @@ export function ToolForm({
                                 The tools of the agent.
                             </FormDescription>
 
-                            <div className="mt-2 w-full">
+                            <div className="mt-2 w-full overflow-y-auto">
                                 {field.value?.map((tool, index) => (
                                     <ToolEntry
                                         key={tool}
@@ -100,8 +95,8 @@ export function ToolForm({
                                 ))}
                             </div>
                             <div className="flex justify-end w-full my-4">
-                                <Popover>
-                                    <PopoverTrigger asChild>
+                                <Dialog>
+                                    <DialogTrigger asChild>
                                         <Button
                                             variant="secondary"
                                             className="mt-4 mb-4"
@@ -109,20 +104,15 @@ export function ToolForm({
                                             <PlusIcon className="w-4 h-4 mr-2" />{" "}
                                             Add Tool
                                         </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent
-                                        side="left"
-                                        className="p-0 border-none"
-                                        align="end"
-                                        sideOffset={20}
-                                    >
+                                    </DialogTrigger>
+                                    <DialogContent className="p-0 max-w-3xl min-h-[350px]">
                                         <ToolCatalog
+                                            className="w-full border-none"
                                             tools={toolValues}
                                             onChangeTools={handleToolsChange}
-                                            invert={true}
                                         />
-                                    </PopoverContent>
-                                </Popover>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
                             <FormMessage />
                         </FormItem>

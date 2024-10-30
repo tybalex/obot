@@ -1,3 +1,4 @@
+import { PlusCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 
 import { CreateToolReference } from "~/lib/model/toolReferences";
@@ -16,6 +17,7 @@ export function CreateTool({ onSuccess }: CreateToolProps) {
 
     const { execute: onSubmit, isLoading } = useAsync(
         async (data: CreateToolReference) => {
+            console.log(data);
             await ToolReferenceService.createToolReference({
                 toolReference: { ...data, toolType: "tool" },
             });
@@ -33,21 +35,15 @@ export function CreateTool({ onSuccess }: CreateToolProps) {
             <div>
                 <Input
                     autoComplete="off"
-                    {...register("name", { required: "Name is required" })}
-                    placeholder="Tool Name"
-                />
-            </div>
-            <div>
-                <Input
-                    autoComplete="off"
                     {...register("reference", {
                         required: "Reference is required",
                     })}
-                    placeholder="Tool Reference"
+                    placeholder="github.com/user/repo or https://example.com/tool.gpt"
                 />
             </div>
-            <div>
+            <div className="flex justify-end">
                 <Button type="submit" variant="secondary" disabled={isLoading}>
+                    <PlusCircle className="w-4 h-4 mr-2" />
                     {isLoading ? "Creating..." : "Register Tool"}
                 </Button>
             </div>

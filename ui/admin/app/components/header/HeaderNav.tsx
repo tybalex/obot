@@ -92,8 +92,8 @@ function getBreadcrumbs(route: string, params: Readonly<Params<string>>) {
                 ) && (
                     <>
                         <BreadcrumbItem>
-                            <BreadcrumbLink href={$path("/threads")}>
-                                Threads
+                            <BreadcrumbLink asChild>
+                                <Link to={$path("/threads")}>Threads</Link>
                             </BreadcrumbLink>
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
