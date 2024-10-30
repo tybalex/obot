@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"strconv"
@@ -59,7 +60,7 @@ func (a *ToolReferenceHandler) ByID(req api.Context) error {
 	return req.Write(convertToolReference(toolRef))
 }
 
-var validCharsRegexp = regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
+var validCharsRegexp = regexp.MustCompile(`[^a-zA-Z0-9-]+`)
 
 func normalizeName(reference string) string {
 	newName := validCharsRegexp.ReplaceAllString(strings.ToLower(reference), "-") // Replace invalid characters with '-'
@@ -78,7 +79,8 @@ func (a *ToolReferenceHandler) pickNameForReference(req api.Context, reference s
 		if i > 0 {
 			testName = name.SafeConcatName(newName, strconv.Itoa(i))
 		}
-		if err := req.Get(&v1.ToolReference{}, testName); apierrors.IsNotFound(err) {
+		var errNotFound *types.ErrHTTP
+		if err := req.Get(&v1.ToolReference{}, testName); errors.As(err, &errNotFound) && errNotFound.Code == 404 {
 			return testName, nil
 		} else if err != nil {
 			return "", err
@@ -108,6 +110,8 @@ func (a *ToolReferenceHandler) Create(req api.Context) (err error) {
 	}
 
 	switch newToolReference.ToolType {
+	case "":
+		newToolReference.ToolType = types.ToolReferenceTypeTool
 	case types.ToolReferenceTypeTool, types.ToolReferenceTypeStepTemplate:
 	default:
 		return apierrors.NewBadRequest(fmt.Sprintf("invalid tool type %s", newToolReference.ToolType))
