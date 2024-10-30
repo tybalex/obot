@@ -7,7 +7,7 @@ import { Agent } from "~/lib/model/agents";
 
 import { Form } from "~/components/ui/form";
 
-import { ControlledInput } from "../form/controlledInputs";
+import { ControlledInput, ControlledTextarea } from "../form/controlledInputs";
 
 const formSchema = z.object({
     name: z.string().min(1, {
@@ -73,6 +73,13 @@ export function AgentForm({ agent, onSubmit, onChange }: AgentFormProps) {
                     name="description"
                     placeholder="Add a description..."
                     className="text-xl text-muted-foreground"
+                />
+                <ControlledTextarea
+                    control={form.control}
+                    autoComplete="off"
+                    name="prompt"
+                    label="Instructions"
+                    placeholder="Give the agent instructions on how to behave and respond to input."
                 />
             </form>
         </Form>

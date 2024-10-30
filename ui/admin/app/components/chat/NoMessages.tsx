@@ -11,10 +11,10 @@ export function NoMessages() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center space-y-4 text-center p-4">
-            <h2 className="text-2xl font-semibold">No messages yet</h2>
+        <div className="flex flex-col items-center justify-center space-y-4 text-center p-4 h-full">
+            <h2 className="text-2xl font-semibold">Start the conversation!</h2>
             <p className="text-gray-500">
-                Start the conversation with a sample message:
+                Looking for a starting point? Try one of these options.
             </p>
             <div className="flex flex-wrap justify-center gap-2">
                 <Button
