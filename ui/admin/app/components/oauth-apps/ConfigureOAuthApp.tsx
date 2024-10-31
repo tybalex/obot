@@ -79,11 +79,11 @@ export function ConfigureOAuthApp({ type }: { type: OAuthProvider }) {
                 </DialogTrigger>
 
                 <DialogContent
+                    className="lg:max-w-3xl"
                     classNames={{
                         overlay: "opacity-0",
                     }}
                     aria-describedby="create-oauth-app"
-                    className="px-0"
                 >
                     <DialogTitle className="flex items-center gap-2 px-4">
                         <OAuthAppTypeIcon type={type} />

@@ -10,12 +10,6 @@ import { AgentForm } from "~/components/agent/AgentForm";
 import { PastThreads } from "~/components/agent/PastThreads";
 import { ToolForm } from "~/components/agent/ToolForm";
 import { AgentKnowledgePanel } from "~/components/knowledge";
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { useDebounce } from "~/hooks/useDebounce";
@@ -69,55 +63,34 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                     />
                 </div>
 
-                <Accordion
-                    type="multiple"
-                    className="p-4 flex-auto space-y-4"
-                    defaultValue={["tools-form", "knowledge-form"]}
-                >
-                    <AccordionItem
-                        value="tools-form"
-                        className="border rounded-lg px-4 shadow-md"
-                    >
-                        <AccordionTrigger className="hover:no-underline">
-                            <span className="flex items-center gap-2 justify-center border-success/50 text-lg bg-success-foreground border w-full rounded-lg mr-2 p-2 hover:bg-success/20 text-success">
-                                <WrenchIcon className="w-6 h-6" />
-                                Tools
-                            </span>
-                        </AccordionTrigger>
-                        <AccordionContent className="p-2">
-                            <TypographyP className="text-muted-foreground flex items-center gap-2">
-                                Add tools the allow the agent to perform useful
-                                actions such as searching the web, reading
-                                files, or interacting with other systems.
-                            </TypographyP>
-                            <ToolForm
-                                agent={agentUpdates}
-                                onChange={debouncedSetAgentInfo}
-                            />
-                        </AccordionContent>
-                    </AccordionItem>
+                <div className="p-4 flex-auto space-y-4">
+                    <span className="flex items-center gap-2 text-xl">
+                        <WrenchIcon className="w-5 h-5" />
+                        Tools
+                    </span>
+                    <TypographyP className="text-muted-foreground flex items-center gap-2">
+                        Add tools the allow the agent to perform useful actions
+                        such as searching the web, reading files, or interacting
+                        with other systems.
+                    </TypographyP>
+                    <ToolForm
+                        agent={agentUpdates}
+                        onChange={debouncedSetAgentInfo}
+                    />
+                </div>
 
-                    <AccordionItem
-                        value="knowledge-form"
-                        className="border rounded-lg px-4 shadow-md"
-                    >
-                        <AccordionTrigger className="hover:no-underline">
-                            <span className="flex items-center gap-2 justify-center text-lg border-info/50 bg-info-foreground border w-full rounded-lg mr-2 p-2 hover:bg-info/20 text-info">
-                                <LibraryIcon className="w-6 h-6" />
-                                Knowledge
-                            </span>
-                        </AccordionTrigger>
-
-                        <AccordionContent className="p-2 mb-4">
-                            <TypographyP className="text-sm text-muted-foreground mb-2 pb-4">
-                                Provide knowledge to the agent in the form of
-                                files, website, or external links in order to
-                                give it context about various topics.
-                            </TypographyP>
-                            <AgentKnowledgePanel agentId={agent.id} />
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion>
+                <div className="p-4 flex-auto space-y-4">
+                    <span className="flex items-center gap-2 text-xl">
+                        <LibraryIcon className="w-6 h-6" />
+                        Knowledge
+                    </span>
+                    <TypographyP className="text-muted-foreground flex items-center gap-2">
+                        Provide knowledge to the agent in the form of files,
+                        website, or external links in order to give it context
+                        about various topics.
+                    </TypographyP>
+                    <AgentKnowledgePanel agentId={agent.id} />
+                </div>
             </ScrollArea>
 
             <footer className="flex justify-between items-center p-4 gap-4 text-muted-foreground">

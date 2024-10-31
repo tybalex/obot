@@ -69,7 +69,7 @@ export function AppSidebar() {
             <SidebarRail />
             <SidebarHeader
                 className={cn(
-                    "border-b h-[60px] bg-background",
+                    "border-b h-[60px]",
                     state === "collapsed" ? "" : "px-4"
                 )}
             >
@@ -85,7 +85,7 @@ export function AppSidebar() {
             </SidebarHeader>
             <SidebarContent
                 className={cn(
-                    "bg-background transition-all duration-300 ease-in-out",
+                    "transition-all duration-300 ease-in-out",
                     state === "collapsed" ? "" : "px-2 w-fit"
                 )}
             >

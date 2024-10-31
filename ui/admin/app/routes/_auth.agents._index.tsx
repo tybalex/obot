@@ -96,6 +96,16 @@ export default function Threads() {
                         columns={getColumns()}
                         data={agents}
                         sort={[{ id: "created", desc: true }]}
+                        disableClickPropagation={(cell) =>
+                            cell.id.includes("action")
+                        }
+                        onRowClick={(row) => {
+                            navigate(
+                                $path("/agents/:agent", {
+                                    agent: row.id,
+                                })
+                            );
+                        }}
                     />
                 </div>
             </div>
@@ -113,6 +123,7 @@ export default function Threads() {
             columnHelper.accessor(
                 (agent) => threadCounts[agent.id]?.toString(),
                 {
+                    id: "threads-action",
                     header: "Threads",
                     cell: (info) => (
                         <div className="flex gap-2 items-center">

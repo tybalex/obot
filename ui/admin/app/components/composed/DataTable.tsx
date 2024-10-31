@@ -1,4 +1,5 @@
 import {
+    Cell,
     ColumnDef,
     SortingState,
     flexRender,
@@ -27,6 +28,8 @@ interface DataTableProps<TData, TValue> {
         row?: string;
         cell?: string;
     };
+    onRowClick?: (row: TData) => void;
+    disableClickPropagation?: (cell: Cell<TData, TValue>) => boolean;
 }
 
 export function DataTable<TData, TValue>({
@@ -35,6 +38,8 @@ export function DataTable<TData, TValue>({
     sort,
     rowClassName,
     classNames,
+    disableClickPropagation,
+    onRowClick,
 }: DataTableProps<TData, TValue>) {
     const table = useReactTable({
         data,
@@ -81,7 +86,18 @@ export function DataTable<TData, TValue>({
                                 {row.getVisibleCells().map((cell) => (
                                     <TableCell
                                         key={cell.id}
-                                        className={cn("py-4", classNames?.cell)}
+                                        className={cn(
+                                            "py-4",
+                                            classNames?.cell,
+                                            { "cursor-pointer": !!onRowClick }
+                                        )}
+                                        onClick={() => {
+                                            if (
+                                                !disableClickPropagation?.(cell)
+                                            ) {
+                                                onRowClick?.(row.original);
+                                            }
+                                        }}
                                     >
                                         {flexRender(
                                             cell.column.columnDef.cell,

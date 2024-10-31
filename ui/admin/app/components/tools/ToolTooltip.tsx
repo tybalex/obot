@@ -27,7 +27,7 @@ export function ToolTooltip({
                 <TooltipContent
                     sideOffset={isBundle ? 255 : 30}
                     side={isBundle ? "left" : "left"}
-                    className="w-[300px] p-4 flex items-center"
+                    className="w-[300px] p-4 flex items-center bg-background text-foreground border"
                 >
                     {tool.metadata?.icon ? (
                         <img
