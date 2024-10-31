@@ -89,12 +89,8 @@ export function ToolCard({ tool, onDelete }: ToolCardProps) {
                             children: "Delete",
                         }}
                     >
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-8 h-8 p-0"
-                        >
-                            <Trash className="text-muted-foreground w-5 h-5" />
+                        <Button variant="muted" size="icon">
+                            <Trash className="w-5 h-5" />
                         </Button>
                     </ConfirmationDialog>
                 )}

@@ -17,7 +17,6 @@ export function CreateTool({ onSuccess }: CreateToolProps) {
 
     const { execute: onSubmit, isLoading } = useAsync(
         async (data: CreateToolReference) => {
-            console.log(data);
             await ToolReferenceService.createToolReference({
                 toolReference: { ...data, toolType: "tool" },
             });

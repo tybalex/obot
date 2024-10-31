@@ -29,17 +29,12 @@ export function ToolGrid({ toolCategories, filter, onDelete }: ToolGridProps) {
                 const toolsWithBundle = bundleTool
                     ? [bundleTool, ...sortedTools]
                     : sortedTools;
-                const filteredTools = toolsWithBundle.filter(
-                    (tool) =>
-                        tool.name
-                            ?.toLowerCase()
-                            .includes(searchTerm.toLowerCase()) ||
-                        tool.metadata?.category
-                            ?.toLowerCase()
-                            .includes(searchTerm.toLowerCase()) ||
-                        tool.description
-                            ?.toLowerCase()
-                            .includes(searchTerm.toLowerCase())
+                const filteredTools = toolsWithBundle.filter((tool) =>
+                    [tool.name, tool.metadata?.category, tool.description]
+                        .filter((x) => !!x)
+                        .join("|")
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase())
                 );
                 if (filteredTools.length > 0) {
                     result[category] = {
