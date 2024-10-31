@@ -2,6 +2,7 @@ name: Build and Push Docker Image
 
 permissions:
   id-token: write
+  contents: read
 
 on:
   push:
