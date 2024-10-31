@@ -13,17 +13,19 @@ export const OAuthAppSpecMap = {
     [OAuthProvider.Microsoft365]: Microsoft365OAuthApp,
     [OAuthProvider.Slack]: SlackOAuthApp,
     [OAuthProvider.Notion]: NotionOAuthApp,
+    // Custom OAuth apps are intentionally omitted from the map.
+    // They are handled separately
 } as const;
 
 export type OAuthAppDetail = OAuthAppSpec & {
-    customApp?: OAuthApp;
+    appOverride?: OAuthApp;
 };
 
 export const combinedOAuthAppInfo = (apps: OAuthApp[]) => {
     return Object.entries(OAuthAppSpecMap).map(([type, defaultSpec]) => {
-        const customApp = apps.find((app) => app.type === type);
+        const appOverride = apps.find((app) => app.type === type);
 
-        return { ...defaultSpec, customApp } as OAuthAppDetail;
+        return { ...defaultSpec, appOverride } as OAuthAppDetail;
     });
 };
 
@@ -40,10 +42,11 @@ export type OAuthAppParams = {
     // This field is optional for HubSpot OAuth apps.
     optionalScope?: string;
     // This field is required, it correlates to the integration name in the gptscript oauth cred tool
-    integration?: string;
+    integration: string;
 };
 
 export type OAuthAppBase = OAuthAppParams & {
+    name?: string;
     type: OAuthProvider;
     refName: string;
     global: boolean;

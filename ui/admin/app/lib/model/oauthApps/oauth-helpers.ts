@@ -8,6 +8,7 @@ export const OAuthProvider = {
     Microsoft365: "microsoft365",
     Slack: "slack",
     Notion: "notion",
+    Custom: "custom",
 } as const;
 export type OAuthProvider = (typeof OAuthProvider)[keyof typeof OAuthProvider];
 
@@ -35,7 +36,7 @@ export type OAuthAppSpec = {
     displayName: string;
     refName: string;
     type: OAuthProvider;
-    logo: string;
+    logo?: string;
     darkLogo?: string;
     steps: OAuthFormStep[];
     disableConfiguration?: boolean;
