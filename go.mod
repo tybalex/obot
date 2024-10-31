@@ -10,8 +10,8 @@ replace (
 
 require (
 	github.com/MicahParks/keyfunc/v3 v3.3.5
-	github.com/acorn-io/baaah v0.0.0-20241030212515-5241e9a6fa7c
-	github.com/acorn-io/mink v0.0.0-20241023012843-90a3b0f07a1d
+	github.com/acorn-io/baaah v0.0.0-20241031014532-41ccf5acc58b
+	github.com/acorn-io/mink v0.0.0-20241031014848-fcbd87b91469
 	github.com/adrg/xdg v0.5.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.18.0
