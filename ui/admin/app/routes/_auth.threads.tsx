@@ -14,10 +14,8 @@ import { z } from "zod";
 
 import { Agent } from "~/lib/model/agents";
 import { Thread } from "~/lib/model/threads";
-import { Workflow } from "~/lib/model/workflows";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
-import { WorkflowService } from "~/lib/service/api/workflowService";
 import { QueryParamSchemas } from "~/lib/service/routeQueryParams";
 import { parseQueryParams, timeSince } from "~/lib/utils";
 
@@ -54,14 +52,11 @@ export default function Threads() {
         AgentService.getAgents
     );
 
-    const getWorkflows = useSWR(
-        WorkflowService.getWorkflows.key(),
-        WorkflowService.getWorkflows
-    );
-
     const agentMap = useMemo(() => {
-        if (!getAgents.data) return {};
-
+        // note(tylerslaton): the or condition here is because the getAgents.data can
+        // be an object containing a url only when switching to the agent page from the
+        // threads page.
+        if (!getAgents.data || !Array.isArray(getAgents.data)) return {};
         return getAgents.data.reduce(
             (acc, agent) => {
                 acc[agent.id] = agent;
@@ -70,18 +65,6 @@ export default function Threads() {
             {} as Record<string, Agent>
         );
     }, [getAgents.data]);
-
-    const workflowMap = useMemo(() => {
-        if (!getWorkflows.data) return {};
-
-        return getWorkflows.data.reduce(
-            (acc, workflow) => {
-                acc[workflow.id] = workflow;
-                return acc;
-            },
-            {} as Record<string, Workflow>
-        );
-    }, [getWorkflows.data]);
 
     const threads = useMemo(() => {
         if (!getThreads.data) return [];
@@ -135,11 +118,6 @@ export default function Threads() {
                 (thread) => {
                     if (thread.agentID)
                         return agentMap[thread.agentID]?.name ?? thread.agentID;
-                    if (thread.workflowID)
-                        return (
-                            workflowMap[thread.workflowID]?.name ??
-                            thread.workflowID
-                        );
                     return "Unnamed";
                 },
                 { header: "Agent" }
