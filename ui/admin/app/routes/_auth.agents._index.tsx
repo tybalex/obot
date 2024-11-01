@@ -9,6 +9,7 @@ import useSWR, { mutate, preload } from "swr";
 import { Agent } from "~/lib/model/agents";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
+import { generateRandomName } from "~/lib/service/nameGenerator";
 import { timeSince } from "~/lib/utils";
 
 import { TypographyH2, TypographyP } from "~/components/Typography";
@@ -75,7 +76,7 @@ export default function Threads() {
                             onClick={() => {
                                 AgentService.createAgent({
                                     agent: {
-                                        name: "New Agent",
+                                        name: generateRandomName(),
                                     } as Agent,
                                 }).then((agent) => {
                                     mutate(AgentService.getAgents.key());
