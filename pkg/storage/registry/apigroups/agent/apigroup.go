@@ -5,7 +5,7 @@ import (
 
 	"github.com/acorn-io/baaah/pkg/typed"
 	"github.com/acorn-io/mink/pkg/apigroup"
-	"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/storage/registry/generic"
 	"github.com/otto8-ai/otto8/pkg/storage/scheme"
 	"github.com/otto8-ai/otto8/pkg/storage/services"

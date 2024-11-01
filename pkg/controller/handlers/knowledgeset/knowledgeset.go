@@ -10,7 +10,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/aihelper"
 	"github.com/otto8-ai/otto8/pkg/create"
 	"github.com/otto8-ai/otto8/pkg/invoke"
-	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
+	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -20,7 +20,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/hash"
 	"github.com/otto8-ai/otto8/pkg/jwt"
 	"github.com/otto8-ai/otto8/pkg/render"
-	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
+	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
 	"github.com/otto8-ai/otto8/pkg/wait"
 	apierror "k8s.io/apimachinery/pkg/api/errors"

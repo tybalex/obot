@@ -2,7 +2,7 @@ package scheme
 
 import (
 	"github.com/acorn-io/baaah/pkg/restconfig"
-	"github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
+	"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	coordinationv1 "k8s.io/api/coordination/v1"
 	corev1 "k8s.io/api/core/v1"
 )

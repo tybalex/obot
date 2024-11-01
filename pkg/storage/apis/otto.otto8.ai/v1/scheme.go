@@ -2,7 +2,7 @@ package v1
 
 import (
 	"github.com/acorn-io/baaah/pkg/fields"
-	otto_gptscript_ai "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai"
+	otto_gptscript_ai "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"

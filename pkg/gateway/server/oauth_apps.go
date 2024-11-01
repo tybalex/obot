@@ -20,7 +20,7 @@ import (
 	kcontext "github.com/otto8-ai/otto8/pkg/gateway/context"
 	"github.com/otto8-ai/otto8/pkg/gateway/types"
 	"github.com/otto8-ai/otto8/pkg/mvl"
-	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
+	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/storage/selectors"
 	"github.com/otto8-ai/otto8/pkg/system"
 	"gorm.io/gorm"

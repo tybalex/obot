@@ -18,7 +18,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/workflowexecution"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/workflowstep"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/workspace"
-	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.gptscript.ai/v1"
+	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 )
 
 func (c *Controller) setupRoutes() error {
