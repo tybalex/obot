@@ -78,7 +78,7 @@ export function ToolCatalog({
     return (
         <Command
             className={cn(
-                "border w-full",
+                "border w-full h-full",
                 className,
                 invert ? "flex-col-reverse" : "flex-col"
             )}
@@ -93,7 +93,7 @@ export function ToolCatalog({
         >
             <CommandInput placeholder="Search tools..." />
             <div className="border-t shadow-2xl" />
-            <CommandList className={cn("py-2", classNames?.list)}>
+            <CommandList className={cn("py-2 max-h-full", classNames?.list)}>
                 <CommandEmpty>
                     <h1 className="flex items-center justify-center">
                         <AlertTriangleIcon className="w-4 h-4 mr-2" />
@@ -141,7 +141,7 @@ export function ToolCatalog({
 export function ToolCatalogDialog(props: ToolCatalogProps) {
     return (
         <Dialog>
-            <DialogContent className="p-0">
+            <DialogContent className="p-0 h-[60vh]">
                 <DialogTitle hidden>Tool Catalog</DialogTitle>
                 <DialogDescription hidden>
                     Add tools to the agent.

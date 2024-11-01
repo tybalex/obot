@@ -90,8 +90,9 @@ export function ToolForm({
         }).unsubscribe;
     }, [form, onChange]);
 
-    const [fixedFields, userFields] = useMemo(() => {
+    const [allTools, fixedFields, userFields] = useMemo(() => {
         return [
+            toolFields.fields.map(({ tool }) => tool),
             toolFields.fields?.filter(
                 (field) => field.variant === ToolVariant.FIXED
             ),
@@ -109,10 +110,6 @@ export function ToolForm({
             toolFields.fields.findIndex((t) => t.tool === tool),
             { tool, variant }
         );
-
-    const allTools = useMemo(() => {
-        return toolFields.fields.map(({ tool }) => tool);
-    }, [toolFields]);
 
     return (
         <Form {...form}>
