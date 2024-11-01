@@ -1,9 +1,7 @@
 import { PenBoxIcon } from "lucide-react";
 import { useState } from "react";
-import { mutate } from "swr";
 
 import { OAuthApp } from "~/lib/model/oauthApps";
-import { OauthAppService } from "~/lib/service/api/oauthAppService";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -13,7 +11,6 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "~/components/ui/dialog";
-import { useAsync } from "~/hooks/useAsync";
 
 import { CustomOAuthAppForm } from "./CustomOAuthAppForm";
 
@@ -22,13 +19,6 @@ type EditCustomOAuthAppProps = {
 };
 
 export function EditCustomOAuthApp({ app }: EditCustomOAuthAppProps) {
-    const updateApp = useAsync(OauthAppService.updateOauthApp, {
-        onSuccess: () => {
-            mutate(OauthAppService.getOauthApps.key());
-            setIsOpen(false);
-        },
-    });
-
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -45,14 +35,9 @@ export function EditCustomOAuthApp({ app }: EditCustomOAuthAppProps) {
                 <DialogTitle>Edit Custom OAuth App</DialogTitle>
 
                 <CustomOAuthAppForm
-                    app={app}
-                    onSubmit={(data) =>
-                        updateApp.execute(app.id, {
-                            ...app,
-                            ...data,
-                            refName: data.integration,
-                        })
-                    }
+                    defaultData={app}
+                    onComplete={() => setIsOpen(false)}
+                    onCancel={() => setIsOpen(false)}
                 />
             </DialogContent>
         </Dialog>
