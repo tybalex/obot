@@ -24,7 +24,7 @@ clean:
 
 # Build the project
 build:
-	CGO_ENABLED=0 go build -ldflags="-s -w" -o bin/otto8 .
+	go build -ldflags="-s -w" -o bin/otto8 .
 
 
 dev:

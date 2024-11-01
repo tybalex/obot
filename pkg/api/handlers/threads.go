@@ -16,6 +16,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+const DefaultMaxUserThreadTools = 5
+
 type ThreadHandler struct {
 	gptscript *gptscript.GPTScript
 	events    *events.Emitter
@@ -144,7 +146,7 @@ func (a *ThreadHandler) Update(req api.Context) error {
 		}
 		max := agent.Spec.Manifest.MaxThreadTools
 		if max == 0 {
-			max = 5
+			max = DefaultMaxUserThreadTools
 		}
 		if len(newThread.Tools) > max {
 			return types.NewErrBadRequest("too many tools, max %d", max)
