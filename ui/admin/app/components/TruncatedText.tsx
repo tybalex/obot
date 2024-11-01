@@ -1,3 +1,5 @@
+import { cn } from "~/lib/utils";
+
 import { TypographyP } from "~/components/Typography";
 import {
     Tooltip,
@@ -8,16 +10,16 @@ import {
 
 export function TruncatedText({
     content,
-    maxWidth,
+    className,
 }: {
-    content: string;
-    maxWidth: string;
+    content: React.ReactNode;
+    className?: string;
 }) {
     return (
         <TooltipProvider>
             <Tooltip>
                 <TooltipTrigger asChild>
-                    <div className={`${maxWidth} truncate cursor-pointer`}>
+                    <div className={cn(`truncate cursor-pointer`, className)}>
                         <TypographyP className="truncate">
                             {content}
                         </TypographyP>

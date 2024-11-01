@@ -19,7 +19,8 @@ import {
 
 type ToolCatalogProps = React.HTMLAttributes<HTMLDivElement> & {
     tools: string[];
-    onChangeTools: (tools: string[]) => void;
+    onAddTool: (tools: string) => void;
+    onRemoveTool: (toolId: string) => void;
     invert?: boolean;
     classNames?: { list?: string };
 };
@@ -28,10 +29,11 @@ export function ToolCatalog({
     className,
     tools,
     invert = false,
-    onChangeTools,
+    onAddTool,
+    onRemoveTool,
     classNames,
 }: ToolCatalogProps) {
-    const { data: toolCategories = [], isLoading } = useSWR(
+    const { data: toolCategories, isLoading } = useSWR(
         ToolReferenceService.getToolReferencesCategoryMap.key("tool"),
         () => ToolReferenceService.getToolReferencesCategoryMap("tool"),
         { fallbackData: {} }
@@ -40,26 +42,27 @@ export function ToolCatalog({
     const handleSelect = useCallback(
         (toolId: string) => {
             if (!tools.includes(toolId)) {
-                onChangeTools([...tools, toolId]);
+                onAddTool(toolId);
             }
         },
-        [tools, onChangeTools]
+        [tools, onAddTool]
     );
 
     const handleSelectBundle = useCallback(
         (bundleToolId: string, categoryTools: ToolReference[]) => {
-            const categoryToolIds = categoryTools.map((tool) => tool.id);
-            const newTools = tools.includes(bundleToolId)
-                ? tools.filter((toolId) => toolId !== bundleToolId)
-                : [
-                      ...tools.filter(
-                          (toolId) => !categoryToolIds.includes(toolId)
-                      ),
-                      bundleToolId,
-                  ];
-            onChangeTools(newTools);
+            if (tools.includes(bundleToolId)) {
+                onRemoveTool(bundleToolId);
+                return;
+            }
+
+            onAddTool(bundleToolId);
+
+            // remove all tools in the bundle to remove redundancy
+            categoryTools.forEach((tool) => {
+                onRemoveTool(tool.id);
+            });
         },
-        [tools, onChangeTools]
+        [tools, onAddTool, onRemoveTool]
     );
 
     if (isLoading) return <LoadingSpinner />;

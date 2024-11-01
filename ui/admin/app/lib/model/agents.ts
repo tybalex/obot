@@ -12,6 +12,8 @@ export type AgentBase = {
     agents?: string[];
     workflows?: string[];
     tools?: string[];
+    defaultThreadTools?: string[];
+    availableThreadTools?: string[];
     params?: Record<string, string>;
     knowledgeDescription?: string;
 };
