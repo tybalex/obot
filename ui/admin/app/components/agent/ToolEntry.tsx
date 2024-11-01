@@ -1,24 +1,12 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { TrashIcon } from "lucide-react";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
 import useSWR from "swr";
-import { z } from "zod";
 
 import { ToolReferenceService } from "~/lib/service/api/toolreferenceService";
 
-import { TruncatedText } from "../TruncatedText";
-import { ToolIcon } from "../tools/ToolIcon";
-import { LoadingSpinner } from "../ui/LoadingSpinner";
-import { Button } from "../ui/button";
-import { Form, FormField, FormItem, FormMessage } from "../ui/form";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "../ui/select";
+import { TruncatedText } from "~/components/TruncatedText";
+import { ToolIcon } from "~/components/tools/ToolIcon";
+import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
+import { Button } from "~/components/ui/button";
 
 export function ToolEntry({
     tool,
@@ -66,60 +54,5 @@ export function ToolEntry({
                 </div>
             </div>
         </div>
-    );
-}
-
-const schema = z.object({
-    variant: z.enum(["fixed", "default", "canAdd"]),
-});
-
-type ToolEntryForm = z.infer<typeof schema>;
-
-function ToolEntryForm({
-    onChange,
-}: {
-    onChange: (data: ToolEntryForm) => void;
-}) {
-    const form = useForm<ToolEntryForm>({
-        resolver: zodResolver(schema),
-        defaultValues: {
-            variant: "default",
-        },
-    });
-
-    useEffect(() => {
-        return form.watch((values) => {
-            const { success, data } = schema.safeParse(values);
-
-            if (!success) return;
-
-            onChange(data);
-        }).unsubscribe;
-    }, [form, onChange]);
-
-    return (
-        <Form {...form}>
-            <FormField
-                control={form.control}
-                name="variant"
-                render={({ field: { ref: _, ...field } }) => (
-                    <FormItem>
-                        <Select {...field} onValueChange={field.onChange}>
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-
-                            <SelectContent>
-                                <SelectItem value="fixed">Fixed</SelectItem>
-                                <SelectItem value="default">Default</SelectItem>
-                                <SelectItem value="canAdd">Can Add</SelectItem>
-                            </SelectContent>
-                        </Select>
-
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
-        </Form>
     );
 }

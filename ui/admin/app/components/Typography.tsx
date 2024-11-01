@@ -1,4 +1,3 @@
-import { VariantProps, cva } from "class-variance-authority";
 import React, { ReactNode } from "react";
 
 import { cn } from "~/lib/utils";
@@ -182,54 +181,4 @@ export function TypographyMuted({
             {children}
         </p>
     );
-}
-
-const typographyVariants = cva(`scroll-m-20`, {
-    variants: {
-        variant: {
-            h1: `text-4xl font-extrabold tracking-tight lg:text-5xl`,
-            h2: `text-3xl font-semibold tracking-tight first:mt-0`,
-            h3: `text-2xl font-semibold tracking-tight`,
-            h4: `text-xl font-semibold tracking-tight`,
-            p: `leading-7`,
-            blockquote: `mt-6 border-l-2 pl-6 italic`,
-            inlineCode: `relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold`,
-            lead: `text-xl text-muted-foreground`,
-            large: `text-lg font-semibold`,
-            small: `text-sm font-medium leading-none`,
-            muted: `text-sm text-muted-foreground`,
-        },
-    },
-    defaultVariants: {
-        variant: `p`,
-    },
-});
-
-const componentMap: Record<
-    Required<VariantProps<typeof typographyVariants>>["variant"],
-    TypographyElement
-> = {
-    h1: `h1`,
-    h2: `h2`,
-    h3: `h3`,
-    h4: `h4`,
-    p: `p`,
-    blockquote: `blockquote`,
-    inlineCode: `code`,
-    lead: `p`,
-    large: `div`,
-    small: `small`,
-    muted: `p`,
-};
-
-export function Typography({
-    variant,
-    className,
-    ...props
-}: TypographyProps<TypographyElement> &
-    VariantProps<typeof typographyVariants>) {
-    return React.createElement(variantConfig, {
-        className: cn(variantConfig, className),
-        ...props,
-    });
 }

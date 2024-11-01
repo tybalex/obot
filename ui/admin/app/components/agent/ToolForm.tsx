@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowDownIcon, ArrowUpIcon, PlusIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -8,25 +7,17 @@ import { Agent } from "~/lib/model/agents";
 import { noop } from "~/lib/utils";
 
 import { ToolEntry } from "~/components/agent/ToolEntry";
-import { ToolCatalog } from "~/components/tools/ToolCatalog";
-import { Button } from "~/components/ui/button";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogTitle,
-    DialogTrigger,
-} from "~/components/ui/dialog";
-import { Form, FormLabel } from "~/components/ui/form";
-
-import { TypographyH4, TypographySmall } from "../Typography";
-import { Switch } from "../ui/switch";
+import { ToolCatalogDialog } from "~/components/tools/ToolCatalog";
+import { Form } from "~/components/ui/form";
+import { Switch } from "~/components/ui/switch";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "../ui/tooltip";
+} from "~/components/ui/tooltip";
+
+import { TypographyP, TypographySmall } from "../Typography";
 
 const ToolVariant = {
     FIXED: "fixed",
@@ -113,24 +104,24 @@ export function ToolForm({
     const removeTool = (tool: string) =>
         toolFields.remove(toolFields.fields.findIndex((t) => t.tool === tool));
 
-    const addTool = (tool: string) =>
-        toolFields.append({ tool, variant: ToolVariant.FIXED });
-
     const updateVariant = (tool: string, variant: ToolVariant) =>
         toolFields.update(
             toolFields.fields.findIndex((t) => t.tool === tool),
             { tool, variant }
         );
 
+    const allTools = useMemo(() => {
+        return toolFields.fields.map(({ tool }) => tool);
+    }, [toolFields]);
+
     return (
         <Form {...form}>
             <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-                <TypographyH4 className="flex justify-between items-end">
-                    <span className="min-w-fit">Agent Tools</span>
-                    {renderAddButton()}
-                </TypographyH4>
+                <TypographyP className="flex justify-between items-end font-normal">
+                    Agent Tools
+                </TypographyP>
 
-                <TypographySmall>
+                <TypographySmall className="text-muted-foreground">
                     These tools are essential for the agent&apos;s core
                     functionality and are always enabled.
                 </TypographySmall>
@@ -141,16 +132,28 @@ export function ToolForm({
                             key={field.id}
                             tool={field.tool}
                             onDelete={() => removeTool(field.tool)}
-                            actions={renderFixedActions(field.tool)}
                         />
                     ))}
                 </div>
 
-                <TypographyH4 className="mt-4">User Tools</TypographyH4>
+                <ToolCatalogDialog
+                    tools={allTools}
+                    onAddTool={(tool) =>
+                        toolFields.append({
+                            tool,
+                            variant: ToolVariant.FIXED,
+                        })
+                    }
+                    onRemoveTool={removeTool}
+                />
 
-                <TypographySmall>
+                <TypographyP className="flex justify-between items-end font-normal mt-4">
+                    User Tools
+                </TypographyP>
+
+                <TypographySmall className="text-muted-foreground">
                     Optional tools users can turn on or off. Use the toggle to
-                    switch whether they&apos;re active by default by the agent.
+                    set whether they&apos;re active by default for the agent.
                 </TypographySmall>
 
                 <div className="mt-2 w-full overflow-y-auto">
@@ -159,126 +162,50 @@ export function ToolForm({
                             key={field.id}
                             tool={field.tool}
                             onDelete={() => removeTool(field.tool)}
-                            actions={renderDefaultActions(
-                                field.tool,
-                                field.variant
-                            )}
+                            actions={
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger>
+                                            <Switch
+                                                checked={
+                                                    field.variant ===
+                                                    ToolVariant.DEFAULT
+                                                }
+                                                onCheckedChange={(checked) =>
+                                                    updateVariant(
+                                                        field.tool,
+                                                        checked
+                                                            ? ToolVariant.DEFAULT
+                                                            : ToolVariant.AVAILABLE
+                                                    )
+                                                }
+                                            />
+                                        </TooltipTrigger>
+
+                                        <TooltipContent>
+                                            {field.variant ===
+                                            ToolVariant.DEFAULT
+                                                ? "Active by Default"
+                                                : "Inactive by Default"}
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            }
                         />
                     ))}
                 </div>
+
+                <ToolCatalogDialog
+                    tools={allTools}
+                    onAddTool={(tool) =>
+                        toolFields.append({
+                            tool,
+                            variant: ToolVariant.DEFAULT,
+                        })
+                    }
+                    onRemoveTool={removeTool}
+                />
             </form>
         </Form>
     );
-
-    function renderFixedActions(tool: string) {
-        return (
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <Button
-                            variant="secondary"
-                            size="icon"
-                            onClick={() =>
-                                updateVariant(tool, ToolVariant.DEFAULT)
-                            }
-                        >
-                            <ArrowDownIcon className="w-4 h-4" />
-                        </Button>
-                    </TooltipTrigger>
-
-                    <TooltipContent>
-                        Make this tool optional for users
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
-        );
-    }
-
-    function renderDefaultActions(tool: string, variant: ToolVariant) {
-        return (
-            <>
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger
-                            className="flex items-center gap-2"
-                            asChild
-                        >
-                            <div>
-                                <FormLabel htmlFor="default-switch">
-                                    Default
-                                </FormLabel>
-
-                                <Switch
-                                    checked={variant === ToolVariant.DEFAULT}
-                                    name="default-switch"
-                                    onCheckedChange={(checked) =>
-                                        updateVariant(
-                                            tool,
-                                            checked
-                                                ? ToolVariant.DEFAULT
-                                                : ToolVariant.AVAILABLE
-                                        )
-                                    }
-                                />
-                            </div>
-                        </TooltipTrigger>
-
-                        <TooltipContent>
-                            {variant === ToolVariant.DEFAULT
-                                ? "This tool is available by default"
-                                : "This tool can be added by a user"}
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="secondary"
-                                size="icon"
-                                onClick={() =>
-                                    updateVariant(tool, ToolVariant.FIXED)
-                                }
-                            >
-                                <ArrowUpIcon className="w-4 h-4" />
-                            </Button>
-                        </TooltipTrigger>
-
-                        <TooltipContent>
-                            Make this tool essential for the agent
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            </>
-        );
-    }
-
-    function renderAddButton() {
-        return (
-            <div className="flex justify-end w-full">
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="secondary">
-                            <PlusIcon className="w-4 h-4 mr-2" /> Add Tool
-                        </Button>
-                    </DialogTrigger>
-
-                    <DialogContent className="p-0 max-w-3xl min-h-[350px]">
-                        <DialogTitle hidden>Tool Catalog</DialogTitle>
-                        <DialogDescription hidden>
-                            Add tools to the agent.
-                        </DialogDescription>
-
-                        <ToolCatalog
-                            className="w-full border-none"
-                            tools={toolFields.fields.map((field) => field.tool)}
-                            onAddTool={addTool}
-                            onRemoveTool={removeTool}
-                        />
-                    </DialogContent>
-                </Dialog>
-            </div>
-        );
-    }
 }

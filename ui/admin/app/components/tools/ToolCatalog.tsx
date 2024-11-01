@@ -1,4 +1,4 @@
-import { AlertTriangleIcon } from "lucide-react";
+import { AlertTriangleIcon, PlusIcon } from "lucide-react";
 import { useCallback } from "react";
 import useSWR from "swr";
 
@@ -9,6 +9,7 @@ import { cn } from "~/lib/utils";
 import { ToolCategoryHeader } from "~/components/tools/ToolCategoryHeader";
 import { ToolItem } from "~/components/tools/ToolItem";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
+import { Button } from "~/components/ui/button";
 import {
     Command,
     CommandEmpty,
@@ -16,7 +17,13 @@ import {
     CommandInput,
     CommandList,
 } from "~/components/ui/command";
-import { useLogEffect } from "~/hooks/useLogEffect";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogTitle,
+    DialogTrigger,
+} from "~/components/ui/dialog";
 
 type ToolCatalogProps = React.HTMLAttributes<HTMLDivElement> & {
     tools: string[];
@@ -49,8 +56,6 @@ export function ToolCatalog({
         [tools, onAddTool]
     );
 
-    useLogEffect(tools);
-
     const handleSelectBundle = useCallback(
         (bundleToolId: string, categoryTools: ToolReference[]) => {
             if (tools.includes(bundleToolId)) {
@@ -59,8 +64,6 @@ export function ToolCatalog({
             }
 
             // remove all tools in the bundle to remove redundancy
-            console.log(categoryTools);
-
             categoryTools.forEach((tool) => {
                 onRemoveTool(tool.id);
             });
@@ -75,7 +78,7 @@ export function ToolCatalog({
     return (
         <Command
             className={cn(
-                "border w-[300px] px-2",
+                "border w-full",
                 className,
                 invert ? "flex-col-reverse" : "flex-col"
             )}
@@ -132,5 +135,25 @@ export function ToolCatalog({
                 )}
             </CommandList>
         </Command>
+    );
+}
+
+export function ToolCatalogDialog(props: ToolCatalogProps) {
+    return (
+        <Dialog>
+            <DialogContent className="p-0">
+                <DialogTitle hidden>Tool Catalog</DialogTitle>
+                <DialogDescription hidden>
+                    Add tools to the agent.
+                </DialogDescription>
+                <ToolCatalog {...props} />
+            </DialogContent>
+
+            <DialogTrigger asChild>
+                <Button variant="secondary">
+                    <PlusIcon className="w-4 h-4 mr-2" /> Add Tool
+                </Button>
+            </DialogTrigger>
+        </Dialog>
     );
 }
