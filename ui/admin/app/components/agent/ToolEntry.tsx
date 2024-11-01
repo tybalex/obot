@@ -3,9 +3,9 @@ import useSWR from "swr";
 
 import { ToolReferenceService } from "~/lib/service/api/toolreferenceService";
 
-import { ToolIcon } from "../tools/ToolIcon";
-import { LoadingSpinner } from "../ui/LoadingSpinner";
-import { Button } from "../ui/button";
+import { ToolIcon } from "~/components/tools/ToolIcon";
+import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
+import { Button } from "~/components/ui/button";
 
 export function ToolEntry({
     tool,

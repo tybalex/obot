@@ -10,6 +10,7 @@ import {
     TypographySmall,
 } from "~/components/Typography";
 import { ConfirmationDialog } from "~/components/composed/ConfirmationDialog";
+import { ToolIcon } from "~/components/tools/ToolIcon";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -24,8 +25,6 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
-
-import { ToolIcon } from "../ToolIcon";
 
 interface ToolCardProps {
     tool: ToolReference;
