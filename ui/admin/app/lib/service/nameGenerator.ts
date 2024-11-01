@@ -1,104 +1,12 @@
-const adjectives = [
-    "Smart",
-    "Clever",
-    "Intelligent",
-    "Adaptive",
-    "Intuitive",
-    "Helpful",
-    "Efficient",
-    "Responsive",
-    "Quick",
-    "Analytical",
-    "Logical",
-    "Creative",
-    "Innovative",
-    "Insightful",
-    "Proactive",
-    "Versatile",
-    "Agile",
-    "Brilliant",
-    "Capable",
-    "Diligent",
-    "Eloquent",
-    "Focused",
-    "Graceful",
-    "Harmonious",
-    "Imaginative",
-    "Judicious",
-    "Knowledgeable",
-    "Luminous",
-    "Meticulous",
-    "Nimble",
-    "Observant",
-    "Perceptive",
-    "Qualified",
-    "Reliable",
-    "Skillful",
-    "Thorough",
-    "Unstoppable",
-    "Vigilant",
-    "Wise",
-    "Expert",
-    "Yielding",
-    "Zealous",
-    "Astute",
-    "Balanced",
-    "Competent",
-    "Dynamic",
-];
-
-const nouns = [
-    "Assistant",
-    "Copilot",
-    "Helper",
-    "Companion",
-    "Aide",
-    "Collaborator",
-    "Partner",
-    "Advisor",
-    "Guide",
-    "Sidekick",
-    "Ally",
-    "Supporter",
-    "Mentor",
-    "Coach",
-    "Facilitator",
-    "Buddy",
-    "Agent",
-    "Beacon",
-    "Counselor",
-    "Dynamo",
-    "Enhancer",
-    "Friend",
-    "Genius",
-    "Hotshot",
-    "Innovator",
-    "Juggler",
-    "Keeper",
-    "Luminary",
-    "Mastermind",
-    "Navigator",
-    "Optimizer",
-    "Pathfinder",
-    "Quartermaster",
-    "Resolver",
-    "Sage",
-    "Trailblazer",
-    "Utility",
-    "Virtuoso",
-    "Whiz",
-    "Savant",
-    "Yoda",
-    "Zealot",
-    "Ace",
-    "Brainiac",
-    "Catalyst",
-    "Dynamo",
-];
+import { faker } from "@faker-js/faker";
 
 export function generateRandomName(): string {
-    const randomAdjective =
-        adjectives[Math.floor(Math.random() * adjectives.length)];
-    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-    return `${randomAdjective} ${randomNoun}`;
+    // faker doesn't have a "capitalized word" function, so we need to do it manually :(
+    const rawAdjective = faker.word.adjective();
+    const rawAnimal = faker.animal.type();
+    const adjective =
+        rawAdjective.charAt(0).toUpperCase() + rawAdjective.slice(1);
+    const animal = rawAnimal.charAt(0).toUpperCase() + rawAnimal.slice(1);
+
+    return `${adjective} ${animal}`;
 }

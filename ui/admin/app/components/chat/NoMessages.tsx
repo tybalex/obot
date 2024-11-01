@@ -1,4 +1,4 @@
-import { BrainCircuit, Handshake, Rocket } from "lucide-react";
+import { BrainCircuit, Compass, Wrench } from "lucide-react";
 
 import { useChat } from "~/components/chat/ChatContext";
 import { Button } from "~/components/ui/button";
@@ -19,17 +19,25 @@ export function NoMessages() {
             <div className="flex flex-wrap justify-center gap-2">
                 <Button
                     variant="secondary"
-                    onClick={() => handleAddMessage("Hello, how are you?")}
+                    onClick={() =>
+                        handleAddMessage(
+                            "Tell me who you are and what your objectives are."
+                        )
+                    }
                 >
-                    <Handshake className="w-4 h-4 mr-2" />
-                    Greeting
+                    <Compass className="w-4 h-4 mr-2" />
+                    Objectives
                 </Button>
                 <Button
                     variant="secondary"
-                    onClick={() => handleAddMessage("What can you do?")}
+                    onClick={() =>
+                        handleAddMessage(
+                            "Tell me what tools you have available."
+                        )
+                    }
                 >
-                    <Rocket className="w-4 h-4 mr-2" />
-                    Capabilities
+                    <Wrench className="w-4 h-4 mr-2" />
+                    Tools
                 </Button>
                 <Button
                     variant="secondary"
