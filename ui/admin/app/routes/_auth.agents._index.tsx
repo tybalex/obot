@@ -79,7 +79,6 @@ export default function Threads() {
                                         name: generateRandomName(),
                                     } as Agent,
                                 }).then((agent) => {
-                                    mutate(AgentService.getAgents.key());
                                     navigate(
                                         $path("/agents/:agent", {
                                             agent: agent.id,
