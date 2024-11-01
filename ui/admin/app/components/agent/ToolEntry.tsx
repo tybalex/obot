@@ -6,7 +6,6 @@ import useSWR from "swr";
 import { z } from "zod";
 
 import { ToolReferenceService } from "~/lib/service/api/toolreferenceService";
-import { noop } from "~/lib/utils";
 
 import { TruncatedText } from "../TruncatedText";
 import { ToolIcon } from "../tools/ToolIcon";
@@ -24,9 +23,11 @@ import {
 export function ToolEntry({
     tool,
     onDelete,
+    actions,
 }: {
     tool: string;
     onDelete: () => void;
+    actions?: React.ReactNode;
 }) {
     const { data: toolReference, isLoading } = useSWR(
         ToolReferenceService.getToolReferenceById.key(tool),
@@ -52,7 +53,7 @@ export function ToolEntry({
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <ToolEntryForm onChange={noop} />
+                    {actions}
 
                     <Button
                         type="button"

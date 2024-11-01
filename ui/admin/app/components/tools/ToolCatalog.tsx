@@ -16,6 +16,7 @@ import {
     CommandInput,
     CommandList,
 } from "~/components/ui/command";
+import { useLogEffect } from "~/hooks/useLogEffect";
 
 type ToolCatalogProps = React.HTMLAttributes<HTMLDivElement> & {
     tools: string[];
@@ -48,6 +49,8 @@ export function ToolCatalog({
         [tools, onAddTool]
     );
 
+    useLogEffect(tools);
+
     const handleSelectBundle = useCallback(
         (bundleToolId: string, categoryTools: ToolReference[]) => {
             if (tools.includes(bundleToolId)) {
@@ -55,12 +58,14 @@ export function ToolCatalog({
                 return;
             }
 
-            onAddTool(bundleToolId);
-
             // remove all tools in the bundle to remove redundancy
+            console.log(categoryTools);
+
             categoryTools.forEach((tool) => {
                 onRemoveTool(tool.id);
             });
+
+            onAddTool(bundleToolId);
         },
         [tools, onAddTool, onRemoveTool]
     );
