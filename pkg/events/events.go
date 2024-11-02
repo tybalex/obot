@@ -41,7 +41,7 @@ func NewEmitter(client kclient.WithWatch) *Emitter {
 
 type liveState struct {
 	Prg      *gptscript.Program
-	Frames   Frames
+	Frames   *Frames
 	Progress *types.Progress
 	Done     bool
 }
@@ -90,7 +90,13 @@ func (e *Emitter) Submit(run *v1.Run, prg *gptscript.Program, frames Frames) {
 	e.liveStateLock.Lock()
 	defer e.liveStateLock.Unlock()
 
-	e.liveStates[run.Name] = append(e.liveStates[run.Name], liveState{Prg: prg, Frames: frames})
+	e.liveStates[run.Name] = append(e.liveStates[run.Name], liveState{Prg: prg, Frames: &frames})
+	for i, state := range e.liveStates[run.Name] {
+		// This is to save memory until we remove this liveState hack
+		if state.Frames != nil {
+			e.liveStates[run.Name][i].Frames = &frames
+		}
+	}
 	e.liveBroadcast.Broadcast()
 }
 
@@ -315,7 +321,7 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 				if toPrint.Progress != nil {
 					result <- *toPrint.Progress
 				} else {
-					if err := e.callToEvents(ctx, run.Namespace, run.Name, toPrint.Prg, toPrint.Frames, state, result); err != nil {
+					if err := e.callToEvents(ctx, run.Namespace, run.Name, toPrint.Prg, *toPrint.Frames, state, result); err != nil {
 						return err
 					}
 				}

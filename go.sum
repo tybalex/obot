@@ -73,8 +73,6 @@ github.com/acorn-io/baaah v0.0.0-20241031014532-41ccf5acc58b h1:0K3I9kSrMH87kVGg
 github.com/acorn-io/baaah v0.0.0-20241031014532-41ccf5acc58b/go.mod h1:FTdfwOSepj32acbdMwoqe5pwFTYhNG0UQhCXxgHuEzM=
 github.com/acorn-io/broadcaster v0.0.0-20240105011354-bfadd4a7b45d h1:hfpNQkJ4I2b8+DbMr8m97gG67ku0uPsMzUfskVu3cHU=
 github.com/acorn-io/broadcaster v0.0.0-20240105011354-bfadd4a7b45d/go.mod h1:WF6FYrEqW0+ZtY5OKb21JhSL0aeL5VJoVrm+u0d4gOE=
-github.com/acorn-io/mink v0.0.0-20241031014848-fcbd87b91469 h1:muLkBg3UBsZIAgykHOVDs7laYlGk3Yf9eUJq0gRY8DE=
-github.com/acorn-io/mink v0.0.0-20241031014848-fcbd87b91469/go.mod h1:t0CMaKZzqT8hpo+45XsRdrgMBWbNqQ9YCs8S0f8iw3E=
 github.com/adrg/xdg v0.5.1 h1:Im8iDbEFARltY09yOJlSGu4Asjk2vF85+3Dyru8uJ0U=
 github.com/adrg/xdg v0.5.1/go.mod h1:nlTsY+NNiCBGCK2tpm09vRqfVzrc2fLmXGpBLF0zlTQ=
 github.com/alecthomas/assert/v2 v2.7.0 h1:QtqSACNS3tF7oasA8CU6A6sXZSBDqnm7RfpLl9bZqbE=
@@ -365,8 +363,8 @@ github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a h1:LX7AOcbBoTnUk/
 github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a/go.mod h1:DJAo1xTht1LDkNYFNydVjTHd576TC7MlpsVRl3oloVw=
 github.com/gptscript-ai/go-gptscript v0.9.6-0.20241028114905-1fce3cceae35 h1:ljdLe1+L7+NR/W4+wXM9xOJULGQfa+Y5v0W40bGdRtk=
 github.com/gptscript-ai/go-gptscript v0.9.6-0.20241028114905-1fce3cceae35/go.mod h1:/FVuLwhz+sIfsWUgUHWKi32qT0i6+IXlUlzs70KKt/Q=
-github.com/gptscript-ai/gptscript v0.9.6-0.20241028112107-9d30b268e346 h1:oK+fINhkoVLcjpjpVNhZmiZdc+piCewyxnA+DLYgaVs=
-github.com/gptscript-ai/gptscript v0.9.6-0.20241028112107-9d30b268e346/go.mod h1:+CC86EbcmMMBgvv5NBqHzep63SobtB5vhNOq4i6aPrA=
+github.com/gptscript-ai/gptscript v0.9.6-0.20241102062431-50489f2b1b5f h1:aQjA6oOrGTM/n9LxGCFZw/pigkQoxXE1wWx4Of3JZdU=
+github.com/gptscript-ai/gptscript v0.9.6-0.20241102062431-50489f2b1b5f/go.mod h1:+CC86EbcmMMBgvv5NBqHzep63SobtB5vhNOq4i6aPrA=
 github.com/gptscript-ai/tui v0.0.0-20240923192013-172e51ccf1d6 h1:vkgNZVWQgbE33VD3z9WKDwuu7B/eJVVMMPM62ixfCR8=
 github.com/gptscript-ai/tui v0.0.0-20240923192013-172e51ccf1d6/go.mod h1:frrl/B+ZH3VSs3Tqk2qxEIIWTONExX3tuUa4JsVnqx4=
 github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 h1:pdN6V1QBWetyv/0+wjACpqVH+eVULgEjkurDLq3goeM=
@@ -459,6 +457,8 @@ github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
 github.com/kr/text v0.2.0/go.mod h1:eLer722TekiGuMkidMxC/pM04lWEeraHUUmBw8l2grE=
 github.com/kylelemons/godebug v1.1.0 h1:RPNrshWIDI6G2gRW9EHilWtl7Z6Sb1BR0xunSBf0SNc=
 github.com/kylelemons/godebug v1.1.0/go.mod h1:9/0rRGxNHcop5bhtWyNeEfOS8JIWk580+fNqagV/RAw=
+github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
+github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de h1:9TO3cAIGXtEhnIaL+V+BEER86oLrvS+kWobKpbJuye0=
 github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de/go.mod h1:zAbeS9B/r2mtpb6U+EI2rYA5OAXxsYw6wTamcNW+zcE=
 github.com/lithammer/fuzzysearch v1.1.8 h1:/HIuJnjHuXS8bKaiTMeeDlW2/AyIWk2brx1V8LFgLN4=
@@ -539,6 +539,8 @@ github.com/onsi/ginkgo/v2 v2.20.2 h1:7NVCeyIWROIAheY21RLS+3j2bb52W0W82tkberYytp4
 github.com/onsi/ginkgo/v2 v2.20.2/go.mod h1:K9gyxPIlb+aIvnZ8bd9Ak+YP18w3APlR+5coaZoE2ag=
 github.com/onsi/gomega v1.34.2 h1:pNCwDkzrsv7MS9kpaQvVb1aVLahQXyJ/Tv5oAZMI3i8=
 github.com/onsi/gomega v1.34.2/go.mod h1:v1xfxRgk0KIsG+QOdm7p8UosrOzPYRo60fd3B/1Dukc=
+github.com/otto8-ai/kinm v0.0.0-20241102061127-ee1b9448cdd1 h1:Pt3SvBFbrwbV/Yvbk50XvH522ofGkWr9O/aig1R1IKA=
+github.com/otto8-ai/kinm v0.0.0-20241102061127-ee1b9448cdd1/go.mod h1:RLeSKkH7bQDS3jAlR1eHxI0/GaMc4+7klJhI7r5+B0s=
 github.com/otto8-ai/oauth2-proxy/v7 v7.0.0-20241008204315-265dabe17f43 h1:zuroXr125FGRsaj9/9brmtWfkiu3XkNoB78owd8lAo4=
 github.com/otto8-ai/oauth2-proxy/v7 v7.0.0-20241008204315-265dabe17f43/go.mod h1:lxQ1wbphpjECcCoy8gfsrDHQVenNKgm+p6Oskdkl97g=
 github.com/pelletier/go-toml/v2 v2.2.3 h1:YmeHyLY8mFWbdkNWwpr+qIL2bEqT0o95WSdkNHvL12M=

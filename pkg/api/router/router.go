@@ -139,6 +139,9 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("PUT /api/cronjobs/{id}", cronJobs.Update)
 	mux.HandleFunc("POST /api/cronjobs/{id}", cronJobs.Execute)
 
+	// debug
+	mux.HTTPHandle("GET /debug/pprof/", http.DefaultServeMux)
+
 	// Gateway APIs
 	services.GatewayServer.AddRoutes(services.APIServer)
 

@@ -6,8 +6,8 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/acorn-io/mink/pkg/db"
-	mserver "github.com/acorn-io/mink/pkg/server"
+	"github.com/otto8-ai/kinm/pkg/db"
+	mserver "github.com/otto8-ai/kinm/pkg/server"
 	"github.com/otto8-ai/otto8/pkg/storage/openapi/generated"
 	"github.com/otto8-ai/otto8/pkg/storage/registry/apigroups/agent"
 	"github.com/otto8-ai/otto8/pkg/storage/scheme"

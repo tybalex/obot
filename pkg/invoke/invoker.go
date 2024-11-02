@@ -385,7 +385,7 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.WithWatch, thread *v1
 func (i *Invoker) Resume(ctx context.Context, c kclient.WithWatch, thread *v1.Thread, run *v1.Run) error {
 	defer func() {
 		i.events.Done(run)
-		time.AfterFunc(5*time.Minute, func() {
+		time.AfterFunc(20*time.Second, func() {
 			i.events.ClearProgress(run)
 		})
 	}()
@@ -711,6 +711,11 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName s
 		runEvent = runResp.Events()
 		wg       sync.WaitGroup
 	)
+
+	// We might modify these objects so make a local copy
+	thread = thread.DeepCopyObject().(*v1.Thread)
+	run = run.DeepCopyObject().(*v1.Run)
+
 	defer func() {
 		// Don't use parent context because it may be canceled and we still want to save the state
 		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)

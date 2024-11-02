@@ -1,9 +1,9 @@
 package generic
 
 import (
-	"github.com/acorn-io/mink/pkg/db"
-	"github.com/acorn-io/mink/pkg/stores"
-	"github.com/acorn-io/mink/pkg/strategy"
+	"github.com/otto8-ai/kinm/pkg/db"
+	"github.com/otto8-ai/kinm/pkg/stores"
+	"github.com/otto8-ai/kinm/pkg/strategy"
 	"github.com/otto8-ai/otto8/pkg/storage/scheme"
 	"github.com/otto8-ai/otto8/pkg/storage/tables"
 	"k8s.io/apiserver/pkg/registry/rest"

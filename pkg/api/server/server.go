@@ -38,7 +38,10 @@ func (s *Server) HandleFunc(pattern string, f api.HandlerFunc) {
 }
 
 func (s *Server) HTTPHandle(pattern string, f http.Handler) {
-	s.mux.Handle(pattern, f)
+	s.HandleFunc(pattern, func(req api.Context) error {
+		f.ServeHTTP(req.ResponseWriter, req.Request)
+		return nil
+	})
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

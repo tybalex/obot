@@ -101,8 +101,9 @@ func getThread(ctx context.Context, c kclient.WithWatch, source *v1.KnowledgeSou
 	if source.Status.WorkspaceName == "" {
 		ws := &v1.Workspace{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      name.SafeConcatName(system.WorkspacePrefix, source.Name),
-				Namespace: source.Namespace,
+				Name:       name.SafeConcatName(system.WorkspacePrefix, source.Name),
+				Namespace:  source.Namespace,
+				Finalizers: []string{v1.WorkspaceFinalizer},
 			},
 			Spec: v1.WorkspaceSpec{
 				KnowledgeSourceName: source.Name,
