@@ -1,7 +1,7 @@
 package version
 
 import (
-	"github.com/acorn-io/baaah/pkg/version"
+	"github.com/otto8-ai/nah/pkg/version"
 )
 
 var (

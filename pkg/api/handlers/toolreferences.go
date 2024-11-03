@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/acorn-io/baaah/pkg/name"
+	"github.com/otto8-ai/nah/pkg/name"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/api"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"

@@ -1,7 +1,7 @@
 package workflow
 
 import (
-	"github.com/acorn-io/baaah/pkg/randomtoken"
+	"github.com/otto8-ai/nah/pkg/randomtoken"
 	"github.com/otto8-ai/otto8/apiclient/types"
 )
 

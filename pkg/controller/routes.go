@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/acorn-io/baaah/pkg/handlers"
+	"github.com/otto8-ai/nah/pkg/handlers"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/agents"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/cleanup"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/cronjob"

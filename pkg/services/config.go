@@ -8,14 +8,14 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/acorn-io/baaah"
-	"github.com/acorn-io/baaah/pkg/leader"
-	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/adrg/xdg"
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/gptscript/pkg/cache"
 	gptscriptai "github.com/gptscript-ai/gptscript/pkg/gptscript"
 	"github.com/gptscript-ai/gptscript/pkg/sdkserver"
+	"github.com/otto8-ai/nah"
+	"github.com/otto8-ai/nah/pkg/leader"
+	"github.com/otto8-ai/nah/pkg/router"
 	"github.com/otto8-ai/otto8/pkg/aihelper"
 	"github.com/otto8-ai/otto8/pkg/api/authn"
 	"github.com/otto8-ai/otto8/pkg/api/authz"
@@ -36,7 +36,7 @@ import (
 	"k8s.io/apiserver/pkg/authentication/authenticator"
 	"k8s.io/apiserver/pkg/authentication/request/union"
 	// Setup baaah logging
-	_ "github.com/acorn-io/baaah/pkg/logrus"
+	_ "github.com/otto8-ai/nah/pkg/logrus"
 )
 
 type (

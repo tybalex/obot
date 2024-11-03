@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/acorn-io/baaah/pkg/name"
-	"github.com/acorn-io/baaah/pkg/router"
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/otto8-ai/nah/pkg/name"
+	"github.com/otto8-ai/nah/pkg/router"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/invoke"
 	"github.com/otto8-ai/otto8/pkg/render"

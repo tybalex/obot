@@ -6,12 +6,10 @@ replace (
 	github.com/oauth2-proxy/oauth2-proxy/v7 => github.com/otto8-ai/oauth2-proxy/v7 v7.0.0-20241008204315-265dabe17f43
 	github.com/otto8-ai/otto8/apiclient => ./apiclient
 	github.com/otto8-ai/otto8/logger => ./logger
-
 )
 
 require (
 	github.com/MicahParks/keyfunc/v3 v3.3.5
-	github.com/acorn-io/baaah v0.0.0-20241031014532-41ccf5acc58b
 	github.com/adrg/xdg v0.5.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.18.0
@@ -24,6 +22,7 @@ require (
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/oauth2-proxy/oauth2-proxy/v7 v7.0.0-00010101000000-000000000000
 	github.com/otto8-ai/kinm v0.0.0-20241102061127-ee1b9448cdd1
+	github.com/otto8-ai/nah v0.0.0-20241103035236-f2497c45ddb0
 	github.com/otto8-ai/otto8/apiclient v0.0.0-00010101000000-000000000000
 	github.com/otto8-ai/otto8/logger v0.0.0-00010101000000-000000000000
 	github.com/pterm/pterm v0.12.79

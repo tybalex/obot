@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 
-	"github.com/acorn-io/baaah/pkg/fields"
+	"github.com/otto8-ai/nah/pkg/fields"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

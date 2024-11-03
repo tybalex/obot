@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/acorn-io/baaah/pkg/router"
+	"github.com/otto8-ai/nah/pkg/router"
 	"github.com/otto8-ai/otto8/pkg/controller/data"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/toolreference"
 	"github.com/otto8-ai/otto8/pkg/services"
 	// Enable logrus logging in baaah
-	_ "github.com/acorn-io/baaah/pkg/logrus"
+	_ "github.com/otto8-ai/nah/pkg/logrus"
 )
 
 type Controller struct {

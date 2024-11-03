@@ -1,8 +1,8 @@
 package v1
 
 import (
-	"github.com/acorn-io/baaah/pkg/conditions"
-	"github.com/acorn-io/baaah/pkg/fields"
+	"github.com/otto8-ai/nah/pkg/conditions"
+	"github.com/otto8-ai/nah/pkg/fields"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
