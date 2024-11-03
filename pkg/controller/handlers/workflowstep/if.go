@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/otto8-ai/nah/pkg/apply"
 	"github.com/otto8-ai/nah/pkg/router"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
@@ -19,15 +20,10 @@ func (h *Handler) RunIf(req router.Request, resp router.Response) error {
 		return nil
 	}
 
-	var completeResponse bool
-	defer func() {
-		if !completeResponse {
-			resp.DisablePrune()
-		}
-	}()
+	var objects []kclient.Object
 
 	conditionStep := h.defineCondition(step, nil, 0)
-	resp.Objects(conditionStep)
+	objects = append(objects, conditionStep)
 
 	if _, errorMsg, state, err := GetStateFromSteps(req.Ctx, req.Client, step.Spec.WorkflowGeneration, conditionStep); err != nil {
 		return err
@@ -48,9 +44,11 @@ func (h *Handler) RunIf(req router.Request, resp router.Response) error {
 	if err != nil {
 		return err
 	}
-	resp.Objects(steps...)
+	objects = append(objects, steps...)
 
-	completeResponse = true
+	if err := apply.New(req.Client).Apply(req.Ctx, req.Object, objects...); err != nil {
+		return err
+	}
 
 	if len(steps) == 0 {
 		step.Status.State = types.WorkflowStateComplete

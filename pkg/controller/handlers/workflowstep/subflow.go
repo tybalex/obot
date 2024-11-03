@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/otto8-ai/nah/pkg/apply"
 	"github.com/otto8-ai/nah/pkg/name"
 	"github.com/otto8-ai/nah/pkg/router"
 	"github.com/otto8-ai/otto8/apiclient/types"
@@ -18,10 +19,6 @@ import (
 
 func (h *Handler) RunSubflow(req router.Request, resp router.Response) error {
 	step := req.Object.(*v1.WorkflowStep)
-
-	if len(step.Status.SubCalls) > 0 {
-		resp.DisablePrune()
-	}
 
 	if step.Status.State != types.WorkflowStateSubCall {
 		return nil
@@ -63,7 +60,10 @@ func (h *Handler) RunSubflow(req router.Request, resp router.Response) error {
 				WorkflowGeneration:    step.Spec.WorkflowGeneration,
 			},
 		}
-		resp.Objects(wfe)
+
+		if err := apply.New(req.Client).Apply(req.Ctx, req.Object, wfe); err != nil {
+			return err
+		}
 
 		out, isErr, done, err := h.getSubflowOutput(req, wfe)
 		if err != nil {

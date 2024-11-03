@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/otto8-ai/nah/pkg/apply"
 	"github.com/otto8-ai/nah/pkg/router"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/workflowstep"
@@ -24,15 +25,11 @@ func New(invoker *invoke.Invoker) *Handler {
 	}
 }
 
-func (h *Handler) Run(req router.Request, resp router.Response) error {
-	var completeResponse bool
-	defer func() {
-		if !completeResponse {
-			resp.DisablePrune()
-		}
-	}()
-
-	we := req.Object.(*v1.WorkflowExecution)
+func (h *Handler) Run(req router.Request, _ router.Response) error {
+	var (
+		objects []kclient.Object
+		we      = req.Object.(*v1.WorkflowExecution)
+	)
 
 	if we.Status.State.IsTerminal() {
 		if we.Spec.WorkflowGeneration != we.Status.WorkflowGeneration {
@@ -103,15 +100,13 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 		we.Status.Error = output
 	}
 
-	completeResponse = true
 	we.Status.State = newState
 	we.Status.WorkflowGeneration = we.Spec.WorkflowGeneration
 	if we.Status.State.IsTerminal() && we.Status.EndTime == nil {
 		we.Status.EndTime = &metav1.Time{Time: time.Now()}
 	}
 
-	resp.Objects(steps...)
-	return nil
+	return apply.New(req.Client).Apply(req.Ctx, req.Object, objects...)
 }
 
 func (h *Handler) loadManifest(req router.Request, we *v1.WorkflowExecution) error {

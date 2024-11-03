@@ -3,25 +3,21 @@ package workflowstep
 import (
 	"fmt"
 
+	"github.com/otto8-ai/nah/pkg/apply"
 	"github.com/otto8-ai/nah/pkg/router"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (h *Handler) RunWhile(req router.Request, resp router.Response) error {
+func (h *Handler) RunWhile(req router.Request, _ router.Response) error {
 	step := req.Object.(*v1.WorkflowStep)
 
 	if step.Spec.Step.While == nil {
 		return nil
 	}
 
-	var completeResponse bool
-	defer func() {
-		if !completeResponse {
-			resp.DisablePrune()
-		}
-	}()
+	var objects []kclient.Object
 
 	count := step.Spec.Step.While.MaxLoops
 	if count <= 0 {
@@ -46,7 +42,7 @@ func (h *Handler) RunWhile(req router.Request, resp router.Response) error {
 		}
 
 		conditionStep := h.defineCondition(step, lastStep, i)
-		resp.Objects(conditionStep)
+		objects = append(objects, conditionStep)
 
 		if _, errMsg, state, err := GetStateFromSteps(req.Ctx, req.Client, step.Spec.WorkflowGeneration, conditionStep); err != nil {
 			return err
@@ -68,7 +64,6 @@ func (h *Handler) RunWhile(req router.Request, resp router.Response) error {
 		}
 
 		if !conditionResult {
-			completeResponse = true
 			step.Status.State = types.WorkflowStateComplete
 			step.Status.LastRunName = lastRunName
 			return nil
@@ -86,7 +81,7 @@ func (h *Handler) RunWhile(req router.Request, resp router.Response) error {
 			lastStep = conditionStep
 		}
 
-		resp.Objects(steps...)
+		objects = append(objects, steps...)
 
 		runName, errMsg, newState, err := GetStateFromSteps(req.Ctx, req.Client, step.Spec.WorkflowGeneration, steps...)
 		if err != nil {
@@ -106,10 +101,9 @@ func (h *Handler) RunWhile(req router.Request, resp router.Response) error {
 		}
 	}
 
-	completeResponse = true
 	step.Status.State = types.WorkflowStateComplete
 	step.Status.LastRunName = lastRunName
-	return nil
+	return apply.New(req.Client).Apply(req.Ctx, req.Object, objects...)
 }
 
 func (h *Handler) defineWhile(groupIndex int, conditionStep, step *v1.WorkflowStep) (result []kclient.Object, _ error) {
