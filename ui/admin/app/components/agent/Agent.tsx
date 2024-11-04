@@ -73,9 +73,12 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                         such as searching the web, reading files, or interacting
                         with other systems.
                     </TypographyP>
+
                     <ToolForm
                         agent={agentUpdates}
-                        onChange={debouncedSetAgentInfo}
+                        onChange={({ tools }) =>
+                            debouncedSetAgentInfo(convertTools(tools))
+                        }
                     />
                 </div>
 
@@ -124,5 +127,29 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                 </div>
             </footer>
         </div>
+    );
+}
+function convertTools(
+    tools: { tool: string; variant: "fixed" | "default" | "available" }[]
+) {
+    type ToolObj = Pick<
+        AgentType,
+        "tools" | "defaultThreadTools" | "availableThreadTools"
+    >;
+
+    return tools.reduce(
+        (acc, { tool, variant }) => {
+            if (variant === "fixed") acc.tools?.push(tool);
+            else if (variant === "default") acc.defaultThreadTools?.push(tool);
+            else if (variant === "available")
+                acc.availableThreadTools?.push(tool);
+
+            return acc;
+        },
+        {
+            tools: [],
+            defaultThreadTools: [],
+            availableThreadTools: [],
+        } as ToolObj
     );
 }

@@ -69,7 +69,10 @@ export function ToolCard({ tool, onDelete }: ToolCardProps) {
                 </TypographyH4>
             </CardHeader>
             <CardContent className="flex-grow">
-                <TruncatedText content={tool.reference} maxWidth="max-w-full" />
+                <TruncatedText
+                    content={tool.reference}
+                    className="max-w-full"
+                />
                 <TypographyP className="mt-2 text-sm text-muted-foreground line-clamp-2">
                     {tool.description || "No description available"}
                 </TypographyP>
