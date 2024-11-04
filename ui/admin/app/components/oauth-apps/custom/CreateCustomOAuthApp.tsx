@@ -1,6 +1,7 @@
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 
+import { CustomOAuthAppForm } from "~/components/oauth-apps/custom/CustomOAuthAppForm";
 import { Button } from "~/components/ui/button";
 import {
     Dialog,
@@ -10,8 +11,6 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "~/components/ui/dialog";
-
-import { CustomOAuthAppForm } from "./CustomOAuthAppForm";
 
 export function CreateCustomOAuthApp() {
     const [isOpen, setIsOpen] = useState(false);

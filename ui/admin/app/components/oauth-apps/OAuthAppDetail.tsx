@@ -9,6 +9,9 @@ import {
 import { cn } from "~/lib/utils";
 
 import { TypographyP } from "~/components/Typography";
+import { ConfigureOAuthApp } from "~/components/oauth-apps/ConfigureOAuthApp";
+import { DeleteOAuthApp } from "~/components/oauth-apps/DeleteOAuthApp";
+import { OAuthAppTypeIcon } from "~/components/oauth-apps/OAuthAppTypeIcon";
 import { Button } from "~/components/ui/button";
 import {
     Dialog,
@@ -20,17 +23,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "~/components/ui/dialog";
-import { useOAuthAppInfo } from "~/hooks/oauthApps/useOAuthApps";
-
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "../ui/tooltip";
-import { ConfigureOAuthApp } from "./ConfigureOAuthApp";
-import { DeleteOAuthApp } from "./DeleteOAuthApp";
-import { OAuthAppTypeIcon } from "./OAuthAppTypeIcon";
+} from "~/components/ui/tooltip";
+import { useOAuthAppInfo } from "~/hooks/oauthApps/useOAuthApps";
 
 export function OAuthAppDetail({
     type,

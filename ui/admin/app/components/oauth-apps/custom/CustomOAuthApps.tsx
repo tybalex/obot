@@ -1,7 +1,6 @@
 import { TypographyH3 } from "~/components/Typography";
+import { CustomOAuthAppTile } from "~/components/oauth-apps/custom/CustomOAuthAppTile";
 import { useCustomOAuthAppInfo } from "~/hooks/oauthApps/useOAuthApps";
-
-import { CustomOAuthAppTile } from "./CustomOAuthAppTile";
 
 export function CustomOAuthApps() {
     const apps = useCustomOAuthAppInfo();

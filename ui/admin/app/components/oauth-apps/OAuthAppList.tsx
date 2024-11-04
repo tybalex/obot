@@ -1,7 +1,6 @@
 import { TypographyH3 } from "~/components/Typography";
+import { OAuthAppTile } from "~/components/oauth-apps/OAuthAppTile";
 import { useOAuthAppList } from "~/hooks/oauthApps/useOAuthApps";
-
-import { OAuthAppTile } from "./OAuthAppTile";
 
 export function OAuthAppList() {
     const apps = useOAuthAppList();

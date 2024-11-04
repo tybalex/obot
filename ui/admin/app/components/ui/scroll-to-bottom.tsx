@@ -1,15 +1,14 @@
 import { ArrowDown } from "lucide-react";
 import React from "react";
 
-import { useDebouncedValue } from "~/hooks/useDebounce";
-
-import { Button } from "./button";
+import { Button } from "~/components/ui/button";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "./tooltip";
+} from "~/components/ui/tooltip";
+import { useDebouncedValue } from "~/hooks/useDebounce";
 
 type ScrollToBottomProps = {
     scrollContainerEl: HTMLDivElement | null;

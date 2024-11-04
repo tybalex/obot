@@ -5,6 +5,8 @@ import { KnowledgeFile } from "~/lib/model/knowledge";
 import { KnowledgeService } from "~/lib/service/api/knowledgeService";
 import { cn } from "~/lib/utils";
 
+import { FileChip } from "~/components/knowledge/FileItem";
+import IngestionStatusComponent from "~/components/knowledge/IngestionStatus";
 import { Button } from "~/components/ui/button";
 import {
     Dialog,
@@ -23,9 +25,6 @@ import {
 } from "~/components/ui/tooltip";
 import { useAsync } from "~/hooks/useAsync";
 import { useMultiAsync } from "~/hooks/useMultiAsync";
-
-import { FileChip } from "../FileItem";
-import IngestionStatusComponent from "../IngestionStatus";
 
 interface FileModalProps {
     agentId: string;

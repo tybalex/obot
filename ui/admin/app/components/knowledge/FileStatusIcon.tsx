@@ -7,14 +7,13 @@ import {
 } from "~/lib/model/knowledge";
 import { cn } from "~/lib/utils";
 
+import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
-
-import { LoadingSpinner } from "../ui/LoadingSpinner";
 
 const fileStateIcons: Record<KnowledgeFileState, [React.ElementType, string]> =
     {

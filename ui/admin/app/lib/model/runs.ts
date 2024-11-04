@@ -1,6 +1,6 @@
 import { CallFrame, RunState } from "@gptscript-ai/gptscript";
 
-import { EntityMeta } from "./primitives";
+import { EntityMeta } from "~/lib/model/primitives";
 
 export type Run = EntityMeta & {
     threadID?: string;

@@ -6,9 +6,8 @@ import {
     RemoteKnowledgeSourceType,
 } from "~/lib/model/knowledge";
 
+import RemoteFileAvatar from "~/components/knowledge/RemoteFileAvatar";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
-
-import RemoteFileAvatar from "./RemoteFileAvatar";
 
 interface RemoteKnowledgeSourceStatusProps {
     source: KnowledgeSource | undefined;

@@ -11,6 +11,7 @@ import {
     TypographySmall,
 } from "~/components/Typography";
 import { ConfirmationDialog } from "~/components/composed/ConfirmationDialog";
+import { EditCustomOAuthApp } from "~/components/oauth-apps/custom/EditCustomOAuthApp";
 import { Button } from "~/components/ui/button";
 import {
     Card,
@@ -19,8 +20,6 @@ import {
     CardHeader,
 } from "~/components/ui/card";
 import { useAsync } from "~/hooks/useAsync";
-
-import { EditCustomOAuthApp } from "./EditCustomOAuthApp";
 
 type CustomOAuthAppTileProps = {
     app: OAuthApp;

@@ -13,8 +13,7 @@ import {
     FormLabel,
     FormMessage,
 } from "~/components/ui/form";
-
-import { Textarea } from "../ui/textarea";
+import { Textarea } from "~/components/ui/textarea";
 
 const formSchema = z.object({
     prompt: z.string().optional(),

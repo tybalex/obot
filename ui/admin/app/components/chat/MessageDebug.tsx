@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Calls } from "~/lib/model/runs";
 import { RunsService } from "~/lib/service/api/runsService";
 
+import CallFrames from "~/components/chat/CallFrames";
 import { Button, ButtonProps } from "~/components/ui/button";
 import {
     Dialog,
@@ -19,8 +20,6 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
-
-import CallFrames from "./CallFrames";
 
 type MessageDebugProps = {
     runId: string;

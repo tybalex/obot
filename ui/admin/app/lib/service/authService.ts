@@ -1,6 +1,6 @@
 import { AxiosError } from "axios";
 
-import { UserService } from "./api/userService";
+import { UserService } from "~/lib/service/api/userService";
 
 export const signedIn = async () => {
     try {

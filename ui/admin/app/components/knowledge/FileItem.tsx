@@ -5,15 +5,14 @@ import { KnowledgeService } from "~/lib/service/api/knowledgeService";
 import { cn } from "~/lib/utils";
 
 import { TypographyP } from "~/components/Typography";
+import FileStatusIcon from "~/components/knowledge/FileStatusIcon";
+import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import { Button } from "~/components/ui/button";
 import {
     Tooltip,
     TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
-
-import { LoadingSpinner } from "../ui/LoadingSpinner";
-import FileStatusIcon from "./FileStatusIcon";
 
 type FileItemProps = {
     file: KnowledgeFile;

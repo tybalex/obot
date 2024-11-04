@@ -6,6 +6,7 @@ import { ToolReference } from "~/lib/model/toolReferences";
 import { ToolReferenceService } from "~/lib/service/api/toolreferenceService";
 import { cn } from "~/lib/utils";
 
+import { ToolCategoryHeader } from "~/components/tools/ToolCategoryHeader";
 import { ToolItem } from "~/components/tools/ToolItem";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import {
@@ -15,8 +16,6 @@ import {
     CommandInput,
     CommandList,
 } from "~/components/ui/command";
-
-import { ToolCategoryHeader } from "./ToolCategoryHeader";
 
 type ToolCatalogProps = React.HTMLAttributes<HTMLDivElement> & {
     tools: string[];

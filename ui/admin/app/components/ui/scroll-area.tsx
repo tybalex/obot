@@ -3,7 +3,7 @@ import * as React from "react";
 
 import { cn } from "~/lib/utils";
 
-import { ScrollToBottom } from "./scroll-to-bottom";
+import { ScrollToBottom } from "~/components/ui/scroll-to-bottom";
 
 // note: I opted not to guess how to implement other scroll directions (i.e. 'top', 'left', 'right')
 // because I don't think it's necessary for the current use case. If you do need it, feel free to

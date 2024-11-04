@@ -1,3 +1,3 @@
-import AgentKnowledgePanel from "./AgentKnowledgePanel";
+import AgentKnowledgePanel from "~/components/knowledge/AgentKnowledgePanel";
 
 export { AgentKnowledgePanel };

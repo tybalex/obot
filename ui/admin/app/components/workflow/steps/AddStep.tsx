@@ -22,8 +22,7 @@ import {
     PopoverTrigger,
 } from "~/components/ui/popover";
 import { ScrollArea } from "~/components/ui/scroll-area";
-
-import { StepTemplateCard } from "./StepTemplateCard";
+import { StepTemplateCard } from "~/components/workflow/steps/StepTemplateCard";
 
 type StepType = "regular" | "if" | "while" | "template";
 

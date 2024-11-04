@@ -2,12 +2,11 @@ import { ToolCall } from "~/lib/model/chatEvents";
 import { Message as MessageType } from "~/lib/model/messages";
 import { cn } from "~/lib/utils";
 
+import { useChat } from "~/components/chat/ChatContext";
 import { Message } from "~/components/chat/Message";
 import { NoMessages } from "~/components/chat/NoMessages";
+import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import { ScrollArea } from "~/components/ui/scroll-area";
-
-import { LoadingSpinner } from "../ui/LoadingSpinner";
-import { useChat } from "./ChatContext";
 
 interface MessagePaneProps {
     messages: MessageType[];

@@ -1,7 +1,6 @@
 import { CreateOAuthApp, OAuthApp, OAuthAppBase } from "~/lib/model/oauthApps";
 import { ApiRoutes } from "~/lib/routers/apiRoutes";
-
-import { request } from "./primitives";
+import { request } from "~/lib/service/api/primitives";
 
 const getOauthApps = async () => {
     const res = await request<{ items: OAuthApp[] }>({

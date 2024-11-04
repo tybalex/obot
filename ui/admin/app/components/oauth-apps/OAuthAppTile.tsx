@@ -2,6 +2,7 @@ import { OAuthProvider } from "~/lib/model/oauthApps/oauth-helpers";
 import { cn } from "~/lib/utils";
 
 import { TypographyH3 } from "~/components/Typography";
+import { OAuthAppDetail } from "~/components/oauth-apps/OAuthAppDetail";
 import { useTheme } from "~/components/theme";
 import { Badge } from "~/components/ui/badge";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
@@ -12,8 +13,6 @@ import {
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { useOAuthAppInfo } from "~/hooks/oauthApps/useOAuthApps";
-
-import { OAuthAppDetail } from "./OAuthAppDetail";
 
 export function OAuthAppTile({
     type,

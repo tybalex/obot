@@ -1,5 +1,5 @@
-import { ChatEvent, OAuthPrompt, ToolCall } from "./chatEvents";
-import { Run } from "./runs";
+import { ChatEvent, OAuthPrompt, ToolCall } from "~/lib/model/chatEvents";
+import { Run } from "~/lib/model/runs";
 
 export interface Message {
     text: string;

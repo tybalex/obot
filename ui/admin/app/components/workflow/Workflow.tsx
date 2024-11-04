@@ -21,6 +21,8 @@ import {
 } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
 import { ScrollArea } from "~/components/ui/scroll-area";
+import { ParamsForm } from "~/components/workflow/ParamsForm";
+import { StringArrayForm } from "~/components/workflow/StringArrayForm";
 import { WorkflowAdvancedForm } from "~/components/workflow/WorkflowAdvancedForm";
 import {
     WorkflowProvider,
@@ -29,9 +31,6 @@ import {
 import { WorkflowForm } from "~/components/workflow/WorkflowForm";
 import { StepsForm } from "~/components/workflow/steps/StepsForm";
 import { useDebounce } from "~/hooks/useDebounce";
-
-import { ParamsForm } from "./ParamsForm";
-import { StringArrayForm } from "./StringArrayForm";
 
 type WorkflowProps = {
     workflow: WorkflowType;
