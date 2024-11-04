@@ -1,13 +1,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { BrainIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Agent } from "~/lib/model/agents";
 
+import { TypographyH4 } from "~/components/Typography";
+import {
+    ControlledAutosizeTextarea,
+    ControlledInput,
+} from "~/components/form/controlledInputs";
 import { Form } from "~/components/ui/form";
-
-import { ControlledInput, ControlledTextarea } from "../form/controlledInputs";
 
 const formSchema = z.object({
     name: z.string().min(1, {
@@ -74,11 +78,15 @@ export function AgentForm({ agent, onSubmit, onChange }: AgentFormProps) {
                     placeholder="Add a description..."
                     className="text-xl text-muted-foreground"
                 />
-                <ControlledTextarea
+                <TypographyH4 className="flex items-center gap-2">
+                    <BrainIcon className="w-5 h-5" />
+                    Instructions
+                </TypographyH4>
+                <ControlledAutosizeTextarea
                     control={form.control}
                     autoComplete="off"
                     name="prompt"
-                    label="Instructions"
+                    maxHeight={300}
                     placeholder="Give the agent instructions on how to behave and respond to input."
                 />
             </form>

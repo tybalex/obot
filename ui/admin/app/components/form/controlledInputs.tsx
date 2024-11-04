@@ -18,7 +18,12 @@ import {
     FormMessage,
 } from "~/components/ui/form";
 import { Input, InputProps } from "~/components/ui/input";
-import { Textarea, TextareaProps } from "~/components/ui/textarea";
+import {
+    AutosizeTextAreaProps,
+    AutosizeTextarea,
+    Textarea,
+    TextareaProps,
+} from "~/components/ui/textarea";
 
 type BaseProps<
     TValues extends FieldValues,
@@ -112,6 +117,53 @@ export function ControlledTextarea<
 
                     <FormControl>
                         <Textarea
+                            {...field}
+                            {...inputProps}
+                            className={cn(
+                                getFieldStateClasses(fieldState),
+                                className
+                            )}
+                        />
+                    </FormControl>
+
+                    <FormMessage />
+                </FormItem>
+            )}
+        />
+    );
+}
+
+export type ControlledAutosizeTextareaProps<
+    TValues extends FieldValues,
+    TName extends FieldPath<TValues>,
+> = Omit<AutosizeTextAreaProps, keyof ControllerRenderProps<TValues, TName>> &
+    BaseProps<TValues, TName>;
+
+export function ControlledAutosizeTextarea<
+    TValues extends FieldValues,
+    TName extends FieldPath<TValues>,
+>({
+    control,
+    name,
+    label,
+    description,
+    className,
+    ...inputProps
+}: ControlledAutosizeTextareaProps<TValues, TName>) {
+    return (
+        <FormField
+            control={control}
+            name={name}
+            render={({ field, fieldState }) => (
+                <FormItem>
+                    {label && <FormLabel>{label}</FormLabel>}
+
+                    {description && (
+                        <FormDescription>{description}</FormDescription>
+                    )}
+
+                    <FormControl>
+                        <AutosizeTextarea
                             {...field}
                             {...inputProps}
                             className={cn(

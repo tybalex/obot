@@ -15,7 +15,7 @@ import { Button } from "~/components/ui/button";
 
 import { Avatar } from "../ui/avatar";
 import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
+import { AutosizeTextarea } from "../ui/textarea";
 import FileModal from "./file/FileModal";
 import { NotionModal } from "./notion/NotionModal";
 import { OnedriveModal } from "./onedrive/OneDriveModal";
@@ -366,7 +366,8 @@ export default function AgentKnowledgePanel({
         <div className="flex flex-col gap-4 justify-center items-center">
             <div className="grid w-full gap-2">
                 <Label htmlFor="message">Knowledge Description</Label>
-                <Textarea
+                <AutosizeTextarea
+                    maxHeight={200}
                     placeholder="Provide a brief description of the information contained in this knowledge base. Example: A collection of documents about the human resources policies and procedures for Acme Corporation."
                     id="message"
                     value={knowledgeDescription ?? ""}

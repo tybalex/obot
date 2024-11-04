@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { Agent as AgentType } from "~/lib/model/agents";
 import { cn } from "~/lib/utils";
 
-import { TypographyP } from "~/components/Typography";
+import { TypographyH4, TypographyP } from "~/components/Typography";
 import { AgentProvider, useAgent } from "~/components/agent/AgentContext";
 import { AgentForm } from "~/components/agent/AgentForm";
 import { PastThreads } from "~/components/agent/PastThreads";
@@ -64,10 +64,10 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                 </div>
 
                 <div className="p-4 flex-auto space-y-4">
-                    <span className="flex items-center gap-2 text-xl">
+                    <TypographyH4 className="flex items-center gap-2">
                         <WrenchIcon className="w-5 h-5" />
                         Tools
-                    </span>
+                    </TypographyH4>
                     <TypographyP className="text-muted-foreground flex items-center gap-2">
                         Add tools the allow the agent to perform useful actions
                         such as searching the web, reading files, or interacting
@@ -80,10 +80,10 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                 </div>
 
                 <div className="p-4 flex-auto space-y-4">
-                    <span className="flex items-center gap-2 text-xl">
+                    <TypographyH4 className="flex items-center gap-2">
                         <LibraryIcon className="w-6 h-6" />
                         Knowledge
-                    </span>
+                    </TypographyH4>
                     <TypographyP className="text-muted-foreground flex items-center gap-2">
                         Provide knowledge to the agent in the form of files,
                         website, or external links in order to give it context
