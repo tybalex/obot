@@ -15,9 +15,8 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "~/components/ui/breadcrumb";
-
-import { SidebarTrigger } from "../ui/sidebar";
-import { UserMenu } from "../user/UserMenu";
+import { SidebarTrigger } from "~/components/ui/sidebar";
+import { UserMenu } from "~/components/user/UserMenu";
 
 export function HeaderNav() {
     const { pathname } = useLocation();

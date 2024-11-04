@@ -11,11 +11,10 @@ import { SWRConfig } from "swr";
 import { AuthProvider } from "~/components/auth/AuthContext";
 import { LayoutProvider } from "~/components/layout/LayoutProvider";
 import { ThemeProvider } from "~/components/theme";
+import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
+import { SidebarProvider } from "~/components/ui/sidebar";
 import { Toaster } from "~/components/ui/sonner";
-
-import { LoadingSpinner } from "./components/ui/LoadingSpinner";
-import { SidebarProvider } from "./components/ui/sidebar";
-import "./tailwind.css";
+import "~/tailwind.css";
 
 export const links: LinksFunction = () => [
     { rel: "preconnect", href: "https://fonts.googleapis.com" },

@@ -1,11 +1,13 @@
+import {
+    OAuthAppSpec,
+    OAuthProvider,
+} from "~/lib/model/oauthApps/oauth-helpers";
+import { GitHubOAuthApp } from "~/lib/model/oauthApps/providers/github";
+import { GoogleOAuthApp } from "~/lib/model/oauthApps/providers/google";
+import { Microsoft365OAuthApp } from "~/lib/model/oauthApps/providers/microsoft365";
+import { NotionOAuthApp } from "~/lib/model/oauthApps/providers/notion";
+import { SlackOAuthApp } from "~/lib/model/oauthApps/providers/slack";
 import { EntityMeta } from "~/lib/model/primitives";
-
-import { OAuthAppSpec, OAuthProvider } from "./oauth-helpers";
-import { GitHubOAuthApp } from "./providers/github";
-import { GoogleOAuthApp } from "./providers/google";
-import { Microsoft365OAuthApp } from "./providers/microsoft365";
-import { NotionOAuthApp } from "./providers/notion";
-import { SlackOAuthApp } from "./providers/slack";
 
 export const OAuthAppSpecMap = {
     [OAuthProvider.GitHub]: GitHubOAuthApp,

@@ -9,15 +9,14 @@ import { OAuthPrompt } from "~/lib/model/chatEvents";
 import { Message as MessageType } from "~/lib/model/messages";
 import { cn } from "~/lib/utils";
 
+import { TypographyP } from "~/components/Typography";
 import { MessageDebug } from "~/components/chat/MessageDebug";
+import { ToolCallInfo } from "~/components/chat/ToolCallInfo";
 import { CustomMarkdownComponents } from "~/components/react-markdown";
 import { ToolIcon } from "~/components/tools/ToolIcon";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { TypingDots } from "~/components/ui/typing-spinner";
-
-import { TypographyP } from "../Typography";
-import { ToolCallInfo } from "./ToolCallInfo";
 
 interface MessageProps {
     message: MessageType;

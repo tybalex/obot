@@ -2,8 +2,7 @@ import queryString from "query-string";
 import { mutate } from "swr";
 
 import { ToolReferenceType } from "~/lib/model/toolReferences";
-
-import { ApiUrl } from "./baseRouter";
+import { ApiUrl } from "~/lib/routers/baseRouter";
 
 const prodBaseUrl = () => new URL(ApiUrl()).pathname;
 

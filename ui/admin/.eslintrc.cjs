@@ -50,6 +50,18 @@ module.exports = {
             },
             rules: {
                 "react/prop-types": "off",
+                "no-restricted-imports": [
+                    "error",
+                    {
+                        patterns: [
+                            {
+                                group: [".*"],
+                                message:
+                                    "Please use absolute imports (~/component) instead of relative imports (../../component).",
+                            },
+                        ],
+                    },
+                ],
             },
         },
 

@@ -17,6 +17,11 @@ import {
 } from "~/lib/model/knowledge";
 import { KnowledgeService } from "~/lib/service/api/knowledgeService";
 
+import IngestionStatusComponent from "~/components/knowledge/IngestionStatus";
+import RemoteFileItemChip from "~/components/knowledge/RemoteFileItemChip";
+import RemoteKnowledgeSourceStatus from "~/components/knowledge/RemoteKnowledgeSourceStatus";
+import RemoteSourceSettingModal from "~/components/knowledge/RemoteSourceSettingModal";
+import AddWebsiteModal from "~/components/knowledge/website/AddWebsiteModal";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import { Avatar } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
@@ -27,12 +32,6 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
-
-import IngestionStatusComponent from "../IngestionStatus";
-import RemoteFileItemChip from "../RemoteFileItemChip";
-import RemoteKnowledgeSourceStatus from "../RemoteKnowledgeSourceStatus";
-import RemoteSourceSettingModal from "../RemoteSourceSettingModal";
-import AddWebsiteModal from "./AddWebsiteModal";
 
 interface WebsiteModalProps {
     agentId: string;

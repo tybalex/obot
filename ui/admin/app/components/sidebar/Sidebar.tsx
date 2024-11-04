@@ -11,6 +11,8 @@ import { $path } from "remix-routes";
 
 import { cn } from "~/lib/utils";
 
+import { OttoLogo } from "~/components/branding/OttoLogo";
+import { Button } from "~/components/ui/button";
 import {
     Popover,
     PopoverContent,
@@ -29,9 +31,6 @@ import {
     SidebarRail,
     useSidebar,
 } from "~/components/ui/sidebar";
-
-import { OttoLogo } from "../branding/OttoLogo";
-import { Button } from "../ui/button";
 
 // Menu items.
 const items = [

@@ -1,10 +1,9 @@
 import { Step } from "~/lib/model/workflows";
 
 import { IfComponent } from "~/components/workflow/steps/If";
+import { StepComponent } from "~/components/workflow/steps/Step";
+import { TemplateComponent } from "~/components/workflow/steps/Template";
 import { WhileComponent } from "~/components/workflow/steps/While";
-
-import { StepComponent } from "./Step";
-import { TemplateComponent } from "./Template";
 
 export function renderStep(
     step: Step,

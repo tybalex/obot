@@ -10,6 +10,7 @@ import {
 import { KnowledgeService } from "~/lib/service/api/knowledgeService";
 import { assetUrl } from "~/lib/utils";
 
+import IngestionStatusComponent from "~/components/knowledge/IngestionStatus";
 import RemoteFileItemChip from "~/components/knowledge/RemoteFileItemChip";
 import RemoteKnowledgeSourceStatus from "~/components/knowledge/RemoteKnowledgeSourceStatus";
 import RemoteSourceSettingModal from "~/components/knowledge/RemoteSourceSettingModal";
@@ -29,8 +30,6 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
-
-import IngestionStatusComponent from "../IngestionStatus";
 
 type NotionModalProps = {
     agentId: string;

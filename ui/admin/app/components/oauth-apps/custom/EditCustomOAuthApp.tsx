@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { OAuthApp } from "~/lib/model/oauthApps";
 
+import { CustomOAuthAppForm } from "~/components/oauth-apps/custom/CustomOAuthAppForm";
 import { Button } from "~/components/ui/button";
 import {
     Dialog,
@@ -11,8 +12,6 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "~/components/ui/dialog";
-
-import { CustomOAuthAppForm } from "./CustomOAuthAppForm";
 
 type EditCustomOAuthAppProps = {
     app: OAuthApp;

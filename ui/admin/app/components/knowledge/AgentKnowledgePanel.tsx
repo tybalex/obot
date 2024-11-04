@@ -11,15 +11,14 @@ import {
 import { KnowledgeService } from "~/lib/service/api/knowledgeService";
 import { assetUrl } from "~/lib/utils";
 
+import FileModal from "~/components/knowledge/file/FileModal";
+import { NotionModal } from "~/components/knowledge/notion/NotionModal";
+import { OnedriveModal } from "~/components/knowledge/onedrive/OneDriveModal";
+import { WebsiteModal } from "~/components/knowledge/website/WebsiteModal";
+import { Avatar } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
-
-import { Avatar } from "../ui/avatar";
-import { Label } from "../ui/label";
-import { AutosizeTextarea } from "../ui/textarea";
-import FileModal from "./file/FileModal";
-import { NotionModal } from "./notion/NotionModal";
-import { OnedriveModal } from "./onedrive/OneDriveModal";
-import { WebsiteModal } from "./website/WebsiteModal";
+import { Label } from "~/components/ui/label";
+import { AutosizeTextarea } from "~/components/ui/textarea";
 
 type AgentKnowledgePanelProps = {
     agentId: string;

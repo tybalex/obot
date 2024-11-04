@@ -6,6 +6,8 @@ import { OAuthAppParams } from "~/lib/model/oauthApps";
 import { OAuthProvider } from "~/lib/model/oauthApps/oauth-helpers";
 import { OauthAppService } from "~/lib/service/api/oauthAppService";
 
+import { OAuthAppForm } from "~/components/oauth-apps/OAuthAppForm";
+import { OAuthAppTypeIcon } from "~/components/oauth-apps/OAuthAppTypeIcon";
 import { Button } from "~/components/ui/button";
 import {
     Dialog,
@@ -18,9 +20,6 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 import { useOAuthAppInfo } from "~/hooks/oauthApps/useOAuthApps";
 import { useAsync } from "~/hooks/useAsync";
 import { useDisclosure } from "~/hooks/useDisclosure";
-
-import { OAuthAppForm } from "./OAuthAppForm";
-import { OAuthAppTypeIcon } from "./OAuthAppTypeIcon";
 
 export function ConfigureOAuthApp({
     type,

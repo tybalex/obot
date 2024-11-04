@@ -9,16 +9,15 @@ import { Thread } from "~/lib/model/threads";
 import { WorkspaceFile } from "~/lib/model/workspace";
 import { cn } from "~/lib/utils";
 
-import { Badge } from "~/components/ui/badge";
-import { Card, CardContent } from "~/components/ui/card";
-
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "../ui/accordion";
-import { Button } from "../ui/button";
+} from "~/components/ui/accordion";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
 
 interface ThreadMetaProps {
     thread: Thread;

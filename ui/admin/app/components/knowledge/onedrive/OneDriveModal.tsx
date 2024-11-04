@@ -19,7 +19,11 @@ import {
 import { KnowledgeService } from "~/lib/service/api/knowledgeService";
 import { assetUrl } from "~/lib/utils";
 
+import IngestionStatusComponent from "~/components/knowledge/IngestionStatus";
+import RemoteFileItemChip from "~/components/knowledge/RemoteFileItemChip";
 import RemoteKnowledgeSourceStatus from "~/components/knowledge/RemoteKnowledgeSourceStatus";
+import RemoteSourceSettingModal from "~/components/knowledge/RemoteSourceSettingModal";
+import AddLinkModal from "~/components/knowledge/onedrive/AddLinkModal";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import { Avatar } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
@@ -31,11 +35,6 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
-
-import IngestionStatusComponent from "../IngestionStatus";
-import RemoteFileItemChip from "../RemoteFileItemChip";
-import RemoteSourceSettingModal from "../RemoteSourceSettingModal";
-import AddLinkModal from "./AddLinkModal";
 
 interface OnedriveModalProps {
     agentId: string;

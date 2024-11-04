@@ -1,8 +1,11 @@
 import { z } from "zod";
 
+import {
+    OAuthAppSpec,
+    OAuthFormStep,
+    getOAuthLinks,
+} from "~/lib/model/oauthApps/oauth-helpers";
 import { assetUrl } from "~/lib/utils";
-
-import { OAuthAppSpec, OAuthFormStep, getOAuthLinks } from "../oauth-helpers";
 
 const schema = z.object({
     clientID: z.string().min(1, "Client ID is required"),

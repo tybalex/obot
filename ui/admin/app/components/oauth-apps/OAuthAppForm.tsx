@@ -15,16 +15,15 @@ import { CopyText } from "~/components/composed/CopyText";
 import { ControlledInput } from "~/components/form/controlledInputs";
 import { CustomMarkdownComponents } from "~/components/react-markdown";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
-import { Button } from "~/components/ui/button";
-import { Form } from "~/components/ui/form";
-import { useOAuthAppInfo } from "~/hooks/oauthApps/useOAuthApps";
-
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
-} from "../ui/accordion";
+} from "~/components/ui/accordion";
+import { Button } from "~/components/ui/button";
+import { Form } from "~/components/ui/form";
+import { useOAuthAppInfo } from "~/hooks/oauthApps/useOAuthApps";
 
 type OAuthAppFormProps = {
     type: OAuthProvider;

@@ -1,7 +1,7 @@
 // TODO: Add default configurations with auth tokens, etc. When ready
 import axios, { AxiosRequestConfig, AxiosResponse, isAxiosError } from "axios";
 
-import { ConflictError } from "./apiErrors";
+import { ConflictError } from "~/lib/service/api/apiErrors";
 
 export const ResponseHeaders = {
     ThreadId: "x-otto-thread-id",

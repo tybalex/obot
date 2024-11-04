@@ -6,16 +6,15 @@ import {
 import { cn } from "~/lib/utils";
 
 import { TypographyP } from "~/components/Typography";
+import FileStatusIcon from "~/components/knowledge/FileStatusIcon";
+import RemoteFileAvatar from "~/components/knowledge/RemoteFileAvatar";
+import { Button } from "~/components/ui/button";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
-
-import { Button } from "../ui/button";
-import FileStatusIcon from "./FileStatusIcon";
-import RemoteFileAvatar from "./RemoteFileAvatar";
 
 type RemoteFileItemProps = {
     file: KnowledgeFile;

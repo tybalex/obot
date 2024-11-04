@@ -6,10 +6,9 @@ import { z } from "zod";
 
 import { noop } from "~/lib/utils";
 
+import { Button } from "~/components/ui/button";
 import { Form, FormField, FormItem, FormMessage } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-
-import { Button } from "../ui/button";
 
 const formSchema = z.object({
     items: z.array(z.string()),

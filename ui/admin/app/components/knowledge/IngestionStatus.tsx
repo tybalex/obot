@@ -2,14 +2,13 @@ import { CheckIcon } from "lucide-react";
 
 import { KnowledgeFile, KnowledgeFileState } from "~/lib/model/knowledge";
 
+import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
-
-import { LoadingSpinner } from "../ui/LoadingSpinner";
 
 interface IngestionStatusProps {
     files: KnowledgeFile[];
