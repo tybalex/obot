@@ -28,7 +28,7 @@ import {
 type ToolCatalogProps = React.HTMLAttributes<HTMLDivElement> & {
     tools: string[];
     onAddTool: (tools: string) => void;
-    onRemoveTool: (toolId: string) => void;
+    onRemoveTools: (tools: string[]) => void;
     invert?: boolean;
     classNames?: { list?: string };
 };
@@ -38,7 +38,7 @@ export function ToolCatalog({
     tools,
     invert = false,
     onAddTool,
-    onRemoveTool,
+    onRemoveTools,
     classNames,
 }: ToolCatalogProps) {
     const { data: toolCategories, isLoading } = useSWR(
@@ -59,18 +59,16 @@ export function ToolCatalog({
     const handleSelectBundle = useCallback(
         (bundleToolId: string, categoryTools: ToolReference[]) => {
             if (tools.includes(bundleToolId)) {
-                onRemoveTool(bundleToolId);
+                onRemoveTools([bundleToolId]);
                 return;
             }
 
             // remove all tools in the bundle to remove redundancy
-            categoryTools.forEach((tool) => {
-                onRemoveTool(tool.id);
-            });
+            onRemoveTools(categoryTools.map((tool) => tool.id));
 
             onAddTool(bundleToolId);
         },
-        [tools, onAddTool, onRemoveTool]
+        [tools, onAddTool, onRemoveTools]
     );
 
     if (isLoading) return <LoadingSpinner />;

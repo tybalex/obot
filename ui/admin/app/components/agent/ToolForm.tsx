@@ -101,8 +101,13 @@ export function ToolForm({
         ];
     }, [toolFields]);
 
-    const removeTool = (tool: string) =>
-        toolFields.remove(toolFields.fields.findIndex((t) => t.tool === tool));
+    const removeTools = (tools: string[]) => {
+        const indexes = tools
+            .map((tool) => toolFields.fields.findIndex((t) => t.tool === tool))
+            .filter((index) => index !== -1);
+
+        toolFields.remove(indexes);
+    };
 
     const updateVariant = (tool: string, variant: ToolVariant) =>
         toolFields.update(
@@ -127,7 +132,7 @@ export function ToolForm({
                         <ToolEntry
                             key={field.id}
                             tool={field.tool}
-                            onDelete={() => removeTool(field.tool)}
+                            onDelete={() => removeTools([field.tool])}
                         />
                     ))}
                 </div>
@@ -140,7 +145,7 @@ export function ToolForm({
                             variant: ToolVariant.FIXED,
                         })
                     }
-                    onRemoveTool={removeTool}
+                    onRemoveTools={removeTools}
                 />
 
                 <TypographyP className="flex justify-between items-end font-normal mt-4">
@@ -157,7 +162,7 @@ export function ToolForm({
                         <ToolEntry
                             key={field.id}
                             tool={field.tool}
-                            onDelete={() => removeTool(field.tool)}
+                            onDelete={() => removeTools([field.tool])}
                             actions={
                                 <TooltipProvider>
                                     <Tooltip>
@@ -199,7 +204,7 @@ export function ToolForm({
                             variant: ToolVariant.DEFAULT,
                         })
                     }
-                    onRemoveTool={removeTool}
+                    onRemoveTools={removeTools}
                 />
             </form>
         </Form>
