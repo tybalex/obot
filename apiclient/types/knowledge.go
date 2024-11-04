@@ -33,7 +33,7 @@ type KnowledgeFile struct {
 	Checksum               string             `json:"checksum,omitempty"`
 	LastIngestionStartTime *Time              `json:"lastIngestionStartTime,omitempty"`
 	LastIngestionEndTime   *Time              `json:"lastIngestionEndTime,omitempty"`
-	LastRunID              string             `json:"lastRunID,omitempty"`
+	LastRunIDs             []string           `json:"lastRunIDs,omitempty"`
 }
 
 type KnowledgeFileList List[KnowledgeFile]

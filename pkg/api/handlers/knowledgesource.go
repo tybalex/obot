@@ -22,6 +22,9 @@ func convertKnowledgeSource(agentName string, knowledgeSource v1.KnowledgeSource
 		SyncDetails:             syncDetails,
 		Status:                  knowledgeSource.Status.Status,
 		Error:                   knowledgeSource.Status.Error,
+		LastSyncStartTime:       types.NewTime(knowledgeSource.Status.LastSyncStartTime.Time),
+		LastSyncEndTime:         types.NewTime(knowledgeSource.Status.LastSyncEndTime.Time),
+		LastRunID:               knowledgeSource.Status.RunName,
 	}
 }
 

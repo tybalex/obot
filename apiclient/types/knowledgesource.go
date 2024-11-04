@@ -33,6 +33,9 @@ type KnowledgeSource struct {
 	SyncDetails             json.RawMessage      `json:"syncDetails,omitempty"`
 	Status                  string               `json:"status,omitempty"`
 	Error                   string               `json:"error,omitempty"`
+	LastSyncStartTime       *Time                `json:"lastSyncStartTime,omitempty"`
+	LastSyncEndTime         *Time                `json:"lastSyncEndTime,omitempty"`
+	LastRunID               string               `json:"lastRunID,omitempty"`
 }
 
 type KnowledgeSourceManifest struct {
