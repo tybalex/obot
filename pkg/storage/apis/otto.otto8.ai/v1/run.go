@@ -2,13 +2,8 @@ package v1
 
 import (
 	gptscriptclient "github.com/gptscript-ai/go-gptscript"
-	"github.com/otto8-ai/nah/pkg/conditions"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-var (
-	_ conditions.Conditions = (*Run)(nil)
 )
 
 const (
@@ -61,10 +56,6 @@ func (in *Run) GetColumns() [][]string {
 		{"Step", "Spec.WorkflowStepName"},
 		{"Created", "{{ago .CreationTimestamp}}"},
 	}
-}
-
-func (in *Run) GetConditions() *[]metav1.Condition {
-	return &in.Status.Conditions
 }
 
 type RunSpec struct {

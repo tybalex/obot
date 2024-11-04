@@ -1,13 +1,8 @@
 package v1
 
 import (
-	"github.com/otto8-ai/nah/pkg/conditions"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-var (
-	_ conditions.Conditions = (*CronJob)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -37,18 +32,13 @@ func (c *CronJob) DeleteRefs() []Ref {
 	}
 }
 
-func (c *CronJob) GetConditions() *[]metav1.Condition {
-	return &c.Status.Conditions
-}
-
 type CronJobSpec struct {
 	types.CronJobManifest `json:",inline"`
 }
 
 type CronJobStatus struct {
-	Conditions                 []metav1.Condition `json:"conditions,omitempty"`
-	LastRunStartedAt           *metav1.Time       `json:"lastRunStartedAt,omitempty"`
-	LastSuccessfulRunCompleted *metav1.Time       `json:"lastSuccessfulRunCompleted,omitempty"`
+	LastRunStartedAt           *metav1.Time `json:"lastRunStartedAt,omitempty"`
+	LastSuccessfulRunCompleted *metav1.Time `json:"lastSuccessfulRunCompleted,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -1,15 +1,13 @@
 package v1
 
 import (
-	"github.com/otto8-ai/nah/pkg/conditions"
 	"github.com/otto8-ai/nah/pkg/fields"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	_ conditions.Conditions = (*WorkflowExecution)(nil)
-	_ fields.Fields         = (*WorkflowExecution)(nil)
+	_ fields.Fields = (*WorkflowExecution)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -58,10 +56,6 @@ func (in *WorkflowExecution) GetColumns() [][]string {
 	}
 }
 
-func (in *WorkflowExecution) GetConditions() *[]metav1.Condition {
-	return &in.Status.Conditions
-}
-
 type WorkflowExecutionSpec struct {
 	Input                 string `json:"input,omitempty"`
 	WorkflowName          string `json:"workflowName,omitempty"`
@@ -89,7 +83,6 @@ type WorkflowExecutionStatus struct {
 	ThreadName         string                  `json:"threadName,omitempty"`
 	WorkflowManifest   *types.WorkflowManifest `json:"workflowManifest,omitempty"`
 	EndTime            *metav1.Time            `json:"endTime,omitempty"`
-	Conditions         []metav1.Condition      `json:"conditions,omitempty"`
 	WorkflowGeneration int64                   `json:"workflowGeneration,omitempty"`
 }
 

@@ -3,17 +3,14 @@ package v1
 import (
 	"fmt"
 
-	"github.com/otto8-ai/nah/pkg/conditions"
 	"github.com/otto8-ai/nah/pkg/fields"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	_ conditions.Conditions = (*OAuthApp)(nil)
-	_ fields.Fields         = (*OAuthApp)(nil)
-	_ conditions.Conditions = (*OAuthAppReference)(nil)
-	_ fields.Fields         = (*OAuthAppReference)(nil)
+	_ fields.Fields = (*OAuthApp)(nil)
+	_ fields.Fields = (*OAuthAppReference)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -21,8 +18,8 @@ var (
 type OAuthApp struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              OAuthAppSpec   `json:"spec,omitempty"`
-	Status            OAuthAppStatus `json:"status,omitempty"`
+	Spec              OAuthAppSpec `json:"spec,omitempty"`
+	Status            EmptyStatus  `json:"status,omitempty"`
 }
 
 func (r *OAuthApp) Has(field string) bool {
@@ -60,20 +57,12 @@ func (r *OAuthApp) RefreshURL(baseURL string) string {
 	return fmt.Sprintf("%s/api/app-oauth/refresh/%s", baseURL, r.Spec.Manifest.Integration)
 }
 
-func (r *OAuthApp) GetConditions() *[]metav1.Condition {
-	return &r.Status.Conditions
-}
-
 func (r *OAuthApp) DeleteRefs() []Ref {
 	return nil
 }
 
 type OAuthAppSpec struct {
 	Manifest types.OAuthAppManifest `json:"manifest,omitempty"`
-}
-
-type OAuthAppStatus struct {
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -89,8 +78,8 @@ type OAuthAppList struct {
 type OAuthAppReference struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              OAuthAppReferenceSpec   `json:"spec,omitempty"`
-	Status            OAuthAppReferenceStatus `json:"status,omitempty"`
+	Spec              OAuthAppReferenceSpec `json:"spec,omitempty"`
+	Status            EmptyStatus           `json:"status,omitempty"`
 }
 
 func (*OAuthAppReference) NamespaceScoped() bool {
@@ -123,17 +112,9 @@ func (r *OAuthAppReference) FieldNames() []string {
 	return []string{"spec.appName", "spec.appNamespace"}
 }
 
-func (r *OAuthAppReference) GetConditions() *[]metav1.Condition {
-	return &r.Status.Conditions
-}
-
 type OAuthAppReferenceSpec struct {
 	AppName      string `json:"appName,omitempty"`
 	AppNamespace string `json:"appNamespace,omitempty"`
-}
-
-type OAuthAppReferenceStatus struct {
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -157,17 +138,12 @@ func (o *OAuthAppLogin) DeleteRefs() []Ref {
 	return nil
 }
 
-func (o *OAuthAppLogin) GetConditions() *[]metav1.Condition {
-	return &o.Status.Conditions
-}
-
 type OAuthAppLoginSpec struct {
 	CredentialContext string `json:"credentialContext,omitempty"`
 	CredentialTool    string `json:"credentialTool,omitempty"`
 }
 
 type OAuthAppLoginStatus struct {
-	Conditions                    []metav1.Condition `json:"conditions,omitempty"`
 	types.OAuthAppLoginAuthStatus `json:",inline"`
 }
 

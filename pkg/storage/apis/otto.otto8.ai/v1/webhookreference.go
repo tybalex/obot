@@ -1,14 +1,12 @@
 package v1
 
 import (
-	"github.com/otto8-ai/nah/pkg/conditions"
 	"github.com/otto8-ai/nah/pkg/fields"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	_ conditions.Conditions = (*WebhookReference)(nil)
-	_ fields.Fields         = (*WebhookReference)(nil)
+	_ fields.Fields = (*WebhookReference)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -18,7 +16,7 @@ type WebhookReference struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec   WebhookReferenceSpec `json:"spec,omitempty"`
-	Status ReferenceStatus      `json:"status,omitempty"`
+	Status EmptyStatus          `json:"status,omitempty"`
 }
 
 func (in *WebhookReference) Has(field string) bool {
@@ -43,10 +41,6 @@ func (*WebhookReference) FieldNames() []string {
 
 func (*WebhookReference) NamespaceScoped() bool {
 	return false
-}
-
-func (in *WebhookReference) GetConditions() *[]metav1.Condition {
-	return &in.Status.Conditions
 }
 
 type WebhookReferenceSpec struct {

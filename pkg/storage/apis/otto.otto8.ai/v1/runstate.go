@@ -1,12 +1,7 @@
 package v1
 
 import (
-	"github.com/otto8-ai/nah/pkg/conditions"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-var (
-	_ conditions.Conditions = (*RunState)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -15,12 +10,8 @@ type RunState struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Spec   RunStateSpec   `json:"spec,omitempty"`
-	Status RunStateStatus `json:"status,omitempty"`
-}
-
-func (in *RunState) GetConditions() *[]metav1.Condition {
-	return &in.Status.Conditions
+	Spec   RunStateSpec `json:"spec,omitempty"`
+	Status EmptyStatus  `json:"status,omitempty"`
 }
 
 type RunStateSpec struct {
@@ -35,10 +26,6 @@ type RunStateSpec struct {
 
 func (in *RunState) DeleteRefs() []Ref {
 	return []Ref{}
-}
-
-type RunStateStatus struct {
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

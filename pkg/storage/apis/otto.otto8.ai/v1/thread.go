@@ -2,14 +2,10 @@ package v1
 
 import (
 	gptscriptclient "github.com/gptscript-ai/go-gptscript"
-	"github.com/otto8-ai/nah/pkg/conditions"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var (
-	_ conditions.Conditions = (*Thread)(nil)
-)
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
@@ -32,9 +28,6 @@ func (in *Thread) GetColumns() [][]string {
 	}
 }
 
-func (in *Thread) GetConditions() *[]metav1.Condition {
-	return &in.Status.Conditions
-}
 
 type ThreadSpec struct {
 	Manifest              types.ThreadManifest `json:"manifest,omitempty"`
@@ -78,7 +71,6 @@ type ThreadStatus struct {
 	WorkspaceID        string                   `json:"workspaceID,omitempty"`
 	PreviousThreadName string                   `json:"previousThreadName,omitempty"`
 	KnowledgeSetNames  []string                 `json:"knowledgeSetNames,omitempty"`
-	Conditions         []metav1.Condition       `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

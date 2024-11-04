@@ -1,13 +1,8 @@
 package v1
 
 import (
-	"github.com/otto8-ai/nah/pkg/conditions"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-var (
-	_ conditions.Conditions = (*ToolReference)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -27,10 +22,6 @@ func (in *ToolReference) GetColumns() [][]string {
 		{"Error", "Status.Error"},
 		{"Created", "{{ago .CreationTimestamp}}"},
 	}
-}
-
-func (in *ToolReference) GetConditions() *[]metav1.Condition {
-	return &in.Status.Conditions
 }
 
 type ToolReferenceSpec struct {
@@ -53,7 +44,6 @@ type ToolReferenceStatus struct {
 	ObservedGeneration int64                 `json:"observedGeneration,omitempty"`
 	Tool               *ToolShortDescription `json:"tool,omitempty"`
 	Error              string                `json:"error,omitempty"`
-	Conditions         []metav1.Condition    `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

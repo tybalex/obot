@@ -80,6 +80,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.CronJobList":             schema_storage_apis_ottootto8ai_v1_CronJobList(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.CronJobSpec":             schema_storage_apis_ottootto8ai_v1_CronJobSpec(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.CronJobStatus":           schema_storage_apis_ottootto8ai_v1_CronJobStatus(ref),
+		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.EmptyStatus":             schema_storage_apis_ottootto8ai_v1_EmptyStatus(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.KnowledgeFile":           schema_storage_apis_ottootto8ai_v1_KnowledgeFile(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.KnowledgeFileList":       schema_storage_apis_ottootto8ai_v1_KnowledgeFileList(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.KnowledgeFileSpec":       schema_storage_apis_ottootto8ai_v1_KnowledgeFileSpec(ref),
@@ -102,21 +103,17 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppReference":       schema_storage_apis_ottootto8ai_v1_OAuthAppReference(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppReferenceList":   schema_storage_apis_ottootto8ai_v1_OAuthAppReferenceList(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppReferenceSpec":   schema_storage_apis_ottootto8ai_v1_OAuthAppReferenceSpec(ref),
-		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppReferenceStatus": schema_storage_apis_ottootto8ai_v1_OAuthAppReferenceStatus(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppSpec":            schema_storage_apis_ottootto8ai_v1_OAuthAppSpec(ref),
-		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppStatus":          schema_storage_apis_ottootto8ai_v1_OAuthAppStatus(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.Ref":                     schema_storage_apis_ottootto8ai_v1_Ref(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.Reference":               schema_storage_apis_ottootto8ai_v1_Reference(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ReferenceList":           schema_storage_apis_ottootto8ai_v1_ReferenceList(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ReferenceSpec":           schema_storage_apis_ottootto8ai_v1_ReferenceSpec(ref),
-		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ReferenceStatus":         schema_storage_apis_ottootto8ai_v1_ReferenceStatus(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.Run":                     schema_storage_apis_ottootto8ai_v1_Run(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.RunList":                 schema_storage_apis_ottootto8ai_v1_RunList(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.RunSpec":                 schema_storage_apis_ottootto8ai_v1_RunSpec(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.RunState":                schema_storage_apis_ottootto8ai_v1_RunState(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.RunStateList":            schema_storage_apis_ottootto8ai_v1_RunStateList(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.RunStateSpec":            schema_storage_apis_ottootto8ai_v1_RunStateSpec(ref),
-		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.RunStateStatus":          schema_storage_apis_ottootto8ai_v1_RunStateStatus(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.RunStatus":               schema_storage_apis_ottootto8ai_v1_RunStatus(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.SubCall":                 schema_storage_apis_ottootto8ai_v1_SubCall(ref),
 		"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.Thread":                  schema_storage_apis_ottootto8ai_v1_Thread(ref),
@@ -3144,19 +3141,6 @@ func schema_storage_apis_ottootto8ai_v1_CronJobStatus(ref common.ReferenceCallba
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"conditions": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
-									},
-								},
-							},
-						},
-					},
 					"lastRunStartedAt": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
@@ -3171,7 +3155,17 @@ func schema_storage_apis_ottootto8ai_v1_CronJobStatus(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Condition", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+	}
+}
+
+func schema_storage_apis_ottootto8ai_v1_EmptyStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+			},
+		},
 	}
 }
 
@@ -3830,14 +3824,14 @@ func schema_storage_apis_ottootto8ai_v1_OAuthApp(ref common.ReferenceCallback) c
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.EmptyStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.EmptyStatus", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppSpec", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -4013,19 +4007,6 @@ func schema_storage_apis_ottootto8ai_v1_OAuthAppLoginStatus(ref common.Reference
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"conditions": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
-									},
-								},
-							},
-						},
-					},
 					"url": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -4053,8 +4034,6 @@ func schema_storage_apis_ottootto8ai_v1_OAuthAppLoginStatus(ref common.Reference
 				},
 			},
 		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -4093,14 +4072,14 @@ func schema_storage_apis_ottootto8ai_v1_OAuthAppReference(ref common.ReferenceCa
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppReferenceStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.EmptyStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppReferenceSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppReferenceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.EmptyStatus", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.OAuthAppReferenceSpec", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -4176,33 +4155,6 @@ func schema_storage_apis_ottootto8ai_v1_OAuthAppReferenceSpec(ref common.Referen
 	}
 }
 
-func schema_storage_apis_ottootto8ai_v1_OAuthAppReferenceStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"conditions": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
-	}
-}
-
 func schema_storage_apis_ottootto8ai_v1_OAuthAppSpec(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -4220,33 +4172,6 @@ func schema_storage_apis_ottootto8ai_v1_OAuthAppSpec(ref common.ReferenceCallbac
 		},
 		Dependencies: []string{
 			"github.com/otto8-ai/otto8/apiclient/types.OAuthAppManifest"},
-	}
-}
-
-func schema_storage_apis_ottootto8ai_v1_OAuthAppStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"conditions": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -4319,14 +4244,14 @@ func schema_storage_apis_ottootto8ai_v1_Reference(ref common.ReferenceCallback) 
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ReferenceStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.EmptyStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ReferenceSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ReferenceStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.EmptyStatus", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ReferenceSpec", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -4399,33 +4324,6 @@ func schema_storage_apis_ottootto8ai_v1_ReferenceSpec(ref common.ReferenceCallba
 				},
 			},
 		},
-	}
-}
-
-func schema_storage_apis_ottootto8ai_v1_ReferenceStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"conditions": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -4666,14 +4564,14 @@ func schema_storage_apis_ottootto8ai_v1_RunState(ref common.ReferenceCallback) c
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.RunStateStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.EmptyStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.RunStateSpec", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.RunStateStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.EmptyStatus", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.RunStateSpec", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -4776,33 +4674,6 @@ func schema_storage_apis_ottootto8ai_v1_RunStateSpec(ref common.ReferenceCallbac
 				},
 			},
 		},
-	}
-}
-
-func schema_storage_apis_ottootto8ai_v1_RunStateStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
-	return common.OpenAPIDefinition{
-		Schema: spec.Schema{
-			SchemaProps: spec.SchemaProps{
-				Type: []string{"object"},
-				Properties: map[string]spec.Schema{
-					"conditions": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -5143,24 +5014,9 @@ func schema_storage_apis_ottootto8ai_v1_ThreadStatus(ref common.ReferenceCallbac
 							},
 						},
 					},
-					"conditions": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
-									},
-								},
-							},
-						},
-					},
 				},
 			},
 		},
-		Dependencies: []string{
-			"k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
 	}
 }
 
@@ -5323,24 +5179,11 @@ func schema_storage_apis_ottootto8ai_v1_ToolReferenceStatus(ref common.Reference
 							Format: "",
 						},
 					},
-					"conditions": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
-									},
-								},
-							},
-						},
-					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ToolShortDescription", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ToolShortDescription"},
 	}
 }
 
@@ -5533,14 +5376,14 @@ func schema_storage_apis_ottootto8ai_v1_WebhookReference(ref common.ReferenceCal
 					"status": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
-							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ReferenceStatus"),
+							Ref:     ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.EmptyStatus"),
 						},
 					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ReferenceStatus", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.WebhookReferenceSpec", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.EmptyStatus", "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.WebhookReferenceSpec", "k8s.io/apimachinery/pkg/apis/meta/v1.ObjectMeta"},
 	}
 }
 
@@ -5723,19 +5566,6 @@ func schema_storage_apis_ottootto8ai_v1_WebhookStatus(ref common.ReferenceCallba
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"conditions": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
-									},
-								},
-							},
-						},
-					},
 					"external": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
@@ -5751,7 +5581,7 @@ func schema_storage_apis_ottootto8ai_v1_WebhookStatus(ref common.ReferenceCallba
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/apiclient/types.WebhookExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+			"github.com/otto8-ai/otto8/apiclient/types.WebhookExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
 	}
 }
 
@@ -6007,19 +5837,6 @@ func schema_storage_apis_ottootto8ai_v1_WorkflowExecutionStatus(ref common.Refer
 							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
 						},
 					},
-					"conditions": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
-									},
-								},
-							},
-						},
-					},
 					"workflowGeneration": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"integer"},
@@ -6030,7 +5847,7 @@ func schema_storage_apis_ottootto8ai_v1_WorkflowExecutionStatus(ref common.Refer
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/apiclient/types.WorkflowManifest", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
+			"github.com/otto8-ai/otto8/apiclient/types.WorkflowManifest", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
 	}
 }
 
@@ -6120,24 +5937,11 @@ func schema_storage_apis_ottootto8ai_v1_WorkflowStatus(ref common.ReferenceCallb
 							Format: "",
 						},
 					},
-					"conditions": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
-									},
-								},
-							},
-						},
-					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/apiclient/types.WorkflowExternalStatus", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/otto8-ai/otto8/apiclient/types.WorkflowExternalStatus"},
 	}
 }
 
@@ -6336,24 +6140,11 @@ func schema_storage_apis_ottootto8ai_v1_WorkflowStepStatus(ref common.ReferenceC
 							Format: "",
 						},
 					},
-					"conditions": {
-						SchemaProps: spec.SchemaProps{
-							Type: []string{"array"},
-							Items: &spec.SchemaOrArray{
-								Schema: &spec.Schema{
-									SchemaProps: spec.SchemaProps{
-										Default: map[string]interface{}{},
-										Ref:     ref("k8s.io/apimachinery/pkg/apis/meta/v1.Condition"),
-									},
-								},
-							},
-						},
-					},
 				},
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.SubCall", "k8s.io/apimachinery/pkg/apis/meta/v1.Condition"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.SubCall"},
 	}
 }
 

@@ -1,13 +1,8 @@
 package v1
 
 import (
-	"github.com/otto8-ai/nah/pkg/conditions"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-var (
-	_ conditions.Conditions = (*Webhook)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -37,17 +32,12 @@ func (w *Webhook) DeleteRefs() []Ref {
 	}
 }
 
-func (w *Webhook) GetConditions() *[]metav1.Condition {
-	return &w.Status.Conditions
-}
-
 type WebhookSpec struct {
 	types.WebhookManifest `json:",inline"`
 	PasswordHash          []byte `json:"passwordHash,omitempty"`
 }
 
 type WebhookStatus struct {
-	Conditions                 []metav1.Condition          `json:"conditions,omitempty"`
 	External                   types.WebhookExternalStatus `json:"external,omitempty"`
 	LastSuccessfulRunCompleted *metav1.Time                `json:"lastSuccessfulRunCompleted,omitempty"`
 }

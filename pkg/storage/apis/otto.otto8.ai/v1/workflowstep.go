@@ -1,13 +1,8 @@
 package v1
 
 import (
-	"github.com/otto8-ai/nah/pkg/conditions"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
-
-var (
-	_ conditions.Conditions = (*WorkflowStep)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -37,10 +32,6 @@ func (in *WorkflowStep) GetColumns() [][]string {
 	}
 }
 
-func (in *WorkflowStep) GetConditions() *[]metav1.Condition {
-	return &in.Status.Conditions
-}
-
 type WorkflowStepSpec struct {
 	AfterWorkflowStepName string     `json:"afterWorkflowStepName,omitempty"`
 	Step                  types.Step `json:"step,omitempty"`
@@ -68,7 +59,6 @@ type WorkflowStepStatus struct {
 	ThreadName         string              `json:"threadName,omitempty"`
 	RunNames           []string            `json:"runNames,omitempty"`
 	LastRunName        string              `json:"lastRunName,omitempty"`
-	Conditions         []metav1.Condition  `json:"conditions,omitempty"`
 }
 
 func (in WorkflowStepStatus) FirstRun() string {
