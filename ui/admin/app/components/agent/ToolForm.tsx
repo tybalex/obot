@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Agent } from "~/lib/model/agents";
 import { noop } from "~/lib/utils";
 
+import { TypographyP, TypographySmall } from "~/components/Typography";
 import { ToolEntry } from "~/components/agent/ToolEntry";
 import { ToolCatalogDialog } from "~/components/tools/ToolCatalog";
 import { Form } from "~/components/ui/form";
@@ -16,8 +17,6 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
-
-import { TypographyP, TypographySmall } from "../Typography";
 
 const ToolVariant = {
     FIXED: "fixed",
