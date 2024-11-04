@@ -522,8 +522,8 @@ github.com/onsi/ginkgo/v2 v2.20.2 h1:7NVCeyIWROIAheY21RLS+3j2bb52W0W82tkberYytp4
 github.com/onsi/ginkgo/v2 v2.20.2/go.mod h1:K9gyxPIlb+aIvnZ8bd9Ak+YP18w3APlR+5coaZoE2ag=
 github.com/onsi/gomega v1.34.2 h1:pNCwDkzrsv7MS9kpaQvVb1aVLahQXyJ/Tv5oAZMI3i8=
 github.com/onsi/gomega v1.34.2/go.mod h1:v1xfxRgk0KIsG+QOdm7p8UosrOzPYRo60fd3B/1Dukc=
-github.com/otto8-ai/kinm v0.0.0-20241104204604-62986088070f h1:L6QtVPweC2VD2MvsfaTBzYTzUxJ0t8og95KjaJ0ty2g=
-github.com/otto8-ai/kinm v0.0.0-20241104204604-62986088070f/go.mod h1:DOegE8RKFYiE0nmLdkJ3YDR668njuEmmqHE4q5qVNqU=
+github.com/otto8-ai/kinm v0.0.0-20241104221322-9ecacf74dda7 h1:7FIUowoW1S8+8w+12/yFzMMrgE/F/2EqzR631GKXUEE=
+github.com/otto8-ai/kinm v0.0.0-20241104221322-9ecacf74dda7/go.mod h1:DOegE8RKFYiE0nmLdkJ3YDR668njuEmmqHE4q5qVNqU=
 github.com/otto8-ai/nah v0.0.0-20241103035236-f2497c45ddb0 h1:I+4dYCCPY58dbABkbtEGtLQTx/tJvbZgkfcLj889yQM=
 github.com/otto8-ai/nah v0.0.0-20241103035236-f2497c45ddb0/go.mod h1:mo2Dz5pAyZhAVvo+kQEzXZlLzb0SaNzhIate7BQs4Vg=
 github.com/otto8-ai/oauth2-proxy/v7 v7.0.0-20241008204315-265dabe17f43 h1:zuroXr125FGRsaj9/9brmtWfkiu3XkNoB78owd8lAo4=

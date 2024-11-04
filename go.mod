@@ -21,7 +21,7 @@ require (
 	github.com/gptscript-ai/gptscript v0.9.6-0.20241102062431-50489f2b1b5f
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/oauth2-proxy/oauth2-proxy/v7 v7.0.0-00010101000000-000000000000
-	github.com/otto8-ai/kinm v0.0.0-20241104204604-62986088070f
+	github.com/otto8-ai/kinm v0.0.0-20241104221322-9ecacf74dda7
 	github.com/otto8-ai/nah v0.0.0-20241103035236-f2497c45ddb0
 	github.com/otto8-ai/otto8/apiclient v0.0.0-00010101000000-000000000000
 	github.com/otto8-ai/otto8/logger v0.0.0-00010101000000-000000000000
