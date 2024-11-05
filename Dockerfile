@@ -15,6 +15,7 @@ RUN /package-chrome.sh && rm /package-chrome.sh
 RUN sed -E 's/^#(PermitRootLogin)no/\1yes/' /etc/ssh/sshd_config -i
 RUN ssh-keygen -A
 RUN mkdir /run/sshd && /usr/sbin/sshd
+COPY encryption.yaml /
 COPY --from=builder /app/bin/otto8 /bin/
 COPY --link --from=builder /app/otto8-tools /otto8-tools
 RUN <<EOF
@@ -25,6 +26,10 @@ EOF
 COPY --chmod=0755 <<EOF /bin/run.sh
 #!/bin/bash
 set -e
+if [ "\$OPENAI_API_KEY" = "" ]; then
+    echo OPENAI_API_KEY env is required to be set
+    exit 1
+fi
 mkdir -p /run/sshd
 /usr/sbin/sshd -D &
 mkdir -p /data/cache
@@ -48,6 +53,7 @@ ENV GPTSCRIPT_SYSTEM_TOOLS_DIR=/otto8-tools/
 ENV OTTO_SERVER_WORKSPACE_TOOL=/otto8-tools/workspace-provider
 ENV OTTO_SERVER_DATASETS_TOOL=/otto8-tools/datasets
 ENV OTTO_SERVER_TOOL_REGISTRY=/otto8-tools
+ENV OTTO_SERVER_ENCRYPTION_CONFIG_FILE=/encryption.yaml
 WORKDIR /data
 VOLUME /data
 CMD ["run.sh"]

@@ -18,7 +18,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
 	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241028114905-1fce3cceae35
-	github.com/gptscript-ai/gptscript v0.9.6-0.20241102062431-50489f2b1b5f
+	github.com/gptscript-ai/gptscript v0.9.6-0.20241105165214-9aeb1cd77754
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/oauth2-proxy/oauth2-proxy/v7 v7.0.0-00010101000000-000000000000
 	github.com/otto8-ai/kinm v0.0.0-20241104221322-9ecacf74dda7
@@ -139,7 +139,7 @@ require (
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/gptscript-ai/broadcaster v0.0.0-20240625175512-c43682019b86 // indirect
-	github.com/gptscript-ai/chat-completion-client v0.0.0-20240813051153-a440ada7e3c3 // indirect
+	github.com/gptscript-ai/chat-completion-client v0.0.0-20241104122544-5fe75f07c131 // indirect
 	github.com/gptscript-ai/tui v0.0.0-20240923192013-172e51ccf1d6 // indirect
 	github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect

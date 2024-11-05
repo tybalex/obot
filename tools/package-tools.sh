@@ -37,11 +37,11 @@ fi
 cd datasets
 go build -ldflags="-s -w" -o bin/gptscript-go-tool .
 
-cd ../..
+cd ..
 
 if [ ! -e aws-encryption-provider ]; then
     git clone --depth=1 https://github.com/kubernetes-sigs/aws-encryption-provider
 fi
 
 cd aws-encryption-provider
-go build -o ../otto8-tools/aws-encryption-provider/bin/aws-encryption-provider cmd/server/main.go
+go build -o /bin/aws-encryption-provider cmd/server/main.go

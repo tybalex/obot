@@ -20,6 +20,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/api/authn"
 	"github.com/otto8-ai/otto8/pkg/api/authz"
 	"github.com/otto8-ai/otto8/pkg/api/server"
+	"github.com/otto8-ai/otto8/pkg/credstores"
 	"github.com/otto8-ai/otto8/pkg/events"
 	"github.com/otto8-ai/otto8/pkg/gateway/client"
 	"github.com/otto8-ai/otto8/pkg/gateway/db"
@@ -35,7 +36,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apiserver/pkg/authentication/authenticator"
 	"k8s.io/apiserver/pkg/authentication/request/union"
-
 	// Setup baaah logging
 	_ "github.com/otto8-ai/nah/pkg/logrus"
 )
@@ -55,6 +55,8 @@ type Config struct {
 	WorkspaceTool         string `usage:"The tool reference for the workspace provider" default:"github.com/gptscript-ai/workspace-provider"`
 	DatasetTool           string `usage:"The tool reference for the dataset provider" default:"github.com/gptscript-ai/datasets"`
 	HelperModel           string `usage:"The model used to generate names and descriptions" default:"gpt-4o-mini"`
+	AWSKMSKeyARN          string `usage:"The ARN of the AWS KMS key to use for encrypting credential storage" env:"OTTO_AWS_KMS_KEY_ARN" name:"aws-kms-key-arn"`
+	EncryptionConfigFile  string `usage:"The path to the encryption configuration file" default:"./encryption.yaml"`
 
 	AuthConfig
 	GatewayConfig
@@ -125,6 +127,13 @@ func New(ctx context.Context, config Config) (*Services, error) {
 	if strings.HasPrefix(config.DSN, "postgres://") {
 		_ = os.Setenv("KNOW_VECTOR_DSN", strings.Replace(config.DSN, "postgres://", "pgvector://", 1))
 		_ = os.Setenv("KNOW_INDEX_DSN", config.DSN)
+	}
+
+	if err := credstores.Init(ctx, config.ToolRegistry, config.DSN, credstores.Options{
+		AWSKMSKeyARN:         config.AWSKMSKeyARN,
+		EncryptionConfigFile: config.EncryptionConfigFile,
+	}); err != nil {
+		return nil, err
 	}
 
 	storageClient, restConfig, dbAccess, err := storage.Start(ctx, config.Config)
