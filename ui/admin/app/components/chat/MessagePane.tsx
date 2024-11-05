@@ -5,8 +5,8 @@ import { cn } from "~/lib/utils";
 import { useChat } from "~/components/chat/ChatContext";
 import { Message } from "~/components/chat/Message";
 import { NoMessages } from "~/components/chat/NoMessages";
-import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import { ScrollArea } from "~/components/ui/scroll-area";
+import { TypingDots } from "~/components/ui/typing-spinner";
 
 interface MessagePaneProps {
     messages: MessageType[];
@@ -23,11 +23,10 @@ export function MessagePane({
     messages,
     className,
     classNames = {},
-    generatingMessage,
 }: MessagePaneProps) {
-    const { readOnly, isLoading } = useChat();
+    const { readOnly, isRunning } = useChat();
 
-    const isEmpty = messages.length === 0 && !generatingMessage && !readOnly;
+    const isEmpty = messages.length === 0 && !readOnly;
 
     return (
         <div className={cn("flex flex-col h-full", className, classNames.root)}>
@@ -37,18 +36,19 @@ export function MessagePane({
                 enableScrollStick="bottom"
                 className={cn("h-full w-full relative", classNames.messageList)}
             >
-                {isLoading && isEmpty ? (
-                    <LoadingSpinner fillContainer />
-                ) : isEmpty ? (
+                {isEmpty ? (
                     <NoMessages />
                 ) : (
                     <div className="p-4 space-y-6 w-full">
                         {messages.map((message, i) => (
                             <Message key={i} message={message} />
                         ))}
-                        {generatingMessage && (
-                            <Message message={generatingMessage} />
-                        )}
+
+                        <TypingDots
+                            className={cn("p-4", {
+                                invisible: !isRunning,
+                            })}
+                        />
                     </div>
                 )}
             </ScrollArea>

@@ -1,25 +1,17 @@
 import {
     ReactNode,
     createContext,
-    startTransition,
+    useCallback,
     useContext,
     useEffect,
-    useMemo,
-    useRef,
     useState,
 } from "react";
-import useSWR, { mutate } from "swr";
+import { mutate } from "swr";
 
-import { ChatEvent, combineChatEvents } from "~/lib/model/chatEvents";
-import {
-    Message,
-    chatEventsToMessages,
-    promptMessage,
-    toolCallMessage,
-} from "~/lib/model/messages";
+import { ChatEvent } from "~/lib/model/chatEvents";
+import { Message, promptMessage, toolCallMessage } from "~/lib/model/messages";
 import { InvokeService } from "~/lib/service/api/invokeService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
-import { readStream } from "~/lib/stream";
 
 import { useAsync } from "~/hooks/useAsync";
 
@@ -31,11 +23,10 @@ interface ChatContextType {
     processUserMessage: (text: string, sender: "user" | "agent") => void;
     id: string;
     threadId: string | undefined;
-    generatingMessage: Message | null;
     invoke: (prompt?: string) => void;
     readOnly?: boolean;
     isRunning: boolean;
-    isLoading: boolean;
+    isInvoking: boolean;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -55,64 +46,6 @@ export function ChatProvider({
     onCreateThreadId?: (threadId: string) => void;
     readOnly?: boolean;
 }) {
-    const [insertedMessages, setInsertedMessages] = useState<Message[]>([]);
-    const [generatingMessage, setGeneratingMessage] = useState<string | null>(
-        null
-    );
-    const [isRunning, _setIsRunning] = useState(false);
-    const isRunningRef = useRef(false);
-    const isRunningToolCall = useRef(false);
-
-    const setIsRunning = (value: boolean) => {
-        isRunningRef.current = value;
-        _setIsRunning(value);
-    };
-
-    // todo(tylerslaton): this is a huge hack to get the generating message and runId to be
-    // interactable during workflow invokes. take a look at invokeWorkflow to see why this is
-    // currently needed.
-    const generatingRunIdRef = useRef<string | null>(null);
-    const generatingMessageRef = useRef<string | null>(null);
-
-    const appendToGeneratingMessage = (content: string) => {
-        generatingMessageRef.current =
-            (generatingMessageRef.current || "") + content;
-
-        setGeneratingMessage(generatingMessageRef.current);
-    };
-
-    const clearGeneratingMessage = () => {
-        generatingMessageRef.current = null;
-        setGeneratingMessage(null);
-    };
-
-    const getThreadEvents = useSWR(
-        ThreadsService.getThreadEvents.key(threadId),
-        ({ threadId }) => ThreadsService.getThreadEvents(threadId),
-        {
-            onSuccess: () => setInsertedMessages([]),
-            revalidateOnFocus: false,
-            revalidateOnReconnect: false,
-        }
-    );
-
-    const messages = useMemo(
-        () =>
-            chatEventsToMessages(combineChatEvents(getThreadEvents.data || [])),
-        [getThreadEvents.data]
-    );
-
-    // clear out inserted messages when the threadId changes
-    useEffect(() => {
-        if (isRunningRef.current) return;
-        setInsertedMessages([]);
-    }, [threadId]);
-
-    /** inserts message optimistically */
-    const insertMessage = (message: Message) => {
-        setInsertedMessages((prev) => [...prev, message]);
-    };
-
     /**
      * processUserMessage is responsible for adding the user's message to the chat and
      * triggering the agent to respond to it.
@@ -121,7 +54,7 @@ export function ChatProvider({
         if (mode === "workflow" || readOnly) return;
         const newMessage: Message = { text, sender };
 
-        insertMessage(newMessage);
+        // insertMessage(newMessage);
         handlePrompt(newMessage.text);
     };
 
@@ -142,24 +75,8 @@ export function ChatProvider({
         // do nothing if the mode is workflow
     };
 
-    const insertGeneratingMessage = (runId?: string) => {
-        // skip if there is no message or it is only whitespace
-        if (generatingMessageRef.current) {
-            insertMessage({
-                sender: "agent",
-                runId,
-                text: generatingMessageRef.current,
-            });
-            clearGeneratingMessage();
-        }
-    };
-
     const invokeAgent = useAsync(InvokeService.invokeAgentWithStream, {
-        onSuccess: ({ reader, threadId: responseThreadId }) => {
-            clearGeneratingMessage();
-
-            setIsRunning(true);
-
+        onSuccess: ({ threadId: responseThreadId }) => {
             if (responseThreadId && !threadId) {
                 // persist the threadId
                 onCreateThreadId?.(responseThreadId);
@@ -167,93 +84,22 @@ export function ChatProvider({
                 // revalidate threads
                 mutate(ThreadsService.getThreads.key());
             }
-
-            readStream<ChatEvent>({
-                reader,
-                onChunk: (chunk) =>
-                    // use a transition for performance
-                    startTransition(() => {
-                        const { content, toolCall, runID, input, prompt } =
-                            chunk;
-
-                        generatingRunIdRef.current = runID;
-
-                        if (toolCall) {
-                            isRunningToolCall.current = true;
-                            // cut off generating message
-                            insertGeneratingMessage(runID);
-
-                            // insert tool call message
-                            insertMessage(toolCallMessage(toolCall));
-
-                            clearGeneratingMessage();
-
-                            return;
-                        }
-                        isRunningToolCall.current = false;
-
-                        if (prompt) {
-                            insertGeneratingMessage(runID);
-                            insertMessage(promptMessage(prompt, runID));
-                            return;
-                        }
-
-                        if (content && !input) {
-                            appendToGeneratingMessage(content);
-                        }
-                    }),
-                onComplete: async (chunks) => {
-                    insertGeneratingMessage(chunks[0]?.runID);
-                    clearGeneratingMessage();
-
-                    invokeAgent.clear();
-                    generatingRunIdRef.current = null;
-                    setIsRunning(false);
-                },
-            });
         },
     });
 
-    const outGeneratingMessage = useMemo<Message | null>(() => {
-        if (invokeAgent.isLoading)
-            return { sender: "agent", text: "", isLoading: true };
-
-        if (!generatingMessage) {
-            if (invokeAgent.data?.reader && !isRunningToolCall.current) {
-                return {
-                    sender: "agent",
-                    text: "",
-                    isLoading: true,
-                };
-            }
-
-            return null;
-        }
-
-        return {
-            sender: "agent",
-            text: generatingMessage,
-            runId: generatingRunIdRef.current ?? undefined,
-        };
-    }, [generatingMessage, invokeAgent.isLoading, invokeAgent.data]);
-
-    // combine messages and inserted messages
-    const outMessages = useMemo(() => {
-        return [...(messages ?? []), ...insertedMessages];
-    }, [messages, insertedMessages]);
+    const { messages, isRunning } = useMessageSource(threadId);
 
     return (
         <ChatContext.Provider
             value={{
-                messages: outMessages,
+                messages,
                 processUserMessage,
                 mode,
                 id,
                 threadId,
-                generatingMessage: outGeneratingMessage,
                 invoke,
                 isRunning,
-                isLoading: getThreadEvents.isLoading,
+                isInvoking: invokeAgent.isLoading,
                 readOnly,
             }}
         >
@@ -268,4 +114,120 @@ export function useChat() {
         throw new Error("useChat must be used within a ChatProvider");
     }
     return context;
+}
+
+function useMessageSource(threadId?: string) {
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [isRunning, setIsRunning] = useState(false);
+
+    const addContent = useCallback((event: ChatEvent) => {
+        const {
+            content,
+            prompt,
+            toolCall,
+            runComplete,
+            input,
+            error,
+            runID,
+            contentID,
+        } = event;
+
+        setIsRunning(!runComplete);
+
+        setMessages((prev) => {
+            const copy = [...prev];
+
+            // todo(ryanhopperlowe) can be optmized by searching from the end
+            const existingIndex = contentID
+                ? copy.findIndex((m) => m.contentID === contentID)
+                : -1;
+
+            if (existingIndex !== -1) {
+                const existing = copy[existingIndex];
+                copy[existingIndex] = {
+                    ...existing,
+                    text: existing.text + content,
+                };
+
+                return copy;
+            }
+
+            if (error) {
+                copy.push({
+                    sender: "agent",
+                    text: error,
+                    runId: runID,
+                    error: true,
+                    contentID,
+                });
+                return copy;
+            }
+
+            if (input) {
+                copy.push({
+                    sender: "user",
+                    text: input,
+                    runId: runID,
+                    contentID,
+                });
+                return copy;
+            }
+
+            if (toolCall) {
+                copy.push(toolCallMessage(toolCall));
+                return copy;
+            }
+
+            if (prompt) {
+                copy.push(promptMessage(prompt, runID));
+                return copy;
+            }
+
+            if (content) {
+                copy.push({
+                    sender: "agent",
+                    text: content,
+                    runId: runID,
+                    contentID,
+                });
+                return copy;
+            }
+
+            return copy;
+        });
+    }, []);
+
+    useEffect(() => {
+        setMessages([]);
+
+        if (!threadId) return;
+
+        const source = ThreadsService.getThreadEventSource(threadId);
+
+        let replayComplete = false;
+        let replayMessages: ChatEvent[] = [];
+
+        source.onmessage = (chunk) => {
+            const event = JSON.parse(chunk.data) as ChatEvent;
+
+            if (event.replayComplete) {
+                replayComplete = true;
+                replayMessages.forEach(addContent);
+                replayMessages = [];
+            }
+
+            if (!replayComplete) {
+                replayMessages.push(event);
+                return;
+            }
+
+            addContent(event);
+        };
+
+        return () => {
+            source.close();
+        };
+    }, [threadId, addContent]);
+
+    return { messages, isRunning };
 }

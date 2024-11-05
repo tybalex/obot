@@ -16,10 +16,10 @@ import { CustomMarkdownComponents } from "~/components/react-markdown";
 import { ToolIcon } from "~/components/tools/ToolIcon";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
-import { TypingDots } from "~/components/ui/typing-spinner";
 
 interface MessageProps {
     message: MessageType;
+    isRunning?: boolean;
 }
 
 // Allow links for file references in messages if it starts with file://, otherwise this will cause an empty href and cause app to reload when clicking on it
@@ -54,80 +54,71 @@ export const Message = React.memo(({ message }: MessageProps) => {
             <div
                 className={cn("flex", isUser ? "justify-end" : "justify-start")}
             >
-                {message.isLoading ? (
-                    <TypingDots className="p-4" />
-                ) : (
-                    <Card
-                        className={cn(
-                            message.error &&
-                                "border border-error bg-error-foreground",
-                            "break-words overflow-hidden",
-                            isUser
-                                ? "max-w-[80%] bg-blue-500"
-                                : "w-full max-w-full"
+                <Card
+                    className={cn(
+                        message.error &&
+                            "border border-error bg-error-foreground",
+                        "break-words overflow-hidden",
+                        isUser ? "max-w-[80%] bg-blue-500" : "w-full max-w-full"
+                    )}
+                >
+                    <div className="max-w-full overflow-hidden p-4 flex gap-2 items-center pl-[20px]">
+                        {toolCall?.metadata?.icon && (
+                            <ToolIcon
+                                icon={toolCall.metadata.icon}
+                                category={toolCall.metadata.category}
+                                name={toolCall.name}
+                                className="w-5 h-5"
+                            />
                         )}
-                    >
-                        <div className="max-w-full overflow-hidden p-4 flex gap-2 items-center pl-[20px]">
-                            {toolCall?.metadata?.icon && (
-                                <ToolIcon
-                                    icon={toolCall.metadata.icon}
-                                    category={toolCall.metadata.category}
-                                    name={toolCall.name}
-                                    className="w-5 h-5"
+
+                        {message.prompt?.metadata ? (
+                            <PromptMessage prompt={message.prompt} />
+                        ) : (
+                            <Markdown
+                                className={cn(
+                                    "flex-auto max-w-full prose overflow-x-auto dark:prose-invert prose-pre:whitespace-pre-wrap prose-pre:break-words prose-thead:text-left prose-img:rounded-xl prose-img:shadow-lg break-words",
+                                    {
+                                        "text-white prose-invert": isUser,
+                                    }
+                                )}
+                                remarkPlugins={[remarkGfm]}
+                                rehypePlugins={[
+                                    [rehypeExternalLinks, { target: "_blank" }],
+                                ]}
+                                urlTransform={urlTransformAllowFiles}
+                                components={CustomMarkdownComponents}
+                            >
+                                {parsedMessage ||
+                                    "Waiting for more information..."}
+                            </Markdown>
+                        )}
+
+                        {toolCall && (
+                            <ToolCallInfo tool={toolCall}>
+                                <Button variant="secondary" size="icon">
+                                    <WrenchIcon className="w-4 h-4" />
+                                </Button>
+                            </ToolCallInfo>
+                        )}
+
+                        {!isUser && message.runId && (
+                            <div className="self-start">
+                                <MessageDebug
+                                    variant="secondary"
+                                    runId={message.runId}
                                 />
-                            )}
+                            </div>
+                        )}
 
-                            {message.prompt?.metadata ? (
-                                <PromptMessage prompt={message.prompt} />
-                            ) : (
-                                <Markdown
-                                    className={cn(
-                                        "flex-auto max-w-full prose overflow-x-auto dark:prose-invert prose-pre:whitespace-pre-wrap prose-pre:break-words prose-thead:text-left prose-img:rounded-xl prose-img:shadow-lg break-words",
-                                        {
-                                            "text-white prose-invert": isUser,
-                                        }
-                                    )}
-                                    remarkPlugins={[remarkGfm]}
-                                    rehypePlugins={[
-                                        [
-                                            rehypeExternalLinks,
-                                            { target: "_blank" },
-                                        ],
-                                    ]}
-                                    urlTransform={urlTransformAllowFiles}
-                                    components={CustomMarkdownComponents}
-                                >
-                                    {parsedMessage ||
-                                        "Waiting for more information..."}
-                                </Markdown>
-                            )}
-
-                            {toolCall && (
-                                <ToolCallInfo tool={toolCall}>
-                                    <Button variant="secondary" size="icon">
-                                        <WrenchIcon className="w-4 h-4" />
-                                    </Button>
-                                </ToolCallInfo>
-                            )}
-
-                            {!isUser && message.runId && (
-                                <div className="self-start">
-                                    <MessageDebug
-                                        variant="secondary"
-                                        runId={message.runId}
-                                    />
-                                </div>
-                            )}
-
-                            {/* this is a hack to take up space for the debug button */}
-                            {!toolCall && !message.runId && !isUser && (
-                                <div className="invisible">
-                                    <Button size="icon" />
-                                </div>
-                            )}
-                        </div>
-                    </Card>
-                )}
+                        {/* this is a hack to take up space for the debug button */}
+                        {!toolCall && !message.runId && !isUser && (
+                            <div className="invisible">
+                                <Button size="icon" />
+                            </div>
+                        )}
+                    </div>
+                </Card>
             </div>
         </div>
     );
