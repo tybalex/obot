@@ -1,7 +1,5 @@
 import { type ClassValue, clsx } from "clsx";
-import queryString from "query-string";
 import { twMerge } from "tailwind-merge";
-import { ZodSchema } from "zod";
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -12,18 +10,6 @@ export const noop = () => null;
 export const truncate = (str: string, maxLength: number) => {
     if (str.length <= maxLength) return str;
     return str.slice(0, maxLength) + "...";
-};
-
-/**
- * Parses the query params from the url
- * @returns a Zod safeParse result
- */
-export const parseQueryParams = <T extends object>(
-    url: string,
-    schema: ZodSchema<T>
-) => {
-    // use safeParse to allow the caller to handle the error
-    return schema.safeParse(queryString.parseUrl(url).query);
 };
 
 const pluralize = (count: number, singular: string, plural: string) =>

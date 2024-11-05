@@ -16,8 +16,8 @@ import { Agent } from "~/lib/model/agents";
 import { Thread } from "~/lib/model/threads";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
-import { QueryParamSchemas } from "~/lib/service/routeQueryParams";
-import { parseQueryParams, timeSince } from "~/lib/utils";
+import { RouteService } from "~/lib/service/routeQueryParams";
+import { timeSince } from "~/lib/utils";
 
 import { TypographyH2, TypographyP } from "~/components/Typography";
 import { DataTable } from "~/components/composed/DataTable";
@@ -30,12 +30,12 @@ import {
 } from "~/components/ui/tooltip";
 import { useAsync } from "~/hooks/useAsync";
 
-const paramSchema = QueryParamSchemas.Threads;
-
-export type SearchParams = z.infer<typeof paramSchema>;
+export type SearchParams = z.infer<(typeof RouteService.schemas)["/threads"]>;
 
 export function clientLoader({ request }: ClientLoaderFunctionArgs) {
-    return parseQueryParams(request.url, paramSchema).data || {};
+    const search = new URL(request.url).search;
+
+    return RouteService.getQueryParams("/threads", search) ?? {};
 }
 
 export default function Threads() {
@@ -67,6 +67,7 @@ export default function Threads() {
     }, [getAgents.data]);
 
     const threads = useMemo(() => {
+        console.log(agentId);
         if (!getThreads.data) return [];
 
         if (!agentId && !workflowId) return getThreads.data;

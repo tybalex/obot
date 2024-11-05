@@ -5,11 +5,11 @@ import {
     useLoaderData,
 } from "@remix-run/react";
 import { ArrowLeftIcon } from "lucide-react";
-import { $params } from "remix-routes";
 
 import { Agent } from "~/lib/model/agents";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
+import { RouteService } from "~/lib/service/routeQueryParams";
 import { noop } from "~/lib/utils";
 
 import { Chat } from "~/components/chat";
@@ -30,7 +30,7 @@ import {
 } from "~/components/ui/tooltip";
 
 export const clientLoader = async ({ params }: ClientLoaderFunctionArgs) => {
-    const { id } = $params("/thread/:id", params);
+    const { id } = RouteService.getPathParams("/thread/:id", params);
 
     if (!id) {
         throw redirect("/threads");
