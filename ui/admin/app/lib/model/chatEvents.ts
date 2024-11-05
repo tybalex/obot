@@ -38,6 +38,7 @@ export type ChatEvent = {
     content: string;
     input?: string;
     contentID?: string;
+    replayComplete?: boolean;
     error?: string;
     runComplete?: boolean;
     runID: string;

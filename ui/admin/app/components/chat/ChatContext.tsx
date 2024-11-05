@@ -4,7 +4,6 @@ import {
     useCallback,
     useContext,
     useEffect,
-    useMemo,
     useState,
 } from "react";
 import { mutate } from "swr";
@@ -118,68 +117,78 @@ export function useChat() {
 }
 
 function useMessageSource(threadId?: string) {
-    const [messageMap, setMessageMap] = useState<Map<string, Message>>(
-        new Map()
-    );
+    const [messages, setMessages] = useState<Message[]>([]);
     const [isRunning, setIsRunning] = useState(false);
 
     const addContent = useCallback((event: ChatEvent) => {
-        console.log(event);
-
-        const { content, prompt, toolCall, runComplete, input, error, runID } =
-            event;
+        const {
+            content,
+            prompt,
+            toolCall,
+            runComplete,
+            input,
+            error,
+            runID,
+            contentID,
+        } = event;
 
         setIsRunning(!runComplete);
 
-        setMessageMap((prev) => {
-            const copy = new Map(prev);
+        setMessages((prev) => {
+            const copy = [...prev];
 
-            const contentID = event.contentID ?? crypto.randomUUID();
+            // todo(ryanhopperlowe) can be optmized by searching from the end
+            const existingIndex = contentID
+                ? copy.findIndex((m) => m.contentID === contentID)
+                : -1;
 
-            const existing = copy.get(contentID);
-            if (existing) {
-                copy.set(contentID, {
+            if (existingIndex !== -1) {
+                const existing = copy[existingIndex];
+                copy[existingIndex] = {
                     ...existing,
                     text: existing.text + content,
-                });
+                };
 
                 return copy;
             }
 
             if (error) {
-                copy.set(contentID, {
+                copy.push({
                     sender: "agent",
                     text: error,
                     runId: runID,
                     error: true,
+                    contentID,
                 });
                 return copy;
             }
 
             if (input) {
-                copy.set(contentID, {
+                copy.push({
                     sender: "user",
                     text: input,
                     runId: runID,
+                    contentID,
                 });
                 return copy;
             }
 
             if (toolCall) {
-                copy.set(contentID, toolCallMessage(toolCall));
+                copy.push(toolCallMessage(toolCall));
                 return copy;
             }
 
             if (prompt) {
-                copy.set(contentID, promptMessage(prompt, runID));
+                copy.push(promptMessage(prompt, runID));
                 return copy;
             }
 
             if (content) {
-                copy.set(contentID, {
+                copy.push({
                     sender: "agent",
                     text: content,
                     runId: runID,
+                    contentID,
                 });
                 return copy;
             }
@@ -189,15 +198,30 @@ function useMessageSource(threadId?: string) {
     }, []);
 
     useEffect(() => {
-        setMessageMap(new Map());
+        setMessages([]);
 
         if (!threadId) return;
 
         const source = ThreadsService.getThreadEventSource(threadId);
 
-        source.onmessage = (event) => {
-            const chunk = JSON.parse(event.data) as ChatEvent;
-            addContent(chunk);
+        let replayComplete = false;
+        let replayMessages: ChatEvent[] = [];
+
+        source.onmessage = (chunk) => {
+            const event = JSON.parse(chunk.data) as ChatEvent;
+
+            if (event.replayComplete) {
+                replayComplete = true;
+                replayMessages.forEach(addContent);
+                replayMessages = [];
+            }
+
+            if (!replayComplete) {
+                replayMessages.push(event);
+                return;
+            }
+
+            addContent(event);
         };
 
         return () => {
@@ -205,9 +229,5 @@ function useMessageSource(threadId?: string) {
         };
     }, [threadId, addContent]);
 
-    const messages = useMemo(() => {
-        return Array.from(messageMap.values());
-    }, [messageMap]);
-
-    return { messages, messageMap, isRunning };
+    return { messages, isRunning };
 }
