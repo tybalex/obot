@@ -39,6 +39,7 @@ export type ChatEvent = {
     input?: string;
     contentID?: string;
     error?: string;
+    runComplete?: boolean;
     runID: string;
     waitingOnModel?: boolean;
     toolInput?: ToolInput;
@@ -59,7 +60,8 @@ export function combineChatEvents(events: ChatEvent[]): ChatEvent[] {
     };
 
     for (const event of events) {
-        const { content, input, error, runID, toolCall, prompt } = event;
+        const { content, input, error, runID, toolCall, prompt, contentID } =
+            event;
 
         // signals the end of a content block
         if (error || toolCall || input || prompt) {
@@ -71,7 +73,11 @@ export function combineChatEvents(events: ChatEvent[]): ChatEvent[] {
 
         if (content) {
             if (!buildingEvent) {
-                buildingEvent = { content: "", runID };
+                buildingEvent = {
+                    content: "",
+                    runID,
+                    contentID,
+                };
             }
 
             buildingEvent.content += content;

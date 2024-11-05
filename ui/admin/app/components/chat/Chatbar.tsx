@@ -4,6 +4,7 @@ import { useState } from "react";
 import { cn } from "~/lib/utils";
 
 import { useChat } from "~/components/chat/ChatContext";
+import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import { Button } from "~/components/ui/button";
 import { AutosizeTextarea } from "~/components/ui/textarea";
 
@@ -13,7 +14,7 @@ type ChatbarProps = {
 
 export function Chatbar({ className }: ChatbarProps) {
     const [input, setInput] = useState("");
-    const { processUserMessage, isRunning } = useChat();
+    const { processUserMessage, isRunning, isInvoking } = useChat();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,9 +54,9 @@ export function Chatbar({ className }: ChatbarProps) {
                 variant="secondary"
                 className="rounded-full"
                 type="submit"
-                disabled={!input || isRunning}
+                disabled={!input || isRunning || isInvoking}
             >
-                <CircleArrowUpIcon />
+                {isInvoking ? <LoadingSpinner /> : <CircleArrowUpIcon />}
             </Button>
         </form>
     );

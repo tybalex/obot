@@ -58,6 +58,27 @@ getThreadEvents.key = (threadId?: Nullish<string>) => {
     return { url: ApiRoutes.threads.events(threadId).path, threadId };
 };
 
+const getThreadEventSource = (threadId: string) => {
+    return new EventSource(
+        ApiRoutes.threads.events(threadId, {
+            waitForThread: true,
+            follow: true,
+        }).url
+    );
+};
+getThreadEventSource.key = (threadId?: Nullish<string>) => {
+    if (!threadId) return null;
+
+    return {
+        url: ApiRoutes.threads.events(threadId, {
+            waitForThread: true,
+            follow: true,
+        }).path,
+        threadId,
+        modifier: "EventSource",
+    };
+};
+
 const deleteThread = async (threadId: string) => {
     await request({
         url: ApiRoutes.threads.getById(threadId).url,
@@ -102,6 +123,7 @@ export const ThreadsService = {
     getThreadById,
     getThreadsByAgent,
     getThreadEvents,
+    getThreadEventSource,
     deleteThread,
     revalidateThreads,
     getKnowledge,

@@ -10,8 +10,7 @@ type ChatProps = React.HTMLAttributes<HTMLDivElement> & {
 };
 
 export function Chat({ className, showStartButton = false }: ChatProps) {
-    const { messages, threadId, generatingMessage, mode, invoke, readOnly } =
-        useChat();
+    const { messages, threadId, mode, invoke, readOnly } = useChat();
     const [runTriggered, setRunTriggered] = useState(false);
 
     const showMessagePane =
@@ -28,7 +27,6 @@ export function Chat({ className, showStartButton = false }: ChatProps) {
                     <MessagePane
                         classNames={{ root: "h-full", messageList: "px-20" }}
                         messages={messages}
-                        generatingMessage={generatingMessage}
                     />
                 </div>
             )}

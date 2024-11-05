@@ -4,7 +4,7 @@ import { useChat } from "~/components/chat/ChatContext";
 import { Button } from "~/components/ui/button";
 
 export function NoMessages() {
-    const { processUserMessage } = useChat();
+    const { processUserMessage, isInvoking } = useChat();
 
     const handleAddMessage = (content: string) => {
         processUserMessage(content, "user");
@@ -19,6 +19,7 @@ export function NoMessages() {
             <div className="flex flex-wrap justify-center gap-2">
                 <Button
                     variant="secondary"
+                    disabled={isInvoking}
                     onClick={() =>
                         handleAddMessage(
                             "Tell me who you are and what your objectives are."
@@ -30,6 +31,7 @@ export function NoMessages() {
                 </Button>
                 <Button
                     variant="secondary"
+                    disabled={isInvoking}
                     onClick={() =>
                         handleAddMessage(
                             "Tell me what tools you have available."
@@ -41,6 +43,7 @@ export function NoMessages() {
                 </Button>
                 <Button
                     variant="secondary"
+                    disabled={isInvoking}
                     onClick={() =>
                         handleAddMessage(
                             "Using your knowledge tools, tell me about your knowledge set."

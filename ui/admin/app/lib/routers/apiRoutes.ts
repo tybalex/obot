@@ -84,7 +84,12 @@ export const ApiRoutes = {
         getByAgent: (agentId: string) => buildUrl(`/agents/${agentId}/threads`),
         events: (
             threadId: string,
-            params?: { follow?: boolean; runID?: string }
+            params?: {
+                follow?: boolean;
+                runID?: string;
+                waitForThread?: boolean;
+                maxRuns?: number;
+            }
         ) => buildUrl(`/threads/${threadId}/events`, params),
         getKnowledge: (threadId: string) =>
             buildUrl(`/threads/${threadId}/knowledge`),
