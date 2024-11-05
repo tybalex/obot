@@ -95,7 +95,7 @@ export default function Threads() {
                 <TypographyH2 className="mb-8">Threads</TypographyH2>
                 <DataTable
                     columns={getColumns()}
-                    data={threads}
+                    data={threads.filter((thread) => thread.agentID)}
                     sort={[{ id: "created", desc: true }]}
                     classNames={{
                         row: "!max-h-[200px] grow-0 height-[200px]",
