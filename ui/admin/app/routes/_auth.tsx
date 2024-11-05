@@ -1,31 +1,20 @@
 import { Outlet, isRouteErrorResponse, useRouteError } from "@remix-run/react";
-import { AxiosError } from "axios";
+import { preload } from "swr";
 
-import { AuthDisabledUsername, useAuth } from "~/components/auth/AuthContext";
+import { ForbiddenError, UnauthorizedError } from "~/lib/service/api/apiErrors";
+import { UserService } from "~/lib/service/api/userService";
+
+import { useAuth } from "~/components/auth/AuthContext";
 import { Error, RouteError, Unauthorized } from "~/components/errors";
 import { HeaderNav } from "~/components/header/HeaderNav";
 import { Sidebar } from "~/components/sidebar";
 import { SignIn } from "~/components/signin/SignIn";
 
-export function ErrorBoundary() {
-    const error = useRouteError();
-    const { me } = useAuth();
-
-    switch (true) {
-        case error instanceof AxiosError:
-            if (
-                error.response?.status === 403 &&
-                me.username &&
-                me.username !== AuthDisabledUsername
-            ) {
-                return <Unauthorized />;
-            }
-            return <SignIn />;
-        case isRouteErrorResponse(error):
-            return <RouteError error={error} />;
-        default:
-            return <Error error={error as Error} />;
-    }
+export async function clientLoader() {
+    const me = await preload(UserService.getMe.key(), () =>
+        UserService.getMe()
+    );
+    return { me };
 }
 
 export default function AuthLayout() {
@@ -40,4 +29,20 @@ export default function AuthLayout() {
             </div>
         </div>
     );
+}
+
+export function ErrorBoundary() {
+    const error = useRouteError();
+    const { isSignedIn } = useAuth();
+
+    switch (true) {
+        case error instanceof UnauthorizedError:
+        case error instanceof ForbiddenError:
+            if (isSignedIn) return <Unauthorized />;
+            else return <SignIn />;
+        case isRouteErrorResponse(error):
+            return <RouteError error={error} />;
+        default:
+            return <Error error={error as Error} />;
+    }
 }
