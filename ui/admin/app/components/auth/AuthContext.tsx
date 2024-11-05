@@ -1,14 +1,14 @@
 import { ReactNode, createContext, useContext } from "react";
 import useSWR from "swr";
 
+import { AuthDisabledUsername } from "~/lib/model/auth";
 import { Role, User } from "~/lib/model/users";
 import { UserService } from "~/lib/service/api/userService";
-
-export const AuthDisabledUsername = "nobody";
 
 interface AuthContextType {
     me: User;
     isLoading: boolean;
+    isSignedIn: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,8 +20,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         { fallbackData: { role: Role.Default } as User }
     );
 
+    const isSignedIn = !!me.username && me.username !== AuthDisabledUsername;
+
     return (
-        <AuthContext.Provider value={{ me, isLoading }}>
+        <AuthContext.Provider value={{ me, isLoading, isSignedIn }}>
             {children}
         </AuthContext.Provider>
     );

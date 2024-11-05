@@ -1,10 +1,11 @@
 import { User } from "lucide-react";
 import React from "react";
 
+import { AuthDisabledUsername } from "~/lib/model/auth";
 import { roleToString } from "~/lib/model/users";
 import { cn } from "~/lib/utils";
 
-import { AuthDisabledUsername, useAuth } from "~/components/auth/AuthContext";
+import { useAuth } from "~/components/auth/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
 import {

@@ -1,13 +1,15 @@
+import { AxiosError } from "axios";
 import { useCallback, useState } from "react";
 
 import { handlePromise } from "~/lib/service/async";
-import { noop } from "~/lib/utils";
 
 type Config<TData, TParams extends unknown[]> = {
     onSuccess?: (data: TData, params: TParams) => void;
     onError?: (error: unknown, params: TParams) => void;
     onSettled?: ({ params }: { params: TParams }) => void;
 };
+
+const defaultShouldThrow = (error: unknown) => !(error instanceof AxiosError);
 
 export function useAsync<TData, TParams extends unknown[]>(
     callback: (...params: TParams) => Promise<TData>,
@@ -19,6 +21,8 @@ export function useAsync<TData, TParams extends unknown[]>(
     const [error, setError] = useState<unknown>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [lastCallParams, setLastCallParams] = useState<TParams | null>(null);
+
+    if (error && defaultShouldThrow(error)) throw error;
 
     const executeAsync = useCallback(
         async (...params: TParams) => {
@@ -41,14 +45,14 @@ export function useAsync<TData, TParams extends unknown[]>(
                     onSettled?.({ params });
                 });
 
-            return handlePromise(promise);
+            return await handlePromise(promise);
         },
         [callback, onSuccess, onError, onSettled]
     );
 
     const execute = useCallback(
         (...params: TParams) => {
-            executeAsync(...params).catch(noop);
+            executeAsync(...params);
         },
         [executeAsync]
     );
