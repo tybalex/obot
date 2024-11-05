@@ -27,7 +27,7 @@ func NewLogin(invoker *invoke.Invoker) *LoginHandler {
 
 func (h *LoginHandler) RunTool(req router.Request, _ router.Response) error {
 	login := req.Object.(*v1.OAuthAppLogin)
-	if login.Status.Authenticated || login.Status.Error != "" || login.Spec.ToolReference == "" {
+	if login.Status.External.Authenticated || login.Status.External.Error != "" || login.Spec.ToolReference == "" {
 		return nil
 	}
 
@@ -70,13 +70,13 @@ func (h *LoginHandler) RunTool(req router.Request, _ router.Response) error {
 	for frame := range task.Events {
 		if frame.Prompt != nil && frame.Prompt.Metadata["authURL"] != "" {
 			if err = updateLoginExternalStatus(req.Ctx, req.Client, login, v1.OAuthAppLoginStatus{
-				OAuthAppLoginAuthStatus: types.OAuthAppLoginAuthStatus{
+				External: types.OAuthAppLoginAuthStatus{
 					URL:      frame.Prompt.Metadata["authURL"],
 					Required: &[]bool{true}[0],
 				},
 			}); err != nil {
 				if setErrorErr := updateLoginExternalStatus(req.Ctx, req.Client, login, v1.OAuthAppLoginStatus{
-					OAuthAppLoginAuthStatus: types.OAuthAppLoginAuthStatus{
+					External: types.OAuthAppLoginAuthStatus{
 						Error: err.Error(),
 					},
 				}); setErrorErr != nil {
@@ -94,7 +94,7 @@ func (h *LoginHandler) RunTool(req router.Request, _ router.Response) error {
 	}
 
 	return updateLoginExternalStatus(req.Ctx, req.Client, login, v1.OAuthAppLoginStatus{
-		OAuthAppLoginAuthStatus: types.OAuthAppLoginAuthStatus{
+		External: types.OAuthAppLoginAuthStatus{
 			Error:         errMessage,
 			Authenticated: errMessage == "",
 			URL:           "",

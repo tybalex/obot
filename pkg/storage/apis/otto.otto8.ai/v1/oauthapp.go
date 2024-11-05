@@ -163,7 +163,7 @@ type OAuthAppLoginSpec struct {
 }
 
 type OAuthAppLoginStatus struct {
-	types.OAuthAppLoginAuthStatus `json:",inline"`
+	External types.OAuthAppLoginAuthStatus `json:"external,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

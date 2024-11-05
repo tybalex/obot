@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/equality"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -77,41 +78,45 @@ func BackPopulateAuthStatus(req router.Request, _ router.Response) error {
 	agent := req.Object.(*v1.Agent)
 
 	var logins v1.OAuthAppLoginList
-	if err := req.List(&logins, &kclient.ListOptions{Namespace: agent.Namespace}); err != nil {
+	if err := req.List(&logins, &kclient.ListOptions{
+		FieldSelector: fields.SelectorFromSet(map[string]string{"spec.credentialContext": agent.Name}),
+		Namespace:     agent.Namespace,
+	}); err != nil {
 		return err
 	}
 
 	for _, login := range logins.Items {
-		if login.Status.Authenticated || (login.Status.Required != nil && !*login.Status.Required) || login.Spec.ToolReference == "" {
+		if login.Status.External.Authenticated || (login.Status.External.Required != nil && !*login.Status.External.Required) || login.Spec.ToolReference == "" {
 			continue
 		}
 
+		var required *bool
 		credentialTool, err := v1.CredentialTool(req.Ctx, req.Client, agent.Namespace, login.Spec.ToolReference)
 		if err != nil {
-			login.Status.Error = fmt.Sprintf("failed to get credential tool for knowledge source [%s]: %v", agent.Name, err)
+			login.Status.External.Error = fmt.Sprintf("failed to get credential tool for knowledge source [%s]: %v", agent.Name, err)
+		} else {
+			required = &[]bool{credentialTool != ""}[0]
+			updateRequired = updateRequired || login.Status.External.Required == nil || *login.Status.External.Required != *required
+			login.Status.External.Required = required
 		}
 
-		required := credentialTool != ""
-		updateRequired = updateRequired || login.Status.Required == nil || *login.Status.Required != required
-		login.Status.Required = &required
-
-		if required {
+		if required != nil && *required {
 			var oauthAppLogin v1.OAuthAppLogin
 			if err = req.Get(&oauthAppLogin, agent.Namespace, system.OAuthAppLoginPrefix+agent.Name+login.Spec.ToolReference); apierror.IsNotFound(err) {
-				updateRequired = updateRequired || login.Status.Error != ""
-				login.Status.Error = ""
+				updateRequired = updateRequired || login.Status.External.Error != ""
+				login.Status.External.Error = ""
 			} else if err != nil {
-				login.Status.Error = fmt.Sprintf("failed to get oauth app login for agent [%s]: %v", agent.Name, err)
+				login.Status.External.Error = fmt.Sprintf("failed to get oauth app login for agent [%s]: %v", agent.Name, err)
 			} else {
-				updateRequired = updateRequired || equality.Semantic.DeepEqual(login.Status, oauthAppLogin.Status.OAuthAppLoginAuthStatus)
-				login.Status.OAuthAppLoginAuthStatus = oauthAppLogin.Status.OAuthAppLoginAuthStatus
+				updateRequired = updateRequired || equality.Semantic.DeepEqual(login.Status.External, oauthAppLogin.Status.External)
+				login.Status.External = oauthAppLogin.Status.External
 			}
 		}
 
 		if agent.Status.External.AuthStatus == nil {
 			agent.Status.External.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
 		}
-		agent.Status.External.AuthStatus[login.Spec.ToolReference] = login.Status.OAuthAppLoginAuthStatus
+		agent.Status.External.AuthStatus[login.Spec.ToolReference] = login.Status.External
 	}
 
 	if updateRequired {

@@ -487,7 +487,7 @@ func (a *AgentHandler) EnsureCredentialForKnowledgeSource(req api.Context) error
 	}
 
 	oauthLogin, err = wait.For(req.Context(), req.Storage, oauthLogin, func(obj *v1.OAuthAppLogin) bool {
-		return obj.Status.Authenticated || obj.Status.Error != "" || obj.Status.URL != ""
+		return obj.Status.External.Authenticated || obj.Status.External.Error != "" || obj.Status.External.URL != ""
 	}, wait.Option{
 		Create: true,
 	})
@@ -499,7 +499,7 @@ func (a *AgentHandler) EnsureCredentialForKnowledgeSource(req api.Context) error
 	if agent.Status.External.AuthStatus == nil {
 		agent.Status.External.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
 	}
-	agent.Status.External.AuthStatus[ref] = oauthLogin.Status.OAuthAppLoginAuthStatus
+	agent.Status.External.AuthStatus[ref] = oauthLogin.Status.External
 	return req.Write(convertAgent(agent, server.GetURLPrefix(req)))
 }
 

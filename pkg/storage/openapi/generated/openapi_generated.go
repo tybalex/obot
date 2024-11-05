@@ -871,10 +871,18 @@ func schema_otto8_ai_otto8_apiclient_types_KnowledgeFile(ref common.ReferenceCal
 							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
 						},
 					},
-					"lastRunID": {
+					"lastRunIDs": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
 						},
 					},
 				},
@@ -983,12 +991,28 @@ func schema_otto8_ai_otto8_apiclient_types_KnowledgeSource(ref common.ReferenceC
 							Format: "",
 						},
 					},
+					"lastSyncStartTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
+						},
+					},
+					"lastSyncEndTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
+						},
+					},
+					"lastRunID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 				Required: []string{"Metadata"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/apiclient/types.Metadata", "github.com/otto8-ai/otto8/apiclient/types.NotionConfig", "github.com/otto8-ai/otto8/apiclient/types.OneDriveConfig", "github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConfig"},
+			"github.com/otto8-ai/otto8/apiclient/types.Metadata", "github.com/otto8-ai/otto8/apiclient/types.NotionConfig", "github.com/otto8-ai/otto8/apiclient/types.OneDriveConfig", "github.com/otto8-ai/otto8/apiclient/types.Time", "github.com/otto8-ai/otto8/apiclient/types.WebsiteCrawlingConfig"},
 	}
 }
 
@@ -4032,33 +4056,17 @@ func schema_storage_apis_ottootto8ai_v1_OAuthAppLoginStatus(ref common.Reference
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"url": {
+					"external": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"authenticated": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
-						},
-					},
-					"required": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
-						},
-					},
-					"error": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.OAuthAppLoginAuthStatus"),
 						},
 					},
 				},
 			},
 		},
+		Dependencies: []string{
+			"github.com/otto8-ai/otto8/apiclient/types.OAuthAppLoginAuthStatus"},
 	}
 }
 
