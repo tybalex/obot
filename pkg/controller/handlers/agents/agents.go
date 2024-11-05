@@ -82,7 +82,7 @@ func BackPopulateAuthStatus(req router.Request, _ router.Response) error {
 	}
 
 	for _, login := range logins.Items {
-		if login.Status.Authenticated || (login.Status.Required != nil && !*login.Status.Required) {
+		if login.Status.Authenticated || (login.Status.Required != nil && !*login.Status.Required) || login.Spec.ToolReference == "" {
 			continue
 		}
 
