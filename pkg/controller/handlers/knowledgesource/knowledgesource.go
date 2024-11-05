@@ -171,8 +171,13 @@ func (k *Handler) Sync(req router.Request, _ router.Response) error {
 
 	toolReferenceName := string(sourceType) + "-data-source"
 
+	credentialTool, err := v1.CredentialTool(req.Ctx, req.Client, agent.Namespace, toolReferenceName)
+	if err != nil {
+		return err
+	}
+
 	authStatus := agent.Status.External.AuthStatus[toolReferenceName]
-	if authStatus.Required == nil || (*authStatus.Required && !authStatus.Authenticated) {
+	if credentialTool != "" && (authStatus.Required == nil || (*authStatus.Required && !authStatus.Authenticated)) {
 		return nil
 	}
 
