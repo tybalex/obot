@@ -17,11 +17,11 @@ require (
 	github.com/google/go-github/v62 v62.0.0
 	github.com/google/uuid v1.6.0
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
-	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241028114905-1fce3cceae35
-	github.com/gptscript-ai/gptscript v0.9.6-0.20241106011514-d21c001097ef
+	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241106212914-ba040ce8f47b
+	github.com/gptscript-ai/gptscript v0.9.6-0.20241106194024-266bc58956c6
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/oauth2-proxy/oauth2-proxy/v7 v7.0.0-00010101000000-000000000000
-	github.com/otto8-ai/kinm v0.0.0-20241104221322-9ecacf74dda7
+	github.com/otto8-ai/kinm v0.0.0-20241106213623-2a34e5d88241
 	github.com/otto8-ai/nah v0.0.0-20241103035236-f2497c45ddb0
 	github.com/otto8-ai/otto8/apiclient v0.0.0-00010101000000-000000000000
 	github.com/otto8-ai/otto8/logger v0.0.0-00010101000000-000000000000

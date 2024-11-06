@@ -41,7 +41,7 @@ func NewEmitter(client kclient.WithWatch) *Emitter {
 
 type liveState struct {
 	Prg      *gptscript.Program
-	Frames   *Frames
+	Frames   *gptscript.CallFrames
 	Progress *types.Progress
 	Done     bool
 }
@@ -57,8 +57,6 @@ type WatchOptions struct {
 	Run                   *v1.Run
 	WaitForThread         bool
 }
-
-type Frames map[string]gptscript.CallFrame
 
 type callFramePrintState struct {
 	Outputs                []gptscript.Output
@@ -86,7 +84,7 @@ func newPrintState(oldState *printState) *printState {
 	}
 }
 
-func (e *Emitter) Submit(run *v1.Run, prg *gptscript.Program, frames Frames) {
+func (e *Emitter) Submit(run *v1.Run, prg *gptscript.Program, frames gptscript.CallFrames) {
 	e.liveStateLock.Lock()
 	defer e.liveStateLock.Unlock()
 
@@ -341,7 +339,7 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 			}
 			var (
 				prg        gptscript.Program
-				callFrames = Frames{}
+				callFrames = gptscript.CallFrames{}
 			)
 			if len(runState.Spec.Program) != 0 {
 				if err := gz.Decompress(&prg, runState.Spec.Program); err != nil {
@@ -571,16 +569,8 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1
 
 }
 
-func (e *Emitter) callToEvents(ctx context.Context, namespace, runID string, prg *gptscript.Program, frames Frames, printed *printState, out chan types.Progress) error {
-	var (
-		parent gptscript.CallFrame
-	)
-	for _, frame := range frames {
-		if frame.ParentID == "" {
-			parent = frame
-			break
-		}
-	}
+func (e *Emitter) callToEvents(ctx context.Context, namespace, runID string, prg *gptscript.Program, frames gptscript.CallFrames, printed *printState, out chan types.Progress) error {
+	parent := frames.ParentCallFrame()
 	if parent.ID == "" || parent.Start.IsZero() {
 		return nil
 	}
@@ -588,7 +578,7 @@ func (e *Emitter) callToEvents(ctx context.Context, namespace, runID string, prg
 	return e.printCall(ctx, namespace, runID, prg, &parent, frames, printed, out)
 }
 
-func getStepTemplateInvoke(prg *gptscript.Program, call *gptscript.CallFrame, frames Frames) *types.StepTemplateInvoke {
+func getStepTemplateInvoke(prg *gptscript.Program, call *gptscript.CallFrame, frames gptscript.CallFrames) *types.StepTemplateInvoke {
 	if len(call.Tool.InputFilters) == 0 {
 		return nil
 	}
@@ -620,7 +610,7 @@ func getStepTemplateInvoke(prg *gptscript.Program, call *gptscript.CallFrame, fr
 	return nil
 }
 
-func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *gptscript.Program, call *gptscript.CallFrame, frames Frames, lastPrint *printState, out chan types.Progress) error {
+func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *gptscript.Program, call *gptscript.CallFrame, frames gptscript.CallFrames, lastPrint *printState, out chan types.Progress) error {
 	printed := lastPrint.frames[call.ID]
 	lastOutputs := printed.Outputs
 
