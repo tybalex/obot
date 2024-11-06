@@ -1,15 +1,13 @@
-import { PlusIcon } from "@radix-ui/react-icons";
+import { ReaderIcon } from "@radix-ui/react-icons";
 import { Link, useNavigate } from "@remix-run/react";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { SquarePen, Trash } from "lucide-react";
 import { useMemo } from "react";
 import { $path } from "remix-routes";
 import useSWR, { mutate, preload } from "swr";
 
-import { Agent } from "~/lib/model/agents";
-import { AgentService } from "~/lib/service/api/agentService";
+import { Workflow } from "~/lib/model/workflows";
 import { ThreadsService } from "~/lib/service/api/threadsService";
-import { generateRandomName } from "~/lib/service/nameGenerator";
+import { WorkflowService } from "~/lib/service/api/workflowService";
 import { timeSince } from "~/lib/utils";
 
 import { TypographyH2, TypographyP } from "~/components/Typography";
@@ -21,88 +19,56 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { useAsync } from "~/hooks/useAsync";
 
 export async function clientLoader() {
-    mutate(AgentService.getAgents.key(), ThreadsService.getThreads.key());
+    mutate(WorkflowService.getWorkflows.key(), ThreadsService.getThreads.key());
     await Promise.all([
-        preload(AgentService.getAgents.key(), AgentService.getAgents),
+        preload(
+            WorkflowService.getWorkflows.key(),
+            WorkflowService.getWorkflows
+        ),
         preload(ThreadsService.getThreads.key(), ThreadsService.getThreads),
     ]);
     return null;
 }
 
-export default function Agents() {
+export default function Workflows() {
     const navigate = useNavigate();
-    const getThreads = useSWR(ThreadsService.getThreads.key(), () =>
-        ThreadsService.getThreads()
+    const getWorkflows = useSWR(
+        WorkflowService.getWorkflows.key(),
+        WorkflowService.getWorkflows
     );
 
     const threadCounts = useMemo(() => {
-        if (!getThreads.data) return {};
-        return getThreads.data.reduce(
-            (acc, thread) => {
-                acc[thread.agentID ?? thread.workflowID] =
-                    (acc[thread.agentID ?? thread.workflowID] || 0) + 1;
+        if (!getWorkflows.data || !Array.isArray(getWorkflows.data)) return {};
+        return getWorkflows.data?.reduce(
+            (acc, workflow) => {
+                acc[workflow.id] = (acc[workflow.id] || 0) + 1;
                 return acc;
             },
             {} as Record<string, number>
         );
-    }, [getThreads.data]);
-
-    const getAgents = useSWR(
-        AgentService.getAgents.key(),
-        AgentService.getAgents
-    );
-
-    const agents = getAgents.data || [];
-
-    const deleteAgent = useAsync(AgentService.deleteAgent, {
-        onSuccess: () => {
-            AgentService.revalidateAgents();
-            ThreadsService.revalidateThreads();
-        },
-    });
+    }, [getWorkflows.data]);
 
     return (
         <div>
             <div className="h-full p-8 flex flex-col gap-4">
                 <div className="flex-auto overflow-hidden">
                     <div className="flex space-x-2 width-full justify-between mb-8">
-                        <TypographyH2>Agents</TypographyH2>
-                        <Button
-                            variant="outline"
-                            className="justify-start"
-                            onClick={() => {
-                                AgentService.createAgent({
-                                    agent: {
-                                        name: generateRandomName(),
-                                    } as Agent,
-                                }).then((agent) => {
-                                    navigate(
-                                        $path("/agents/:agent", {
-                                            agent: agent.id,
-                                        })
-                                    );
-                                });
-                            }}
-                        >
-                            <PlusIcon className="w-4 h-4 mr-2" />
-                            New Agent
-                        </Button>
+                        <TypographyH2>Workflows</TypographyH2>
                     </div>
 
                     <DataTable
                         columns={getColumns()}
-                        data={agents}
+                        data={getWorkflows.data || []}
                         sort={[{ id: "created", desc: true }]}
                         disableClickPropagation={(cell) =>
                             cell.id.includes("action")
                         }
                         onRowClick={(row) => {
                             navigate(
-                                $path("/agents/:agent", {
-                                    agent: row.id,
+                                $path("/workflows/:workflow", {
+                                    workflow: row.id,
                                 })
                             );
                         }}
@@ -112,7 +78,7 @@ export default function Agents() {
         </div>
     );
 
-    function getColumns(): ColumnDef<Agent, string>[] {
+    function getColumns(): ColumnDef<Workflow, string>[] {
         return [
             columnHelper.accessor("name", {
                 header: "Name",
@@ -121,7 +87,7 @@ export default function Agents() {
                 header: "Description",
             }),
             columnHelper.accessor(
-                (agent) => threadCounts[agent.id]?.toString(),
+                (workflow) => threadCounts[workflow.id]?.toString(),
                 {
                     id: "threads-action",
                     header: "Threads",
@@ -134,7 +100,7 @@ export default function Agents() {
                             >
                                 <Link
                                     to={$path("/threads", {
-                                        agentId: info.row.original.id,
+                                        workflowId: info.row.original.id,
                                     })}
                                     className="px-0"
                                 >
@@ -165,37 +131,20 @@ export default function Agents() {
                                 <TooltipTrigger asChild>
                                     <Button variant="ghost" size="icon" asChild>
                                         <Link
-                                            to={$path("/agents/:agent", {
-                                                agent: row.original.id,
+                                            to={$path("/workflows/:workflow", {
+                                                workflow: row.original.id,
                                             })}
                                         >
-                                            <SquarePen />
+                                            <ReaderIcon
+                                                width={21}
+                                                height={21}
+                                            />
                                         </Link>
                                     </Button>
                                 </TooltipTrigger>
 
                                 <TooltipContent>
-                                    <p>Edit Agent</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() =>
-                                            deleteAgent.execute(row.original.id)
-                                        }
-                                    >
-                                        <Trash />
-                                    </Button>
-                                </TooltipTrigger>
-
-                                <TooltipContent>
-                                    <p>Delete Agent</p>
+                                    <p>Inspect Workflow</p>
                                 </TooltipContent>
                             </Tooltip>
                         </TooltipProvider>
@@ -206,4 +155,4 @@ export default function Agents() {
     }
 }
 
-const columnHelper = createColumnHelper<Agent>();
+const columnHelper = createColumnHelper<Workflow>();

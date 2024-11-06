@@ -4,6 +4,7 @@ import useSWR from "swr";
 
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
+import { WorkflowService } from "~/lib/service/api/workflowService";
 import { cn } from "~/lib/utils";
 
 import { DarkModeToggle } from "~/components/DarkModeToggle";
@@ -103,6 +104,25 @@ function getBreadcrumbs(route: string, params: Readonly<Params<string>>) {
                         </BreadcrumbItem>
                     </>
                 )}
+                {new RegExp(
+                    $path("/workflows/:workflow", { workflow: "(.*)" })
+                ).test(route) && (
+                    <>
+                        <BreadcrumbItem>
+                            <BreadcrumbLink asChild>
+                                <Link to={$path("/workflows")}>Workflows</Link>
+                            </BreadcrumbLink>
+                        </BreadcrumbItem>
+                        <BreadcrumbSeparator />
+                        <BreadcrumbItem>
+                            <BreadcrumbPage>
+                                <WorkflowName
+                                    workflowId={params.workflow || ""}
+                                />
+                            </BreadcrumbPage>
+                        </BreadcrumbItem>
+                    </>
+                )}
                 {new RegExp($path("/tools")).test(route) && (
                     <BreadcrumbItem>
                         <BreadcrumbPage>Tools</BreadcrumbPage>
@@ -130,6 +150,15 @@ const AgentName = ({ agentId }: { agentId: string }) => {
     );
 
     return <>{agent?.name || "New Agent"}</>;
+};
+
+const WorkflowName = ({ workflowId }: { workflowId: string }) => {
+    const { data: workflow } = useSWR(
+        WorkflowService.getWorkflowById.key(workflowId),
+        ({ workflowId }) => WorkflowService.getWorkflowById(workflowId)
+    );
+
+    return <>{workflow?.name || "New Workflow"}</>;
 };
 
 const ThreadName = ({ threadId }: { threadId: string }) => {
