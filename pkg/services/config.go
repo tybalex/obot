@@ -85,8 +85,8 @@ func newGPTScript(ctx context.Context, workspaceTool, datasetsTool string) (*gpt
 	if os.Getenv("GPTSCRIPT_URL") != "" {
 		return gptscript.NewGPTScript(gptscript.GlobalOptions{
 			URL:             os.Getenv("GPTSCRIPT_URL"),
-			WorkspaceTool:   workspaceTool,
 			DatasetToolRepo: datasetsTool,
+			WorkspaceTool:   workspaceTool,
 		})
 	}
 
@@ -97,6 +97,7 @@ func newGPTScript(ctx context.Context, workspaceTool, datasetsTool string) (*gpt
 			},
 			SystemToolsDir: os.Getenv("GPTSCRIPT_SYSTEM_TOOLS_DIR"),
 		},
+		DatasetTool:   datasetsTool,
 		WorkspaceTool: workspaceTool,
 	})
 	if err != nil {
@@ -111,8 +112,9 @@ func newGPTScript(ctx context.Context, workspaceTool, datasetsTool string) (*gpt
 	}
 
 	return gptscript.NewGPTScript(gptscript.GlobalOptions{
-		URL:           url,
-		WorkspaceTool: workspaceTool,
+		URL:             url,
+		DatasetToolRepo: datasetsTool,
+		WorkspaceTool:   workspaceTool,
 	})
 }
 

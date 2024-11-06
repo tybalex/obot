@@ -10,7 +10,7 @@ replace (
 
 require (
 	github.com/MicahParks/keyfunc/v3 v3.3.5
-	github.com/adrg/xdg v0.5.1
+	github.com/adrg/xdg v0.5.3
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.18.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
@@ -18,7 +18,7 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
 	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241028114905-1fce3cceae35
-	github.com/gptscript-ai/gptscript v0.9.6-0.20241105182510-2a9f664b71f9
+	github.com/gptscript-ai/gptscript v0.9.6-0.20241106011514-d21c001097ef
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/oauth2-proxy/oauth2-proxy/v7 v7.0.0-00010101000000-000000000000
 	github.com/otto8-ai/kinm v0.0.0-20241104221322-9ecacf74dda7
@@ -82,8 +82,8 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
 	github.com/charmbracelet/glamour v0.8.0 // indirect
-	github.com/charmbracelet/lipgloss v0.13.1 // indirect
-	github.com/charmbracelet/x/ansi v0.4.0 // indirect
+	github.com/charmbracelet/lipgloss v1.0.0 // indirect
+	github.com/charmbracelet/x/ansi v0.4.5 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/cloudflare/circl v1.5.0 // indirect
 	github.com/containerd/console v1.0.4 // indirect
