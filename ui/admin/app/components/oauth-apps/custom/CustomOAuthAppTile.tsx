@@ -67,6 +67,7 @@ export function CustomOAuthAppTile({ app }: CustomOAuthAppTileProps) {
                             size="icon"
                             className="w-8 h-8 p-0"
                             disabled={deleteApp.isLoading}
+                            loading={deleteApp.isLoading}
                         >
                             <Trash />
                         </Button>

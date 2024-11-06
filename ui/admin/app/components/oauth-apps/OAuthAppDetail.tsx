@@ -54,7 +54,7 @@ export function OAuthAppDetail({
                     <Button
                         size="icon"
                         variant="ghost"
-                        className={cn(className)}
+                        className={cn("mt-0", className)}
                     >
                         <SettingsIcon />
                     </Button>
