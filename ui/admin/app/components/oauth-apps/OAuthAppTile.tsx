@@ -41,7 +41,7 @@ export function OAuthAppTile({
                 "border-2 border-primary": info.appOverride,
             })}
         >
-            <CardHeader className="flex flex-row justify-between pb-2">
+            <CardHeader className="flex flex-row justify-between items-start pb-2 space-y-0">
                 <div className="flex flex-wrap gap-2 items-center">
                     <TypographyH3 className="min-w-fit">
                         {displayName}
