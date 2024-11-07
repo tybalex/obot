@@ -43,8 +43,6 @@ func serve(w http.ResponseWriter, r *http.Request) {
 		http.ServeFileFS(w, r, embedded, "user/build/index.html")
 	} else if _, err := fs.Stat(embedded, userPath); err == nil {
 		http.ServeFileFS(w, r, embedded, userPath)
-	} else if r.URL.Path == "/" {
-		http.Redirect(w, r, "/admin/agents", http.StatusFound)
 	} else if _, err := fs.Stat(embedded, adminPath); err == nil {
 		http.ServeFileFS(w, r, embedded, adminPath)
 	} else if strings.HasPrefix(r.URL.Path, "/admin") {

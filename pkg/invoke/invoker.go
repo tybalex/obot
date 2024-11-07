@@ -26,7 +26,6 @@ import (
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/util/retry"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -181,15 +180,13 @@ func (i *Invoker) getChatState(ctx context.Context, c kclient.Client, run *v1.Ru
 	return result, lastRun.Spec.ThreadName, err
 }
 
-func getThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, existingThreadName string) (*v1.Thread, error) {
-	if existingThreadName == "" {
-		return nil, apierror.NewNotFound(schema.GroupResource{
-			Group:    v1.SchemeGroupVersion.Group,
-			Resource: "thread",
-		}, existingThreadName)
+func getThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, opt Options) (*v1.Thread, error) {
+	if opt.ThreadName != "" {
+		var thread v1.Thread
+		return &thread, c.Get(ctx, router.Key(agent.Namespace, opt.ThreadName), &thread)
 	}
-	var thread v1.Thread
-	return &thread, c.Get(ctx, router.Key(agent.Namespace, existingThreadName), &thread)
+
+	return createThreadForAgent(ctx, c, agent, opt.ThreadName, opt.UserUID, opt.AgentRefName)
 }
 
 func createThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, threadName, userUID, agentRefName string) (*v1.Thread, error) {
@@ -236,7 +233,7 @@ func (i *Invoker) updateThreadFields(ctx context.Context, c kclient.WithWatch, a
 }
 
 func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, input string, opt Options) (_ *Response, err error) {
-	thread, err := getThreadForAgent(ctx, c, agent, opt.ThreadName)
+	thread, err := getThreadForAgent(ctx, c, agent, opt)
 	if apierror.IsNotFound(err) && opt.CreateThread && strings.HasPrefix(opt.ThreadName, system.ThreadPrefix) {
 		thread, err = createThreadForAgent(ctx, c, agent, opt.ThreadName, opt.UserUID, opt.AgentRefName)
 	}
