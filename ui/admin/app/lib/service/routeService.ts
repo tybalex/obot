@@ -12,6 +12,7 @@ const QueryParamSchemaMap = {
     }),
     "/debug": z.undefined(),
     "/home": z.undefined(),
+    "/models": z.undefined(),
     "/oauth-apps": z.undefined(),
     "/thread/:id": z.undefined(),
     "/threads": z.object({
@@ -59,17 +60,6 @@ function getUnknownQueryParams(pathname: string, search: string) {
         } satisfies QueryParamInfo<"/threads">;
     }
 
-    if (
-        new RegExp($path("/workflows/:workflow", { workflow: "(.*)" })).test(
-            pathname
-        )
-    ) {
-        return {
-            path: "/workflows/:workflow",
-            query: parseSearchParams("/workflows/:workflow", search),
-        } satisfies QueryParamInfo<"/workflows/:workflow">;
-    }
-
     return {};
 }
 
@@ -94,6 +84,17 @@ function getUnknownPathParams(
             path: "/thread/:id",
             pathParams: $params("/thread/:id", params),
         } satisfies PathParamInfo<"/thread/:id">;
+    }
+
+    if (
+        new RegExp($path("/workflows/:workflow", { workflow: "(.*)" })).test(
+            pathname
+        )
+    ) {
+        return {
+            path: "/workflows/:workflow",
+            pathParams: $params("/workflows/:workflow", params),
+        } satisfies PathParamInfo<"/workflows/:workflow">;
     }
 
     return {};

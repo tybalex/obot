@@ -57,10 +57,6 @@ export default function Models() {
                 columns={getColumns()}
                 data={data ?? []}
                 sort={[{ id: "id", desc: true }]}
-                classNames={{
-                    row: "!max-h-[200px] grow-0 height-[200px]",
-                    cell: "!max-h-[200px] grow-0 height-[200px]",
-                }}
                 disableClickPropagation={(cell) => cell.id.includes("actions")}
             />
         </div>

@@ -9,7 +9,7 @@ import { ArrowLeftIcon } from "lucide-react";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
 import { WorkflowService } from "~/lib/service/api/workflowService";
-import { RouteService } from "~/lib/service/routeQueryParams";
+import { RouteService } from "~/lib/service/routeService";
 import { noop } from "~/lib/utils";
 
 import { Chat } from "~/components/chat";
