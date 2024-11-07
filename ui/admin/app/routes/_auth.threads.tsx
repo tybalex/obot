@@ -1,4 +1,4 @@
-import { ReaderIcon } from "@radix-ui/react-icons";
+import { PersonIcon, ReaderIcon } from "@radix-ui/react-icons";
 import {
     ClientLoaderFunctionArgs,
     Link,
@@ -6,16 +6,18 @@ import {
     useNavigate,
 } from "@remix-run/react";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { Trash } from "lucide-react";
+import { PuzzleIcon, Trash } from "lucide-react";
 import { useMemo } from "react";
 import { $path } from "remix-routes";
-import useSWR from "swr";
+import useSWR, { preload } from "swr";
 import { z } from "zod";
 
 import { Agent } from "~/lib/model/agents";
 import { Thread } from "~/lib/model/threads";
+import { Workflow } from "~/lib/model/workflows";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
+import { WorkflowService } from "~/lib/service/api/workflowService";
 import { RouteService } from "~/lib/service/routeQueryParams";
 import { timeSince } from "~/lib/utils";
 
@@ -32,8 +34,17 @@ import { useAsync } from "~/hooks/useAsync";
 
 export type SearchParams = z.infer<(typeof RouteService.schemas)["/threads"]>;
 
-export function clientLoader({ request }: ClientLoaderFunctionArgs) {
+export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
     const search = new URL(request.url).search;
+
+    await Promise.all([
+        preload(AgentService.getAgents.key(), AgentService.getAgents),
+        preload(
+            WorkflowService.getWorkflows.key(),
+            WorkflowService.getWorkflows
+        ),
+        preload(ThreadsService.getThreads.key(), ThreadsService.getThreads),
+    ]);
 
     return RouteService.getQueryParams("/threads", search) ?? {};
 }
@@ -52,6 +63,11 @@ export default function Threads() {
         AgentService.getAgents
     );
 
+    const getWorkflows = useSWR(
+        WorkflowService.getWorkflows.key(),
+        WorkflowService.getWorkflows
+    );
+
     const agentMap = useMemo(() => {
         // note(tylerslaton): the or condition here is because the getAgents.data can
         // be an object containing a url only when switching to the agent page from the
@@ -65,6 +81,17 @@ export default function Threads() {
             {} as Record<string, Agent>
         );
     }, [getAgents.data]);
+
+    const workflowMap = useMemo(() => {
+        if (!getWorkflows.data || !Array.isArray(getWorkflows.data)) return {};
+        return getWorkflows.data.reduce(
+            (acc, workflow) => {
+                acc[workflow.id] = workflow;
+                return acc;
+            },
+            {} as Record<string, Workflow>
+        );
+    }, [getWorkflows.data]);
 
     const threads = useMemo(() => {
         console.log(agentId);
@@ -96,7 +123,9 @@ export default function Threads() {
                 <TypographyH2 className="mb-8">Threads</TypographyH2>
                 <DataTable
                     columns={getColumns()}
-                    data={threads.filter((thread) => thread.agentID)}
+                    data={threads.filter(
+                        (thread) => thread.agentID || thread.workflowID
+                    )}
                     sort={[{ id: "created", desc: true }]}
                     classNames={{
                         row: "!max-h-[200px] grow-0 height-[200px]",
@@ -119,10 +148,31 @@ export default function Threads() {
                 (thread) => {
                     if (thread.agentID)
                         return agentMap[thread.agentID]?.name ?? thread.agentID;
+                    else if (thread.workflowID)
+                        return (
+                            workflowMap[thread.workflowID]?.name ??
+                            thread.workflowID
+                        );
                     return "Unnamed";
                 },
-                { header: "Agent" }
+                { header: "Name" }
             ),
+            columnHelper.display({
+                id: "type",
+                header: "Type",
+                cell: ({ row }) => {
+                    return (
+                        <TypographyP className="flex items-center gap-2">
+                            {row.original.agentID ? (
+                                <PersonIcon className="w-4 h-4" />
+                            ) : (
+                                <PuzzleIcon className="w-4 h-4" />
+                            )}
+                            {row.original.agentID ? "Agent" : "Workflow"}
+                        </TypographyP>
+                    );
+                },
+            }),
             columnHelper.accessor("created", {
                 id: "created",
                 header: "Created",

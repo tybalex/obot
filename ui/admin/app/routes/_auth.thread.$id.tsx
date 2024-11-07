@@ -6,9 +6,9 @@ import {
 } from "@remix-run/react";
 import { ArrowLeftIcon } from "lucide-react";
 
-import { Agent } from "~/lib/model/agents";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
+import { WorkflowService } from "~/lib/service/api/workflowService";
 import { RouteService } from "~/lib/service/routeQueryParams";
 import { noop } from "~/lib/utils";
 
@@ -42,15 +42,26 @@ export const clientLoader = async ({ params }: ClientLoaderFunctionArgs) => {
     const agent = thread.agentID
         ? await AgentService.getAgentById(thread.agentID).catch(noop)
         : null;
+
+    const workflow = thread.workflowID
+        ? await WorkflowService.getWorkflowById(thread.workflowID).catch(noop)
+        : null;
+
     const files = await ThreadsService.getFiles(id);
     const knowledge = await ThreadsService.getKnowledge(id);
 
-    return { thread, agent, files, knowledge };
+    return { thread, agent, workflow, files, knowledge };
 };
 
 export default function ChatAgent() {
-    const { thread, agent, files, knowledge } =
+    const { thread, agent, workflow, files, knowledge } =
         useLoaderData<typeof clientLoader>();
+
+    const getEntity = () => {
+        if (agent) return agent;
+        if (workflow) return workflow;
+        throw new Error("Trying to view a thread with an unsupported parent.");
+    };
 
     return (
         <ChatProvider
@@ -90,7 +101,7 @@ export default function ChatAgent() {
                             <ThreadMeta
                                 className="rounded-none border-none"
                                 thread={thread}
-                                agent={agent ?? ({} as Agent)}
+                                for={getEntity()}
                                 files={files}
                                 knowledge={knowledge}
                             />
