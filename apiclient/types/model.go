@@ -7,6 +7,7 @@ type Model struct {
 }
 
 type ModelManifest struct {
+	Name          string `json:"name,omitempty"`
 	TargetModel   string `json:"targetModel,omitempty"`
 	ModelProvider string `json:"modelProvider,omitempty"`
 	Active        bool   `json:"active"`
