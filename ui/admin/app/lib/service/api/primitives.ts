@@ -5,6 +5,7 @@ import { AuthDisabledUsername } from "~/lib/model/auth";
 import { User } from "~/lib/model/users";
 import { ApiRoutes } from "~/lib/routers/apiRoutes";
 import {
+    BadRequestError,
     ConflictError,
     ForbiddenError,
     UnauthorizedError,
@@ -34,6 +35,10 @@ export async function request<T, R = AxiosResponse<T>, D = unknown>({
         });
     } catch (error) {
         console.error(errorMessage);
+
+        if (isAxiosError(error) && error.response?.status === 400) {
+            throw new BadRequestError(error.response.data);
+        }
 
         if (isAxiosError(error) && error.response?.status === 401) {
             throw new UnauthorizedError(error.response.data);

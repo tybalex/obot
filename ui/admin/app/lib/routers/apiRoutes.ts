@@ -129,6 +129,14 @@ export const ApiRoutes = {
         supportedOauthAppTypes: () => buildUrl("/supported-oauth-app-types"),
         supportedAuthTypes: () => buildUrl("/supported-auth-types"),
     },
+    models: {
+        base: () => buildUrl("/models"),
+        getModels: () => buildUrl("/models"),
+        getModelById: (modelId: string) => buildUrl(`/models/${modelId}`),
+        createModel: () => buildUrl(`/models`),
+        updateModel: (modelId: string) => buildUrl(`/models/${modelId}`),
+        deleteModel: (modelId: string) => buildUrl(`/models/${modelId}`),
+    },
 };
 
 /** revalidates the cache for all routes that match the filter callback

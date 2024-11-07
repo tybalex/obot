@@ -83,28 +83,7 @@ export function DataTable<TData, TValue>({
                                     rowClassName?.(row.original)
                                 )}
                             >
-                                {row.getVisibleCells().map((cell) => (
-                                    <TableCell
-                                        key={cell.id}
-                                        className={cn(
-                                            "py-4",
-                                            classNames?.cell,
-                                            { "cursor-pointer": !!onRowClick }
-                                        )}
-                                        onClick={() => {
-                                            if (
-                                                !disableClickPropagation?.(cell)
-                                            ) {
-                                                onRowClick?.(row.original);
-                                            }
-                                        }}
-                                    >
-                                        {flexRender(
-                                            cell.column.columnDef.cell,
-                                            cell.getContext()
-                                        )}
-                                    </TableCell>
-                                ))}
+                                {row.getVisibleCells().map(renderCell)}
                             </TableRow>
                         ))
                     ) : (
@@ -124,4 +103,22 @@ export function DataTable<TData, TValue>({
             </Table>
         </div>
     );
+
+    function renderCell(cell: Cell<TData, TValue>) {
+        return (
+            <TableCell
+                key={cell.id}
+                className={cn("py-4", classNames?.cell, {
+                    "cursor-pointer": !!onRowClick,
+                })}
+                onClick={() => {
+                    if (!disableClickPropagation?.(cell)) {
+                        onRowClick?.(cell.row.original);
+                    }
+                }}
+            >
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </TableCell>
+        );
+    }
 }

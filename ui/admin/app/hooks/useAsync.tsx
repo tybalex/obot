@@ -1,28 +1,34 @@
-import { AxiosError } from "axios";
 import { useCallback, useState } from "react";
 
+import { BoundaryError } from "~/lib/service/api/apiErrors";
 import { handlePromise } from "~/lib/service/async";
 
 type Config<TData, TParams extends unknown[]> = {
     onSuccess?: (data: TData, params: TParams) => void;
     onError?: (error: unknown, params: TParams) => void;
     onSettled?: ({ params }: { params: TParams }) => void;
+    shouldThrow?: (error: unknown) => boolean;
 };
 
-const defaultShouldThrow = (error: unknown) => !(error instanceof AxiosError);
+const defaultShouldThrow = (error: unknown) => error instanceof BoundaryError;
 
 export function useAsync<TData, TParams extends unknown[]>(
     callback: (...params: TParams) => Promise<TData>,
     config?: Config<TData, TParams>
 ) {
-    const { onSuccess, onError, onSettled } = config || {};
+    const {
+        onSuccess,
+        onError,
+        onSettled,
+        shouldThrow = defaultShouldThrow,
+    } = config || {};
 
     const [data, setData] = useState<TData | null>(null);
     const [error, setError] = useState<unknown>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [lastCallParams, setLastCallParams] = useState<TParams | null>(null);
 
-    if (error && defaultShouldThrow(error)) throw error;
+    if (error && shouldThrow(error)) throw error;
 
     const executeAsync = useCallback(
         async (...params: TParams) => {
