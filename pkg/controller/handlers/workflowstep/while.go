@@ -10,14 +10,24 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (h *Handler) RunWhile(req router.Request, _ router.Response) error {
+func (h *Handler) RunWhile(req router.Request, _ router.Response) (err error) {
 	step := req.Object.(*v1.WorkflowStep)
 
 	if step.Spec.Step.While == nil {
 		return nil
 	}
 
+	var completeResponse bool
 	var objects []kclient.Object
+	defer func() {
+		apply := apply.New(req.Client)
+		if !completeResponse {
+			apply.WithNoPrune()
+		}
+		if applyErr := apply.Apply(req.Ctx, req.Object, objects...); applyErr != nil && err == nil {
+			err = applyErr
+		}
+	}()
 
 	count := step.Spec.Step.While.MaxLoops
 	if count <= 0 {
@@ -64,6 +74,7 @@ func (h *Handler) RunWhile(req router.Request, _ router.Response) error {
 		}
 
 		if !conditionResult {
+			completeResponse = true
 			step.Status.State = types.WorkflowStateComplete
 			step.Status.LastRunName = lastRunName
 			return nil
@@ -101,9 +112,10 @@ func (h *Handler) RunWhile(req router.Request, _ router.Response) error {
 		}
 	}
 
+	completeResponse = true
 	step.Status.State = types.WorkflowStateComplete
 	step.Status.LastRunName = lastRunName
-	return apply.New(req.Client).Apply(req.Ctx, req.Object, objects...)
+	return nil
 }
 
 func (h *Handler) defineWhile(groupIndex int, conditionStep, step *v1.WorkflowStep) (result []kclient.Object, _ error) {
