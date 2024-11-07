@@ -11,6 +11,7 @@ import { PastThreads } from "~/components/agent/PastThreads";
 import { ToolForm } from "~/components/agent/ToolForm";
 import { AgentKnowledgePanel } from "~/components/knowledge";
 import { Button } from "~/components/ui/button";
+import { Card } from "~/components/ui/card";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { useDebounce } from "~/hooks/useDebounce";
 
@@ -56,18 +57,19 @@ function AgentContent({ className, onRefresh }: AgentProps) {
     return (
         <div className="h-full flex flex-col">
             <ScrollArea className={cn("h-full", className)}>
-                <div className="p-4">
+                <Card className="p-4 m-4 lg:mx-6 xl:mx-8">
                     <AgentForm
                         agent={agentUpdates}
                         onChange={debouncedSetAgentInfo}
                     />
-                </div>
+                </Card>
 
-                <div className="p-4 flex-auto space-y-4">
-                    <TypographyH4 className="flex items-center gap-2">
+                <Card className="p-4 m-4 space-y-4 lg:mx-6 xl:mx-8">
+                    <TypographyH4 className="flex items-center gap-2 border-b pb-2">
                         <WrenchIcon className="w-5 h-5" />
                         Tools
                     </TypographyH4>
+
                     <TypographyP className="text-muted-foreground flex items-center gap-2">
                         Add tools the allow the agent to perform useful actions
                         such as searching the web, reading files, or interacting
@@ -80,10 +82,10 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                             debouncedSetAgentInfo(convertTools(tools))
                         }
                     />
-                </div>
+                </Card>
 
-                <div className="p-4 flex-auto space-y-4">
-                    <TypographyH4 className="flex items-center gap-2">
+                <Card className="p-4 m-4 space-y-4 lg:mx-6 xl:mx-8">
+                    <TypographyH4 className="flex items-center gap-2 border-b pb-2">
                         <LibraryIcon className="w-6 h-6" />
                         Knowledge
                     </TypographyH4>
@@ -97,7 +99,7 @@ function AgentContent({ className, onRefresh }: AgentProps) {
                         agent={agent}
                         updateAgent={debouncedSetAgentInfo}
                     />
-                </div>
+                </Card>
             </ScrollArea>
 
             <footer className="flex justify-between items-center p-4 gap-4 text-muted-foreground">
