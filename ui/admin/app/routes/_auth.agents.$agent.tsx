@@ -13,6 +13,7 @@ import { RouteService } from "~/lib/service/routeQueryParams";
 import { noop } from "~/lib/utils";
 
 import { Agent } from "~/components/agent";
+import { AgentProvider } from "~/components/agent/AgentContext";
 import { Chat, ChatProvider } from "~/components/chat";
 import {
     ResizableHandle,
@@ -75,18 +76,20 @@ export default function ChatAgent() {
                 threadId={threadId}
                 onCreateThreadId={updateThreadId}
             >
-                <ResizablePanelGroup
-                    direction="horizontal"
-                    className="flex-auto"
-                >
-                    <ResizablePanel className="">
-                        <Agent agent={agent} onRefresh={updateThreadId} />
-                    </ResizablePanel>
-                    <ResizableHandle withHandle />
-                    <ResizablePanel>
-                        <Chat />
-                    </ResizablePanel>
-                </ResizablePanelGroup>
+                <AgentProvider agent={agent}>
+                    <ResizablePanelGroup
+                        direction="horizontal"
+                        className="flex-auto"
+                    >
+                        <ResizablePanel className="">
+                            <Agent agent={agent} onRefresh={updateThreadId} />
+                        </ResizablePanel>
+                        <ResizableHandle withHandle />
+                        <ResizablePanel>
+                            <Chat />
+                        </ResizablePanel>
+                    </ResizablePanelGroup>
+                </AgentProvider>
             </ChatProvider>
         </div>
     );

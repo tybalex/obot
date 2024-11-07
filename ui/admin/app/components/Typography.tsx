@@ -93,6 +93,18 @@ export function TypographyP({
     );
 }
 
+export function TypographyPAccent({
+    children,
+    className,
+    ...props
+}: TypographyProps<"p">) {
+    return (
+        <TypographyP className={cn(`text-info-muted`, className)} {...props}>
+            {children}
+        </TypographyP>
+    );
+}
+
 export function TypographyBlockquote({
     children,
     className,
@@ -178,6 +190,18 @@ export function TypographyMuted({
             className={cn(`text-sm text-muted-foreground`, className)}
             {...props}
         >
+            {children}
+        </p>
+    );
+}
+
+export function TypographyMutedAccent({
+    children,
+    className,
+    ...props
+}: TypographyProps<"p">) {
+    return (
+        <p className={cn(`text-sm text-blue-500`, className)} {...props}>
             {children}
         </p>
     );
