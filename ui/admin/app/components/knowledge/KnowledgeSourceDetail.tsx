@@ -497,8 +497,7 @@ const KnowledgeSourceDetail: FC<KnowledgeSourceDetailProps> = ({
                                                     knowledgeSource.syncSchedule ??
                                                         ""
                                                 ) &&
-                                                knowledgeSource.syncSchedule !==
-                                                    ""
+                                                !!knowledgeSource.syncSchedule
                                             }
                                         />
                                     </DropdownMenuItem>
