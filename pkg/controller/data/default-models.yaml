@@ -23,6 +23,16 @@ items:
   - apiVersion: otto.otto8.ai/v1
     kind: Model
     metadata:
+      name: text-embedding-3-small
+      namespace: default
+    spec:
+      manifest:
+        targetModel: text-embedding-3-small
+        modelProvider: openai-model-provider
+        active: true
+  - apiVersion: otto.otto8.ai/v1
+    kind: Model
+    metadata:
       name: dall-e-3
       namespace: default
     spec:
