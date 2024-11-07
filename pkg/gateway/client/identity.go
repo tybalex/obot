@@ -7,7 +7,6 @@ import (
 	types2 "github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/gateway/types"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // EnsureIdentity ensures that the given identity exists in the database, and returns the user associated with it.
@@ -31,11 +30,18 @@ func (c *Client) EnsureIdentity(ctx context.Context, id *types.Identity) (*types
 
 // EnsureIdentity ensures that the given identity exists in the database, and returns the user associated with it.
 func EnsureIdentity(tx *gorm.DB, id *types.Identity, role types2.Role) (*types.User, error) {
-	if err := tx.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "provider_username"}, {Name: "auth_provider_id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"email"}),
-	}, clause.Returning{Columns: []clause.Column{{Name: "user_id"}}}).Create(id).Error; err != nil {
+	email := id.Email
+	if err := tx.First(id).Error; errors.Is(err, gorm.ErrRecordNotFound) {
+		if err = tx.Create(id).Error; err != nil {
+			return nil, err
+		}
+	} else if err != nil {
 		return nil, err
+	} else if id.Email != email {
+		id.Email = email
+		if err = tx.Updates(id).Error; err != nil {
+			return nil, err
+		}
 	}
 
 	user := &types.User{
