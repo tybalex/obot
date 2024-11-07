@@ -1,11 +1,12 @@
 import { Link } from "@remix-run/react";
-import { EditIcon, FileIcon, FilesIcon } from "lucide-react";
+import { EditIcon, ExternalLink, FileIcon, FilesIcon } from "lucide-react";
 import { $path } from "remix-routes";
 
 import { Agent } from "~/lib/model/agents";
 import { KnowledgeFile } from "~/lib/model/knowledge";
 import { runStateToBadgeColor } from "~/lib/model/runs";
 import { Thread } from "~/lib/model/threads";
+import { Workflow } from "~/lib/model/workflows";
 import { WorkspaceFile } from "~/lib/model/workspace";
 import { cn } from "~/lib/utils";
 
@@ -20,20 +21,22 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 
 interface ThreadMetaProps {
+    for: Agent | Workflow;
     thread: Thread;
-    agent: Agent;
     files: WorkspaceFile[];
     knowledge: KnowledgeFile[];
     className?: string;
 }
 
 export function ThreadMeta({
+    for: entity,
     thread,
-    agent,
     files,
     className,
 }: ThreadMetaProps) {
     const from = $path("/thread/:id", { id: thread.id });
+    const isAgent = entity.id.startsWith("a");
+
     return (
         <Card className={cn("h-full bg-0", className)}>
             <CardContent className="space-y-4 pt-6">
@@ -48,33 +51,37 @@ export function ThreadMeta({
                                     {new Date(thread.created).toLocaleString()}
                                 </td>
                             </tr>
-                            {agent.name && (
-                                <tr className="border-foreground/25">
-                                    <td className="font-medium py-2 pr-4">
-                                        Agent
-                                    </td>
-                                    <td className="text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <span>{agent.name}</span>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                asChild
+                            <tr className="border-foreground/25">
+                                <td className="font-medium py-2 pr-4">
+                                    {isAgent ? "Agent" : "Workflow"}
+                                </td>
+                                <td className="text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <span>{entity.name}</span>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            asChild
+                                        >
+                                            <Link
+                                                to={$path(
+                                                    isAgent
+                                                        ? "/agents/:agent"
+                                                        : "/workflows/:workflow",
+                                                    { workflow: entity.id },
+                                                    { from }
+                                                )}
                                             >
-                                                <Link
-                                                    to={$path(
-                                                        "/agents/:agent",
-                                                        { agent: agent.id },
-                                                        { from }
-                                                    )}
-                                                >
+                                                {isAgent ? (
                                                     <EditIcon className="w-4 h-4" />
-                                                </Link>
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
+                                                ) : (
+                                                    <ExternalLink className="w-4 h-4" />
+                                                )}
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                </td>
+                            </tr>
                             <tr className="border-foreground/25">
                                 <td className="font-medium py-2 pr-4">State</td>
                                 <td className="text-right">

@@ -18,6 +18,8 @@ const QueryParamSchemaMap = {
         agentId: z.string().optional(),
         workflowId: z.string().optional(),
     }),
+    "/workflows": z.undefined(),
+    "/workflows/:workflow": z.undefined(),
     "/tools": z.undefined(),
     "/users": z.undefined(),
 } satisfies Record<keyof Routes, ZodSchema | null>;
@@ -55,6 +57,17 @@ function getUnknownQueryParams(pathname: string, search: string) {
             path: "/threads",
             query: parseSearchParams("/threads", search),
         } satisfies QueryParamInfo<"/threads">;
+    }
+
+    if (
+        new RegExp($path("/workflows/:workflow", { workflow: "(.*)" })).test(
+            pathname
+        )
+    ) {
+        return {
+            path: "/workflows/:workflow",
+            query: parseSearchParams("/workflows/:workflow", search),
+        } satisfies QueryParamInfo<"/workflows/:workflow">;
     }
 
     return {};
