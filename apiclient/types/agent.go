@@ -16,8 +16,16 @@ type Agent struct {
 
 type AgentList List[Agent]
 
+type AgentIcons struct {
+	Icon          string `json:"icon"`
+	IconDark      string `json:"iconDark"`
+	Collapsed     string `json:"collapsed"`
+	CollapsedDark string `json:"collapsedDark"`
+}
+
 type AgentManifest struct {
 	Name                 string            `json:"name"`
+	Icons                *AgentIcons       `json:"icons,omitempty"`
 	Description          string            `json:"description"`
 	Temperature          *float32          `json:"temperature"`
 	Cache                *bool             `json:"cache"`

@@ -1,11 +1,22 @@
 <script lang="ts">
-	import { createEventDispatcher, onDestroy, onMount } from 'svelte';
+	import { onDestroy, onMount } from 'svelte';
 	import { ChatService } from '$lib/services';
 	import type { Progress } from '$lib/services';
 
+	interface Props {
+		assistant: string;
+		onmessage?: (event: Progress) => void;
+		onerror?: (event: Error) => void;
+	}
+
+	let {
+		assistant,
+		onmessage = () => {},
+		onerror = () => {},
+	} : Props = $props();
+
 	let es: EventSource;
 	let replayComplete = false;
-	const dispatch = createEventDispatcher();
 
 	function disconnect() {
 		if (es) {
@@ -15,7 +26,7 @@
 
 	function connect() {
 		disconnect();
-		es = ChatService.newMessageEventSource();
+		es = ChatService.newMessageEventSource(assistant);
 		es.onmessage = onMessage;
 		es.onerror = (e: Event) => {
 			if (e.eventPhase === EventSource.CLOSED) {
@@ -33,10 +44,10 @@
 		}
 		if (message.error) {
 			if (replayComplete) {
-				dispatch('error', new Error(message.error));
+				onerror(new Error(message.error));
 			}
 		} else {
-			dispatch('message', message);
+			onmessage(message);
 		}
 	}
 

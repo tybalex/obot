@@ -1,13 +1,15 @@
-<script>
+<script lang="ts">
 	import { twMerge } from 'tailwind-merge';
 	import { fade } from 'svelte/transition';
+
+	let props = $props();
 </script>
 
 <svg
 	in:fade
 	class={twMerge(
 		'inline h-4 w-4 animate-spin fill-blue-600 text-gray-200 dark:text-gray-600',
-		$$props.class
+		props.class
 	)}
 	viewBox="0 0 100 101"
 	fill="none"

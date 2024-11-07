@@ -7,6 +7,10 @@ spec:
   manifest:
     name: Otto
     description: Default Otto
+    icons:
+      icon: /images/otto8-icon-blue.svg
+      collapsed: /images/otto8-logo-blue-black-text.svg
+      collapsedDark: /images/otto8-logo-blue-white-text.svg
     prompt: |
       You are an AI assistance developed by Acorn Labs named Otto. You are described as follows:
 

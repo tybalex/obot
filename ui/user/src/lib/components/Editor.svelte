@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: `<button>` is invalid inside `<button>` -->
 <script lang="ts" context="module">
 	import { editorFiles } from '$lib/stores';
 	import { ChatService } from '$lib/services';
@@ -105,7 +106,7 @@
 		<ul class="mb-4 flex flex-wrap text-center text-sm font-medium">
 			{#each $editorFiles as file, i}
 				<li class="me-2">
-					<button
+					<a href="#"
 						class:selected={isSelected(file.name)}
 						on:click={() => {
 							selectFile($editorFiles[i].name);
@@ -124,7 +125,7 @@
 						>
 							<X />
 						</button>
-					</button>
+					</a>
 				</li>
 			{/each}
 		</ul>

@@ -3,8 +3,12 @@
 	import { Pencil } from '$lib/icons';
 	import { onMount } from 'svelte';
 
-	export let drawerVisible = false;
-	export let editorVisible = false;
+	interface Props {
+		drawerVisible?: boolean;
+		editorVisible?: boolean;
+	}
+
+	let { drawerVisible = $bindable(false), editorVisible = $bindable(false) }: Props = $props();
 
 	onMount(() => {
 		if (window.location.href.indexOf('#editor') > -1) {
@@ -17,7 +21,7 @@
 	<div class="mb-4 hidden flex-col items-center space-y-2 group-hover:flex">
 		<button
 			type="button"
-			on:click={() => {
+			onclick={() => {
 				editorVisible = !editorVisible;
 				if (!editorVisible) {
 					window.location.href = '#';
@@ -34,7 +38,7 @@
 	</div>
 	<button
 		type="button"
-		on:click={() => {
+		onclick={() => {
 			drawerVisible = !drawerVisible;
 		}}
 		class="flex h-14 w-14 items-center justify-center rounded-full bg-blue-700 text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"

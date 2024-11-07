@@ -12,7 +12,6 @@ import (
 	"github.com/otto8-ai/otto8/pkg/api"
 	"github.com/otto8-ai/otto8/pkg/events"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
-	"github.com/otto8-ai/otto8/pkg/system"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -51,6 +50,8 @@ func convertThread(thread v1.Thread) types.Thread {
 		CurrentRunID:   thread.Status.CurrentRunName,
 		State:          state,
 		ParentThreadID: parent,
+		AgentRefName:   thread.Spec.AgentRefName,
+		UserID:         thread.Spec.UserUID,
 	}
 }
 
@@ -65,8 +66,8 @@ func (a *ThreadHandler) Events(req api.Context) error {
 		waitForThread = req.URL.Query().Get("waitForThread") == "true"
 	)
 
-	if id == "user" {
-		id = system.ThreadPrefix + req.User.GetUID()
+	if runID == "" {
+		runID = req.Request.Header.Get("Last-Event-ID")
 	}
 
 	if maxRunString != "" {
@@ -186,10 +187,6 @@ func (a *ThreadHandler) Files(req api.Context) error {
 		threadID = req.PathValue("id")
 	)
 
-	if threadID == "user" {
-		threadID = system.ThreadPrefix + req.User.GetUID()
-	}
-
 	var thread v1.Thread
 	if err := req.Get(&thread, threadID); err != nil {
 		return err
@@ -209,10 +206,6 @@ func (a *ThreadHandler) GetFile(req api.Context) error {
 	var (
 		threadID = req.PathValue("id")
 	)
-
-	if threadID == "user" {
-		threadID = system.ThreadPrefix + req.User.GetUID()
-	}
 
 	var thread v1.Thread
 	if err := req.Get(&thread, threadID); err != nil {
@@ -243,9 +236,6 @@ func (a *ThreadHandler) DeleteFile(req api.Context) error {
 	var (
 		threadID = req.PathValue("id")
 	)
-	if threadID == "user" {
-		threadID = system.ThreadPrefix + req.User.GetUID()
-	}
 
 	var thread v1.Thread
 	if err := req.Get(&thread, threadID); err != nil {
@@ -263,9 +253,6 @@ func (a *ThreadHandler) Knowledge(req api.Context) error {
 	var (
 		threadID = req.PathValue("id")
 	)
-	if threadID == "user" {
-		threadID = system.ThreadPrefix + req.User.GetUID()
-	}
 
 	var thread v1.Thread
 	if err := req.Get(&thread, threadID); err != nil {
@@ -283,10 +270,6 @@ func (a *ThreadHandler) UploadKnowledge(req api.Context) error {
 	var (
 		threadID = req.PathValue("id")
 	)
-
-	if threadID == "user" {
-		threadID = system.ThreadPrefix + req.User.GetUID()
-	}
 
 	var thread v1.Thread
 	if err := req.Get(&thread, threadID); err != nil {
@@ -309,9 +292,6 @@ func (a *ThreadHandler) DeleteKnowledge(req api.Context) error {
 	var (
 		threadID = req.PathValue("id")
 	)
-	if threadID == "user" {
-		threadID = system.ThreadPrefix + req.User.GetUID()
-	}
 
 	var thread v1.Thread
 	if err := req.Get(&thread, threadID); err != nil {

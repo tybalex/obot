@@ -4,7 +4,11 @@
 	import type { Message } from '$lib/services';
 	import { Pencil } from '$lib/icons';
 
-	export let msg: Message;
+	interface Props {
+		msg: Message;
+	}
+
+	let { msg }: Props = $props();
 </script>
 
 {#if !msg.icon}

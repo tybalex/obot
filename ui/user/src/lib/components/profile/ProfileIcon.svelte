@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import { profile } from '$lib/stores';
 
-	let initials = '08';
+	let initials = $state('08');
 
-	$: {
+	run(() => {
 		if ($profile.email) {
 			const parts = $profile.email.split('@')[0].split(/[.-]/);
 			initials = parts[0].charAt(0).toUpperCase();
@@ -11,7 +13,7 @@
 				initials += parts[parts.length - 1].charAt(0).toUpperCase();
 			}
 		}
-	}
+	});
 </script>
 
 {#if $profile.iconURL}

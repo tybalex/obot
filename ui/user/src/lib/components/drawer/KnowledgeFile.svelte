@@ -5,7 +5,11 @@
 	import { createEventDispatcher } from 'svelte';
 	import { popover } from '$lib/actions';
 
-	export let file: KnowledgeFile;
+	interface Props {
+		file: KnowledgeFile;
+	}
+
+	let { file }: Props = $props();
 	let dispatch = createEventDispatcher();
 	const tt = popover({
 		hover: true
@@ -28,7 +32,7 @@
 	{/if}
 	<FileText class="mr-2 text-gray-500 dark:text-gray-500" />
 	<span class="flex-1 text-sm text-black dark:text-white">{file.fileName}</span>
-	<button on:click={deleteFile}>
+	<button onclick={deleteFile}>
 		<Trash class="hidden group-hover:block group-hover:text-red-700" />
 	</button>
 </div>

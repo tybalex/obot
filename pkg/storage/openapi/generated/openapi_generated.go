@@ -18,8 +18,11 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 	return map[string]common.OpenAPIDefinition{
 		"github.com/otto8-ai/otto8/apiclient/types.Agent":                                     schema_otto8_ai_otto8_apiclient_types_Agent(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.AgentExternalStatus":                       schema_otto8_ai_otto8_apiclient_types_AgentExternalStatus(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.AgentIcons":                                schema_otto8_ai_otto8_apiclient_types_AgentIcons(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.AgentList":                                 schema_otto8_ai_otto8_apiclient_types_AgentList(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.AgentManifest":                             schema_otto8_ai_otto8_apiclient_types_AgentManifest(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Assistant":                                 schema_otto8_ai_otto8_apiclient_types_Assistant(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.AssistantList":                             schema_otto8_ai_otto8_apiclient_types_AssistantList(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Credential":                                schema_otto8_ai_otto8_apiclient_types_Credential(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.CredentialList":                            schema_otto8_ai_otto8_apiclient_types_CredentialList(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.CronJob":                                   schema_otto8_ai_otto8_apiclient_types_CronJob(ref),
@@ -287,6 +290,47 @@ func schema_otto8_ai_otto8_apiclient_types_AgentExternalStatus(ref common.Refere
 	}
 }
 
+func schema_otto8_ai_otto8_apiclient_types_AgentIcons(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"icon": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"iconDark": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"collapsed": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"collapsedDark": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+				},
+				Required: []string{"icon", "iconDark", "collapsed", "collapsedDark"},
+			},
+		},
+	}
+}
+
 func schema_otto8_ai_otto8_apiclient_types_AgentList(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -326,6 +370,11 @@ func schema_otto8_ai_otto8_apiclient_types_AgentManifest(ref common.ReferenceCal
 							Default: "",
 							Type:    []string{"string"},
 							Format:  "",
+						},
+					},
+					"icons": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.AgentIcons"),
 						},
 					},
 					"description": {
@@ -484,6 +533,77 @@ func schema_otto8_ai_otto8_apiclient_types_AgentManifest(ref common.ReferenceCal
 				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "knowledgeDescription", "agents", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools"},
 			},
 		},
+		Dependencies: []string{
+			"github.com/otto8-ai/otto8/apiclient/types.AgentIcons"},
+	}
+}
+
+func schema_otto8_ai_otto8_apiclient_types_Assistant(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"Metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Metadata"),
+						},
+					},
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"description": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"icons": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.AgentIcons"),
+						},
+					},
+				},
+				Required: []string{"Metadata", "name", "description", "icons"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/otto8-ai/otto8/apiclient/types.AgentIcons", "github.com/otto8-ai/otto8/apiclient/types.Metadata"},
+	}
+}
+
+func schema_otto8_ai_otto8_apiclient_types_AssistantList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Assistant"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/otto8-ai/otto8/apiclient/types.Assistant"},
 	}
 }
 
@@ -2127,6 +2247,18 @@ func schema_otto8_ai_otto8_apiclient_types_Thread(ref common.ReferenceCallback) 
 							Format: "",
 						},
 					},
+					"userID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"agentRefName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 				Required: []string{"Metadata", "ThreadManifest"},
 			},
@@ -2871,6 +3003,11 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref common.Reference
 							Format:  "",
 						},
 					},
+					"icons": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.AgentIcons"),
+						},
+					},
 					"description": {
 						SchemaProps: spec.SchemaProps{
 							Default: "",
@@ -3047,7 +3184,7 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref common.Reference
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/apiclient/types.Step"},
+			"github.com/otto8-ai/otto8/apiclient/types.AgentIcons", "github.com/otto8-ai/otto8/apiclient/types.Step"},
 	}
 }
 
@@ -5210,6 +5347,12 @@ func schema_storage_apis_ottootto8ai_v1_ThreadSpec(ref common.ReferenceCallback)
 							Format: "",
 						},
 					},
+					"agentRefName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"workflowName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -5267,6 +5410,12 @@ func schema_storage_apis_ottootto8ai_v1_ThreadSpec(ref common.ReferenceCallback)
 						},
 					},
 					"oAuthAppLoginName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"userUID": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",

@@ -5,7 +5,7 @@
 
 <button
 	type="button"
-	on:click={() => {
+	onclick={() => {
 		darkMode.set(!$darkMode);
 	}}
 	class="icon-button"

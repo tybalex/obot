@@ -131,3 +131,22 @@ export interface IngestionStatus {
 	status: string;
 	error?: string;
 }
+
+export interface Assistants {
+	items: Assistant[];
+}
+
+export interface AssistantIcons {
+	icon?: string;
+	iconDark?: string;
+	collapsed?: string;
+	collapsedDark?: string;
+}
+
+export interface Assistant {
+	id: string;
+	name?: string;
+	description?: string;
+	current: boolean;
+	icons: AssistantIcons;
+}

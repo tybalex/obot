@@ -1,3 +1,4 @@
+<!-- @migration-task Error while migrating Svelte code: `<button>` is invalid inside `<button>` -->
 <script lang="ts">
 	import { Trash, FileText } from '$lib/icons';
 	import { ChatService, type File as FileType } from '$lib/services';
@@ -14,7 +15,7 @@
 	}
 </script>
 
-<button
+<a
 	class="group flex cursor-pointer items-center rounded-md p-2 hover:bg-gray-400 hover:text-black"
 	on:click={() => {
 		dispatch('loadfile', file.name);
@@ -27,4 +28,4 @@
 	<button on:click={deleteFile}>
 		<Trash class="hidden group-hover:block group-hover:text-red-700" />
 	</button>
-</button>
+</a>

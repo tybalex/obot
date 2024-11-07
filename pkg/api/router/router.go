@@ -12,6 +12,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux := services.APIServer
 
 	agents := handlers.NewAgentHandler(services.GPTClient, services.ServerURL)
+	assistants := handlers.NewAssistantHandler(services.Invoker, services.Events, services.GPTClient)
 	workflows := handlers.NewWorkflowHandler(services.GPTClient, services.ServerURL)
 	invoker := handlers.NewInvokeHandler(services.Invoker)
 	threads := handlers.NewThreadHandler(services.GPTClient, services.Events)
@@ -34,6 +35,18 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("PUT /api/agents/{id}", agents.Update)
 	mux.HandleFunc("DELETE /api/agents/{id}", agents.Delete)
 	mux.HandleFunc("POST /api/agents/{agent_id}/oauth-credentials/{ref}/login", agents.EnsureCredentialForKnowledgeSource)
+
+	// Assistants
+	mux.HandleFunc("GET /api/assistants", assistants.List)
+	mux.HandleFunc("GET /api/assistants/{id}/events", assistants.Events)
+	mux.HandleFunc("POST /api/assistants/{id}/invoke", assistants.Invoke)
+	mux.HandleFunc("GET /api/assistants/{id}/files", assistants.Files)
+	mux.HandleFunc("GET /api/assistants/{id}/file/{file...}", assistants.GetFile)
+	mux.HandleFunc("POST /api/assistants/{id}/files/{file...}", assistants.UploadFile)
+	mux.HandleFunc("DELETE /api/assistants/{id}/files/{file...}", assistants.DeleteFile)
+	mux.HandleFunc("GET /api/assistants/{id}/knowledge", assistants.Knowledge)
+	mux.HandleFunc("POST /api/assistants/{id}/knowledge/{file}", assistants.UploadKnowledge)
+	mux.HandleFunc("DELETE /api/assistants/{id}/knowledge/{file...}", assistants.DeleteKnowledge)
 
 	// Agent files
 	mux.HandleFunc("GET /api/agents/{id}/files", agents.ListFiles)

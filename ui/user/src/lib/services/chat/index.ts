@@ -1,7 +1,8 @@
 import { buildMessagesFromProgress } from '$lib/services/chat/messages';
 import {
 	getProfile,
-	getFiles,
+	listFiles,
+	listAssistants,
 	getFile,
 	getKnowledgeFiles,
 	uploadKnowledge,
@@ -14,7 +15,8 @@ import { baseURL } from '$lib/services/chat/http';
 
 export default {
 	progressToMessages: buildMessagesFromProgress,
-	getFiles,
+	listFiles,
+	listAssistants,
 	getKnowledgeFiles,
 	uploadKnowledge,
 	deleteKnowledgeFile,

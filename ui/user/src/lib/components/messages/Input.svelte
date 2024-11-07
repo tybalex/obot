@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script module lang="ts">
 	import type { Explain } from '$lib/services';
 
 	export interface Input {
@@ -11,13 +11,24 @@
 
 <script lang="ts">
 	import { ChatService } from '$lib/services';
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import { editorFiles } from '$lib/stores';
 	import { SendHorizontal } from '$lib/icons';
 
-	let value = '';
+	interface Props {
+		onerror?: (err: Error) => void;
+		onfocus?: () => void;
+		assistant: string;
+	}
+
+	let {
+		onerror = () => {},
+		onfocus = () => {},
+		assistant,
+	}: Props = $props();
+
+	let value = $state('');
 	let chat: HTMLTextAreaElement;
-	const dispatcher = createEventDispatcher();
 
 	function toInvokeInput(input: Input): Input | string {
 		// This is just to make it pretty and send simple prompts if we can
@@ -41,7 +52,9 @@
 
 		if (override) {
 			input = override;
-			chat.focus();
+			if (chat) {
+				chat.focus();
+			}
 		}
 
 		for (const file of $editorFiles) {
@@ -51,9 +64,13 @@
 		}
 
 		try {
-			await ChatService.invoke(toInvokeInput(input));
+			await ChatService.invoke(assistant, toInvokeInput(input));
 		} catch (err) {
-			dispatcher('error', err);
+			if (err instanceof Error) {
+				onerror(err);
+			} else {
+				onerror(new Error(String(err)));
+			}
 			return;
 		}
 
@@ -117,12 +134,10 @@
 				id="chat"
 				rows="1"
 				bind:value
-				on:keydown={onKey}
+				onkeydown={onKey}
 				bind:this={chat}
-				on:input={resize}
-				on:focus={() => {
-					dispatcher('focus');
-				}}
+				oninput={resize}
+				{onfocus}
 				class="ml-4 mr-2 block w-full resize-none rounded-lg border-2 border-gray-300 bg-white p-2.5 text-sm text-gray-900
 								outline-none focus:border-blue-500 focus:ring-blue-500 dark:border-gray-300 dark:bg-black
 								 dark:text-white dark:placeholder-gray-300 dark:focus:border-blue-500 dark:focus:ring-blue-500"
@@ -130,7 +145,7 @@
 			></textarea>
 			<button
 				type="submit"
-				on:click={() => submit()}
+				onclick={() => submit()}
 				class="inline-flex cursor-pointer justify-center rounded-full p-2 text-blue-600
 							 hover:bg-blue-100 dark:text-blue-500 dark:hover:bg-gray-800"
 			>

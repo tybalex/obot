@@ -26,6 +26,7 @@ import (
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/util/retry"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -142,6 +143,8 @@ type Options struct {
 	PreviousRunName  string
 	ForceNoResume    bool
 	CreateThread     bool
+	UserUID          string
+	AgentRefName     string
 }
 
 func (i *Invoker) getChatState(ctx context.Context, c kclient.Client, run *v1.Run) (result, lastThreadName string, _ error) {
@@ -179,15 +182,17 @@ func (i *Invoker) getChatState(ctx context.Context, c kclient.Client, run *v1.Ru
 }
 
 func getThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, existingThreadName string) (*v1.Thread, error) {
-	if existingThreadName != "" {
-		var thread v1.Thread
-		return &thread, c.Get(ctx, router.Key(agent.Namespace, existingThreadName), &thread)
+	if existingThreadName == "" {
+		return nil, apierror.NewNotFound(schema.GroupResource{
+			Group:    v1.SchemeGroupVersion.Group,
+			Resource: "thread",
+		}, existingThreadName)
 	}
-
-	return createThreadForAgent(ctx, c, agent, "")
+	var thread v1.Thread
+	return &thread, c.Get(ctx, router.Key(agent.Namespace, existingThreadName), &thread)
 }
 
-func createThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, threadName string) (*v1.Thread, error) {
+func createThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, threadName, userUID, agentRefName string) (*v1.Thread, error) {
 	agent, err := wait.For(ctx, c, agent, func(agent *v1.Agent) bool {
 		return agent.Status.WorkspaceName != ""
 	})
@@ -203,17 +208,43 @@ func createThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Ag
 		Spec: v1.ThreadSpec{
 			AgentName:          agent.Name,
 			FromWorkspaceNames: []string{agent.Status.WorkspaceName},
+			UserUID:            userUID,
+			AgentRefName:       agentRefName,
 		},
 	}
 	return &thread, c.Create(ctx, &thread)
 }
 
+func (i *Invoker) updateThreadFields(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, thread *v1.Thread, opt Options) error {
+	var updated bool
+	if opt.AgentRefName != "" && thread.Spec.AgentRefName != opt.AgentRefName {
+		thread.Spec.AgentRefName = opt.AgentRefName
+		updated = true
+	}
+	if thread.Spec.AgentName != agent.Name {
+		thread.Spec.AgentName = agent.Name
+		updated = true
+	}
+	if thread.Spec.UserUID != opt.UserUID {
+		thread.Spec.UserUID = opt.UserUID
+		updated = true
+	}
+	if updated {
+		return c.Status().Update(ctx, thread)
+	}
+	return nil
+}
+
 func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, input string, opt Options) (_ *Response, err error) {
 	thread, err := getThreadForAgent(ctx, c, agent, opt.ThreadName)
 	if apierror.IsNotFound(err) && opt.CreateThread && strings.HasPrefix(opt.ThreadName, system.ThreadPrefix) {
-		thread, err = createThreadForAgent(ctx, c, agent, opt.ThreadName)
+		thread, err = createThreadForAgent(ctx, c, agent, opt.ThreadName, opt.UserUID, opt.AgentRefName)
 	}
 	if err != nil {
+		return nil, err
+	}
+
+	if err := i.updateThreadFields(ctx, c, agent, thread, opt); err != nil {
 		return nil, err
 	}
 

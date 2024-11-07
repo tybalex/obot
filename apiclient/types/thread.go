@@ -28,6 +28,8 @@ type Thread struct {
 	LastRunID      string `json:"lastRunID,omitempty"`
 	CurrentRunID   string `json:"currentRunID,omitempty"`
 	ParentThreadID string `json:"parentThreadID,omitempty"`
+	UserID         string `json:"userID,omitempty"`
+	AgentRefName   string `json:"agentRefName,omitempty"`
 }
 
 type ThreadList List[Thread]

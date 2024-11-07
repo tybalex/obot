@@ -6,7 +6,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type Thread struct {
@@ -15,6 +14,26 @@ type Thread struct {
 
 	Spec   ThreadSpec   `json:"spec,omitempty"`
 	Status ThreadStatus `json:"status,omitempty"`
+}
+
+func (in *Thread) Has(field string) (exists bool) {
+	switch field {
+	case "spec.userUID":
+		return true
+	}
+	return false
+}
+
+func (in *Thread) Get(field string) (value string) {
+	switch field {
+	case "spec.userUID":
+		return in.Spec.UserUID
+	}
+	return ""
+}
+
+func (in *Thread) FieldNames() []string {
+	return []string{"spec.userUID"}
 }
 
 func (in *Thread) GetColumns() [][]string {
@@ -28,11 +47,11 @@ func (in *Thread) GetColumns() [][]string {
 	}
 }
 
-
 type ThreadSpec struct {
 	Manifest              types.ThreadManifest `json:"manifest,omitempty"`
 	ParentThreadName      string               `json:"parentThreadName,omitempty"`
 	AgentName             string               `json:"agentName,omitempty"`
+	AgentRefName          string               `json:"agentRefName,omitempty"`
 	WorkflowName          string               `json:"workflowName,omitempty"`
 	WorkflowExecutionName string               `json:"workflowExecutionName,omitempty"`
 	KnowledgeSourceName   string               `json:"remoteKnowledgeSourceName,omitempty"`
@@ -42,6 +61,7 @@ type ThreadSpec struct {
 	WorkspaceName         string               `json:"workspaceName,omitempty"`
 	FromWorkspaceNames    []string             `json:"fromWorkspaceNames,omitempty"`
 	OAuthAppLoginName     string               `json:"oAuthAppLoginName,omitempty"`
+	UserUID               string               `json:"userUID,omitempty"`
 	SystemTask            bool                 `json:"systemTask,omitempty"`
 }
 

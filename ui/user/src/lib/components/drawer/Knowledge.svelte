@@ -7,7 +7,7 @@
 	import { onMount } from 'svelte';
 	import { Brain } from '$lib/icons';
 
-	let req = ChatService.getKnowledgeFiles();
+	let req = $state(ChatService.getKnowledgeFiles());
 
 	function reGet() {
 		const promise = ChatService.getKnowledgeFiles();

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import type { EditorFile } from '$lib/stores';
 	import { Crepe } from '@milkdown/crepe';
 
@@ -8,14 +10,20 @@
 	import { createEventDispatcher } from 'svelte';
 	import { replaceAll } from '@milkdown/utils';
 
-	export let file: EditorFile;
+	interface Props {
+		file: EditorFile;
+	}
 
-	let setValue: (value: string) => void | undefined;
+	let { file }: Props = $props();
+
+	let setValue: (value: string) => void | undefined = $state();
 	let lastSetValue = '';
 	let focused = false;
 	const dispatcher = createEventDispatcher();
 
-	$: setValue?.(file?.contents);
+	run(() => {
+		setValue?.(file?.contents);
+	});
 
 	function editor(node: HTMLElement) {
 		lastSetValue = file.contents;
@@ -65,4 +73,4 @@
 	}
 </script>
 
-<div class="milkdown-editor" use:editor />
+<div class="milkdown-editor" use:editor></div>

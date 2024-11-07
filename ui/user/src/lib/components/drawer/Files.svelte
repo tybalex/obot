@@ -4,10 +4,10 @@
 	import Error from '$lib/components/Error.svelte';
 	import Loading from '$lib/icons/Loading.svelte';
 
-	let req = ChatService.getFiles();
+	let req = $state(ChatService.listFiles());
 
 	function reGet() {
-		req = ChatService.getFiles();
+		req = ChatService.listFiles();
 	}
 </script>
 

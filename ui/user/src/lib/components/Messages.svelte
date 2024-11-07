@@ -5,15 +5,29 @@
 	import type { Messages, Progress } from '$lib/services';
 	import { ChatService } from '$lib/services';
 	import Message from '$lib/components/messages/Message.svelte';
-	import { createEventDispatcher } from 'svelte';
+
+	interface Props {
+		assistant: string;
+		onmessages: (messages: Messages) => void;
+		onerror: (err: Error) => void;
+		onfocus?: () => void;
+		onloadfile: (filename: string) => void;
+	}
+
+	let {
+		assistant,
+		onmessages,
+		onerror,
+		onfocus,
+		onloadfile
+	}: Props = $props()
 
 	let progressEvents: Progress[] = [];
 	let replayComplete = false;
-	let messages: Messages = { messages: [], inProgress: false };
-	const dispatcher = createEventDispatcher();
+	let messages: Messages = $state({ messages: [], inProgress: false });
 
-	function handleMessage(event: CustomEvent<Progress>) {
-		progressEvents = [...progressEvents, event.detail];
+	function handleMessage(progress: Progress) {
+		progressEvents = [...progressEvents, progress];
 		if (!replayComplete) {
 			replayComplete = progressEvents.find((e) => e.replayComplete) !== undefined;
 		}
@@ -23,24 +37,25 @@
 		}
 
 		messages = ChatService.progressToMessages(progressEvents);
+
 		// forward the messages to the parent component
-		dispatcher('messages', messages);
+		onmessages(messages)
 	}
 
-	let inputBox: Input;
+	let inputBox: ReturnType<typeof Input>;
 
 	export async function submit(input: InputType) {
 		return inputBox.submit(input);
 	}
 </script>
 
-<MessageSource on:message={handleMessage} on:error />
+<MessageSource {assistant} onmessage={handleMessage} {onerror} />
 
 <div class="flex flex-col gap-8">
 	{#each messages.messages as msg}
 		{#if !msg.ignore}
-			<Message {msg} on:loadfile />
+			<Message {msg} {onloadfile} />
 		{/if}
 	{/each}
-	<Input bind:this={inputBox} on:error on:focus />
+	<Input {assistant} bind:this={inputBox} {onerror} {onfocus} />
 </div>

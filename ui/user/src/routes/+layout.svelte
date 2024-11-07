@@ -1,6 +1,11 @@
 <script lang="ts">
 	import '../app.css';
 	import { darkMode } from '$lib/stores';
+	interface Props {
+		children?: import('svelte').Snippet;
+	}
+
+	let { children }: Props = $props();
 
 	darkMode.subscribe((value) => {
 		if (typeof document === 'undefined') return;
@@ -14,7 +19,7 @@
 	});
 </script>
 
-<slot />
+{@render children?.()}
 
 <svelte:head>
 	<link rel="preconnect" href="https://fonts.googleapis.com" />

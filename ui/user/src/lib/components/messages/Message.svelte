@@ -2,21 +2,26 @@
 	import type { Message } from '$lib/services';
 	import Loading from '$lib/icons/Loading.svelte';
 	import highlight from 'highlight.js';
-	import { afterUpdate, createEventDispatcher } from 'svelte';
 	import MessageIcon from '$lib/components/messages/MessageIcon.svelte';
 	import { FileText } from '$lib/icons';
 	import { toHTMLFromMarkdown } from '$lib/markdown.js';
 
-	export let msg: Message;
-	let content: string = '';
+	interface Props {
+		msg: Message;
+		onloadfile?: (filename: string) => void;
+	}
+
+	let {
+		msg,
+		onloadfile = () => {}
+	} : Props = $props();
+
+	let content = $derived(msg.message ? msg.message.join('') : '')
 	let fullWidth = !msg.sent && !msg.oauthURL && !msg.tool;
 	let showBubble = msg.sent;
 	let renderMarkdown = !msg.sent && !msg.oauthURL && !msg.tool;
-	let dispatch = createEventDispatcher();
 
-	$: content = msg.message ? msg.message.join('') : '';
-
-	afterUpdate(() => {
+	$effect(() => {
 		const blocks = document.querySelectorAll('.message-content pre > code');
 		blocks.forEach((block) => {
 			if (block instanceof HTMLElement && block.dataset.highlighted !== 'yes') {
@@ -81,7 +86,11 @@
 			{#if msg.file?.filename}
 				<div class="flex items-center">
 					<button
-						on:click={() => dispatch('loadfile', msg.file?.filename)}
+						onclick={() => {
+							if (msg.file?.filename) {
+								onloadfile(msg.file?.filename)
+							}
+						}}
 						class="flex items-center gap-2 rounded border border-gray-200 p-2 px-4 text-black shadow hover:bg-gray-100 dark:bg-gray-900 dark:text-white hover:dark:bg-gray-700"
 					>
 						<FileText class="text-black" />

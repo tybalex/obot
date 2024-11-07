@@ -11,7 +11,7 @@
 <!-- Profile -->
 <div class="ml-1 flex items-center" use:tt.ref>
 	<button
-		on:click={() => {
+		onclick={() => {
 			tt.toggle();
 		}}
 		type="button"

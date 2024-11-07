@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export class NotificationMessage {
 		level: 'info' | 'error';
 		message: string;
@@ -21,7 +21,7 @@
 	import { X } from '$lib/icons';
 	import { errors } from '$lib/stores';
 
-	let notifications: NotificationMessage[] = [];
+	let notifications: NotificationMessage[] = $state([]);
 
 	export function addNotification(notification: NotificationMessage) {
 		notifications = [...notifications, notification];
@@ -45,7 +45,7 @@
 			<div class="ms-3 text-sm font-normal">{error.message}</div>
 			<button
 				type="button"
-				on:click={() => errors.remove(i)}
+				onclick={() => errors.remove(i)}
 				class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white"
 			>
 				<span class="sr-only">Close</span>
@@ -70,7 +70,7 @@
 			<div class="ms-3 text-sm font-normal">{notification.message}</div>
 			<button
 				type="button"
-				on:click={() => (notifications = notifications.filter((_, index) => index !== i))}
+				onclick={() => (notifications = notifications.filter((_, index) => index !== i))}
 				class="-mx-1.5 -my-1.5 ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-white p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 focus:ring-2 focus:ring-gray-300 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white"
 			>
 				<span class="sr-only">Close</span>

@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { run } from 'svelte/legacy';
+
 	import {
 		lineNumbers,
 		highlightActiveLineGutter,
@@ -52,7 +54,7 @@
 		provide: (f) => showTooltip.computeN([f], (state) => state.field(f))
 	});
 
-	let explain: HTMLElement;
+	let explain: HTMLElement = $state();
 
 	function newExplainToolTip(state: EditorState): TooltipView {
 		const tooltip = explain.cloneNode(true) as HTMLElement;
@@ -168,14 +170,20 @@
 		rs: rust
 	} as Record<string, () => LanguageSupport>;
 
-	export let file: EditorFile;
+	interface Props {
+		file: EditorFile;
+	}
 
-	let setValue: (value: string) => void | undefined;
+	let { file }: Props = $props();
+
+	let setValue: (value: string) => void | undefined = $state();
 	let lastSetValue = '';
 	let focused = false;
 	let dispatch = createEventDispatcher();
 
-	$: setValue?.(file?.contents);
+	run(() => {
+		setValue?.(file?.contents);
+	});
 
 	const basicSetup = (() => [
 		lineNumbers(),
@@ -288,7 +296,7 @@
 				<textarea
 					placeholder="How would like to improve this?"
 					class="improve-textarea h-8 min-h-8 w-[500px] px-2 pt-1 text-black focus:outline-none"
-				/>
+				></textarea>
 			</button>
 		</div>
 	</div>

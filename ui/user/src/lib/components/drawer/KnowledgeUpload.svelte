@@ -6,8 +6,8 @@
 	import Error from '$lib/components/Error.svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	let upload: HTMLInputElement;
-	let uploadInProgress: Promise<KnowledgeFile> | null;
+	let upload: HTMLInputElement = $state();
+	let uploadInProgress: Promise<KnowledgeFile> | null = $state();
 	let dispatch = createEventDispatcher();
 
 	async function uploadFile() {
@@ -33,8 +33,8 @@
 	{/await}
 	<label
 		for="dropzone-file"
-		on:dragover={(e) => e.preventDefault()}
-		on:drop={(e) => {
+		ondragover={(e) => e.preventDefault()}
+		ondrop={(e) => {
 			e.preventDefault();
 			if (e.dataTransfer?.files) {
 				upload.files = e.dataTransfer.files;
@@ -53,7 +53,7 @@
 		</div>
 		<input
 			bind:this={upload}
-			on:change={uploadFile}
+			onchange={uploadFile}
 			id="dropzone-file"
 			type="file"
 			class="hidden"
