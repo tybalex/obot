@@ -3,7 +3,7 @@
 
 	$effect(() => {
 		for (const assistant of $assistants) {
-			if (assistant.current) {
+			if (assistant.current && assistant.id) {
 				window.location.href = `/${assistant.id}`;
 			}
 		}

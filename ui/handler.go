@@ -39,7 +39,9 @@ func serve(w http.ResponseWriter, r *http.Request) {
 	userPath := path.Join("user/build/", r.URL.Path)
 	adminPath := path.Join("admin/build/client", strings.TrimPrefix(r.URL.Path, "/admin"))
 
-	if _, err := fs.Stat(embedded, userPath); err == nil {
+	if r.URL.Path == "/" {
+		http.ServeFileFS(w, r, embedded, "user/build/index.html")
+	} else if _, err := fs.Stat(embedded, userPath); err == nil {
 		http.ServeFileFS(w, r, embedded, userPath)
 	} else if r.URL.Path == "/" {
 		http.Redirect(w, r, "/admin/agents", http.StatusFound)
@@ -48,6 +50,6 @@ func serve(w http.ResponseWriter, r *http.Request) {
 	} else if strings.HasPrefix(r.URL.Path, "/admin") {
 		http.ServeFileFS(w, r, embedded, "admin/build/client/index.html")
 	} else {
-		http.ServeFileFS(w, r, embedded, "user/build/index.html")
+		http.ServeFileFS(w, r, embedded, "user/build/fallback.html")
 	}
 }
