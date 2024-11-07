@@ -4,6 +4,7 @@
 	import { darkMode } from '$lib/stores';
 	import type { Assistant } from '$lib/services';
 	import { popover } from '$lib/actions';
+	import { fade } from 'svelte/transition';
 
 	const selected = $derived($assistants.find(a => a.current));
 
@@ -35,11 +36,18 @@
 
 </script>
 
-<div class="flex items-center justify-start">
-	<a use:ref href={`/${selected?.id ?? ''}`} class="text-purple-950 flex items-center gap-2">
+<div class="flex items-center justify-start" transition:fade|global >
+	<a use:ref href={`/${selected?.id ?? ''}`}
+		 class="text-purple-950 flex items-center gap-2" onclick={() => {
+		if ($assistants.length > 1) {
+			toggle();
+		} else {
+			window.location.href = `/${selected?.id ?? ''}`;
+		}
+	}}>
 		{#if collapsedIcon(selected)}
 			<img src={collapsedIcon(selected)} alt="assistant icon" class="ml-3 h-8" />
-		{:else}
+		{:else if selected?.name}
 			<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-500 flex items-center justify-center">{
 				selected?.name ? selected?.name[0].toUpperCase() : '?'
 			}

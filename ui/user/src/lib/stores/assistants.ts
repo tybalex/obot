@@ -34,14 +34,14 @@ function assignSelected(assistants: Assistant[]): Assistant[] {
 
 const store = writable<Assistant[]>(assignSelected([]));
 
-page.subscribe((value) => {
-	selectedName = value.params?.agent ?? '';
-	store.update((assistants) => {
-		return assignSelected(assistants);
-	});
-});
-
 export default storeWithInit(store, async () => {
+	page.subscribe((value) => {
+		selectedName = value.params?.agent ?? '';
+		store.update((assistants) => {
+			return assignSelected(assistants);
+		});
+	});
+
 	const assistants = await ChatService.listAssistants();
 	store.set(assignSelected(assistants.items));
 });

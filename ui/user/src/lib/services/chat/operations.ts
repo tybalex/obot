@@ -4,8 +4,8 @@ import {
 	type KnowledgeFile,
 	type KnowledgeFiles,
 	type Profile
-} from '$lib/services';
-import { baseURL, doDelete, doGet, doPost } from '$lib/services/chat/http';
+} from './types';
+import { baseURL, doDelete, doGet, doPost } from './http';
 
 export async function getProfile(): Promise<Profile> {
 	const obj = (await doGet('/me')) as Profile;

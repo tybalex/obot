@@ -16,7 +16,6 @@
 	let notification: ReturnType<typeof Notifications>;
 	let messageDiv: HTMLDivElement | undefined
 	let messages: ReturnType<typeof Messages>;
-	let editor: ReturnType<typeof Editor>;
 
 	function handleError(event: Error) {
 		notification.addNotification(new NotificationMessage(event));
@@ -81,7 +80,6 @@
 	{#if editorVisible}
 		<div class="w-1/2 overflow-auto pb-16 pt-16 scrollbar-none">
 			<Editor
-				bind:this={editor}
 				on:editor-close={() => {
 					editorVisible = false;
 				}}

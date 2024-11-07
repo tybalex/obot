@@ -1,4 +1,4 @@
-import type { Progress, InputMessage, Message, Messages, Explain } from '$lib/services/chat/types';
+import type { Progress, InputMessage, Message, Messages, Explain } from './types';
 import editorFiles from '$lib/stores/editorfiles';
 
 const ottoAIIcon = 'Otto';

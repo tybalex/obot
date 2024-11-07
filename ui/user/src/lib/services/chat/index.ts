@@ -1,4 +1,4 @@
-import { buildMessagesFromProgress } from '$lib/services/chat/messages';
+import { buildMessagesFromProgress } from './messages';
 import {
 	getProfile,
 	listFiles,
@@ -10,8 +10,8 @@ import {
 	deleteFile,
 	invoke,
 	newMessageEventSource
-} from '$lib/services/chat/operations';
-import { baseURL } from '$lib/services/chat/http';
+} from './operations';
+import { baseURL } from './http';
 
 export default {
 	progressToMessages: buildMessagesFromProgress,

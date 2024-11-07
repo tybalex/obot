@@ -5,6 +5,7 @@
 	import type { Messages, Progress } from '$lib/services';
 	import { ChatService } from '$lib/services';
 	import Message from '$lib/components/messages/Message.svelte';
+	import { fade } from 'svelte/transition';
 
 	interface Props {
 		assistant: string;
@@ -51,7 +52,7 @@
 
 <MessageSource {assistant} onmessage={handleMessage} {onerror} />
 
-<div class="flex flex-col gap-8">
+<div transition:fade|global class="flex flex-col gap-8">
 	{#each messages.messages as msg}
 		{#if !msg.ignore}
 			<Message {msg} {onloadfile} />
