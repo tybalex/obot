@@ -239,6 +239,8 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		authenticators = union.New(authenticators, proxyServer)
 		// Add gateway user info
 		authenticators = client.NewUserDecorator(authenticators, gatewayClient)
+		// Add token auth
+		authenticators = union.New(authenticators, tokenServer)
 		// Add anonymous user authenticator
 		authenticators = union.New(authenticators, authn.Anonymous{})
 	} else {

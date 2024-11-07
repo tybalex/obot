@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/otto8-ai/otto8/pkg/api/authz"
 	"k8s.io/apiserver/pkg/authentication/authenticator"
 	"k8s.io/apiserver/pkg/authentication/user"
 )
@@ -32,6 +33,9 @@ func (t *TokenService) AuthenticateRequest(req *http.Request) (*authenticator.Re
 	return &authenticator.Response{
 		User: &user.DefaultInfo{
 			Name: tokenContext.Scope,
+			Groups: []string{
+				authz.AuthenticatedGroup,
+			},
 			Extra: map[string][]string{
 				"otto:runID":    {tokenContext.RunID},
 				"otto:threadID": {tokenContext.ThreadID},
