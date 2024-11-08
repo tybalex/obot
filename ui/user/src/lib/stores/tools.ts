@@ -11,7 +11,7 @@ const store = writable<AssistantToolList>({
 export default storeWithInit(store, async () => {
 	assistants.subscribe(async (assistants) => {
 		for (const assistant of assistants) {
-			if (assistant.current) {
+			if (assistant.current && assistant.id) {
 				store.set(await ChatService.listTools(assistant.id));
 				break;
 			}

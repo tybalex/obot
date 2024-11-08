@@ -3,9 +3,9 @@
 
 	$effect(() => {
 		for (const assistant of $assistants) {
-			if (assistant.current && assistant.id) {
+			if (assistant.id) {
 				window.location.href = `/${assistant.id}`;
 			}
 		}
-	});
+	})
 </script>
