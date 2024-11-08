@@ -9,7 +9,7 @@ import { $path } from "remix-routes";
 import { z } from "zod";
 
 import { AgentService } from "~/lib/service/api/agentService";
-import { RouteService } from "~/lib/service/routeQueryParams";
+import { RouteService } from "~/lib/service/routeService";
 import { noop } from "~/lib/utils";
 
 import { Agent } from "~/components/agent";

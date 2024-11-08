@@ -1,6 +1,7 @@
 import { Link } from "@remix-run/react";
 import {
     BotIcon,
+    BrainIcon,
     KeyIcon,
     MessageSquare,
     SettingsIcon,
@@ -58,6 +59,11 @@ const items = [
         title: "OAuth Apps",
         url: $path("/oauth-apps"),
         icon: KeyIcon,
+    },
+    {
+        title: "Models",
+        url: $path("/models"),
+        icon: BrainIcon,
     },
 ];
 

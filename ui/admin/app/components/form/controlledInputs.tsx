@@ -1,14 +1,16 @@
-import { ReactNode } from "react";
+import { ComponentProps, ReactNode } from "react";
 import {
     Control,
     ControllerFieldState,
     ControllerRenderProps,
     FieldPath,
     FieldValues,
+    FormState,
 } from "react-hook-form";
 
 import { cn } from "~/lib/utils";
 
+import { Checkbox } from "~/components/ui/checkbox";
 import {
     FormControl,
     FormDescription,
@@ -174,6 +176,107 @@ export function ControlledAutosizeTextarea<
                     </FormControl>
 
                     <FormMessage />
+                </FormItem>
+            )}
+        />
+    );
+}
+
+export type ControlledCheckboxProps<
+    TValues extends FieldValues,
+    TName extends FieldPath<TValues>,
+> = BaseProps<TValues, TName> & ComponentProps<typeof Checkbox>;
+
+export function ControlledCheckbox<
+    TValues extends FieldValues,
+    TName extends FieldPath<TValues>,
+>({
+    control,
+    name,
+    label,
+    description,
+    onCheckedChange,
+    ...checkboxProps
+}: ControlledCheckboxProps<TValues, TName>) {
+    return (
+        <FormField
+            control={control}
+            name={name}
+            render={({ field, fieldState }) => (
+                <FormItem>
+                    <div className="flex items-center gap-2">
+                        <FormControl>
+                            <Checkbox
+                                {...field}
+                                {...checkboxProps}
+                                checked={field.value}
+                                onCheckedChange={(value) => {
+                                    field.onChange(value);
+                                    onCheckedChange?.(value);
+                                }}
+                                className={cn(
+                                    getFieldStateClasses(fieldState),
+                                    checkboxProps.className
+                                )}
+                            />
+                        </FormControl>
+
+                        {label && <FormLabel>{label}</FormLabel>}
+                    </div>
+
+                    <FormMessage />
+
+                    {description && (
+                        <FormDescription>{description}</FormDescription>
+                    )}
+                </FormItem>
+            )}
+        />
+    );
+}
+
+export type ControlledCustomInputProps<
+    TValues extends FieldValues,
+    TName extends FieldPath<TValues>,
+> = BaseProps<TValues, TName> & {
+    children: (props: {
+        field: ControllerRenderProps<TValues, TName>;
+        fieldState: ControllerFieldState;
+        formState: FormState<TValues>;
+        className?: string;
+    }) => ReactNode;
+};
+
+export function ControlledCustomInput<
+    TValues extends FieldValues,
+    TName extends FieldPath<TValues>,
+>({
+    control,
+    name,
+    label,
+    description,
+    children,
+}: ControlledCustomInputProps<TValues, TName>) {
+    return (
+        <FormField
+            control={control}
+            name={name}
+            render={(args) => (
+                <FormItem>
+                    {label && <FormLabel>{label}</FormLabel>}
+
+                    <FormControl>
+                        {children({
+                            ...args,
+                            className: getFieldStateClasses(args.fieldState),
+                        })}
+                    </FormControl>
+
+                    <FormMessage />
+
+                    {description && (
+                        <FormDescription>{description}</FormDescription>
+                    )}
                 </FormItem>
             )}
         />

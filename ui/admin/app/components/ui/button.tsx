@@ -40,6 +40,7 @@ export interface ButtonProps
         VariantProps<typeof buttonVariants> {
     asChild?: boolean;
     loading?: boolean;
+    startContent?: React.ReactNode;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -50,6 +51,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             size,
             asChild = false,
             loading = false,
+            startContent,
             children,
             ...props
         },
@@ -77,7 +79,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                     {children}
                 </>
             ) : (
-                children
+                <div className="flex items-center gap-2">
+                    {startContent}
+                    {children}
+                </div>
             );
         }
     }

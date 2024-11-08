@@ -8,7 +8,7 @@ export type ToolReferenceBase = {
     metadata?: Record<string, string>;
 };
 
-export type ToolReferenceType = "tool" | "stepTemplate";
+export type ToolReferenceType = "tool" | "stepTemplate" | "modelProvider";
 
 export type ToolReference = {
     error: string;
