@@ -19,6 +19,11 @@
 	let renderMarkdown = !msg.sent && !msg.oauthURL && !msg.tool;
 
 	$effect(() => {
+		// this is a hack to make sure this effect is run after the content is updated
+		if (content.length == 0) {
+			return;
+		}
+
 		const blocks = document.querySelectorAll('.message-content pre > code');
 		blocks.forEach((block) => {
 			if (block instanceof HTMLElement && block.dataset.highlighted !== 'yes') {

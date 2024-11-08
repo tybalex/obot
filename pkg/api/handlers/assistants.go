@@ -355,11 +355,12 @@ func (a *AssistantHandler) RemoveTool(req api.Context) error {
 	}
 
 	removed := slices.DeleteFunc(thread.Spec.Manifest.Tools, func(s string) bool {
-		return s == tool
+		return s == tool || s == ""
 	})
 	if len(removed) == len(thread.Spec.Manifest.Tools) {
 		return types.NewErrNotFound("tool %s not found", tool)
 	}
+	thread.Spec.Manifest.Tools = removed
 	if err := req.Update(&thread); err != nil {
 		return err
 	}
