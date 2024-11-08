@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BrainIcon } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import useSWR from "swr";
 import { z } from "zod";
@@ -18,6 +18,7 @@ import { Form } from "~/components/ui/form";
 import {
     Select,
     SelectContent,
+    SelectEmptyItem,
     SelectItem,
     SelectTrigger,
     SelectValue,
@@ -46,11 +47,6 @@ export function AgentForm({ agent, onSubmit, onChange }: AgentFormProps) {
         ModelApiService.getModels
     );
 
-    const defaultModel = useMemo(
-        () => models?.find((m) => m.default)?.id,
-        [models]
-    );
-
     const form = useForm<AgentInfoFormValues>({
         resolver: zodResolver(formSchema),
         mode: "onChange",
@@ -58,7 +54,7 @@ export function AgentForm({ agent, onSubmit, onChange }: AgentFormProps) {
             name: agent.name || "",
             description: agent.description || "",
             prompt: agent.prompt || "",
-            model: agent.model || defaultModel || "",
+            model: agent.model || "",
         },
     });
 
@@ -123,14 +119,16 @@ export function AgentForm({ agent, onSubmit, onChange }: AgentFormProps) {
                     {({ field: { ref: _, ...field } }) => (
                         <Select {...field} onValueChange={field.onChange}>
                             <SelectTrigger>
-                                <SelectValue placeholder="Select model" />
+                                <SelectValue placeholder="Use System Default" />
                             </SelectTrigger>
 
                             <SelectContent>
+                                <SelectEmptyItem>
+                                    Use System Default
+                                </SelectEmptyItem>
                                 {models?.map((m) => (
                                     <SelectItem key={m.id} value={m.id}>
-                                        {(m.name || m.id) +
-                                            (m.default ? " (Default)" : "")}
+                                        {m.name || m.id}
                                     </SelectItem>
                                 ))}
                             </SelectContent>

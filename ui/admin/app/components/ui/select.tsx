@@ -148,6 +148,18 @@ const SelectSeparator = React.forwardRef<
 ));
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 
+const SelectEmptyItem = (
+    props: Omit<SelectPrimitive.SelectItemProps, "value">
+) => {
+    return (
+        <SelectItem
+            // @ts-expect-error value is not a valid prop
+            value={null}
+            {...props}
+        />
+    );
+};
+
 export {
     Select,
     SelectGroup,
@@ -156,6 +168,7 @@ export {
     SelectContent,
     SelectLabel,
     SelectItem,
+    SelectEmptyItem,
     SelectSeparator,
     SelectScrollUpButton,
     SelectScrollDownButton,
