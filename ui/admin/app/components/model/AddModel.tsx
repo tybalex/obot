@@ -11,14 +11,14 @@ import {
     DialogTrigger,
 } from "~/components/ui/dialog";
 
-export function CreateModel() {
+export function AddModel() {
     const [open, setOpen] = useState(false);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
                 <Button variant="outline" startContent={<PlusIcon />}>
-                    Create Model
+                    Add Model
                 </Button>
             </DialogTrigger>
 

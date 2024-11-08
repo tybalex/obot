@@ -8,7 +8,7 @@ import { ModelApiService } from "~/lib/service/api/modelApiService";
 
 import { TypographyH2, TypographySmall } from "~/components/Typography";
 import { DataTable } from "~/components/composed/DataTable";
-import { CreateModel } from "~/components/model/CreateModel";
+import { AddModel } from "~/components/model/AddModel";
 import { DeleteModel } from "~/components/model/DeleteModel";
 import { UpdateModelDialog } from "~/components/model/UpdateModel";
 import { Button } from "~/components/ui/button";
@@ -22,9 +22,8 @@ export async function clientLoader() {
     await Promise.all([
         preload(ModelApiService.getModels.key(), ModelApiService.getModels),
         preload(
-            ModelApiService.getModelProviders.key(true),
-            ({ onlyConfigured }) =>
-                ModelApiService.getModelProviders(onlyConfigured)
+            ModelApiService.getModelProviders.key(),
+            ModelApiService.getModelProviders
         ),
     ]);
     return null;
@@ -39,9 +38,8 @@ export default function Models() {
     );
 
     const { data: providers } = useSWR(
-        ModelApiService.getModelProviders.key(true),
-        ({ onlyConfigured }) =>
-            ModelApiService.getModelProviders(onlyConfigured)
+        ModelApiService.getModelProviders.key(),
+        ModelApiService.getModelProviders
     );
 
     const providerMap = useMemo(() => {
@@ -59,7 +57,7 @@ export default function Models() {
         <div className="h-full flex flex-col p-8 space-y-4">
             <div className="flex items-center justify-between">
                 <TypographyH2>Models</TypographyH2>
-                <CreateModel />
+                <AddModel />
             </div>
 
             <DataTable
@@ -111,7 +109,7 @@ export default function Models() {
                 cell: ({ row }) => (
                     <div className="flex justify-end">
                         <Tooltip>
-                            <TooltipTrigger>
+                            <TooltipTrigger asChild>
                                 <Button size={"icon"} variant="ghost">
                                     <PenSquareIcon />
                                 </Button>

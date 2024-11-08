@@ -30,24 +30,15 @@ getModelById.key = (modelId?: string) => {
     };
 };
 
-async function getModelProviders(onlyConfigured = false) {
+async function getModelProviders() {
     const { data } = await request<{ items?: ModelProvider[] }>({
         url: ApiRoutes.toolReferences.base({ type: "modelProvider" }).url,
     });
 
-    if (onlyConfigured) {
-        return (
-            data.items?.filter(
-                (provider) => provider.modelProviderStatus.configured
-            ) ?? []
-        );
-    }
-
     return data.items ?? [];
 }
-getModelProviders.key = (onlyConfigured = false) => ({
+getModelProviders.key = () => ({
     url: ApiRoutes.toolReferences.base({ type: "modelProvider" }).path,
-    onlyConfigured,
 });
 
 async function createModel(manifest: ModelManifest) {
