@@ -10,6 +10,7 @@ import {
     ModelManifest,
     ModelManifestSchema,
     ModelProvider,
+    getModelsForProvider,
 } from "~/lib/model/models";
 import { BadRequestError } from "~/lib/service/api/apiErrors";
 import { ModelApiService } from "~/lib/service/api/modelApiService";
@@ -17,7 +18,6 @@ import { ModelApiService } from "~/lib/service/api/modelApiService";
 import {
     ControlledCheckbox,
     ControlledCustomInput,
-    ControlledInput,
 } from "~/components/form/controlledInputs";
 import { Button } from "~/components/ui/button";
 import { Form } from "~/components/ui/form";
@@ -81,7 +81,7 @@ export function ModelForm(props: ModelFormProps) {
     const { loading, submit } = getSubmitInfo();
 
     const handleSubmit = form.handleSubmit((values) =>
-        submit({ ...values, name: values.name || values.targetModel })
+        submit({ ...values, name: values.targetModel })
     );
 
     const providerName = (provider: ModelProvider) => {
@@ -125,12 +125,37 @@ export function ModelForm(props: ModelFormProps) {
                     )}
                 </ControlledCustomInput>
 
-                <ControlledInput
+                <ControlledCustomInput
                     control={form.control}
                     name="targetModel"
                     label="Target Model"
-                    description="The ID of the model as it appears in the model provider's API"
-                />
+                >
+                    {({ field: { ref: _, ...field }, className }) => {
+                        const models = getModelsForProvider(
+                            form.watch("modelProvider")
+                        );
+
+                        return (
+                            <Select
+                                {...field}
+                                disabled={!form.watch("modelProvider")}
+                                onValueChange={field.onChange}
+                            >
+                                <SelectTrigger className={className}>
+                                    <SelectValue placeholder="Select a Model" />
+                                </SelectTrigger>
+
+                                <SelectContent>
+                                    {models.map((model) => (
+                                        <SelectItem key={model} value={model}>
+                                            {model}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        );
+                    }}
+                </ControlledCustomInput>
 
                 <ControlledCheckbox
                     control={form.control}

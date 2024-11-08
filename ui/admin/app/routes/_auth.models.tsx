@@ -8,7 +8,7 @@ import { ModelApiService } from "~/lib/service/api/modelApiService";
 
 import { TypographyH2, TypographySmall } from "~/components/Typography";
 import { DataTable } from "~/components/composed/DataTable";
-import { CreateModel } from "~/components/model/CreateModel";
+import { AddModel } from "~/components/model/AddModel";
 import { DeleteModel } from "~/components/model/DeleteModel";
 import { UpdateModelDialog } from "~/components/model/UpdateModel";
 import { Button } from "~/components/ui/button";
@@ -57,7 +57,7 @@ export default function Models() {
         <div className="h-full flex flex-col p-8 space-y-4">
             <div className="flex items-center justify-between">
                 <TypographyH2>Models</TypographyH2>
-                <CreateModel />
+                <AddModel />
             </div>
 
             <DataTable
