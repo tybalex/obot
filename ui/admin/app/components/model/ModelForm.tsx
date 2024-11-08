@@ -5,7 +5,12 @@ import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import { z } from "zod";
 
-import { Model, ModelManifest, ModelManifestSchema } from "~/lib/model/models";
+import {
+    Model,
+    ModelManifest,
+    ModelManifestSchema,
+    ModelProvider,
+} from "~/lib/model/models";
 import { BadRequestError } from "~/lib/service/api/apiErrors";
 import { ModelApiService } from "~/lib/service/api/modelApiService";
 
@@ -36,9 +41,8 @@ export function ModelForm(props: ModelFormProps) {
     const { model, onSubmit } = props;
 
     const { data: modelProviders } = useSWR(
-        ModelApiService.getModelProviders.key(true),
-        ({ onlyConfigured }) =>
-            ModelApiService.getModelProviders(onlyConfigured)
+        ModelApiService.getModelProviders.key(),
+        ModelApiService.getModelProviders
     );
 
     const updateModel = useAsync(ModelApiService.updateModel, {
@@ -76,17 +80,22 @@ export function ModelForm(props: ModelFormProps) {
 
     const { loading, submit } = getSubmitInfo();
 
-    const handleSubmit = form.handleSubmit(submit);
+    const handleSubmit = form.handleSubmit((values) =>
+        submit({ ...values, name: values.name || values.targetModel })
+    );
+
+    const providerName = (provider: ModelProvider) => {
+        let text = provider.name || provider.id;
+
+        if (!provider.modelProviderStatus.configured)
+            text += " (not configured)";
+
+        return text;
+    };
 
     return (
         <Form {...form}>
             <form onSubmit={handleSubmit} className="space-y-4">
-                <ControlledInput
-                    control={form.control}
-                    name="name"
-                    label="Name (optional)"
-                />
-
                 <ControlledCustomInput
                     control={form.control}
                     name="modelProvider"
@@ -103,8 +112,12 @@ export function ModelForm(props: ModelFormProps) {
                                     <SelectItem
                                         key={provider.id}
                                         value={provider.id}
+                                        disabled={
+                                            !provider.modelProviderStatus
+                                                .configured
+                                        }
                                     >
-                                        {provider.name}
+                                        {providerName(provider)}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -122,7 +135,7 @@ export function ModelForm(props: ModelFormProps) {
                 <ControlledCheckbox
                     control={form.control}
                     name="default"
-                    label="Is default model"
+                    label="Default Model"
                 />
 
                 <Button

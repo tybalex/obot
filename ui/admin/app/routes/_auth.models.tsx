@@ -22,9 +22,8 @@ export async function clientLoader() {
     await Promise.all([
         preload(ModelApiService.getModels.key(), ModelApiService.getModels),
         preload(
-            ModelApiService.getModelProviders.key(true),
-            ({ onlyConfigured }) =>
-                ModelApiService.getModelProviders(onlyConfigured)
+            ModelApiService.getModelProviders.key(),
+            ModelApiService.getModelProviders
         ),
     ]);
     return null;
@@ -39,9 +38,8 @@ export default function Models() {
     );
 
     const { data: providers } = useSWR(
-        ModelApiService.getModelProviders.key(true),
-        ({ onlyConfigured }) =>
-            ModelApiService.getModelProviders(onlyConfigured)
+        ModelApiService.getModelProviders.key(),
+        ModelApiService.getModelProviders
     );
 
     const providerMap = useMemo(() => {
@@ -111,7 +109,7 @@ export default function Models() {
                 cell: ({ row }) => (
                     <div className="flex justify-end">
                         <Tooltip>
-                            <TooltipTrigger>
+                            <TooltipTrigger asChild>
                                 <Button size={"icon"} variant="ghost">
                                     <PenSquareIcon />
                                 </Button>
