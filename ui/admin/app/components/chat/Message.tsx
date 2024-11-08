@@ -141,7 +141,7 @@ function PromptMessage({ prompt }: { prompt: OAuthPrompt }) {
                 Tool Call requires authentication
             </TypographyP>
 
-            <Button asChild>
+            <Button asChild variant="secondary">
                 <a
                     rel="noreferrer"
                     target="_blank"
@@ -152,7 +152,7 @@ function PromptMessage({ prompt }: { prompt: OAuthPrompt }) {
                         icon={prompt.metadata?.icon}
                         category={prompt.metadata?.category}
                         name={prompt.name}
-                        className="w-5 h-5 invert dark:invert-0"
+                        className="w-5 h-5"
                         disableTooltip
                     />
                     Authenticate with {prompt.metadata?.category}
