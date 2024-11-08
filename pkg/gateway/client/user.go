@@ -106,6 +106,7 @@ func (c *Client) fetchGoogleProfileIconURL(ctx context.Context, accessToken stri
 }
 
 func (c *Client) fetchGitHubProfileIconURL(ctx context.Context, username string) (string, error) {
+	// GitHub will automatically redirect this URL to the user's GitHub profile icon.
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("https://github.com/%s.png", username), nil)
 	if err != nil {
 		return "", err
@@ -113,6 +114,7 @@ func (c *Client) fetchGitHubProfileIconURL(ctx context.Context, username string)
 
 	resp, err := (&http.Client{
 		CheckRedirect: func(*http.Request, []*http.Request) error {
+			// Don't follow redirects, tiny optimization to only make one request.
 			return http.ErrUseLastResponse
 		},
 	}).Do(req)
@@ -121,6 +123,7 @@ func (c *Client) fetchGitHubProfileIconURL(ctx context.Context, username string)
 	}
 	defer resp.Body.Close()
 
+	// Get the final URL that GitHub redirected to.
 	u, err := resp.Location()
 	if err != nil || u == nil {
 		return "", err
