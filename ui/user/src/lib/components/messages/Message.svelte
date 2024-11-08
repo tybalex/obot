@@ -5,6 +5,7 @@
 	import MessageIcon from '$lib/components/messages/MessageIcon.svelte';
 	import { FileText } from '$lib/icons';
 	import { toHTMLFromMarkdown } from '$lib/markdown.js';
+	import Modal from '$lib/components/Modal.svelte';
 
 	interface Props {
 		msg: Message;
@@ -17,6 +18,7 @@
 	let fullWidth = !msg.sent && !msg.oauthURL && !msg.tool;
 	let showBubble = msg.sent;
 	let renderMarkdown = !msg.sent && !msg.oauthURL && !msg.tool;
+	let modalState = $state(true);
 
 	$effect(() => {
 		// this is a hack to make sure this effect is run after the content is updated

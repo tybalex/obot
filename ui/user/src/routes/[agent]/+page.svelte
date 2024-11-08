@@ -4,7 +4,6 @@
 	import Messages from '$lib/components/Messages.svelte';
 	import Editor from '$lib/components/Editor.svelte';
 	import { loadFile } from '$lib/components/Editor.svelte';
-	import SpeedDial from '$lib/components/SpeedDial.svelte';
 	import Notifications from '$lib/components/Notifications.svelte';
 	import { NotificationMessage } from '$lib/components/Notifications.svelte';
 	import type { Input } from '$lib/components/messages/Input.svelte';
@@ -12,7 +11,6 @@
 
 	let editorVisible = $state(false);
 	let assistant = $page.params.agent;
-	let drawerVisible = $state(false);
 	let notification: ReturnType<typeof Notifications>;
 	let messageDiv: HTMLDivElement | undefined;
 	let messages: ReturnType<typeof Messages>;
@@ -28,7 +26,6 @@
 	function handleLoadFile(e: string) {
 		loadFile(e);
 		editorVisible = true;
-		drawerVisible = false;
 	}
 
 	function handleMessages(e: MessagesType) {
@@ -65,9 +62,6 @@
 				<Messages
 					{assistant}
 					bind:this={messages}
-					onfocus={() => {
-						drawerVisible = false;
-					}}
 					onerror={handleError}
 					onmessages={handleMessages}
 					onloadfile={handleLoadFile}
@@ -89,5 +83,4 @@
 	{/if}
 
 	<Notifications bind:this={notification} />
-	<SpeedDial bind:drawerVisible bind:editorVisible />
 </main>

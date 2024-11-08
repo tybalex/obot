@@ -47,6 +47,25 @@ export default function popover(opts?: PopoverOptions): Popover {
 			});
 		}
 
+		open.subscribe((value) => {
+			if (!value) {
+				return;
+			}
+
+			const div = document.createElement('div');
+			div.classList.add('fixed', 'inset-0', 'z-20', 'cursor-default');
+			div.onclick = () => {
+				open.set(false);
+				div.remove();
+			};
+			document.body.append(div);
+			open.subscribe((value) => {
+				if (!value) {
+					div.remove();
+				}
+			});
+		});
+
 		tooltip.classList.add('hidden');
 		tooltip.classList.add('absolute');
 

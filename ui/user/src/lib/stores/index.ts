@@ -7,4 +7,5 @@ export { default as editorFiles } from './editorfiles';
 export { default as assistants } from './assistants';
 export { default as currentAssistant } from './currentassistant';
 export { default as tools } from './tools';
+export { default as files } from './files';
 export type { EditorFile } from './editorfiles';

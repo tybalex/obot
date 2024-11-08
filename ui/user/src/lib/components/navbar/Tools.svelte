@@ -32,7 +32,7 @@
 >
 	<div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
 		Tools
-		<p class="text-xs font-normal text-gray-500 dark:text-gray-300">
+		<p class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">
 			Enable or disable available tools
 		</p>
 	</div>
