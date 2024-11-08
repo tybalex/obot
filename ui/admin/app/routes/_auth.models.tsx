@@ -1,5 +1,6 @@
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { useMemo } from "react";
+import { PenSquareIcon } from "lucide-react";
+import { useMemo, useState } from "react";
 import useSWR, { preload } from "swr";
 
 import { Model } from "~/lib/model/models";
@@ -9,7 +10,13 @@ import { TypographyH2, TypographySmall } from "~/components/Typography";
 import { DataTable } from "~/components/composed/DataTable";
 import { CreateModel } from "~/components/model/CreateModel";
 import { DeleteModel } from "~/components/model/DeleteModel";
-import { UpdateModel } from "~/components/model/UpdateModel";
+import { UpdateModelDialog } from "~/components/model/UpdateModel";
+import { Button } from "~/components/ui/button";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "~/components/ui/tooltip";
 
 export async function clientLoader() {
     await Promise.all([
@@ -24,6 +31,8 @@ export async function clientLoader() {
 }
 
 export default function Models() {
+    const [modelToEdit, setModelToEdit] = useState<Model | null>(null);
+
     const { data } = useSWR(
         ModelApiService.getModels.key(),
         ModelApiService.getModels
@@ -57,7 +66,13 @@ export default function Models() {
                 columns={getColumns()}
                 data={data ?? []}
                 sort={[{ id: "id", desc: true }]}
-                disableClickPropagation={(cell) => cell.id.includes("actions")}
+                onRowClick={setModelToEdit}
+            />
+
+            <UpdateModelDialog
+                model={modelToEdit}
+                open={!!modelToEdit}
+                setOpen={(open) => setModelToEdit(open ? modelToEdit : null)}
             />
         </div>
     );
@@ -95,7 +110,16 @@ export default function Models() {
                 id: "actions",
                 cell: ({ row }) => (
                     <div className="flex justify-end">
-                        <UpdateModel model={row.original} />
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Button size={"icon"} variant="ghost">
+                                    <PenSquareIcon />
+                                </Button>
+                            </TooltipTrigger>
+
+                            <TooltipContent>Update Model</TooltipContent>
+                        </Tooltip>
+
                         <DeleteModel id={row.original.id} />
                     </div>
                 ),

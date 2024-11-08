@@ -48,7 +48,10 @@ const DialogContent = React.forwardRef<
 
     return (
         <DialogPortal>
-            <DialogOverlay className={classNames.overlay} />
+            <DialogOverlay
+                className={classNames.overlay}
+                onClick={(e) => e.stopPropagation()}
+            />
             <DialogPrimitive.Content
                 ref={ref}
                 className={cn(

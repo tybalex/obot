@@ -1,10 +1,6 @@
-import { PenSquareIcon } from "lucide-react";
-import { useState } from "react";
-
 import { Model } from "~/lib/model/models";
 
 import { ModelForm } from "~/components/model/ModelForm";
-import { Button } from "~/components/ui/button";
 import {
     Dialog,
     DialogContent,
@@ -12,49 +8,30 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "~/components/ui/dialog";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "~/components/ui/tooltip";
 
-type UpdateModelProps = {
-    model: Model;
+type UpdateModelDialogProps = {
+    model: Nullish<Model>;
+    open: boolean;
+    setOpen: (open: boolean) => void;
+    children?: React.ReactNode;
 };
 
-export function UpdateModel(props: UpdateModelProps) {
-    const { model } = props;
-    const [open, setOpen] = useState(false);
+export function UpdateModelDialog(props: UpdateModelDialogProps) {
+    const { model, open, setOpen, children } = props;
+
+    if (!model) return null;
 
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogContent>
-                        <DialogTitle>Update model</DialogTitle>
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogContent>
+                <DialogTitle>Update model</DialogTitle>
 
-                        <DialogDescription hidden>
-                            Update model
-                        </DialogDescription>
+                <DialogDescription hidden>Update model</DialogDescription>
 
-                        <ModelForm
-                            model={model}
-                            onSubmit={() => setOpen(false)}
-                        />
-                    </DialogContent>
+                <ModelForm model={model} onSubmit={() => setOpen(false)} />
+            </DialogContent>
 
-                    <DialogTrigger asChild>
-                        <TooltipTrigger asChild>
-                            <Button size={"icon"} variant="ghost">
-                                <PenSquareIcon />
-                            </Button>
-                        </TooltipTrigger>
-                    </DialogTrigger>
-                </Dialog>
-
-                <TooltipContent>Update Model</TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+            {children && <DialogTrigger asChild>{children}</DialogTrigger>}
+        </Dialog>
     );
 }

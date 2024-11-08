@@ -38,6 +38,7 @@ export function DeleteModel(props: DeleteModelProps) {
                         <Button
                             size="icon"
                             variant="ghost"
+                            onClick={(e) => e.stopPropagation()}
                             disabled={deleteModel.isLoading}
                             loading={deleteModel.isLoading}
                         >
