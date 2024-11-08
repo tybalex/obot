@@ -7,6 +7,7 @@ import {
     SettingsIcon,
     User,
     Wrench,
+    PuzzleIcon,
 } from "lucide-react";
 import { $path } from "remix-routes";
 
@@ -59,6 +60,11 @@ const items = [
         title: "OAuth Apps",
         url: $path("/oauth-apps"),
         icon: KeyIcon,
+    },
+    {
+        title: "Workflows",
+        url: $path("/workflows"),
+        icon: PuzzleIcon,
     },
     {
         title: "Models",
