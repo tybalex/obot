@@ -1,10 +1,4 @@
-import {
-	type Invalidator,
-	type Readable,
-	type Subscriber,
-	type Unsubscriber,
-	type Writable
-} from 'svelte/store';
+import { type Readable, type Subscriber, type Unsubscriber, type Writable } from 'svelte/store';
 
 import errorStore from './errors';
 
@@ -60,7 +54,7 @@ export function storeWithInit<V, T extends Readable<V> | Writable<V>>(
 
 	return {
 		...target,
-		subscribe(run: Subscriber<V>, invalidate?: Invalidator<V>): Unsubscriber {
+		subscribe(run: Subscriber<V>, invalidate?: () => void): Unsubscriber {
 			initialize();
 			return target.subscribe(run, invalidate);
 		}

@@ -3,14 +3,12 @@ import { writable } from 'svelte/store';
 import { storeWithInit } from '$lib/stores/storeinit';
 import { page } from '$app/stores';
 
-let selectedName = '';
-
-function assignSelected(assistants: Assistant[]): Assistant[] {
+function assignSelected(assistants: Assistant[], selectedName: string): Assistant[] {
 	let found = false;
 	const result: Assistant[] = [];
 
 	for (const assistant of assistants) {
-		if (assistant.id === selectedName) {
+		if (selectedName !== '' && assistant.id === selectedName) {
 			assistant.current = true;
 			found = true;
 		} else {
@@ -25,23 +23,21 @@ function assignSelected(assistants: Assistant[]): Assistant[] {
 		result.push({
 			id: '',
 			icons: {},
-			current: true
+			current: false
 		});
 	}
 
 	return result;
 }
 
-const store = writable<Assistant[]>(assignSelected([]));
+const store = writable<Assistant[]>(assignSelected([], ''));
 
 export default storeWithInit(store, async () => {
-	page.subscribe((value) => {
-		selectedName = value.params?.agent ?? '';
-		store.update((assistants) => {
-			return assignSelected(assistants);
-		});
+	page.subscribe(async (value) => {
+		const selectedName = value.params?.agent ?? '';
+		if (selectedName) {
+			const assistants = await ChatService.listAssistants();
+			store.set(assignSelected(assistants.items, selectedName));
+		}
 	});
-
-	const assistants = await ChatService.listAssistants();
-	store.set(assignSelected(assistants.items));
 });

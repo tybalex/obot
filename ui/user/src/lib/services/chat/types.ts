@@ -150,3 +150,17 @@ export interface Assistant {
 	current: boolean;
 	icons: AssistantIcons;
 }
+
+export interface AssistantTool {
+	id: string;
+	name?: string;
+	description?: string;
+	icon?: string;
+	enabled?: boolean;
+	builtin?: boolean;
+}
+
+export interface AssistantToolList {
+	readonly?: boolean;
+	items: AssistantTool[];
+}

@@ -29,7 +29,6 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, oauthServerU
 		Name:         agent.Spec.Manifest.Name,
 		Description:  agent.Spec.Manifest.Description,
 		Chat:         true,
-		Tools:        agent.Spec.Manifest.Tools,
 		Instructions: agent.Spec.Manifest.Prompt,
 		InputFilters: agent.Spec.InputFilters,
 		Temperature:  agent.Spec.Manifest.Temperature,
@@ -44,15 +43,21 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, oauthServerU
 	var otherTools []gptscript.ToolDef
 
 	if opts.Thread != nil {
-		mainTool.Tools = append(mainTool.Tools, opts.Thread.Spec.Manifest.Tools...)
+		for _, tool := range opts.Thread.Spec.Manifest.Tools {
+			name, err := ResolveToolReference(ctx, db, types.ToolReferenceTypeTool, agent.Namespace, tool)
+			if err != nil {
+				return nil, nil, err
+			}
+			mainTool.Tools = append(mainTool.Tools, name)
+		}
 	}
 
-	for i, tool := range agent.Spec.Manifest.Tools {
+	for _, tool := range agent.Spec.Manifest.Tools {
 		name, err := ResolveToolReference(ctx, db, types.ToolReferenceTypeTool, agent.Namespace, tool)
 		if err != nil {
 			return nil, nil, err
 		}
-		agent.Spec.Manifest.Tools[i] = name
+		mainTool.Tools = append(mainTool.Tools, name)
 	}
 
 	mainTool, otherTools, err := addAgentTools(ctx, db, agent, mainTool, otherTools)

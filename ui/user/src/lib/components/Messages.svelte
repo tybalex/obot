@@ -15,13 +15,7 @@
 		onloadfile: (filename: string) => void;
 	}
 
-	let {
-		assistant,
-		onmessages,
-		onerror,
-		onfocus,
-		onloadfile
-	}: Props = $props()
+	let { assistant, onmessages, onerror, onfocus, onloadfile }: Props = $props();
 
 	let progressEvents: Progress[] = [];
 	let replayComplete = false;
@@ -40,7 +34,7 @@
 		messages = ChatService.progressToMessages(progressEvents);
 
 		// forward the messages to the parent component
-		onmessages(messages)
+		onmessages(messages);
 	}
 
 	let inputBox: ReturnType<typeof Input>;

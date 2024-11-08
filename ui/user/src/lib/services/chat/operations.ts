@@ -1,11 +1,12 @@
 import {
 	type Assistants,
+	type AssistantToolList,
 	type Files,
 	type KnowledgeFile,
 	type KnowledgeFiles,
 	type Profile
 } from './types';
-import { baseURL, doDelete, doGet, doPost } from './http';
+import { baseURL, doDelete, doGet, doPost, doPut } from './http';
 
 export async function getProfile(): Promise<Profile> {
 	const obj = (await doGet('/me')) as Profile;
@@ -72,6 +73,22 @@ export async function listFiles(assistant: string): Promise<Files> {
 
 export async function invoke(assistant: string, msg: string | object) {
 	await doPost(`/assistants/${assistant}/invoke`, msg);
+}
+
+export async function listTools(assistant: string): Promise<AssistantToolList> {
+	const list = (await doGet(`/assistants/${assistant}/tools`)) as AssistantToolList;
+	if (!list.items) {
+		list.items = [];
+	}
+	return list;
+}
+
+export async function enableTool(assistant: string, tool: string): Promise<AssistantToolList> {
+	return (await doPut(`/assistants/${assistant}/tools/${tool}`)) as AssistantToolList;
+}
+
+export async function disableTool(assistant: string, tool: string): Promise<AssistantToolList> {
+	return (await doDelete(`/assistants/${assistant}/tools/${tool}`)) as AssistantToolList;
 }
 
 export function newMessageEventSource(assistant: string): EventSource {

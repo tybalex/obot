@@ -9,11 +9,7 @@
 		onerror?: (event: Error) => void;
 	}
 
-	let {
-		assistant,
-		onmessage = () => {},
-		onerror = () => {},
-	} : Props = $props();
+	let { assistant, onmessage = () => {}, onerror = () => {} }: Props = $props();
 
 	let es: EventSource;
 	let replayComplete = false;

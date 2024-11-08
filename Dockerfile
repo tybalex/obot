@@ -9,7 +9,7 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     make in-docker-build
 
 FROM cgr.dev/chainguard/wolfi-base AS final
-RUN apk add --no-cache git python-3.13 py3.13-pip openssh-server npm bash tini
+RUN apk add --no-cache git python-3.13 py3.13-pip openssh-server npm bash tini procps
 COPY --chmod=0755 /tools/package-chrome.sh /
 RUN /package-chrome.sh && rm /package-chrome.sh
 RUN sed -E 's/^#(PermitRootLogin)no/\1yes/' /etc/ssh/sshd_config -i
@@ -54,6 +54,8 @@ ENV OTTO_SERVER_WORKSPACE_TOOL=/otto8-tools/workspace-provider
 ENV OTTO_SERVER_DATASETS_TOOL=/otto8-tools/datasets
 ENV OTTO_SERVER_TOOL_REGISTRY=/otto8-tools
 ENV OTTO_SERVER_ENCRYPTION_CONFIG_FILE=/encryption.yaml
+ENV GOMEMLIMIT=1GiB
+ENV TERM=vt100
 WORKDIR /data
 VOLUME /data
 CMD ["run.sh"]

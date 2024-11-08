@@ -3,17 +3,15 @@
 	import { profile } from '$lib/stores';
 	import { popover } from '$lib/actions';
 
-	const tt = popover({
+	const { ref, tooltip, toggle } = popover({
 		placement: 'bottom-end'
 	});
 </script>
 
 <!-- Profile -->
-<div class="ml-1 flex items-center" use:tt.ref>
+<div class="ml-1 flex items-center" use:ref>
 	<button
-		onclick={() => {
-			tt.toggle();
-		}}
+		onclick={toggle}
 		type="button"
 		class="flex rounded-full bg-gray-800 text-sm focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
 	>
@@ -22,8 +20,8 @@
 	</button>
 	<!-- Dropdown menu -->
 	<div
-		use:tt.tooltip
-		class="my-4 list-none divide-y divide-gray-100 rounded bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700"
+		use:tooltip
+		class="mt-2 list-none divide-y divide-gray-100 rounded bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700"
 	>
 		<div class="px-4 py-3" role="none">
 			<p class="truncate text-sm font-medium text-gray-900 dark:text-white" role="none">

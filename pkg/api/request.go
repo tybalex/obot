@@ -2,12 +2,10 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"slices"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gptscript-ai/go-gptscript"
@@ -201,12 +199,7 @@ func (r *Context) Delete(obj client.Object) error {
 
 func (r *Context) Get(obj client.Object, name string) error {
 	namespace := r.Namespace()
-	err := r.Storage.Get(r.Request.Context(), client.ObjectKey{Namespace: namespace, Name: name}, obj)
-	if apierrors.IsNotFound(err) {
-		gvk, _ := r.Storage.GroupVersionKindFor(obj)
-		return types.NewErrHttp(http.StatusNotFound, fmt.Sprintf("%s %s not found", strings.ToLower(gvk.Kind), name))
-	}
-	return err
+	return r.Storage.Get(r.Request.Context(), client.ObjectKey{Namespace: namespace, Name: name}, obj)
 }
 
 func (r *Context) Create(obj client.Object) error {

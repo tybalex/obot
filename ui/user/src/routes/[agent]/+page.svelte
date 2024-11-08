@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { page } from '$app/stores'
+	import { page } from '$app/stores';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Messages from '$lib/components/Messages.svelte';
 	import Editor from '$lib/components/Editor.svelte';
@@ -11,10 +11,10 @@
 	import type { Messages as MessagesType } from '$lib/services';
 
 	let editorVisible = $state(false);
-	let assistant = $page.params.agent
+	let assistant = $page.params.agent;
 	let drawerVisible = $state(false);
 	let notification: ReturnType<typeof Notifications>;
-	let messageDiv: HTMLDivElement | undefined
+	let messageDiv: HTMLDivElement | undefined;
 	let messages: ReturnType<typeof Messages>;
 
 	function handleError(event: Error) {
@@ -56,10 +56,9 @@
 	}
 </script>
 
-<Navbar></Navbar>
+<Navbar />
 
 <main id="main-content" class="flex h-screen justify-center">
-
 	<div class="relative flex w-1/2 flex-1 justify-center">
 		<div bind:this={messageDiv} class="w-full overflow-auto px-8 pb-32 pt-16 scrollbar-none">
 			<div class="mx-auto max-w-[1000px]">

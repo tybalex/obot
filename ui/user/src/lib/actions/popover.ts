@@ -3,6 +3,7 @@ import {
 	computePosition,
 	flip,
 	shift,
+	offset,
 	type ComputePositionConfig
 } from '@floating-ui/dom';
 import type { Action, ActionReturn } from 'svelte/action';
@@ -30,7 +31,13 @@ export default function popover(opts?: PopoverOptions): Popover {
 		function updatePosition() {
 			computePosition(ref, tooltip, {
 				placement: 'bottom-end',
-				middleware: [flip(), shift()],
+				middleware: [
+					flip(),
+					shift({
+						padding: 8
+					}),
+					offset(8)
+				],
 				...opts
 			}).then(({ x, y }) => {
 				Object.assign(tooltip.style, {

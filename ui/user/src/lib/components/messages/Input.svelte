@@ -21,11 +21,7 @@
 		assistant: string;
 	}
 
-	let {
-		onerror = () => {},
-		onfocus = () => {},
-		assistant,
-	}: Props = $props();
+	let { onerror = () => {}, onfocus = () => {}, assistant }: Props = $props();
 
 	let value = $state('');
 	let chat: HTMLTextAreaElement;

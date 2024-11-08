@@ -15,3 +15,4 @@ export { default as Upload } from 'lucide-svelte/icons/upload';
 export { default as X } from 'lucide-svelte/icons/x';
 export { default as ChevronDown } from 'lucide-svelte/icons/chevron-down';
 export { default as Check } from 'lucide-svelte/icons/check';
+export { default as Wrench } from 'lucide-svelte/icons/wrench';

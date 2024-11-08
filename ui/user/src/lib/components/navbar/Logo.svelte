@@ -6,7 +6,7 @@
 	import { popover } from '$lib/actions';
 	import { fade } from 'svelte/transition';
 
-	const selected = $derived($assistants.find(a => a.current));
+	const selected = $derived($assistants.find((a) => a.current));
 
 	const { ref, tooltip, toggle } = popover({
 		placement: 'bottom-start'
@@ -33,55 +33,74 @@
 		}
 		return a.icons.collapsed ?? a.icons.icon ?? '';
 	}
-
 </script>
 
-<div class="flex items-center justify-start" transition:fade|global >
-	<a use:ref href={`/${selected?.id ?? ''}`}
-		 class="text-purple-950 flex items-center gap-2" onclick={() => {
-		if ($assistants.length > 1) {
-			toggle();
-		} else {
-			window.location.href = `/${selected?.id ?? ''}`;
-		}
-	}}>
+<div class="flex items-center justify-start" transition:fade|global>
+	<a
+		use:ref
+		href={`/${selected?.id ?? ''}`}
+		class="flex items-center gap-2"
+		onclick={() => {
+			if ($assistants.length > 1) {
+				toggle();
+			} else {
+				window.location.href = `/${selected?.id ?? ''}`;
+			}
+		}}
+	>
 		{#if collapsedIcon(selected)}
 			<img src={collapsedIcon(selected)} alt="assistant icon" class="ml-3 h-8" />
 		{:else if selected?.name}
-			<div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-500 flex items-center justify-center">{
-				selected?.name ? selected?.name[0].toUpperCase() : '?'
-			}
+			<div
+				class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-500"
+			>
+				{selected?.name ? selected?.name[0].toUpperCase() : '?'}
 			</div>
-			<span class="font-semibold dark:text-gray-100" >{selected?.name ?? ''}</span>
+			<span class="font-semibold dark:text-gray-100">{selected?.name ?? ''}</span>
 		{/if}
 	</a>
 
 	<!-- Dropdown menu -->
-	<div use:tooltip
-			 class="mt-4 bg-white divide-y divide-gray-100 rounded-lg shadow w-60 dark:bg-gray-700 dark:divide-gray-600">
-		<ul class="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownHelperButton">
+	<div
+		use:tooltip
+		class="mt-4 w-60 divide-y divide-gray-100 rounded-lg bg-white shadow dark:divide-gray-600 dark:bg-gray-700"
+	>
+		<ul
+			class="space-y-1 p-3 text-sm text-gray-700 dark:text-gray-200"
+			aria-labelledby="dropdownHelperButton"
+		>
 			{#each $assistants as assistant}
 				<li>
-					<a href={'/' + assistant.id} data-sveltekit-reload
-						 class="flex p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
-						<div class="flex items-center h-5">
+					<a
+						href={'/' + assistant.id}
+						data-sveltekit-reload
+						class="flex rounded p-2 hover:bg-gray-100 dark:hover:bg-gray-600"
+					>
+						<div class="flex h-5 items-center">
 							{#if icon(assistant)}
-								<img src={icon(assistant)} alt="assistant icon" class="w-5 h-5 rounded-full" />
+								<img src={icon(assistant)} alt="assistant icon" class="h-5 w-5 rounded-full" />
 							{:else}
-								<div class="w-5 h-5 rounded-full bg-gray-200 dark:bg-gray-500 flex items-center justify-center">{
-									assistant.name ? assistant.name[0].toUpperCase() : '?'
-								}</div>
+								<div
+									class="flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-500"
+								>
+									{assistant.name ? assistant.name[0].toUpperCase() : '?'}
+								</div>
 							{/if}
 						</div>
 						<div class="ms-2 text-sm">
-							<label for="helper-checkbox-1" class="font-medium text-gray-900 dark:text-white flex items-center gap-1">
+							<label
+								for="helper-checkbox-1"
+								class="flex items-center gap-1 font-medium text-gray-900 dark:text-white"
+							>
 								{assistant.name}
 							</label>
-							<p class="text-xs font-normal text-gray-500 dark:text-gray-300">{assistant.description}</p>
+							<p class="text-xs font-normal text-gray-500 dark:text-gray-300">
+								{assistant.description}
+							</p>
 						</div>
-						<div class="flex-1 flex justify-end">
+						<div class="flex flex-1 justify-end">
 							{#if assistant.current}
-								<Check class="w-4 h-4 self-center" />
+								<Check class="h-4 w-4 self-center" />
 							{/if}
 						</div>
 					</a>
@@ -92,7 +111,8 @@
 	{#if $assistants.length > 1}
 		<button class="h-full" onclick={toggle}>
 			<ChevronDown
-				class="w-5 h-5 ms-2 text-gray-200 dark:text-gray-700 hover:text-black hover:bg-gray-100 hover:dark:bg-gray-700 hover:dark:text-white rounded" />
+				class="ms-2 h-5 w-5 rounded text-gray-200 hover:bg-gray-100 hover:text-black dark:text-gray-700 hover:dark:bg-gray-700 hover:dark:text-white"
+			/>
 		</button>
 	{/if}
 </div>

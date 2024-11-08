@@ -5,4 +5,6 @@ export { default as profile } from './profile';
 export { default as errors } from './errors';
 export { default as editorFiles } from './editorfiles';
 export { default as assistants } from './assistants';
+export { default as currentAssistant } from './currentassistant';
+export { default as tools } from './tools';
 export type { EditorFile } from './editorfiles';

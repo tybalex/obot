@@ -203,6 +203,9 @@ func createThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Ag
 			Namespace:    agent.Namespace,
 		},
 		Spec: v1.ThreadSpec{
+			Manifest: types.ThreadManifest{
+				Tools: agent.Spec.Manifest.DefaultThreadTools,
+			},
 			AgentName:          agent.Name,
 			FromWorkspaceNames: []string{agent.Status.WorkspaceName},
 			UserUID:            userUID,

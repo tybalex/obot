@@ -27,16 +27,48 @@ export async function doGet(path: string, opts?: GetOptions): Promise<unknown> {
 	return await resp.json();
 }
 
-export async function doDelete(path: string): Promise<void> {
+export async function doDelete(path: string): Promise<unknown> {
 	const resp = await fetch(baseURL + path, {
 		method: 'DELETE'
 	});
+	return handleResponse(resp, path);
+}
+
+export async function doPut(path: string, input?: string | object | Blob): Promise<unknown> {
+	let headers: Record<string, string> | undefined;
+	if (input instanceof Blob) {
+		headers = {
+			'Content-Type': 'application/octet-stream'
+		};
+	} else if (typeof input === 'object') {
+		input = JSON.stringify(input);
+		headers = {
+			'Content-Type': 'application/json'
+		};
+	} else if (input) {
+		headers = {
+			'Content-Type': 'text/plain'
+		};
+	}
+	const resp = await fetch(baseURL + path, {
+		method: 'PUT',
+		headers: headers,
+		body: input
+	});
+	return handleResponse(resp, path);
+}
+
+async function handleResponse(resp: Response, path: string): Promise<unknown> {
 	if (!resp.ok) {
 		const body = await resp.text();
 		const e = new Error(`${resp.status} ${path}: ${body}`);
 		errors.append(e);
 		throw e;
 	}
+	if (resp.headers.get('Content-Type') === 'application/json') {
+		return resp.json();
+	}
+	return resp.text();
 }
 
 export async function doPost(path: string, input: string | object | Blob): Promise<unknown> {
@@ -54,14 +86,5 @@ export async function doPost(path: string, input: string | object | Blob): Promi
 		},
 		body: input
 	});
-	if (!resp.ok) {
-		const body = await resp.text();
-		const e = new Error(`${resp.status} ${path}: ${body}`);
-		errors.append(e);
-		throw e;
-	}
-	if (resp.headers.get('Content-Type') === 'application/json') {
-		return resp.json();
-	}
-	return resp.text();
+	return handleResponse(resp, path);
 }

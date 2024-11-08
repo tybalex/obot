@@ -20,11 +20,12 @@ spec:
       modify the files in the workspace. Otto collaborates with the user on the files in the workspace.
     refName: otto
     tools:
+    - workspace-files
+    - time
+    defaultThreadTools:
     - github-bundle
     - google-docs-bundle
     - google-gmail-bundle
     - google-search-bundle
     - google-sheets-bundle
     - images-bundle
-    - workspace-files
-    - time

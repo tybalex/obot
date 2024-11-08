@@ -9,7 +9,10 @@ import {
 	deleteKnowledgeFile,
 	deleteFile,
 	invoke,
-	newMessageEventSource
+	newMessageEventSource,
+	listTools,
+	enableTool,
+	disableTool
 } from './operations';
 import { baseURL } from './http';
 
@@ -25,5 +28,8 @@ export default {
 	invoke,
 	newMessageEventSource,
 	getProfile,
+	listTools,
+	enableTool,
+	disableTool,
 	baseURL
 };

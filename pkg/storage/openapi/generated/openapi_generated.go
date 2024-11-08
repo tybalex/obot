@@ -23,6 +23,8 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/otto8-ai/otto8/apiclient/types.AgentManifest":                             schema_otto8_ai_otto8_apiclient_types_AgentManifest(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Assistant":                                 schema_otto8_ai_otto8_apiclient_types_Assistant(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.AssistantList":                             schema_otto8_ai_otto8_apiclient_types_AssistantList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.AssistantTool":                             schema_otto8_ai_otto8_apiclient_types_AssistantTool(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.AssistantToolList":                         schema_otto8_ai_otto8_apiclient_types_AssistantToolList(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Credential":                                schema_otto8_ai_otto8_apiclient_types_Credential(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.CredentialList":                            schema_otto8_ai_otto8_apiclient_types_CredentialList(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.CronJob":                                   schema_otto8_ai_otto8_apiclient_types_CronJob(ref),
@@ -604,6 +606,91 @@ func schema_otto8_ai_otto8_apiclient_types_AssistantList(ref common.ReferenceCal
 		},
 		Dependencies: []string{
 			"github.com/otto8-ai/otto8/apiclient/types.Assistant"},
+	}
+}
+
+func schema_otto8_ai_otto8_apiclient_types_AssistantTool(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"id": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"description": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
+					"icon": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"enabled": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"builtin": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+				},
+				Required: []string{"name", "description"},
+			},
+		},
+	}
+}
+
+func schema_otto8_ai_otto8_apiclient_types_AssistantToolList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"readOnly": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.AssistantTool"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/otto8-ai/otto8/apiclient/types.AssistantTool"},
 	}
 }
 

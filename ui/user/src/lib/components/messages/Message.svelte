@@ -11,12 +11,9 @@
 		onloadfile?: (filename: string) => void;
 	}
 
-	let {
-		msg,
-		onloadfile = () => {}
-	} : Props = $props();
+	let { msg, onloadfile = () => {} }: Props = $props();
 
-	let content = $derived(msg.message ? msg.message.join('') : '')
+	let content = $derived(msg.message ? msg.message.join('') : '');
 	let fullWidth = !msg.sent && !msg.oauthURL && !msg.tool;
 	let showBubble = msg.sent;
 	let renderMarkdown = !msg.sent && !msg.oauthURL && !msg.tool;
@@ -88,7 +85,7 @@
 					<button
 						onclick={() => {
 							if (msg.file?.filename) {
-								onloadfile(msg.file?.filename)
+								onloadfile(msg.file?.filename);
 							}
 						}}
 						class="flex items-center gap-2 rounded border border-gray-200 p-2 px-4 text-black shadow hover:bg-gray-100 dark:bg-gray-900 dark:text-white hover:dark:bg-gray-700"

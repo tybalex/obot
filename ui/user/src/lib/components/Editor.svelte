@@ -106,7 +106,8 @@
 		<ul class="mb-4 flex flex-wrap text-center text-sm font-medium">
 			{#each $editorFiles as file, i}
 				<li class="me-2">
-					<a href="#"
+					<a
+						href="#"
 						class:selected={isSelected(file.name)}
 						on:click={() => {
 							selectFile($editorFiles[i].name);
