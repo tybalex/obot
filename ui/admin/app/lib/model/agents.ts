@@ -16,6 +16,7 @@ export type AgentBase = {
     availableThreadTools?: string[];
     params?: Record<string, string>;
     knowledgeDescription?: string;
+    model?: string;
 };
 
 export type AgentOAuthStatus = {
