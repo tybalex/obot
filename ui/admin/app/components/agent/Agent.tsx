@@ -5,10 +5,13 @@ import { Agent as AgentType } from "~/lib/model/agents";
 import { cn } from "~/lib/utils";
 
 import { TypographyH4, TypographyP } from "~/components/Typography";
-import { AgentProvider, useAgent } from "~/components/agent/AgentContext";
+import { useAgent } from "~/components/agent/AgentContext";
 import { AgentForm } from "~/components/agent/AgentForm";
 import { PastThreads } from "~/components/agent/PastThreads";
+import { Publish } from "~/components/agent/Publish";
 import { ToolForm } from "~/components/agent/ToolForm";
+import { Unpublish } from "~/components/agent/Unpublish";
+import { CopyText } from "~/components/composed/CopyText";
 import { AgentKnowledgePanel } from "~/components/knowledge";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
@@ -21,15 +24,7 @@ type AgentProps = {
     onRefresh?: (threadId: string | null) => void;
 };
 
-export function Agent(props: AgentProps) {
-    return (
-        <AgentProvider agent={props.agent}>
-            <AgentContent {...props} />
-        </AgentProvider>
-    );
-}
-
-function AgentContent({ className, onRefresh }: AgentProps) {
+export function Agent({ className, onRefresh }: AgentProps) {
     const { agent, updateAgent, isUpdating, lastUpdated } = useAgent();
 
     const [agentUpdates, setAgentUpdates] = useState(agent);
@@ -57,6 +52,22 @@ function AgentContent({ className, onRefresh }: AgentProps) {
     return (
         <div className="h-full flex flex-col">
             <ScrollArea className={cn("h-full", className)}>
+                <div className="flex w-full justify-end pr-8 pt-4 items-center gap-4">
+                    {agentUpdates.refName && (
+                        <CopyText
+                            className="h-8 text-muted-foreground text-sm bg-background"
+                            text={`${window.location.protocol}//${window.location.host}/${agentUpdates.refName}`}
+                        />
+                    )}
+                    {agentUpdates.refName ? (
+                        <Unpublish onChange={debouncedSetAgentInfo} />
+                    ) : (
+                        <Publish
+                            agent={agentUpdates}
+                            onChange={debouncedSetAgentInfo}
+                        />
+                    )}
+                </div>
                 <Card className="p-4 m-4 lg:mx-6 xl:mx-8">
                     <AgentForm
                         agent={agentUpdates}
