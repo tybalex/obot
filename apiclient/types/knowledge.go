@@ -3,10 +3,11 @@ package types
 type KnowledgeFileState string
 
 const (
-	KnowledgeFileStatePending   KnowledgeFileState = "pending"
-	KnowledgeFileStateIngesting KnowledgeFileState = "ingesting"
-	KnowledgeFileStateIngested  KnowledgeFileState = "ingested"
-	KnowledgeFileStateError     KnowledgeFileState = "error"
+	KnowledgeFileStatePending     KnowledgeFileState = "pending"
+	KnowledgeFileStateIngesting   KnowledgeFileState = "ingesting"
+	KnowledgeFileStateIngested    KnowledgeFileState = "ingested"
+	KnowledgeFileStateError       KnowledgeFileState = "error"
+	KnowledgeFileStateUnsupported KnowledgeFileState = "unsupported"
 
 	// KnowledgeFileStateUnapproved This is only a public API state, not a real orchestration state
 	KnowledgeFileStateUnapproved KnowledgeFileState = "unapproved"
@@ -15,7 +16,7 @@ const (
 )
 
 func (k KnowledgeFileState) IsTerminal() bool {
-	return k == KnowledgeFileStateIngested || k == KnowledgeFileStateError
+	return k == KnowledgeFileStateIngested || k == KnowledgeFileStateError || k == KnowledgeFileStateUnsupported
 }
 
 type KnowledgeFile struct {
@@ -34,6 +35,7 @@ type KnowledgeFile struct {
 	LastIngestionStartTime *Time              `json:"lastIngestionStartTime,omitempty"`
 	LastIngestionEndTime   *Time              `json:"lastIngestionEndTime,omitempty"`
 	LastRunIDs             []string           `json:"lastRunIDs,omitempty"`
+	SizeInBytes            int64              `json:"sizeInBytes,omitempty"`
 }
 
 type KnowledgeFileList List[KnowledgeFile]
