@@ -52,13 +52,17 @@ export function Agent({ className, onRefresh }: AgentProps) {
     return (
         <div className="h-full flex flex-col">
             <ScrollArea className={cn("h-full", className)}>
-                <div className="flex w-full justify-end pr-8 pt-4 items-center gap-4">
-                    {agentUpdates.refName && (
+                <div className="flex w-full justify-between px-8 pt-4 items-center gap-4">
+                    {agentUpdates.refName ? (
                         <CopyText
-                            className="h-8 text-muted-foreground text-sm bg-background"
+                            className="h-8 text-muted-foreground text-sm bg-background flex-row-reverse"
+                            holdStatusDelay={10000}
                             text={`${window.location.protocol}//${window.location.host}/${agentUpdates.refName}`}
                         />
+                    ) : (
+                        <div />
                     )}
+
                     {agentUpdates.refName ? (
                         <Unpublish onChange={debouncedSetAgentInfo} />
                     ) : (
