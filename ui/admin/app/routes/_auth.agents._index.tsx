@@ -18,7 +18,6 @@ import { Button } from "~/components/ui/button";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { useAsync } from "~/hooks/useAsync";
@@ -160,45 +159,41 @@ export default function Agents() {
                 id: "actions",
                 cell: ({ row }) => (
                     <div className="flex gap-2 justify-end">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" asChild>
-                                        <Link
-                                            to={$path("/agents/:agent", {
-                                                agent: row.original.id,
-                                            })}
-                                        >
-                                            <SquarePen />
-                                        </Link>
-                                    </Button>
-                                </TooltipTrigger>
-
-                                <TooltipContent>
-                                    <p>Edit Agent</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() =>
-                                            deleteAgent.execute(row.original.id)
-                                        }
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" asChild>
+                                    <Link
+                                        to={$path("/agents/:agent", {
+                                            agent: row.original.id,
+                                        })}
                                     >
-                                        <Trash />
-                                    </Button>
-                                </TooltipTrigger>
+                                        <SquarePen />
+                                    </Link>
+                                </Button>
+                            </TooltipTrigger>
 
-                                <TooltipContent>
-                                    <p>Delete Agent</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                            <TooltipContent>
+                                <p>Edit Agent</p>
+                            </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                        deleteAgent.execute(row.original.id)
+                                    }
+                                >
+                                    <Trash />
+                                </Button>
+                            </TooltipTrigger>
+
+                            <TooltipContent>
+                                <p>Delete Agent</p>
+                            </TooltipContent>
+                        </Tooltip>
                     </div>
                 ),
             }),

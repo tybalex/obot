@@ -24,7 +24,6 @@ import {
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
@@ -60,64 +59,60 @@ export const PastThreads: React.FC<PastThreadsProps> = ({
     };
 
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <Popover open={open} onOpenChange={handleOpenChange}>
-                    <PopoverTrigger asChild>
-                        <TooltipTrigger asChild>
-                            <Button variant="secondary" size="icon">
-                                <ChevronUpIcon className="w-4 h-4" />
-                            </Button>
-                        </TooltipTrigger>
-                    </PopoverTrigger>
-                    <TooltipContent>Switch threads</TooltipContent>
-                    <PopoverContent className="w-80 p-0">
-                        <Command className="flex-col-reverse">
-                            <CommandInput placeholder="Search threads..." />
-                            <CommandList>
-                                <CommandEmpty>No threads found.</CommandEmpty>
-                                {isLoading ? (
-                                    <div className="flex justify-center items-center h-20">
-                                        <LoadingSpinner size={24} />
-                                    </div>
-                                ) : error ? (
-                                    <div className="text-center text-red-500 p-2">
-                                        Failed to load threads
-                                    </div>
-                                ) : threads && threads.length > 0 ? (
-                                    <CommandGroup>
-                                        {threads.map((thread: Thread) => (
-                                            <CommandItem
-                                                key={thread.id}
-                                                onSelect={() =>
-                                                    handleThreadSelect(
-                                                        thread.id
-                                                    )
-                                                }
-                                                className="cursor-pointer"
-                                            >
-                                                <div>
-                                                    <TypographyP className="font-semibold">
-                                                        Thread
-                                                        <span className="ml-2 text-muted-foreground">
-                                                            {thread.id}
-                                                        </span>
-                                                    </TypographyP>
-                                                    <TypographyP className="text-sm text-gray-500">
-                                                        {new Date(
-                                                            thread.created
-                                                        ).toLocaleString()}
-                                                    </TypographyP>
-                                                </div>
-                                            </CommandItem>
-                                        ))}
-                                    </CommandGroup>
-                                ) : null}
-                            </CommandList>
-                        </Command>
-                    </PopoverContent>
-                </Popover>
-            </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+            <Popover open={open} onOpenChange={handleOpenChange}>
+                <PopoverTrigger asChild>
+                    <TooltipTrigger asChild>
+                        <Button variant="secondary" size="icon">
+                            <ChevronUpIcon className="w-4 h-4" />
+                        </Button>
+                    </TooltipTrigger>
+                </PopoverTrigger>
+                <TooltipContent>Switch threads</TooltipContent>
+                <PopoverContent className="w-80 p-0">
+                    <Command className="flex-col-reverse">
+                        <CommandInput placeholder="Search threads..." />
+                        <CommandList>
+                            <CommandEmpty>No threads found.</CommandEmpty>
+                            {isLoading ? (
+                                <div className="flex justify-center items-center h-20">
+                                    <LoadingSpinner size={24} />
+                                </div>
+                            ) : error ? (
+                                <div className="text-center text-red-500 p-2">
+                                    Failed to load threads
+                                </div>
+                            ) : threads && threads.length > 0 ? (
+                                <CommandGroup>
+                                    {threads.map((thread: Thread) => (
+                                        <CommandItem
+                                            key={thread.id}
+                                            onSelect={() =>
+                                                handleThreadSelect(thread.id)
+                                            }
+                                            className="cursor-pointer"
+                                        >
+                                            <div>
+                                                <TypographyP className="font-semibold">
+                                                    Thread
+                                                    <span className="ml-2 text-muted-foreground">
+                                                        {thread.id}
+                                                    </span>
+                                                </TypographyP>
+                                                <TypographyP className="text-sm text-gray-500">
+                                                    {new Date(
+                                                        thread.created
+                                                    ).toLocaleString()}
+                                                </TypographyP>
+                                            </div>
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                            ) : null}
+                        </CommandList>
+                    </Command>
+                </PopoverContent>
+            </Popover>
+        </Tooltip>
     );
 };

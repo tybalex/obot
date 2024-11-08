@@ -7,7 +7,6 @@ import { Card } from "~/components/ui/card";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
@@ -26,20 +25,15 @@ export function StepTemplateCard({
                     {stepTemplate.description}
                 </h2>
             </div>
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipContent>Add template</TooltipContent>
-                    <TooltipTrigger>
-                        <Button
-                            onClick={onClick}
-                            size="icon"
-                            variant="secondary"
-                        >
-                            <PlusCircle />
-                        </Button>
-                    </TooltipTrigger>
-                </Tooltip>
-            </TooltipProvider>
+
+            <Tooltip>
+                <TooltipContent>Add template</TooltipContent>
+                <TooltipTrigger>
+                    <Button onClick={onClick} size="icon" variant="secondary">
+                        <PlusCircle />
+                    </Button>
+                </TooltipTrigger>
+            </Tooltip>
         </Card>
     );
 }

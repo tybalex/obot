@@ -17,7 +17,6 @@ import {
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
@@ -32,30 +31,29 @@ export function MessageDebug({ runId, variant }: MessageDebugProps) {
 
     return (
         <Dialog>
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <DialogTrigger asChild>
-                            <Button
-                                size="icon"
-                                variant={variant}
-                                onClick={() => {
-                                    RunsService.getRunDebugById(runId).then(
-                                        (runDebug) => {
-                                            setRunDebug(runDebug.frames);
-                                        }
-                                    );
-                                }}
-                            >
-                                <CodeIcon className="w-4 h-4" />
-                            </Button>
-                        </DialogTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                        <p>View details</p>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <DialogTrigger asChild>
+                        <Button
+                            size="icon"
+                            variant={variant}
+                            onClick={() => {
+                                RunsService.getRunDebugById(runId).then(
+                                    (runDebug) => {
+                                        setRunDebug(runDebug.frames);
+                                    }
+                                );
+                            }}
+                        >
+                            <CodeIcon className="w-4 h-4" />
+                        </Button>
+                    </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>View details</p>
+                </TooltipContent>
+            </Tooltip>
+
             <DialogContent
                 className={`transition-all duration-300 ease-in-out ${
                     isFullscreen

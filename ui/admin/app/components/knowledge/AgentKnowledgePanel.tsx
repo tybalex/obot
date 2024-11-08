@@ -45,7 +45,6 @@ import { AutosizeTextarea } from "~/components/ui/textarea";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { useAsync } from "~/hooks/useAsync";
@@ -327,59 +326,56 @@ export default function AgentKnowledgePanel({
                             <div>
                                 {file.state === KnowledgeFileState.Error ? (
                                     <div className="flex items-center">
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={async () => {
-                                                            const reingestedFile =
-                                                                await KnowledgeService.reingestFile(
-                                                                    agentId,
-                                                                    file.id!
-                                                                );
-                                                            getLocalFiles.mutate(
-                                                                (prev) =>
-                                                                    prev?.map(
-                                                                        (f) =>
-                                                                            f.id ===
-                                                                            reingestedFile.id
-                                                                                ? reingestedFile
-                                                                                : f
-                                                                    )
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={async () => {
+                                                        const reingestedFile =
+                                                            await KnowledgeService.reingestFile(
+                                                                agentId,
+                                                                file.id!
                                                             );
-                                                            return;
-                                                        }}
-                                                    >
-                                                        <RotateCcwIcon className="w-4 h-4 text-destructive" />
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    Reingest
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => {
-                                                            setErrorDialogError(
-                                                                file.error ?? ""
-                                                            );
-                                                        }}
-                                                    >
-                                                        <EyeIcon className="w-4 h-4 text-destructive" />
-                                                    </Button>
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    View Error
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                                                        getLocalFiles.mutate(
+                                                            (prev) =>
+                                                                prev?.map(
+                                                                    (f) =>
+                                                                        f.id ===
+                                                                        reingestedFile.id
+                                                                            ? reingestedFile
+                                                                            : f
+                                                                )
+                                                        );
+                                                        return;
+                                                    }}
+                                                >
+                                                    <RotateCcwIcon className="w-4 h-4 text-destructive" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                Reingest
+                                            </TooltipContent>
+                                        </Tooltip>
+
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => {
+                                                        setErrorDialogError(
+                                                            file.error ?? ""
+                                                        );
+                                                    }}
+                                                >
+                                                    <EyeIcon className="w-4 h-4 text-destructive" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                View Error
+                                            </TooltipContent>
+                                        </Tooltip>
                                     </div>
                                 ) : (
                                     <div className="flex items-center mr-2">
@@ -412,87 +408,83 @@ export default function AgentKnowledgePanel({
                             <span>{getKnowledgeSourceDisplayName(source)}</span>
                         </div>
                         <div className="flex items-center">
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() =>
-                                                handleRemoteKnowledgeSourceSync(
-                                                    source.id
-                                                )
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                            handleRemoteKnowledgeSourceSync(
+                                                source.id
+                                            )
+                                        }
+                                        onMouseEnter={() => {
+                                            if (
+                                                source.state ===
+                                                    KnowledgeSourceStatus.Syncing ||
+                                                source.state ===
+                                                    KnowledgeSourceStatus.Pending
+                                            ) {
+                                                return;
                                             }
-                                            onMouseEnter={() => {
-                                                if (
-                                                    source.state ===
-                                                        KnowledgeSourceStatus.Syncing ||
-                                                    source.state ===
-                                                        KnowledgeSourceStatus.Pending
-                                                ) {
-                                                    return;
-                                                }
-                                            }}
-                                        >
-                                            {source.state ===
-                                                KnowledgeSourceStatus.Syncing ||
-                                            source.state ===
-                                                KnowledgeSourceStatus.Pending ? (
-                                                <LoadingSpinner className="w-4 h-4" />
-                                            ) : (
-                                                <RefreshCcw className="w-4 h-4" />
-                                            )}
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
+                                        }}
+                                    >
                                         {source.state ===
                                             KnowledgeSourceStatus.Syncing ||
                                         source.state ===
-                                            KnowledgeSourceStatus.Pending
-                                            ? (source.status ?? "Syncing...")
-                                            : "Sync"}
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => {
-                                                setSelectedKnowledgeSourceId(
-                                                    source.id
-                                                );
-                                                setIsEditKnowledgeSourceModalOpen(
-                                                    true
-                                                );
-                                            }}
-                                        >
-                                            <Edit className="w-4 h-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Edit</TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() =>
-                                                handleDeleteKnowledgeSource(
-                                                    source.id
-                                                )
-                                            }
-                                        >
-                                            <Trash className="w-4 h-4" />
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Delete</TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                                            KnowledgeSourceStatus.Pending ? (
+                                            <LoadingSpinner className="w-4 h-4" />
+                                        ) : (
+                                            <RefreshCcw className="w-4 h-4" />
+                                        )}
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    {source.state ===
+                                        KnowledgeSourceStatus.Syncing ||
+                                    source.state ===
+                                        KnowledgeSourceStatus.Pending
+                                        ? (source.status ?? "Syncing...")
+                                        : "Sync"}
+                                </TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => {
+                                            setSelectedKnowledgeSourceId(
+                                                source.id
+                                            );
+                                            setIsEditKnowledgeSourceModalOpen(
+                                                true
+                                            );
+                                        }}
+                                    >
+                                        <Edit className="w-4 h-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Edit</TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() =>
+                                            handleDeleteKnowledgeSource(
+                                                source.id
+                                            )
+                                        }
+                                    >
+                                        <Trash className="w-4 h-4" />
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Delete</TooltipContent>
+                            </Tooltip>
                         </div>
                     </div>
                 ))}

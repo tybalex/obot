@@ -9,7 +9,6 @@ import { Button } from "~/components/ui/button";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
@@ -41,24 +40,22 @@ export function CopyText({
                 className
             )}
         >
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger
-                        type="button"
-                        onClick={() => handleCopy(text)}
-                        className="decoration-dotted underline-offset-4 underline text-ellipsis overflow-hidden text-nowrap"
-                    >
-                        <TypographyP className="truncate break-words p-2">
-                            {displayText}
-                        </TypographyP>
-                    </TooltipTrigger>
+            <Tooltip>
+                <TooltipTrigger
+                    type="button"
+                    onClick={() => handleCopy(text)}
+                    className="decoration-dotted underline-offset-4 underline text-ellipsis overflow-hidden text-nowrap"
+                >
+                    <TypographyP className="truncate break-words p-2">
+                        {displayText}
+                    </TypographyP>
+                </TooltipTrigger>
 
-                    <TooltipContent>
-                        <b>Copy: </b>
-                        {text}
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
+                <TooltipContent>
+                    <b>Copy: </b>
+                    {text}
+                </TooltipContent>
+            </Tooltip>
 
             <Button
                 size="icon"

@@ -5,7 +5,6 @@ import { Button } from "~/components/ui/button";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { useDebouncedValue } from "~/hooks/useDebounce";
@@ -37,25 +36,23 @@ function ScrollToBottom({
     return (
         !disabled &&
         calc() && (
-            <TooltipProvider>
-                <Tooltip delayDuration={300}>
-                    <TooltipTrigger asChild>
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-background rounded-full border"
-                            onClick={(e) => {
-                                scrollToBottom();
-                                onClick?.(e);
-                            }}
-                        >
-                            <ArrowDown className="w-6 h-6" />
-                        </Button>
-                    </TooltipTrigger>
+            <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                    <Button
+                        size="icon"
+                        variant="ghost"
+                        className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-background rounded-full border"
+                        onClick={(e) => {
+                            scrollToBottom();
+                            onClick?.(e);
+                        }}
+                    >
+                        <ArrowDown className="w-6 h-6" />
+                    </Button>
+                </TooltipTrigger>
 
-                    <TooltipContent>Scroll to bottom</TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
+                <TooltipContent>Scroll to bottom</TooltipContent>
+            </Tooltip>
         )
     );
 

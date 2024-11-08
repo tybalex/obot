@@ -22,7 +22,6 @@ import {
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
@@ -48,18 +47,16 @@ export function ToolCard({ tool, onDelete }: ToolCardProps) {
                     />
                     {tool.name}
                     {tool.error && (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Badge className="ml-2 bg-error mb-1 pointer-events-none">
-                                        Failed
-                                    </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-xs bg-error-foreground border border-error text-foreground">
-                                    <TypographyP>{tool.error}</TypographyP>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Badge className="ml-2 bg-error mb-1 pointer-events-none">
+                                    Failed
+                                </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs bg-error-foreground border border-error text-foreground">
+                                <TypographyP>{tool.error}</TypographyP>
+                            </TooltipContent>
+                        </Tooltip>
                     )}
                     {tool.metadata?.bundle && (
                         <Badge className="ml-2 bg-info pointer-events-none">

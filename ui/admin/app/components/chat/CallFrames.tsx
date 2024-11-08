@@ -14,7 +14,6 @@ import { Card, CardContent } from "~/components/ui/card";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
@@ -331,44 +330,41 @@ const CallFrames = ({ calls }: { calls: CallsType }) => {
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Call Frames</h2>
                 <div className="flex gap-2">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    onClick={handleDownload}
-                                    size="icon"
-                                    variant="outline"
-                                    className="text-gray-800 dark:text-white"
-                                >
-                                    <DownloadIcon />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>Download calls data</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    onClick={() => setAllOpen(!allOpen)}
-                                    size="icon"
-                                    variant="outline"
-                                    className="text-gray-800 dark:text-white"
-                                >
-                                    {allOpen ? (
-                                        <ChevronUpIcon />
-                                    ) : (
-                                        <ChevronDownIcon />
-                                    )}
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{allOpen ? "Collapse all" : "Expand all"}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                onClick={handleDownload}
+                                size="icon"
+                                variant="outline"
+                                className="text-gray-800 dark:text-white"
+                            >
+                                <DownloadIcon />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Download calls data</p>
+                        </TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                onClick={() => setAllOpen(!allOpen)}
+                                size="icon"
+                                variant="outline"
+                                className="text-gray-800 dark:text-white"
+                            >
+                                {allOpen ? (
+                                    <ChevronUpIcon />
+                                ) : (
+                                    <ChevronDownIcon />
+                                )}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>{allOpen ? "Collapse all" : "Expand all"}</p>
+                        </TooltipContent>
+                    </Tooltip>
                 </div>
             </div>
             {rootNodes?.length > 0 ? (
