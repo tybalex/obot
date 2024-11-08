@@ -14,6 +14,7 @@ import { ThemeProvider } from "~/components/theme";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import { SidebarProvider } from "~/components/ui/sidebar";
 import { Toaster } from "~/components/ui/sonner";
+import { TooltipProvider } from "~/components/ui/tooltip";
 import "~/tailwind.css";
 
 export const links: LinksFunction = () => [
@@ -60,11 +61,13 @@ export default function App() {
         <SWRConfig value={{ revalidateOnFocus: false }}>
             <AuthProvider>
                 <ThemeProvider>
-                    <SidebarProvider>
-                        <LayoutProvider>
-                            <Outlet />
-                        </LayoutProvider>
-                    </SidebarProvider>
+                    <TooltipProvider>
+                        <SidebarProvider>
+                            <LayoutProvider>
+                                <Outlet />
+                            </LayoutProvider>
+                        </SidebarProvider>
+                    </TooltipProvider>
                 </ThemeProvider>
             </AuthProvider>
         </SWRConfig>

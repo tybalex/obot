@@ -14,7 +14,6 @@ import { Switch } from "~/components/ui/switch";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
@@ -164,33 +163,30 @@ export function ToolForm({
                             tool={field.tool}
                             onDelete={() => removeTools([field.tool])}
                             actions={
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger>
-                                            <Switch
-                                                checked={
-                                                    field.variant ===
-                                                    ToolVariant.DEFAULT
-                                                }
-                                                onCheckedChange={(checked) =>
-                                                    updateVariant(
-                                                        field.tool,
-                                                        checked
-                                                            ? ToolVariant.DEFAULT
-                                                            : ToolVariant.AVAILABLE
-                                                    )
-                                                }
-                                            />
-                                        </TooltipTrigger>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Switch
+                                            checked={
+                                                field.variant ===
+                                                ToolVariant.DEFAULT
+                                            }
+                                            onCheckedChange={(checked) =>
+                                                updateVariant(
+                                                    field.tool,
+                                                    checked
+                                                        ? ToolVariant.DEFAULT
+                                                        : ToolVariant.AVAILABLE
+                                                )
+                                            }
+                                        />
+                                    </TooltipTrigger>
 
-                                        <TooltipContent>
-                                            {field.variant ===
-                                            ToolVariant.DEFAULT
-                                                ? "Active by Default"
-                                                : "Inactive by Default"}
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                                    <TooltipContent>
+                                        {field.variant === ToolVariant.DEFAULT
+                                            ? "Active by Default"
+                                            : "Inactive by Default"}
+                                    </TooltipContent>
+                                </Tooltip>
                             }
                         />
                     ))}

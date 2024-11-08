@@ -64,7 +64,6 @@ import {
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
@@ -561,37 +560,33 @@ const KnowledgeSourceDetail: FC<KnowledgeSourceDetailProps> = ({
                             <Label>State:</Label>
                             {knowledgeSource.state ===
                             KnowledgeSourceStatus.Error ? (
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Label className="flex items-center cursor-pointer text-destructive">
-                                                <Button
-                                                    variant="ghost"
-                                                    onClick={() => {
-                                                        setErrorDialogError(
-                                                            knowledgeSource.error ??
-                                                                ""
-                                                        );
-                                                    }}
-                                                    className="items-center justify-center flex"
-                                                >
-                                                    <span className="text-destructive">
-                                                        {knowledgeSource.state
-                                                            ?.charAt(0)
-                                                            .toUpperCase() +
-                                                            knowledgeSource.state?.slice(
-                                                                1
-                                                            )}
-                                                    </span>
-                                                    <Eye className="w-4 h-4 text-destructive items-center justify-center" />
-                                                </Button>
-                                            </Label>
-                                        </TooltipTrigger>
-                                        <TooltipContent>
-                                            View Error
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Label className="flex items-center cursor-pointer text-destructive">
+                                            <Button
+                                                variant="ghost"
+                                                onClick={() => {
+                                                    setErrorDialogError(
+                                                        knowledgeSource.error ??
+                                                            ""
+                                                    );
+                                                }}
+                                                className="items-center justify-center flex"
+                                            >
+                                                <span className="text-destructive">
+                                                    {knowledgeSource.state
+                                                        ?.charAt(0)
+                                                        .toUpperCase() +
+                                                        knowledgeSource.state?.slice(
+                                                            1
+                                                        )}
+                                                </span>
+                                                <Eye className="w-4 h-4 text-destructive items-center justify-center" />
+                                            </Button>
+                                        </Label>
+                                    </TooltipTrigger>
+                                    <TooltipContent>View Error</TooltipContent>
+                                </Tooltip>
                             ) : (
                                 <Label className="flex items-center">
                                     {knowledgeSource.state
@@ -731,22 +726,20 @@ const KnowledgeSourceDetail: FC<KnowledgeSourceDetailProps> = ({
                                                       KnowledgeFileState.Ingested ? (
                                                         <>
                                                             <CheckIcon className="w-4 h-4 text-success group-hover:hidden" />
-                                                            <TooltipProvider>
-                                                                <Tooltip>
-                                                                    <TooltipTrigger
-                                                                        asChild
-                                                                    >
-                                                                        <div className="flex justify-center items-center hidden group-hover:block">
-                                                                            <MinusIcon className="w-4 h-4 text-danger" />
-                                                                        </div>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent>
-                                                                        Exclude
-                                                                        from
-                                                                        Knowledge
-                                                                    </TooltipContent>
-                                                                </Tooltip>
-                                                            </TooltipProvider>
+
+                                                            <Tooltip>
+                                                                <TooltipTrigger
+                                                                    asChild
+                                                                >
+                                                                    <div className="flex justify-center items-center hidden group-hover:block">
+                                                                        <MinusIcon className="w-4 h-4 text-danger" />
+                                                                    </div>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    Exclude from
+                                                                    Knowledge
+                                                                </TooltipContent>
+                                                            </Tooltip>
                                                         </>
                                                     ) : file.state ===
                                                       KnowledgeFileState.Pending ? (
@@ -755,42 +748,37 @@ const KnowledgeSourceDetail: FC<KnowledgeSourceDetailProps> = ({
                                                       KnowledgeFileState.Error ? (
                                                         <>
                                                             <CircleX className="w-4 h-4 text-destructive group-hover:hidden" />
-                                                            <TooltipProvider>
-                                                                <Tooltip>
-                                                                    <TooltipTrigger
-                                                                        asChild
-                                                                    >
-                                                                        <div className="flex justify-center items-center hidden group-hover:block">
-                                                                            <MinusIcon className="w-4 h-4 text-danger" />
-                                                                        </div>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent>
-                                                                        Exclude
-                                                                        from
-                                                                        Knowledge
-                                                                    </TooltipContent>
-                                                                </Tooltip>
-                                                            </TooltipProvider>
-                                                        </>
-                                                    ) : file.state ===
-                                                          KnowledgeFileState.PendingApproval ||
-                                                      file.state ===
-                                                          KnowledgeFileState.Unapproved ? (
-                                                        <TooltipProvider>
+
                                                             <Tooltip>
                                                                 <TooltipTrigger
                                                                     asChild
                                                                 >
                                                                     <div className="flex justify-center items-center hidden group-hover:block">
-                                                                        <Plus className="w-4 h-4 text-danger" />
+                                                                        <MinusIcon className="w-4 h-4 text-danger" />
                                                                     </div>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
-                                                                    Add to
+                                                                    Exclude from
                                                                     Knowledge
                                                                 </TooltipContent>
                                                             </Tooltip>
-                                                        </TooltipProvider>
+                                                        </>
+                                                    ) : file.state ===
+                                                          KnowledgeFileState.PendingApproval ||
+                                                      file.state ===
+                                                          KnowledgeFileState.Unapproved ? (
+                                                        <Tooltip>
+                                                            <TooltipTrigger
+                                                                asChild
+                                                            >
+                                                                <div className="flex justify-center items-center hidden group-hover:block">
+                                                                    <Plus className="w-4 h-4 text-danger" />
+                                                                </div>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                Add to Knowledge
+                                                            </TooltipContent>
+                                                        </Tooltip>
                                                     ) : null}
                                                 </Button>
                                             </div>
@@ -841,54 +829,50 @@ const KnowledgeSourceDetail: FC<KnowledgeSourceDetailProps> = ({
                                                                 Error
                                                             </Label>
 
-                                                            <TooltipProvider>
-                                                                <Tooltip>
-                                                                    <TooltipTrigger
-                                                                        asChild
+                                                            <Tooltip>
+                                                                <TooltipTrigger
+                                                                    asChild
+                                                                >
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="hidden justify-center items-center group-hover:block text-destructive"
+                                                                        onClick={async () => {
+                                                                            await onReingestFile(
+                                                                                file
+                                                                            );
+                                                                        }}
                                                                     >
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="icon"
-                                                                            className="hidden justify-center items-center group-hover:block text-destructive"
-                                                                            onClick={async () => {
-                                                                                await onReingestFile(
-                                                                                    file
-                                                                                );
-                                                                            }}
-                                                                        >
-                                                                            <RefreshCcw className="h-4 w-4 text-destructive m-auto" />
-                                                                        </Button>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent>
-                                                                        Reingest
-                                                                    </TooltipContent>
-                                                                </Tooltip>
-                                                            </TooltipProvider>
-                                                            <TooltipProvider>
-                                                                <Tooltip>
-                                                                    <TooltipTrigger
-                                                                        asChild
+                                                                        <RefreshCcw className="h-4 w-4 text-destructive m-auto" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    Reingest
+                                                                </TooltipContent>
+                                                            </Tooltip>
+
+                                                            <Tooltip>
+                                                                <TooltipTrigger
+                                                                    asChild
+                                                                >
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="hidden justify-center items-center group-hover:block text-destructive"
+                                                                        onClick={() => {
+                                                                            setErrorDialogError(
+                                                                                file.error ??
+                                                                                    ""
+                                                                            );
+                                                                        }}
                                                                     >
-                                                                        <Button
-                                                                            variant="ghost"
-                                                                            size="icon"
-                                                                            className="hidden justify-center items-center group-hover:block text-destructive"
-                                                                            onClick={() => {
-                                                                                setErrorDialogError(
-                                                                                    file.error ??
-                                                                                        ""
-                                                                                );
-                                                                            }}
-                                                                        >
-                                                                            <Eye className="h-4 w-4 text-destructive m-auto" />
-                                                                        </Button>
-                                                                    </TooltipTrigger>
-                                                                    <TooltipContent>
-                                                                        View
-                                                                        Error
-                                                                    </TooltipContent>
-                                                                </Tooltip>
-                                                            </TooltipProvider>
+                                                                        <Eye className="h-4 w-4 text-destructive m-auto" />
+                                                                    </Button>
+                                                                </TooltipTrigger>
+                                                                <TooltipContent>
+                                                                    View Error
+                                                                </TooltipContent>
+                                                            </Tooltip>
                                                         </>
                                                     </div>
                                                 ) : file.state ===

@@ -26,7 +26,6 @@ import {
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { useOAuthAppInfo } from "~/hooks/oauthApps/useOAuthApps";
@@ -168,15 +167,14 @@ function Content({
                 <TypographyP>
                     <strong>Client ID</strong>
                 </TypographyP>
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger className="truncate underline decoration-dotted">
-                            {app.clientID}
-                        </TooltipTrigger>
 
-                        <TooltipContent>{app.clientID}</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger className="truncate underline decoration-dotted">
+                        {app.clientID}
+                    </TooltipTrigger>
+
+                    <TooltipContent>{app.clientID}</TooltipContent>
+                </Tooltip>
 
                 <TypographyP>
                     <strong>Client Secret</strong>

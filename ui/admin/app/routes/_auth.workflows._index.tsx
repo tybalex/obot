@@ -16,7 +16,6 @@ import { Button } from "~/components/ui/button";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
@@ -126,28 +125,23 @@ export default function Workflows() {
                 id: "actions",
                 cell: ({ row }) => (
                     <div className="flex gap-2 justify-end">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" asChild>
-                                        <Link
-                                            to={$path("/workflows/:workflow", {
-                                                workflow: row.original.id,
-                                            })}
-                                        >
-                                            <ReaderIcon
-                                                width={21}
-                                                height={21}
-                                            />
-                                        </Link>
-                                    </Button>
-                                </TooltipTrigger>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" asChild>
+                                    <Link
+                                        to={$path("/workflows/:workflow", {
+                                            workflow: row.original.id,
+                                        })}
+                                    >
+                                        <ReaderIcon width={21} height={21} />
+                                    </Link>
+                                </Button>
+                            </TooltipTrigger>
 
-                                <TooltipContent>
-                                    <p>Inspect Workflow</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                            <TooltipContent>
+                                <p>Inspect Workflow</p>
+                            </TooltipContent>
+                        </Tooltip>
                     </div>
                 ),
             }),

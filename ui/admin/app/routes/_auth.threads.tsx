@@ -27,7 +27,6 @@ import { Button } from "~/components/ui/button";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { useAsync } from "~/hooks/useAsync";
@@ -187,50 +186,41 @@ export default function Threads() {
                 id: "actions",
                 cell: ({ row }) => (
                     <div className="flex gap-2 justify-end">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button variant="ghost" size="icon" asChild>
-                                        <Link
-                                            to={$path("/thread/:id", {
-                                                id: row.original.id,
-                                            })}
-                                        >
-                                            <ReaderIcon
-                                                width={21}
-                                                height={21}
-                                            />
-                                        </Link>
-                                    </Button>
-                                </TooltipTrigger>
-
-                                <TooltipContent>
-                                    <p>Inspect Thread</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
-
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() =>
-                                            deleteThread.execute(
-                                                row.original.id
-                                            )
-                                        }
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" asChild>
+                                    <Link
+                                        to={$path("/thread/:id", {
+                                            id: row.original.id,
+                                        })}
                                     >
-                                        <Trash />
-                                    </Button>
-                                </TooltipTrigger>
+                                        <ReaderIcon width={21} height={21} />
+                                    </Link>
+                                </Button>
+                            </TooltipTrigger>
 
-                                <TooltipContent>
-                                    <p>Delete Thread</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                            <TooltipContent>
+                                <p>Inspect Thread</p>
+                            </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() =>
+                                        deleteThread.execute(row.original.id)
+                                    }
+                                >
+                                    <Trash />
+                                </Button>
+                            </TooltipTrigger>
+
+                            <TooltipContent>
+                                <p>Delete Thread</p>
+                            </TooltipContent>
+                        </Tooltip>
                     </div>
                 ),
             }),

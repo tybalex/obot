@@ -5,7 +5,6 @@ import { cn } from "~/lib/utils";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
@@ -38,14 +37,12 @@ export function ToolIcon(props: ToolIconProps) {
     }
 
     return (
-        <TooltipProvider>
-            <Tooltip delayDuration={200}>
-                <TooltipTrigger>{content}</TooltipTrigger>
+        <Tooltip delayDuration={200}>
+            <TooltipTrigger>{content}</TooltipTrigger>
 
-                <TooltipContent>
-                    {[category, name].filter((x) => !!x).join(" - ")}
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+            <TooltipContent>
+                {[category, name].filter((x) => !!x).join(" - ")}
+            </TooltipContent>
+        </Tooltip>
     );
 }

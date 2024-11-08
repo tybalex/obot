@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { useOAuthAppInfo } from "~/hooks/oauthApps/useOAuthApps";
@@ -48,31 +47,27 @@ export function OAuthAppTile({
                     </TypographyH3>
 
                     {info.appOverride ? (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Badge>Custom</Badge>
-                                </TooltipTrigger>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Badge>Custom</Badge>
+                            </TooltipTrigger>
 
-                                <TooltipContent>
-                                    OAuth for {displayName} is configured by
-                                    your organization.
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                            <TooltipContent>
+                                OAuth for {displayName} is configured by your
+                                organization.
+                            </TooltipContent>
+                        </Tooltip>
                     ) : (
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger>
-                                    <Badge variant="secondary">Default</Badge>
-                                </TooltipTrigger>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <Badge variant="secondary">Default</Badge>
+                            </TooltipTrigger>
 
-                                <TooltipContent>
-                                    OAuth for {displayName} is handled by
-                                    default by the Acorn Gateway
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                            <TooltipContent>
+                                OAuth for {displayName} is handled by default by
+                                the Acorn Gateway
+                            </TooltipContent>
+                        </Tooltip>
                     )}
                 </div>
 

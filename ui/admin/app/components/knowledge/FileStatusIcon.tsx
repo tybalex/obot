@@ -7,7 +7,6 @@ import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
@@ -30,25 +29,23 @@ const FileStatusIcon: React.FC<FileStatusIconProps> = ({ file }) => {
 
     return (
         <div className={cn("flex items-center", className)}>
-            <TooltipProvider>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div>
-                            {Icon === LoadingSpinner ? (
-                                <LoadingSpinner
-                                    className={cn("w-4 h-4", className)}
-                                />
-                            ) : (
-                                <Icon className={cn("w-4 h-4", className)} />
-                            )}
-                        </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="whitespace-normal break-words max-w-[300px] max-h-full">
-                        {file.state.charAt(0).toUpperCase() +
-                            file.state.slice(1).toLowerCase()}
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <div>
+                        {Icon === LoadingSpinner ? (
+                            <LoadingSpinner
+                                className={cn("w-4 h-4", className)}
+                            />
+                        ) : (
+                            <Icon className={cn("w-4 h-4", className)} />
+                        )}
+                    </div>
+                </TooltipTrigger>
+                <TooltipContent className="whitespace-normal break-words max-w-[300px] max-h-full">
+                    {file.state.charAt(0).toUpperCase() +
+                        file.state.slice(1).toLowerCase()}
+                </TooltipContent>
+            </Tooltip>
         </div>
     );
 };

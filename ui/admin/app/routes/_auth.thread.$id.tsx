@@ -25,7 +25,6 @@ import { ScrollArea } from "~/components/ui/scroll-area";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 
@@ -71,23 +70,22 @@ export default function ChatAgent() {
             readOnly
         >
             <div className="h-full flex flex-col overflow-hidden relative">
-                <TooltipProvider>
-                    <Tooltip>
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            className="absolute top-4 left-4 z-10"
-                            asChild
-                        >
-                            <TooltipTrigger>
-                                <Link to="/threads">
-                                    <ArrowLeftIcon className="h-4 w-4" />
-                                </Link>
-                            </TooltipTrigger>
-                        </Button>
-                        <TooltipContent>Go Back</TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                <Tooltip>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        className="absolute top-4 left-4 z-10"
+                        asChild
+                    >
+                        <TooltipTrigger>
+                            <Link to="/threads">
+                                <ArrowLeftIcon className="h-4 w-4" />
+                            </Link>
+                        </TooltipTrigger>
+                    </Button>
+                    <TooltipContent>Go Back</TooltipContent>
+                </Tooltip>
+
                 <ResizablePanelGroup
                     direction="horizontal"
                     className="flex-auto"

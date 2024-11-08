@@ -10,7 +10,6 @@ import { Button } from "~/components/ui/button";
 import {
     Tooltip,
     TooltipContent,
-    TooltipProvider,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { useOAuthAppInfo } from "~/hooks/oauthApps/useOAuthApps";
@@ -36,35 +35,32 @@ export function DeleteOAuthApp({
 
     return (
         <div className="flex gap-2">
-            <TooltipProvider>
-                <Tooltip open={getIsOpen()}>
-                    <ConfirmationDialog
-                        title={`Reset ${spec.displayName} OAuth to use Acorn Gateway`}
-                        description={`By clicking \`Reset\`, you will delete your custom ${spec.displayName} OAuth configuration and reset to use Acorn Gateway.`}
-                        onConfirm={deleteOAuthApp.execute}
-                        confirmProps={{
-                            variant: "destructive",
-                            children: "Reset",
-                        }}
-                    >
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="destructive"
-                                className="w-full"
-                                disabled={deleteOAuthApp.isLoading}
-                            >
-                                {deleteOAuthApp.isLoading ? (
-                                    <LoadingSpinner className="w-4 h-4 mr-2" />
-                                ) : null}
-                                Reset {spec.displayName} OAuth to use Acorn
-                                Gateway
-                            </Button>
-                        </TooltipTrigger>
-                    </ConfirmationDialog>
+            <Tooltip open={getIsOpen()}>
+                <ConfirmationDialog
+                    title={`Reset ${spec.displayName} OAuth to use Acorn Gateway`}
+                    description={`By clicking \`Reset\`, you will delete your custom ${spec.displayName} OAuth configuration and reset to use Acorn Gateway.`}
+                    onConfirm={deleteOAuthApp.execute}
+                    confirmProps={{
+                        variant: "destructive",
+                        children: "Reset",
+                    }}
+                >
+                    <TooltipTrigger asChild>
+                        <Button
+                            variant="destructive"
+                            className="w-full"
+                            disabled={deleteOAuthApp.isLoading}
+                        >
+                            {deleteOAuthApp.isLoading ? (
+                                <LoadingSpinner className="w-4 h-4 mr-2" />
+                            ) : null}
+                            Reset {spec.displayName} OAuth to use Acorn Gateway
+                        </Button>
+                    </TooltipTrigger>
+                </ConfirmationDialog>
 
-                    <TooltipContent>Delete</TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
+                <TooltipContent>Delete</TooltipContent>
+            </Tooltip>
         </div>
     );
 
