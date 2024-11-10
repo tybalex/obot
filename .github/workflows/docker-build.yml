@@ -9,12 +9,14 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
 
 jobs:
   build:
     env:
-      DEPLOY_TO_TEST: ${{ github.ref == 'refs/heads/main' && secrets.RENDER_TEST_DEPLOY_URL != 'disabled' }}
-      DEPLOY_TO_MAIN: ${{ github.ref == 'refs/heads/main' && secrets.RENDER_MAIN_DEPLOY_URL != 'disabled' }}
+      DEPLOY_TO_TEST: ${{ github.ref_type == 'branch' && secrets.RENDER_TEST_DEPLOY_URL != 'disabled' }}
+      DEPLOY_TO_MAIN: ${{ github.ref_type == 'branch' && secrets.RENDER_MAIN_DEPLOY_URL != 'disabled' }}
     runs-on: depot-ubuntu-22.04
 
     steps:
@@ -43,7 +45,7 @@ jobs:
         project: bbqjs4tj1g
         context: .
         push: true
-        tags: ghcr.io/${{ github.repository }}:${{ github.ref == 'refs/heads/main' && 'main' || github.event.release.tag_name }}
+        tags: ghcr.io/${{ github.repository }}:${{ github.ref_type == 'branch' && 'main' || github.event.release.tag_name }}
         platforms: linux/amd64,linux/arm64
 
     - name: Deploy to Test Render
