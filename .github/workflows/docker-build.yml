@@ -45,7 +45,7 @@ jobs:
         project: bbqjs4tj1g
         context: .
         push: true
-        tags: ghcr.io/${{ github.repository }}:${{ github.ref_type == 'branch' && 'main' || github.event.release.tag_name }}
+        tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
         platforms: linux/amd64,linux/arm64
 
     - name: Deploy to Test Render
