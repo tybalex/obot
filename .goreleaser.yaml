@@ -28,7 +28,7 @@ release:
     name: "otto8"
 
 brews:
-  - name: clio
+  - name: otto8
     description: "Otto8 CLI"
     install: |
       bin.install "otto8"
