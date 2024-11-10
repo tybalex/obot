@@ -1,0 +1,41 @@
+version: 2
+
+project_name: "otto8"
+
+builds:
+  - id: build
+    main: .
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -X "github.com/gptscript-ai/otto8/pkg/version.Tag=v{{ .Version }}"
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+release:
+  github:
+    owner: "otto8-ai"
+    name: "otto8"
+
+brews:
+  - name: clio
+    description: "Otto8 CLI"
+    install: |
+      bin.install "otto8"
+    homepage: "https://github.com/otto8-ai/otto8"
+    skip_upload: false
+    directory: "Formula"
+    repository:
+      owner: otto8-ai
+      name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
