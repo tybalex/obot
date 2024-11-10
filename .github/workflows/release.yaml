@@ -10,7 +10,6 @@ permissions:
 
 jobs:
   release-tag:
-    requires: [build]
     runs-on: ubuntu-latest
 
     steps:

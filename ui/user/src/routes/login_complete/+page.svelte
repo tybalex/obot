@@ -1,8 +1,5 @@
 <script lang="ts">
-	import Navbar from '$lib/components/Navbar.svelte';
 </script>
-
-<Navbar />
 
 <main id="main-content" class="flex h-screen justify-center">
 	<div class="relative mt-32 text-center">
