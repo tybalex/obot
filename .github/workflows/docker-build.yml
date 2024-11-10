@@ -44,11 +44,13 @@ jobs:
         platforms: linux/amd64,linux/arm64
 
     - name: Deploy to Test Render
+      if: ${{ github.ref == 'refs/heads/main' && secrets.RENDER_TEST_DEPLOY_URL != 'disabled' }}
       uses: joelwmale/webhook-action@2.4.1
       with:
         url: ${{ secrets.RENDER_TEST_DEPLOY_URL }}
 
     - name: Deploy to Main Render
+      if: ${{ github.ref == 'refs/heads/main' && secrets.RENDER_MAIN_DEPLOY_URL != 'disabled' }}
       uses: joelwmale/webhook-action@2.4.1
       with:
         url: ${{ secrets.RENDER_MAIN_DEPLOY_URL }}
