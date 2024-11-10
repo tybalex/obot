@@ -52,7 +52,7 @@
 		<p class="p-3 text-sm text-gray-500 dark:text-gray-300">No files</p>
 	{:else}
 		<ul class="space-y-3 p-3 text-sm" aria-labelledby="dropdownCheckboxButton">
-			{#each $files.items as file, i}
+			{#each $files.items as file}
 				<li class="group">
 					<div class="flex">
 						<button class="flex flex-1 items-center">

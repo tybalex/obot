@@ -4,8 +4,8 @@
 	import { ChatService } from '$lib/services';
 	import { popover } from '$lib/actions';
 	import Modal from '$lib/components/Modal.svelte';
-	import KnowledgeUpload from '$lib/components/drawer/KnowledgeUpload.svelte';
 	import KnowledgeFile from './KnowledgeFile.svelte';
+	import KnowledgeUpload from '$lib/components/navbar/KnowledgeUpload.svelte';
 
 	const { ref, tooltip, toggle } = popover({
 		placement: 'bottom'
@@ -66,7 +66,7 @@
 			{/each}
 		</ul>
 	{/if}
-	<KnowledgeUpload onupload={loadFiles} />
+	<KnowledgeUpload onUpload={loadFiles} />
 </div>
 
 <Modal

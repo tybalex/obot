@@ -1,16 +1,16 @@
 <script lang="ts">
 	import { Upload } from '$lib/icons';
-	import { ChatService } from '$lib/services/index.js';
+	import { ChatService } from '$lib/services';
 	import type { KnowledgeFile } from '$lib/services';
 	import Loading from '$lib/icons/Loading.svelte';
 	import Error from '$lib/components/Error.svelte';
 	import { currentAssistant } from '$lib/stores';
 
 	interface Props {
-		onupload?: () => void | Promise<void>;
+		onUpload?: () => void | Promise<void>;
 	}
 
-	let { onupload }: Props = $props();
+	let { onUpload }: Props = $props();
 
 	let files = $state<FileList>();
 	let uploadInProgress = $state<Promise<KnowledgeFile>>();
@@ -23,7 +23,7 @@
 		uploadInProgress = ChatService.uploadKnowledge($currentAssistant.id, files[0]);
 		uploadInProgress
 			.then(() => {
-				onupload?.();
+				onUpload?.();
 			})
 			.catch((error) => {
 				console.error(error);

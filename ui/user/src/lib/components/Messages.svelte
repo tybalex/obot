@@ -9,13 +9,13 @@
 
 	interface Props {
 		assistant: string;
-		onmessages: (messages: Messages) => void;
-		onerror: (err: Error) => void;
-		onfocus?: () => void;
-		onloadfile: (filename: string) => void;
+		onMessages: (messages: Messages) => void;
+		onError: (err: Error) => void;
+		onFocus?: () => void;
+		onLoadFile: (filename: string) => void;
 	}
 
-	let { assistant, onmessages, onerror, onfocus, onloadfile }: Props = $props();
+	let { assistant, onMessages, onError, onFocus, onLoadFile }: Props = $props();
 
 	let progressEvents: Progress[] = [];
 	let replayComplete = false;
@@ -34,7 +34,7 @@
 		messages = ChatService.progressToMessages(progressEvents);
 
 		// forward the messages to the parent component
-		onmessages(messages);
+		onMessages(messages);
 	}
 
 	let inputBox: ReturnType<typeof Input>;
@@ -44,13 +44,13 @@
 	}
 </script>
 
-<MessageSource {assistant} onmessage={handleMessage} {onerror} />
+<MessageSource {assistant} onMessage={handleMessage} {onError} />
 
 <div transition:fade|global class="flex flex-col gap-8">
 	{#each messages.messages as msg}
 		{#if !msg.ignore}
-			<Message {msg} {onloadfile} />
+			<Message {msg} {onLoadFile} />
 		{/if}
 	{/each}
-	<Input {assistant} bind:this={inputBox} {onerror} {onfocus} />
+	<Input {assistant} bind:this={inputBox} {onError} {onFocus} />
 </div>

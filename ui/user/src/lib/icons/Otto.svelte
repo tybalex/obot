@@ -1,15 +1,14 @@
 <script lang="ts">
 	import { twMerge } from 'tailwind-merge';
 	interface Props {
-		[key: string]: any;
+		class?: string;
 	}
-
-	let { ...props }: Props = $props();
+	const { class: klass = '' }: Props = $props();
 </script>
 
 <svg
 	fill="currentColor"
-	class={twMerge('ml-1 mr-3 h-8 w-8 text-blue-400', props.class)}
+	class={twMerge('ml-1 mr-3 h-8 w-8 text-blue-400', klass)}
 	width="1096.000000pt"
 	height="1001.000000pt"
 	viewBox="0 0 1096.000000 1001.000000"

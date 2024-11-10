@@ -1,5 +1,5 @@
 <!-- @migration-task Error while migrating Svelte code: `<button>` is invalid inside `<button>` -->
-<script lang="ts" context="module">
+<script lang="ts" module>
 	import { editorFiles } from '$lib/stores';
 	import { ChatService } from '$lib/services';
 	import type { EditorFile } from '$lib/stores/editorfiles';
@@ -10,14 +10,14 @@
 		return files?.find((file) => file.name === name) !== undefined;
 	}
 
-	export async function loadFile(file: string) {
+	export async function loadFile(assistant: string, file: string) {
 		if (hasFile(file)) {
 			selectFile(file);
 			return;
 		}
 
 		try {
-			const contents = await ChatService.getFile(file);
+			const contents = await ChatService.getFile(assistant, file);
 			const targetFile = {
 				name: file,
 				contents,
@@ -56,11 +56,15 @@
 
 <script lang="ts">
 	import { FileText, X } from '$lib/icons';
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 	import Milkdown from '$lib/components/editor/Milkdown.svelte';
 	import Codemirror from '$lib/components/editor/Codemirror.svelte';
 
-	let dispatch = createEventDispatcher();
+	interface Props {
+		onEditorClose?: () => void;
+	}
+
+	const { onEditorClose }: Props = $props();
 
 	function fileChanged(e: CustomEvent<{ name: string; contents: string }>) {
 		editorFiles.update((files) => {
@@ -86,7 +90,7 @@
 		editorFiles.update((files) => {
 			files.splice(i, 1);
 			if (files.length == 0) {
-				dispatch('editor-close');
+				onEditorClose?.();
 			}
 			return files;
 		});
@@ -107,9 +111,9 @@
 			{#each $editorFiles as file, i}
 				<li class="me-2">
 					<a
-						href="#"
+						href={`#editor:${$editorFiles[i].name}`}
 						class:selected={isSelected(file.name)}
-						on:click={() => {
+						onclick={() => {
 							selectFile($editorFiles[i].name);
 							window.location.href = `#editor:${$editorFiles[i].name}`;
 						}}
@@ -120,7 +124,7 @@
 						<span>{file.name}</span>
 						<button
 							class="ml-2"
-							on:click={() => {
+							onclick={() => {
 								remove(i);
 							}}
 						>
@@ -132,8 +136,8 @@
 		</ul>
 		<button
 			class="icon-button"
-			on:click={() => {
-				dispatch('editor-close');
+			onclick={() => {
+				onEditorClose?.();
 			}}
 		>
 			<X />
@@ -142,7 +146,7 @@
 
 	<div
 		id="editor"
-		on:keydown={(e) => {
+		onkeydown={(e) => {
 			e.stopPropagation();
 		}}
 		role="none"

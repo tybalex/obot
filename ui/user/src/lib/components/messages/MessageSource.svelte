@@ -5,11 +5,11 @@
 
 	interface Props {
 		assistant: string;
-		onmessage?: (event: Progress) => void;
-		onerror?: (event: Error) => void;
+		onMessage?: (event: Progress) => void;
+		onError?: (event: Error) => void;
 	}
 
-	let { assistant, onmessage = () => {}, onerror = () => {} }: Props = $props();
+	let { assistant, onMessage = () => {}, onError = () => {} }: Props = $props();
 
 	let es: EventSource;
 	let replayComplete = false;
@@ -23,7 +23,7 @@
 	function connect() {
 		disconnect();
 		es = ChatService.newMessageEventSource(assistant);
-		es.onmessage = onMessage;
+		es.onmessage = handleMessage;
 		es.onerror = (e: Event) => {
 			if (e.eventPhase === EventSource.CLOSED) {
 				disconnect();
@@ -33,17 +33,17 @@
 		};
 	}
 
-	function onMessage(event: MessageEvent) {
+	function handleMessage(event: MessageEvent) {
 		const message = JSON.parse(event.data) as Progress;
 		if (message.replayComplete) {
 			replayComplete = true;
 		}
 		if (message.error) {
 			if (replayComplete) {
-				onerror(new Error(message.error));
+				onError(new Error(message.error));
 			}
 		} else {
-			onmessage(message);
+			onMessage(message);
 		}
 	}
 

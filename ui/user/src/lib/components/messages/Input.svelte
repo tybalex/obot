@@ -16,12 +16,12 @@
 	import { SendHorizontal } from '$lib/icons';
 
 	interface Props {
-		onerror?: (err: Error) => void;
-		onfocus?: () => void;
+		onError?: (err: Error) => void;
+		onFocus?: () => void;
 		assistant: string;
 	}
 
-	let { onerror = () => {}, onfocus = () => {}, assistant }: Props = $props();
+	let { onError = () => {}, onFocus = () => {}, assistant }: Props = $props();
 
 	let value = $state('');
 	let chat: HTMLTextAreaElement;
@@ -63,9 +63,9 @@
 			await ChatService.invoke(assistant, toInvokeInput(input));
 		} catch (err) {
 			if (err instanceof Error) {
-				onerror(err);
+				onError(err);
 			} else {
-				onerror(new Error(String(err)));
+				onError(new Error(String(err)));
 			}
 			return;
 		}
@@ -133,7 +133,7 @@
 				onkeydown={onKey}
 				bind:this={chat}
 				oninput={resize}
-				{onfocus}
+				onfocus={onFocus}
 				class="ml-4 mr-2 block w-full resize-none rounded-lg border-2 border-gray-300 bg-white p-2.5 text-sm text-gray-900
 								outline-none focus:border-blue-500 focus:ring-blue-500 dark:border-gray-300 dark:bg-black
 								 dark:text-white dark:placeholder-gray-300 dark:focus:border-blue-500 dark:focus:ring-blue-500"

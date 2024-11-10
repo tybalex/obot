@@ -5,20 +5,18 @@
 	import MessageIcon from '$lib/components/messages/MessageIcon.svelte';
 	import { FileText } from '$lib/icons';
 	import { toHTMLFromMarkdown } from '$lib/markdown.js';
-	import Modal from '$lib/components/Modal.svelte';
 
 	interface Props {
 		msg: Message;
-		onloadfile?: (filename: string) => void;
+		onLoadFile?: (filename: string) => void;
 	}
 
-	let { msg, onloadfile = () => {} }: Props = $props();
+	let { msg, onLoadFile = () => {} }: Props = $props();
 
 	let content = $derived(msg.message ? msg.message.join('') : '');
 	let fullWidth = !msg.sent && !msg.oauthURL && !msg.tool;
 	let showBubble = msg.sent;
 	let renderMarkdown = !msg.sent && !msg.oauthURL && !msg.tool;
-	let modalState = $state(true);
 
 	$effect(() => {
 		// this is a hack to make sure this effect is run after the content is updated
@@ -92,7 +90,7 @@
 					<button
 						onclick={() => {
 							if (msg.file?.filename) {
-								onloadfile(msg.file?.filename);
+								onLoadFile(msg.file?.filename);
 							}
 						}}
 						class="flex items-center gap-2 rounded border border-gray-200 p-2 px-4 text-black shadow hover:bg-gray-100 dark:bg-gray-900 dark:text-white hover:dark:bg-gray-700"

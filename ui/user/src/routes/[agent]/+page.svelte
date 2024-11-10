@@ -24,7 +24,7 @@
 	}
 
 	function handleLoadFile(e: string) {
-		loadFile(e);
+		loadFile(assistant, e);
 		editorVisible = true;
 	}
 
@@ -60,11 +60,11 @@
 		<div bind:this={messageDiv} class="w-full overflow-auto px-8 pb-32 pt-16 scrollbar-none">
 			<div class="mx-auto max-w-[1000px]">
 				<Messages
-					{assistant}
 					bind:this={messages}
-					onerror={handleError}
-					onmessages={handleMessages}
-					onloadfile={handleLoadFile}
+					{assistant}
+					onError={handleError}
+					onMessages={handleMessages}
+					onLoadFile={handleLoadFile}
 				/>
 			</div>
 		</div>
@@ -73,7 +73,7 @@
 	{#if editorVisible}
 		<div class="w-1/2 overflow-auto pb-16 pt-16 scrollbar-none">
 			<Editor
-				on:editor-close={() => {
+				onEditorClose={() => {
 					editorVisible = false;
 				}}
 				on:explain={submit}

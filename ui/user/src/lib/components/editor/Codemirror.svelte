@@ -54,10 +54,10 @@
 		provide: (f) => showTooltip.computeN([f], (state) => state.field(f))
 	});
 
-	let explain: HTMLElement = $state();
+	let explain = $state<HTMLElement>();
 
 	function newExplainToolTip(state: EditorState): TooltipView {
-		const tooltip = explain.cloneNode(true) as HTMLElement;
+		const tooltip = explain?.cloneNode(true) as HTMLElement;
 		const explainButton = tooltip.querySelector('.explain-button');
 		const improveButton = tooltip.querySelector('.improve-button');
 		const improveText = tooltip.querySelector('.improve-text');
