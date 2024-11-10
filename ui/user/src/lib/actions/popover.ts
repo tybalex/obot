@@ -20,6 +20,8 @@ interface PopoverOptions extends Partial<ComputePositionConfig> {
 	hover?: boolean;
 }
 
+let id = 0;
+
 export default function popover(opts?: PopoverOptions): Popover {
 	let ref: HTMLElement;
 	let tooltip: HTMLElement;
@@ -27,6 +29,13 @@ export default function popover(opts?: PopoverOptions): Popover {
 
 	function build(): ActionReturn | void {
 		if (!ref || !tooltip) return;
+
+		const selfId = id++;
+		document.addEventListener('toolOpen', (e: CustomEvent<string>) => {
+			if (e.detail !== selfId.toString()) {
+				open.set(false);
+			}
+		});
 
 		function updatePosition() {
 			computePosition(ref, tooltip, {
@@ -52,18 +61,20 @@ export default function popover(opts?: PopoverOptions): Popover {
 				return;
 			}
 
-			const div = document.createElement('div');
-			div.classList.add('fixed', 'inset-0', 'z-20', 'cursor-default');
-			div.onclick = () => {
-				open.set(false);
-				div.remove();
-			};
-			document.body.append(div);
-			open.subscribe((value) => {
-				if (!value) {
+			if (!opts?.hover) {
+				const div = document.createElement('div');
+				div.classList.add('fixed', 'inset-0', 'z-20', 'cursor-default');
+				div.onclick = () => {
+					open.set(false);
 					div.remove();
-				}
-			});
+				};
+				document.body.append(div);
+				open.subscribe((value) => {
+					if (!value) {
+						div.remove();
+					}
+				});
+			}
 		});
 
 		tooltip.classList.add('hidden');
@@ -114,7 +125,16 @@ export default function popover(opts?: PopoverOptions): Popover {
 		open,
 		subscribe: open.subscribe,
 		toggle: () => {
-			open.update((value) => !value);
+			open.update((value) => {
+				if (!value && !opts?.hover) {
+					document.dispatchEvent(
+						new CustomEvent('toolOpen', {
+							detail: id.toString()
+						})
+					);
+				}
+				return !value;
+			});
 		}
 	};
 }

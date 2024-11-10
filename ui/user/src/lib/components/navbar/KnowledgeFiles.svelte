@@ -1,16 +1,18 @@
 <script lang="ts">
-	import { FileText, Trash } from '$lib/icons';
-	import { files, currentAssistant } from '$lib/stores';
+	import { Brain } from '$lib/icons';
+	import { knowledgeFiles, currentAssistant } from '$lib/stores';
 	import { ChatService } from '$lib/services';
 	import { popover } from '$lib/actions';
 	import Modal from '$lib/components/Modal.svelte';
+	import KnowledgeUpload from '$lib/components/drawer/KnowledgeUpload.svelte';
+	import KnowledgeFile from './KnowledgeFile.svelte';
 
 	const { ref, tooltip, toggle } = popover({
 		placement: 'bottom'
 	});
 
 	async function loadFiles() {
-		files.set(await ChatService.listFiles($currentAssistant.id));
+		knowledgeFiles.set(await ChatService.listKnowledgeFiles($currentAssistant.id));
 	}
 
 	let fileToDelete = $state<string | undefined>();
@@ -19,7 +21,7 @@
 		if (!fileToDelete) {
 			return;
 		}
-		await ChatService.deleteFile($currentAssistant.id, fileToDelete);
+		await ChatService.deleteKnowledgeFile($currentAssistant.id, fileToDelete);
 		await loadFiles();
 		fileToDelete = undefined;
 	}
@@ -34,7 +36,7 @@
 	}}
 	type="button"
 >
-	<FileText class="h-5 w-5" />
+	<Brain class="h-5 w-5" />
 </button>
 
 <!-- Dropdown menu -->
@@ -43,35 +45,28 @@
 	class="w-96 divide-y divide-gray-100 rounded-lg bg-white shadow dark:divide-gray-600 dark:bg-gray-700"
 >
 	<div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
-		Files
+		Knowledge Files
 		<p class="mt-1 text-xs font-normal text-gray-500 dark:text-gray-300">
-			Click to view or edit files
+			Additional knowledge the AI can search.
 		</p>
 	</div>
-	{#if $files.items.length === 0}
+	{#if $knowledgeFiles.items.length === 0}
 		<p class="p-3 text-sm text-gray-500 dark:text-gray-300">No files</p>
 	{:else}
 		<ul class="space-y-3 p-3 text-sm" aria-labelledby="dropdownCheckboxButton">
-			{#each $files.items as file, i}
-				<li class="group">
-					<div class="flex">
-						<button class="flex flex-1 items-center">
-							<FileText class="h-8 w-8 rounded-md bg-gray-100 p-1 text-black" />
-							<span class="ms-3 text-sm font-medium dark:text-gray-100">{file.name}</span>
-						</button>
-						<button
-							class="hidden group-hover:block"
-							onclick={() => {
-								fileToDelete = file.name;
-							}}
-						>
-							<Trash class="h-5 w-5 text-gray-400" />
-						</button>
-					</div>
+			{#each $knowledgeFiles.items as file}
+				<li>
+					<KnowledgeFile
+						{file}
+						onDelete={() => {
+							fileToDelete = file.fileName;
+						}}
+					/>
 				</li>
 			{/each}
 		</ul>
 	{/if}
+	<KnowledgeUpload onupload={loadFiles} />
 </div>
 
 <Modal

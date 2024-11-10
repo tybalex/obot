@@ -55,7 +55,7 @@ function removedDeleted<V extends Deleted, T extends DeletedItems<V>>(items: T):
 	return items;
 }
 
-export async function getKnowledgeFiles(assistant: string): Promise<KnowledgeFiles> {
+export async function listKnowledgeFiles(assistant: string): Promise<KnowledgeFiles> {
 	const files = (await doGet(`/assistants/${assistant}/knowledge`)) as KnowledgeFiles;
 	if (!files.items) {
 		files.items = [];

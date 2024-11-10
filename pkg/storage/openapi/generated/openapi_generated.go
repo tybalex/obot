@@ -1106,6 +1106,12 @@ func schema_otto8_ai_otto8_apiclient_types_KnowledgeFile(ref common.ReferenceCal
 							},
 						},
 					},
+					"sizeInBytes": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
+						},
+					},
 				},
 				Required: []string{"Metadata", "fileName", "state"},
 			},
@@ -3753,6 +3759,12 @@ func schema_storage_apis_ottootto8ai_v1_KnowledgeFileSpec(ref common.ReferenceCa
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
+						},
+					},
+					"sizeInBytes": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"integer"},
+							Format: "int64",
 						},
 					},
 					"ingestGeneration": {

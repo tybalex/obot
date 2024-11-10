@@ -124,12 +124,12 @@ export interface KnowledgeFiles {
 export interface KnowledgeFile {
 	deleted?: string;
 	fileName: string;
-	ingestionStatus?: IngestionStatus;
+	state: string;
+	error?: string;
 }
 
 export interface IngestionStatus {
 	status: string;
-	error?: string;
 }
 
 export interface Assistants {

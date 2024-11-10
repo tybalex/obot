@@ -33,7 +33,7 @@
 				<li>
 					<a
 						href="/admin/"
-						data-sveltekit-reload
+						rel="external"
 						class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white"
 						role="menuitem">Settings</a
 					>
@@ -41,7 +41,8 @@
 			{/if}
 			<li>
 				<a
-					href="/?oauth2/sign_out"
+					href="/oauth2/sign_out"
+					rel="external"
 					class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white"
 					role="menuitem">Sign out</a
 				>

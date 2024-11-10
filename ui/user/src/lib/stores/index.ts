@@ -8,4 +8,5 @@ export { default as assistants } from './assistants';
 export { default as currentAssistant } from './currentassistant';
 export { default as tools } from './tools';
 export { default as files } from './files';
+export { default as knowledgeFiles } from './knowledgefiles';
 export type { EditorFile } from './editorfiles';

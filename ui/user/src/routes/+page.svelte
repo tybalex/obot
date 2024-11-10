@@ -1,11 +1,14 @@
 <script lang="ts">
 	import { assistants } from '$lib/stores';
+	import { goto } from '$app/navigation';
 
 	$effect(() => {
-		for (const assistant of $assistants) {
-			if (assistant.id) {
-				window.location.href = `/${assistant.id}`;
-			}
+		let id = $assistants.find((assistant) => assistant.id === 'otto')?.id;
+		if (!id) {
+			id = $assistants.find((assistant) => assistant.id !== '')?.id;
 		}
-	})
+		if (id) {
+			goto(`/${id}`);
+		}
+	});
 </script>

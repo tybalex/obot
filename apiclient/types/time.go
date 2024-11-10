@@ -17,7 +17,7 @@ func NewTimeFromPointer(t *time.Time) *Time {
 
 func NewTime(t time.Time) *Time {
 	if t.IsZero() {
-		return nil
+		return &Time{}
 	}
 	return &Time{Time: t}
 }

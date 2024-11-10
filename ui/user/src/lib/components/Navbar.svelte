@@ -4,6 +4,7 @@
 	import Profile from '$lib/components/navbar/Profile.svelte';
 	import Tools from '$lib/components/navbar/Tools.svelte';
 	import Files from '$lib/components/navbar/Files.svelte';
+	import KnowledgeFile from '$lib/components/navbar/KnowledgeFiles.svelte';
 </script>
 
 <nav class="fixed z-30 w-full bg-white dark:bg-transparent dark:bg-gradient-to-b dark:from-black">
@@ -11,6 +12,7 @@
 		<div class="flex items-center justify-between">
 			<Logo />
 			<div class="flex items-center gap-1 pr-2">
+				<KnowledgeFile />
 				<Files />
 				<Tools />
 				<DarkModeToggle />
