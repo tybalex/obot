@@ -52,7 +52,7 @@ jobs:
       uses: imjasonh/setup-crane@v0.4
 
     - name: Copy to latest tag
-      if: ${{ github.ref_type == 'tag' }}
+      if: ${{ github.ref_type == 'tag' && !contains(github.ref_name, '-rc') }}
       run: crane tag ghcr.io/${{ github.repository }}:${{ github.ref_name }} latest
 
     - name: Deploy to Test Render
