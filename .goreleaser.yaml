@@ -26,6 +26,8 @@ release:
   github:
     owner: "otto8-ai"
     name: "otto8"
+  make_latest: false
+  prerelease: auto
 
 brews:
   - name: otto8
