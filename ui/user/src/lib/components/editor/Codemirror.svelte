@@ -291,6 +291,7 @@
 				<MessageSquareText class="h-4 w-4 text-white dark:text-white" />
 			</button>
 			<button
+				aria-label="Improve"
 				class="improve-text hidden h-12 items-center justify-center gap-2 rounded-e border-l border-ablue2-400 bg-blue-500 px-2 py-2 text-white hover:bg-ablue2-400"
 			>
 				<textarea

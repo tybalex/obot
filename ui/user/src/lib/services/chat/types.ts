@@ -107,6 +107,7 @@ export interface Profile {
 	iconURL: string;
 	role: number;
 	isAdmin?: () => boolean;
+	unauthorized?: boolean;
 }
 
 export interface Files {

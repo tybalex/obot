@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
+	import { profile } from '$lib/stores';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Messages from '$lib/components/Messages.svelte';
 	import Editor from '$lib/components/Editor.svelte';
@@ -51,6 +52,12 @@
 			}, 100);
 		}
 	}
+
+	$effect(() => {
+		if ($profile.unauthorized) {
+			window.location.href = '/oauth2/start?rd=' + window.location.pathname;
+		}
+	});
 </script>
 
 <Navbar />
