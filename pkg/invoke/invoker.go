@@ -489,6 +489,7 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.WithWatch, thread *v1.Th
 				"OTTO_WORKFLOW_ID="+run.Spec.WorkflowName,
 				"OTTO_WORKFLOW_STEP_ID="+run.Spec.WorkflowStepID,
 				"OTTO_AGENT_ID="+run.Spec.AgentName,
+				"GPTSCRIPT_HTTP_ENV=OTTO_TOKEN,OTTO_RUN_ID,OTTO_THREAD_ID,OTTO_WORKFLOW_ID,OTTO_WORKFLOW_STEP_ID,OTTO_AGENT_ID",
 			),
 			DefaultModel:         run.Spec.DefaultModel,
 			DefaultModelProvider: modelProvider,
