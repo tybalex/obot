@@ -20,8 +20,9 @@ type WorkflowSpec struct {
 }
 
 type WorkflowStatus struct {
-	External      types.WorkflowExternalStatus `json:"external,omitempty"`
-	WorkspaceName string                       `json:"workspaceName,omitempty"`
+	External          types.WorkflowExternalStatus `json:"external,omitempty"`
+	WorkspaceName     string                       `json:"workspaceName,omitempty"`
+	KnowledgeSetNames []string                     `json:"knowledgeSetNames,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import highlight from 'highlight.js';
 	import { assistants } from '$lib/stores';
+	import { profile } from '$lib/stores';
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import DarkModeToggle from '$lib/components/navbar/DarkModeToggle.svelte';
@@ -11,6 +12,8 @@
 		highlight.highlightAll();
 	});
 
+	let div: HTMLElement;
+
 	$effect(() => {
 		let id = $assistants.find((assistant) => assistant.id === 'otto')?.id;
 		if (!id) {
@@ -20,9 +23,16 @@
 			goto(`/${id}`);
 		}
 	});
+
+	$effect(() => {
+		if ($profile.unauthorized) {
+			div.classList.remove('hidden');
+			div.classList.add('flex');
+		}
+	});
 </script>
 
-<div class="relative flex h-screen w-full items-center text-black dark:text-white">
+<div bind:this={div} class="hidden relative h-screen w-full items-center text-black dark:text-white">
 	<div
 		class="absolute right-0 top-0 flex items-center gap-4 p-4 pr-6 text-white hover:text-ablue-50"
 	>
@@ -68,10 +78,10 @@
 			</a>
 			<h3 class="text-lg">or</h3>
 			<pre><code
-					class="rounded-full bg-gray-100 dark:bg-gray-900"
-					style="padding: 16px 32px 16px 32px"
-					data-language="shell">docker run -p 80:8080 -e OPENAPI_API_KEY otto8-ai/otto8</code
-				></pre>
+				class="rounded-full bg-gray-100 dark:bg-gray-900"
+				style="padding: 16px 32px 16px 32px"
+				data-language="shell">docker run -p 80:8080 -e OPENAI_API_KEY otto8-ai/otto8</code
+			></pre>
 		</div>
 		<h2 class="text-2xl">Talk to me here or run me yourself.</h2>
 	</div>

@@ -129,48 +129,6 @@ func (a *WorkflowHandler) List(req api.Context) error {
 	return req.Write(resp)
 }
 
-func (a *WorkflowHandler) Files(req api.Context) error {
-	var (
-		id       = req.PathValue("id")
-		workflow v1.Workflow
-	)
-	if err := req.Get(&workflow, id); err != nil {
-		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
-	}
-
-	return listFiles(req.Context(), req, a.gptscript, workflow.Status.WorkspaceName)
-}
-
-func (a *WorkflowHandler) UploadFile(req api.Context) error {
-	var (
-		id       = req.PathValue("id")
-		workflow v1.Workflow
-	)
-	if err := req.Get(&workflow, id); err != nil {
-		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
-	}
-
-	if err := uploadFile(req.Context(), req, a.gptscript, workflow.Status.WorkspaceName); err != nil {
-		return err
-	}
-
-	req.WriteHeader(http.StatusCreated)
-	return nil
-}
-
-func (a *WorkflowHandler) DeleteFile(req api.Context) error {
-	var (
-		id       = req.PathValue("id")
-		workflow v1.Workflow
-	)
-
-	if err := req.Get(&workflow, id); err != nil {
-		return fmt.Errorf("failed to get workflow with id %s: %w", id, err)
-	}
-
-	return deleteFile(req.Context(), req, a.gptscript, workflow.Status.WorkspaceName, "files/")
-}
-
 func (a *WorkflowHandler) Script(req api.Context) error {
 	var (
 		id     = req.Request.PathValue("id")

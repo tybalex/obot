@@ -128,28 +128,39 @@ func (a *AgentHandler) List(req api.Context) error {
 	return req.Write(resp)
 }
 
-func (a *AgentHandler) ListFiles(req api.Context) error {
-	var (
-		id    = req.PathValue("id")
-		agent v1.Agent
-	)
-	if err := req.Get(&agent, id); err != nil {
-		return types.NewErrBadRequest("failed to get agent with id %s: %w", id, err)
+func (a *AgentHandler) getWorkspaceName(req api.Context, agentOrWorkflowName string) (string, error) {
+	if system.IsWorkflowID(agentOrWorkflowName) {
+		var wf v1.Workflow
+		if err := req.Get(&wf, agentOrWorkflowName); err != nil {
+			return "", err
+		}
+		return wf.Status.WorkspaceName, nil
 	}
 
-	return listFiles(req.Context(), req, a.gptscript, agent.Status.WorkspaceName)
+	var agent v1.Agent
+	if err := req.Get(&agent, agentOrWorkflowName); err != nil {
+		return "", err
+	}
+
+	return agent.Status.WorkspaceName, nil
+}
+
+func (a *AgentHandler) ListFiles(req api.Context) error {
+	workspaceName, err := a.getWorkspaceName(req, req.PathValue("id"))
+	if err != nil {
+		return err
+	}
+
+	return listFiles(req.Context(), req, a.gptscript, workspaceName)
 }
 
 func (a *AgentHandler) UploadFile(req api.Context) error {
-	var (
-		id    = req.PathValue("id")
-		agent v1.Agent
-	)
-	if err := req.Get(&agent, id); err != nil {
-		return types.NewErrBadRequest("failed to get agent with id %s: %w", id, err)
+	workspaceName, err := a.getWorkspaceName(req, req.PathValue("id"))
+	if err != nil {
+		return err
 	}
 
-	if err := uploadFile(req.Context(), req, a.gptscript, agent.Status.WorkspaceName); err != nil {
+	if err := uploadFile(req.Context(), req, a.gptscript, workspaceName); err != nil {
 		return err
 	}
 
@@ -158,24 +169,38 @@ func (a *AgentHandler) UploadFile(req api.Context) error {
 }
 
 func (a *AgentHandler) DeleteFile(req api.Context) error {
-	var (
-		id    = req.PathValue("id")
-		agent v1.Agent
-	)
-
-	if err := req.Get(&agent, id); err != nil {
-		return types.NewErrBadRequest("failed to get agent with id %s: %w", id, err)
+	workspaceName, err := a.getWorkspaceName(req, req.PathValue("id"))
+	if err != nil {
+		return err
 	}
 
-	return deleteFile(req.Context(), req, a.gptscript, agent.Status.WorkspaceName, "files/")
+	return deleteFile(req.Context(), req, a.gptscript, workspaceName, "files/")
+}
+
+func (a *AgentHandler) getKnowledgeSetsAndName(req api.Context, agentOrWorkflowName string) ([]string, string, error) {
+	if system.IsWorkflowID(agentOrWorkflowName) {
+		var wf v1.Workflow
+		if err := req.Get(&wf, agentOrWorkflowName); err != nil {
+			return nil, "", err
+		}
+		return wf.Status.KnowledgeSetNames, wf.Name, nil
+	}
+
+	var agent v1.Agent
+	if err := req.Get(&agent, agentOrWorkflowName); err != nil {
+		return nil, "", err
+	}
+
+	return agent.Status.KnowledgeSetNames, agent.Name, nil
 }
 
 func (a *AgentHandler) ListKnowledgeFiles(req api.Context) error {
-	var agent v1.Agent
-	if err := req.Get(&agent, req.PathValue("agent_id")); err != nil {
+	knowledgeSetNames, agentName, err := a.getKnowledgeSetsAndName(req, req.PathValue("agent_id"))
+	if err != nil {
 		return err
 	}
-	if len(agent.Status.KnowledgeSetNames) == 0 {
+
+	if len(knowledgeSetNames) == 0 {
 		return req.Write(types.KnowledgeFileList{Items: []types.KnowledgeFile{}})
 	}
 
@@ -186,34 +211,35 @@ func (a *AgentHandler) ListKnowledgeFiles(req api.Context) error {
 		if err := req.Get(knowledgeSource, knowledgeSourceName); err != nil {
 			return err
 		}
-		if knowledgeSource.Spec.KnowledgeSetName != agent.Status.KnowledgeSetNames[0] {
-			return types.NewErrBadRequest("knowledgeSource %q does not belong to agent %q", knowledgeSource.Name, agent.Name)
+		if knowledgeSource.Spec.KnowledgeSetName != knowledgeSetNames[0] {
+			return types.NewErrBadRequest("knowledgeSource %q does not belong to agent %q", knowledgeSource.Name, agentName)
 		}
 	}
 
-	return listKnowledgeFiles(req, agent.Name, "", agent.Status.KnowledgeSetNames[0], knowledgeSource)
+	return listKnowledgeFiles(req, agentName, "", knowledgeSetNames[0], knowledgeSource)
 }
 
 func (a *AgentHandler) UploadKnowledgeFile(req api.Context) error {
-	var agent v1.Agent
-	if err := req.Get(&agent, req.PathValue("id")); err != nil {
-		return err
-	}
-	if len(agent.Status.KnowledgeSetNames) == 0 {
-		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("agent %q knowledge set is not created yet", agent.Name))
-	}
-
-	ws, err := getWorkspaceFromKnowledgeSet(req, agent.Status.KnowledgeSetNames[0])
+	knowledgeSetNames, agentName, err := a.getKnowledgeSetsAndName(req, req.PathValue("id"))
 	if err != nil {
 		return err
 	}
 
-	return uploadKnowledgeToWorkspace(req, a.gptscript, ws, agent.Name, "", agent.Status.KnowledgeSetNames[0])
+	if len(knowledgeSetNames) == 0 {
+		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("agent %q knowledge set is not created yet", agentName))
+	}
+
+	ws, err := getWorkspaceFromKnowledgeSet(req, knowledgeSetNames[0])
+	if err != nil {
+		return err
+	}
+
+	return uploadKnowledgeToWorkspace(req, a.gptscript, ws, agentName, "", knowledgeSetNames[0])
 }
 
 func (a *AgentHandler) ApproveKnowledgeFile(req api.Context) error {
-	var agent v1.Agent
-	if err := req.Get(&agent, req.PathValue("agent_id")); err != nil {
+	_, agentName, err := a.getKnowledgeSetsAndName(req, req.PathValue("agent_id"))
+	if err != nil {
 		return err
 	}
 
@@ -235,28 +261,29 @@ func (a *AgentHandler) ApproveKnowledgeFile(req api.Context) error {
 		return err
 	}
 
-	return req.Write(convertKnowledgeFile(agent.Name, "", file))
+	return req.Write(convertKnowledgeFile(agentName, "", file))
 }
 
 func (a *AgentHandler) DeleteKnowledgeFile(req api.Context) error {
-	var agent v1.Agent
-	if err := req.Get(&agent, req.PathValue("id")); err != nil {
+	knowledgeSetNames, agentName, err := a.getKnowledgeSetsAndName(req, req.PathValue("id"))
+	if err != nil {
 		return err
 	}
-	if len(agent.Status.KnowledgeSetNames) == 0 {
-		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("agent %q knowledge set is not created yet", agent.Name))
+
+	if len(knowledgeSetNames) == 0 {
+		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("agent %q knowledge set is not created yet", agentName))
 	}
-	return deleteKnowledge(req, req.PathValue("file"), agent.Status.KnowledgeSetNames[0])
+	return deleteKnowledge(req, req.PathValue("file"), knowledgeSetNames[0])
 }
 
 func (a *AgentHandler) CreateKnowledgeSource(req api.Context) error {
-	var agent v1.Agent
-	if err := req.Get(&agent, req.PathValue("agent_id")); err != nil {
+	knowledgeSetNames, agentName, err := a.getKnowledgeSetsAndName(req, req.PathValue("agent_id"))
+	if err != nil {
 		return err
 	}
 
-	if len(agent.Status.KnowledgeSetNames) == 0 {
-		return types.NewErrBadRequest("agent %q knowledge set is not created yet", agent.Name)
+	if len(knowledgeSetNames) == 0 {
+		return types.NewErrBadRequest("agent %q knowledge set is not created yet", agentName)
 	}
 
 	var input types.KnowledgeSourceManifest
@@ -275,7 +302,7 @@ func (a *AgentHandler) CreateKnowledgeSource(req api.Context) error {
 			Finalizers:   []string{v1.KnowledgeSourceFinalizer},
 		},
 		Spec: v1.KnowledgeSourceSpec{
-			KnowledgeSetName: agent.Status.KnowledgeSetNames[0],
+			KnowledgeSetName: knowledgeSetNames[0],
 			Manifest:         input,
 		},
 	}
@@ -284,12 +311,12 @@ func (a *AgentHandler) CreateKnowledgeSource(req api.Context) error {
 		return types.NewErrBadRequest("failed to create RemoteKnowledgeSource: %w", err)
 	}
 
-	return req.Write(convertKnowledgeSource(agent.Name, source))
+	return req.Write(convertKnowledgeSource(agentName, source))
 }
 
 func (a *AgentHandler) UpdateKnowledgeSource(req api.Context) error {
-	var agent v1.Agent
-	if err := req.Get(&agent, req.PathValue("agent_id")); err != nil {
+	knowledgeSetNames, agentName, err := a.getKnowledgeSetsAndName(req, req.PathValue("agent_id"))
+	if err != nil {
 		return err
 	}
 
@@ -302,8 +329,8 @@ func (a *AgentHandler) UpdateKnowledgeSource(req api.Context) error {
 		return err
 	}
 
-	if len(agent.Status.KnowledgeSetNames) == 0 {
-		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("agent %q knowledge set is not created yet", agent.Name))
+	if len(knowledgeSetNames) == 0 {
+		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("agent %q knowledge set is not created yet", agentName))
 	}
 
 	var knowledgeSource v1.KnowledgeSource
@@ -311,8 +338,8 @@ func (a *AgentHandler) UpdateKnowledgeSource(req api.Context) error {
 		return err
 	}
 
-	if knowledgeSource.Spec.KnowledgeSetName != agent.Status.KnowledgeSetNames[0] {
-		return types.NewErrBadRequest("knowledgeSource %q does not belong to agent %q", knowledgeSource.Name, agent.Name)
+	if knowledgeSource.Spec.KnowledgeSetName != knowledgeSetNames[0] {
+		return types.NewErrBadRequest("knowledgeSource %q does not belong to agent %q", knowledgeSource.Name, agentName)
 	}
 
 	if checkConfigChanged(knowledgeSource.Spec.Manifest.KnowledgeSourceInput, manifest.KnowledgeSourceInput) {
@@ -324,17 +351,17 @@ func (a *AgentHandler) UpdateKnowledgeSource(req api.Context) error {
 		return err
 	}
 
-	return req.Write(convertKnowledgeSource(agent.Name, knowledgeSource))
+	return req.Write(convertKnowledgeSource(agentName, knowledgeSource))
 }
 
 func (a *AgentHandler) ReIngestKnowledgeFile(req api.Context) error {
-	var agent v1.Agent
-	if err := req.Get(&agent, req.PathValue("agent_id")); err != nil {
+	knowledgeSetNames, agentName, err := a.getKnowledgeSetsAndName(req, req.PathValue("agent_id"))
+	if err != nil {
 		return err
 	}
 
-	if len(agent.Status.KnowledgeSetNames) == 0 {
-		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("agent %q knowledge set is not created yet", agent.Name))
+	if len(knowledgeSetNames) == 0 {
+		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("agent %q knowledge set is not created yet", agentName))
 	}
 
 	var knowledgeFile v1.KnowledgeFile
@@ -348,8 +375,8 @@ func (a *AgentHandler) ReIngestKnowledgeFile(req api.Context) error {
 			return err
 		}
 
-		if knowledgeSource.Spec.KnowledgeSetName != agent.Status.KnowledgeSetNames[0] {
-			return types.NewErrBadRequest("knowledgeSource %q does not belong to agent %q", knowledgeSource.Name, agent.Name)
+		if knowledgeSource.Spec.KnowledgeSetName != knowledgeSetNames[0] {
+			return types.NewErrBadRequest("knowledgeSource %q does not belong to agent %q", knowledgeSource.Name, agentName)
 		}
 
 		if knowledgeFile.Spec.KnowledgeSourceName != knowledgeSource.Name {
@@ -368,17 +395,17 @@ func (a *AgentHandler) ReIngestKnowledgeFile(req api.Context) error {
 		return err
 	}
 
-	return req.Write(convertKnowledgeFile(agent.Name, "", knowledgeFile))
+	return req.Write(convertKnowledgeFile(agentName, "", knowledgeFile))
 }
 
 func (a *AgentHandler) ReSyncKnowledgeSource(req api.Context) error {
-	var agent v1.Agent
-	if err := req.Get(&agent, req.PathValue("agent_id")); err != nil {
+	knowledgeSetNames, agentName, err := a.getKnowledgeSetsAndName(req, req.PathValue("agent_id"))
+	if err != nil {
 		return err
 	}
 
-	if len(agent.Status.KnowledgeSetNames) == 0 {
-		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("agent %q knowledge set is not created yet", agent.Name))
+	if len(knowledgeSetNames) == 0 {
+		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("agent %q knowledge set is not created yet", agentName))
 	}
 
 	var knowledgeSource v1.KnowledgeSource
@@ -386,8 +413,8 @@ func (a *AgentHandler) ReSyncKnowledgeSource(req api.Context) error {
 		return err
 	}
 
-	if knowledgeSource.Spec.KnowledgeSetName != agent.Status.KnowledgeSetNames[0] {
-		return types.NewErrBadRequest("knowledgeSource %q does not belong to agent %q", knowledgeSource.Name, agent.Name)
+	if knowledgeSource.Spec.KnowledgeSetName != knowledgeSetNames[0] {
+		return types.NewErrBadRequest("knowledgeSource %q does not belong to agent %q", knowledgeSource.Name, agentName)
 	}
 
 	knowledgeSource.Spec.SyncGeneration++
@@ -400,43 +427,43 @@ func (a *AgentHandler) ReSyncKnowledgeSource(req api.Context) error {
 		return err
 	}
 
-	return req.Write(convertKnowledgeSource(agent.Name, knowledgeSource))
+	return req.Write(convertKnowledgeSource(agentName, knowledgeSource))
 }
 
 func (a *AgentHandler) ListKnowledgeSources(req api.Context) error {
-	var agent v1.Agent
-	if err := req.Get(&agent, req.PathValue("agent_id")); err != nil {
+	knowledgeSetNames, agentName, err := a.getKnowledgeSetsAndName(req, req.PathValue("agent_id"))
+	if err != nil {
 		return err
 	}
 
-	if len(agent.Status.KnowledgeSetNames) == 0 {
+	if len(knowledgeSetNames) == 0 {
 		return req.Write(types.KnowledgeSourceList{Items: []types.KnowledgeSource{}})
 	}
 
 	var knowledgeSourceList v1.KnowledgeSourceList
 	if err := req.Storage.List(req.Context(), &knowledgeSourceList,
 		kclient.InNamespace(req.Namespace()), kclient.MatchingFields{
-			"spec.knowledgeSetName": agent.Status.KnowledgeSetNames[0],
+			"spec.knowledgeSetName": knowledgeSetNames[0],
 		}); err != nil {
 		return err
 	}
 
 	var resp []types.KnowledgeSource
 	for _, source := range knowledgeSourceList.Items {
-		resp = append(resp, convertKnowledgeSource(agent.Name, source))
+		resp = append(resp, convertKnowledgeSource(agentName, source))
 	}
 
 	return req.Write(types.KnowledgeSourceList{Items: resp})
 }
 
 func (a *AgentHandler) DeleteKnowledgeSource(req api.Context) error {
-	var agent v1.Agent
-	if err := req.Get(&agent, req.PathValue("agent_id")); err != nil {
+	knowledgeSetNames, agentName, err := a.getKnowledgeSetsAndName(req, req.PathValue("agent_id"))
+	if err != nil {
 		return err
 	}
 
-	if len(agent.Status.KnowledgeSetNames) == 0 {
-		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("agent %q knowledge set is not created yet", agent.Name))
+	if len(knowledgeSetNames) == 0 {
+		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("agent %q knowledge set is not created yet", agentName))
 	}
 
 	var knowledgeSource v1.KnowledgeSource
@@ -444,8 +471,8 @@ func (a *AgentHandler) DeleteKnowledgeSource(req api.Context) error {
 		return err
 	}
 
-	if knowledgeSource.Spec.KnowledgeSetName != agent.Status.KnowledgeSetNames[0] {
-		return types.NewErrBadRequest("knowledgeSource %q does not belong to agent %q", knowledgeSource.Name, agent.Name)
+	if knowledgeSource.Spec.KnowledgeSetName != knowledgeSetNames[0] {
+		return types.NewErrBadRequest("knowledgeSource %q does not belong to agent %q", knowledgeSource.Name, agentName)
 	}
 
 	return req.Delete(&v1.KnowledgeSource{

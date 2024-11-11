@@ -3043,21 +3043,25 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowExternalStatus(ref common.Ref
 							Format: "",
 						},
 					},
-					"error": {
+					"authStatus": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"output": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.OAuthAppLoginAuthStatus"),
+									},
+								},
+							},
 						},
 					},
 				},
 			},
 		},
+		Dependencies: []string{
+			"github.com/otto8-ai/otto8/apiclient/types.OAuthAppLoginAuthStatus"},
 	}
 }
 
@@ -6517,6 +6521,20 @@ func schema_storage_apis_ottootto8ai_v1_WorkflowStatus(ref common.ReferenceCallb
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
+						},
+					},
+					"knowledgeSetNames": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
 						},
 					},
 				},

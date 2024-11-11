@@ -84,10 +84,28 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("PUT /api/workflows/{id}", workflows.Update)
 	mux.HandleFunc("DELETE /api/workflows/{id}", workflows.Delete)
 
+	// Workflow knowledge files
+	mux.HandleFunc("GET /api/workflows/{agent_id}/knowledge-files", agents.ListKnowledgeFiles)
+	mux.HandleFunc("POST /api/workflows/{id}/knowledge-files/{file...}", agents.UploadKnowledgeFile)
+	mux.HandleFunc("DELETE /api/workflows/{id}/knowledge-files/{file...}", agents.DeleteKnowledgeFile)
+	mux.HandleFunc("POST /api/workflows/{agent_id}/knowledge-files/{file_id}/ingest", agents.ReIngestKnowledgeFile)
+
+	// Workflow approve file
+	mux.HandleFunc("POST /api/workflows/{agent_id}/approve-file/{file_id}", agents.ApproveKnowledgeFile)
+
+	// Workspace Remote Knowledge Sources
+	mux.HandleFunc("POST /api/workflows/{agent_id}/knowledge-sources", agents.CreateKnowledgeSource)
+	mux.HandleFunc("GET /api/workflows/{agent_id}/knowledge-sources", agents.ListKnowledgeSources)
+	mux.HandleFunc("POST /api/workflows/{agent_id}/knowledge-sources/{id}/sync", agents.ReSyncKnowledgeSource)
+	mux.HandleFunc("PUT /api/workflows/{agent_id}/knowledge-sources/{id}", agents.UpdateKnowledgeSource)
+	mux.HandleFunc("DELETE /api/workflows/{agent_id}/knowledge-sources/{id}", agents.DeleteKnowledgeSource)
+	mux.HandleFunc("GET /api/workflows/{agent_id}/knowledge-sources/{knowledge_source_id}/knowledge-files", agents.ListKnowledgeFiles)
+	mux.HandleFunc("POST /api/workflows/{agent_id}/knowledge-sources/{knowledge_source_id}/knowledge-files/{file_id}/ingest", agents.ReIngestKnowledgeFile)
+
 	// Workflow files
-	mux.HandleFunc("GET /api/workflows/{id}/files", workflows.Files)
-	mux.HandleFunc("POST /api/workflows/{id}/files/{file}", workflows.UploadFile)
-	mux.HandleFunc("DELETE /api/workflows/{id}/files/{file}", workflows.DeleteFile)
+	mux.HandleFunc("GET /api/workflows/{id}/files", agents.ListFiles)
+	mux.HandleFunc("POST /api/workflows/{id}/files/{file}", agents.UploadFile)
+	mux.HandleFunc("DELETE /api/workflows/{id}/files/{file}", agents.DeleteFile)
 
 	// Invoker
 	mux.HandleFunc("POST /api/invoke/{id}", invoker.Invoke)

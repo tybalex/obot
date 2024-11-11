@@ -50,6 +50,8 @@ func (c *Controller) setupRoutes() error {
 	// Workflows
 	root.Type(&v1.Workflow{}).HandlerFunc(workflow.WorkspaceObjects)
 	root.Type(&v1.Workflow{}).HandlerFunc(workflow.EnsureIDs)
+	root.Type(&v1.Workflow{}).HandlerFunc(workflow.CreateWorkspaceAndKnowledgeSet)
+	root.Type(&v1.Workflow{}).HandlerFunc(workflow.BackPopulateAuthStatus)
 
 	// WorkflowExecutions
 	root.Type(&v1.WorkflowExecution{}).HandlerFunc(cleanup.Cleanup)
