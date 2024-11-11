@@ -55,6 +55,7 @@
 				onclick={() => {
 					window.location.href = '/oauth2/start?rd=' + window.location.pathname;
 				}}
+				rel="external"
 				href="/oauth2/start?rd=/"
 				class="group flex items-center gap-1 rounded-full bg-black p-2 px-8 text-lg font-semibold text-white dark:bg-white dark:text-black"
 			>

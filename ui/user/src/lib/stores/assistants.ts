@@ -19,7 +19,11 @@ const store = writable<Assistant[]>(assignSelected([], ''));
 export default storeWithInit(store, async () => {
 	page.subscribe(async (value) => {
 		const selectedName = value.params?.agent ?? '';
-		const assistants = await ChatService.listAssistants();
-		store.set(assignSelected(assistants.items, selectedName));
+		try {
+			const assistants = await ChatService.listAssistants();
+			store.set(assignSelected(assistants.items, selectedName));
+		} catch {
+			// just ignore
+		}
 	});
 });
