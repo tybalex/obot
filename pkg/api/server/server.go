@@ -70,7 +70,7 @@ func (s *Server) wrap(f api.HandlerFunc) http.HandlerFunc {
 		}
 
 		isOAuthPath := strings.HasPrefix(req.URL.Path, "/oauth2/")
-		if !s.authorizer.Authorize(req, user) || isOAuthPath {
+		if isOAuthPath || strings.HasPrefix(req.URL.Path, "/api/") && !s.authorizer.Authorize(req, user) {
 			// If this is not a request coming from browser or the proxy is not enabled, then return 403.
 			if !isOAuthPath && (s.proxyServer == nil || req.Method != http.MethodGet || slices.Contains(user.GetGroups(), authz.AuthenticatedGroup) || !strings.Contains(strings.ToLower(req.UserAgent()), "mozilla")) {
 				http.Error(rw, "forbidden", http.StatusForbidden)
