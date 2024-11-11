@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import useSWR from "swr";
 import { z } from "zod";
 
-import { Agent } from "~/lib/model/agents";
 import { ModelApiService } from "~/lib/service/api/modelApiService";
 
 import { TypographyH4 } from "~/components/Typography";
@@ -36,7 +35,7 @@ const formSchema = z.object({
 export type AgentInfoFormValues = z.infer<typeof formSchema>;
 
 type AgentFormProps = {
-    agent: Agent;
+    agent: AgentInfoFormValues;
     onSubmit?: (values: AgentInfoFormValues) => void;
     onChange?: (values: AgentInfoFormValues) => void;
 };
