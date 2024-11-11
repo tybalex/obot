@@ -482,6 +482,7 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.WithWatch, thread *v1.Th
 				fmt.Sprintf("GPTSCRIPT_MODEL_PROVIDER_PROXY_URL=%s/api/llm-proxy", i.serverURL),
 				"GPTSCRIPT_MODEL_PROVIDER_PROXY_TOKEN="+token,
 				"GPTSCRIPT_MODEL_PROVIDER_TOKEN="+token,
+				"OTTO_SERVER_URL="+i.serverURL,
 				"OTTO_TOKEN="+token,
 				"OTTO_RUN_ID="+run.Name,
 				"OTTO_THREAD_ID="+thread.Name,
