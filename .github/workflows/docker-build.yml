@@ -53,7 +53,7 @@ jobs:
 
     - name: Copy to latest tag
       if: ${{ github.ref_type == 'tag' }}
-      run: crane tag ghcr.io/${{ github.repository }}:${{ github.ref_name }} ghcr.io/${{ github.repository }}:latest
+      run: crane tag ghcr.io/${{ github.repository }}:${{ github.ref_name }} latest
 
     - name: Deploy to Test Render
       if: ${{ env.DEPLOY_TO_TEST == 'true' }}
