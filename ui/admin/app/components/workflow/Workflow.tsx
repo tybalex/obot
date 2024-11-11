@@ -78,11 +78,7 @@ function WorkflowContent({ className }: WorkflowProps) {
 
                     <BasicToolForm
                         defaultValues={workflow}
-                        onChange={(values) =>
-                            partialSetWorkflow({
-                                tools: values.tools.map((t) => t.value),
-                            })
-                        }
+                        onChange={debouncedSetWorkflowInfo}
                     />
                 </Card>
 
@@ -95,7 +91,7 @@ function WorkflowContent({ className }: WorkflowProps) {
                     <ParamsForm
                         workflow={workflow}
                         onChange={(values) =>
-                            partialSetWorkflow({
+                            debouncedSetWorkflowInfo({
                                 params: values.params,
                             })
                         }
@@ -111,7 +107,7 @@ function WorkflowContent({ className }: WorkflowProps) {
                     <StepsForm
                         workflow={workflow}
                         onChange={(values) =>
-                            partialSetWorkflow({ steps: values.steps })
+                            debouncedSetWorkflowInfo({ steps: values.steps })
                         }
                     />
                 </Card>
