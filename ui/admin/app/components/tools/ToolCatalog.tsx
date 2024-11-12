@@ -63,10 +63,10 @@ export function ToolCatalog({
                 return;
             }
 
+            onAddTool(bundleToolId);
+
             // remove all tools in the bundle to remove redundancy
             onRemoveTools(categoryTools.map((tool) => tool.id));
-
-            onAddTool(bundleToolId);
         },
         [tools, onAddTool, onRemoveTools]
     );

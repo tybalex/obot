@@ -5,8 +5,9 @@ import { Step, While } from "~/lib/model/workflows";
 import { cn } from "~/lib/utils";
 
 import { Button } from "~/components/ui/button";
+import { ButtonDiv } from "~/components/ui/clickable-div";
 import { Input } from "~/components/ui/input";
-import { Textarea } from "~/components/ui/textarea";
+import { AutosizeTextarea } from "~/components/ui/textarea";
 import { AddStepButton } from "~/components/workflow/steps/AddStep";
 
 export function WhileComponent({
@@ -50,29 +51,34 @@ export function WhileComponent({
 
     return (
         <div className={cn("border rounded-md", className)}>
-            <div
+            <ButtonDiv
                 className={cn(
-                    "flex items-center p-3 bg-secondary",
+                    "flex items-start p-3 bg-secondary",
                     isExpanded ? "rounded-t-md" : "rounded-md"
                 )}
+                onClick={() => setIsExpanded((prev) => !prev)}
             >
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-0 w-6 h-6 mr-2"
-                    onClick={() => setIsExpanded(!isExpanded)}
-                >
-                    {isExpanded ? (
-                        <ChevronDown className="w-4 h-4" />
-                    ) : (
-                        <ChevronRight className="w-4 h-4" />
-                    )}
-                </Button>
-                <div className="flex items-center justify-center w-24 h-[60.5px] border bg-background rounded-md mr-2">
-                    <RotateCw className="w-4 h-4 mr-1" />
-                    <span className="text-sm font-medium">While</span>
+                <div className="flex items-center">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="p-0 w-6 h-6 mr-2 self-center"
+                        onClick={() => setIsExpanded(!isExpanded)}
+                    >
+                        {isExpanded ? (
+                            <ChevronDown className="w-4 h-4" />
+                        ) : (
+                            <ChevronRight className="w-4 h-4" />
+                        )}
+                    </Button>
+
+                    <div className="flex items-center justify-center w-24 p-2 border bg-background rounded-md mr-2">
+                        <RotateCw className="w-4 h-4 mr-1" />
+                        <span className="text-sm font-medium">While</span>
+                    </div>
                 </div>
-                <Textarea
+
+                <AutosizeTextarea
                     value={whileCondition.condition}
                     onChange={(e) =>
                         onUpdate({
@@ -80,18 +86,25 @@ export function WhileComponent({
                             condition: e.target.value,
                         })
                     }
+                    minHeight={0}
+                    maxHeight={100}
                     placeholder="Condition"
                     className="flex-grow bg-background"
+                    onClick={(e) => e.stopPropagation()}
                 />
                 <Button
-                    variant="destructive"
+                    variant="ghost"
                     size="icon"
-                    onClick={onDelete}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete();
+                    }}
                     className="ml-2"
                 >
                     <Trash className="w-4 h-4" />
                 </Button>
-            </div>
+            </ButtonDiv>
+
             {isExpanded && (
                 <div className="p-3 space-y-4">
                     <div>
@@ -115,6 +128,7 @@ export function WhileComponent({
                             className="bg-background"
                         />
                     </div>
+
                     <div className="space-y-2">
                         <h4 className="font-semibold">Steps:</h4>
                         {whileCondition.steps?.map((step, index) => (
@@ -127,6 +141,7 @@ export function WhileComponent({
                                 )}
                             </div>
                         ))}
+
                         <div className="ml-4">
                             <AddStepButton onAddStep={addStep} />
                         </div>

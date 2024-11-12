@@ -13,6 +13,7 @@ import { useState } from "react";
 import { Step } from "~/lib/model/workflows";
 import { cn } from "~/lib/utils";
 
+import { BasicToolForm } from "~/components/tools/BasicToolForm";
 import {
     Accordion,
     AccordionContent,
@@ -20,9 +21,10 @@ import {
     AccordionTrigger,
 } from "~/components/ui/accordion";
 import { Button } from "~/components/ui/button";
+import { ButtonDiv } from "~/components/ui/clickable-div";
 import { Input } from "~/components/ui/input";
 import { Switch } from "~/components/ui/switch";
-import { Textarea } from "~/components/ui/textarea";
+import { AutosizeTextarea } from "~/components/ui/textarea";
 import { StringArrayForm } from "~/components/workflow/StringArrayForm";
 
 export function StepComponent({
@@ -40,45 +42,57 @@ export function StepComponent({
 
     return (
         <div className={cn("border rounded-md", className)}>
-            <div
+            <ButtonDiv
                 className={cn(
-                    "flex items-center p-3 bg-secondary",
+                    "flex items-start p-3 bg-secondary",
                     isExpanded ? "rounded-t-md" : "rounded-md"
                 )}
+                onClick={() => setIsExpanded((prev) => !prev)}
             >
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-0 w-6 h-6 mr-2"
-                    onClick={() => setIsExpanded(!isExpanded)}
-                >
-                    {isExpanded ? (
-                        <ChevronDown className="w-4 h-4" />
-                    ) : (
-                        <ChevronRight className="w-4 h-4" />
-                    )}
-                </Button>
-                <div className="flex items-center justify-center w-24 h-[60.5px] border bg-background rounded-md mr-2">
-                    <ArrowRight className="w-4 h-4 mr-1" />
-                    <span className="text-sm font-medium">Step</span>
+                <div className="flex items-center">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="p-0 w-6 h-6 mr-2 self-center"
+                    >
+                        {isExpanded ? (
+                            <ChevronDown className="w-4 h-4" />
+                        ) : (
+                            <ChevronRight className="w-4 h-4" />
+                        )}
+                    </Button>
+
+                    <div className="flex items-center justify-center p-2 w-24 bg-background border rounded-md mr-2">
+                        <ArrowRight className="w-4 h-4 mr-1" />
+                        <span className="text-sm font-medium">Step</span>
+                    </div>
                 </div>
-                <Textarea
+
+                <AutosizeTextarea
                     value={step.step}
                     onChange={(e) =>
                         onUpdate({ ...step, step: e.target.value })
                     }
                     placeholder="Step"
+                    maxHeight={100}
+                    minHeight={0}
                     className="flex-grow bg-background"
+                    onClick={(e) => e.stopPropagation()}
                 />
+
                 <Button
-                    variant="destructive"
+                    variant="ghost"
                     size="icon"
-                    onClick={onDelete}
-                    className="ml-2"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete();
+                    }}
+                    className="ml-2 min-w-fit"
                 >
                     <Trash className="w-4 h-4" />
                 </Button>
-            </div>
+            </ButtonDiv>
+
             {isExpanded && (
                 <div className="p-3 space-y-4 px-8">
                     <Accordion type="multiple">
@@ -89,20 +103,17 @@ export function StepComponent({
                                     Tools
                                 </span>
                             </AccordionTrigger>
+
                             <AccordionContent className="p-1 pb-6">
-                                <StringArrayForm
-                                    initialItems={step.tools || []}
+                                <BasicToolForm
+                                    defaultValues={step}
                                     onChange={(values) =>
-                                        onUpdate({
-                                            ...step,
-                                            tools: values.items,
-                                        })
+                                        onUpdate({ ...step, ...values })
                                     }
-                                    itemName="Tool"
-                                    placeholder="Add a tool"
                                 />
                             </AccordionContent>
                         </AccordionItem>
+
                         <AccordionItem value="workflows">
                             <AccordionTrigger>
                                 <span className="flex items-center gap-2 justify-center">
@@ -110,6 +121,7 @@ export function StepComponent({
                                     Workflows
                                 </span>
                             </AccordionTrigger>
+
                             <AccordionContent className="p-1 pb-6">
                                 <StringArrayForm
                                     initialItems={step.workflows || []}
@@ -124,6 +136,7 @@ export function StepComponent({
                                 />
                             </AccordionContent>
                         </AccordionItem>
+
                         <AccordionItem value="agents">
                             <AccordionTrigger>
                                 <span className="flex items-center gap-2 justify-center">
@@ -131,6 +144,7 @@ export function StepComponent({
                                     Agents
                                 </span>
                             </AccordionTrigger>
+
                             <AccordionContent className="p-1 pb-6">
                                 <StringArrayForm
                                     initialItems={step.agents || []}
@@ -145,6 +159,7 @@ export function StepComponent({
                                 />
                             </AccordionContent>
                         </AccordionItem>
+
                         <AccordionItem value="advanced">
                             <AccordionTrigger>
                                 <span className="flex items-center gap-2 justify-center">
@@ -152,6 +167,7 @@ export function StepComponent({
                                     Advanced
                                 </span>
                             </AccordionTrigger>
+
                             <AccordionContent className="p-1 pb-6 space-y-6">
                                 <div>
                                     <label
@@ -160,6 +176,7 @@ export function StepComponent({
                                     >
                                         Temperature
                                     </label>
+
                                     <Input
                                         id="temperature"
                                         type="number"
@@ -176,6 +193,7 @@ export function StepComponent({
                                         className="bg-background"
                                     />
                                 </div>
+
                                 <div className="flex items-center space-x-2">
                                     <Switch
                                         checked={step.cache}
@@ -186,6 +204,7 @@ export function StepComponent({
                                             })
                                         }
                                     />
+
                                     <span>Cache</span>
                                 </div>
                             </AccordionContent>

@@ -20,7 +20,8 @@ export function ToolEntry({
     const { data: toolReference, isLoading } = useSWR(
         ToolReferenceService.getToolReferenceById.key(tool),
         ({ toolReferenceId }) =>
-            ToolReferenceService.getToolReferenceById(toolReferenceId)
+            ToolReferenceService.getToolReferenceById(toolReferenceId),
+        { errorRetryCount: 0 }
     );
 
     return (

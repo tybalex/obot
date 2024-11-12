@@ -30,7 +30,7 @@ getWorkflowById.key = (workflowId?: Nullish<string>) => {
     return { url: ApiRoutes.workflows.getById(workflowId).path, workflowId };
 };
 
-async function createWorkflow({ workflow }: { workflow: CreateWorkflow }) {
+async function createWorkflow(workflow: CreateWorkflow) {
     const res = await request<Workflow>({
         url: ApiRoutes.workflows.base().url,
         method: "POST",

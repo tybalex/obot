@@ -1,6 +1,6 @@
-import { ReaderIcon } from "@radix-ui/react-icons";
 import { Link, useNavigate } from "@remix-run/react";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
+import { PenSquareIcon } from "lucide-react";
 import { useMemo } from "react";
 import { $path } from "remix-routes";
 import useSWR, { mutate, preload } from "swr";
@@ -18,6 +18,8 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { CreateWorkflow } from "~/components/workflow/CreateWorkflow";
+import { DeleteWorkflowButton } from "~/components/workflow/DeleteWorkflow";
 
 export async function clientLoader() {
     mutate(WorkflowService.getWorkflows.key(), ThreadsService.getThreads.key());
@@ -55,6 +57,8 @@ export default function Workflows() {
                 <div className="flex-auto overflow-hidden">
                     <div className="flex space-x-2 width-full justify-between mb-8">
                         <TypographyH2>Workflows</TypographyH2>
+
+                        <CreateWorkflow />
                     </div>
 
                     <DataTable
@@ -133,15 +137,15 @@ export default function Workflows() {
                                             workflow: row.original.id,
                                         })}
                                     >
-                                        <ReaderIcon width={21} height={21} />
+                                        <PenSquareIcon />
                                     </Link>
                                 </Button>
                             </TooltipTrigger>
 
-                            <TooltipContent>
-                                <p>Inspect Workflow</p>
-                            </TooltipContent>
+                            <TooltipContent>Edit Workflow</TooltipContent>
                         </Tooltip>
+
+                        <DeleteWorkflowButton id={row.original.id} />
                     </div>
                 ),
             }),
