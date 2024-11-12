@@ -99,6 +99,13 @@ func New(serverURL string, authProviderID uint, cfg Config) (*Proxy, error) {
 }
 
 func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if p == nil {
+		// If the proxy server is not setup, and we are getting here, then a request has come in for /oauth2/...
+		// Since these paths are not setup when auth is disabled, then return a not found error.
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+
 	p.proxy.ServeHTTP(w, r)
 }
 
