@@ -28,18 +28,19 @@ jobs:
     - name: Setup Depot
       uses: depot/setup-action@v1
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
     - name: Log in to GitHub Container Registry
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Log in to Docker Hub
+      if: ${{ github.ref_type == 'tag' && !contains(github.ref_name, '-rc') }}
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and push Docker image
       uses: depot/build-push-action@v1
@@ -47,7 +48,9 @@ jobs:
         project: bbqjs4tj1g
         context: .
         push: true
-        tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+        tags: |
+          ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+          ${{ github.ref_type == 'tag' && !contains(github.ref_name, '-rc') && format('docker.io/otto8/{0}:{1}', github.event.repository.name, github.ref_name) || '' }}
         platforms: linux/amd64,linux/arm64
 
     - name: Setup crane
@@ -55,7 +58,9 @@ jobs:
 
     - name: Copy to latest tag
       if: ${{ github.ref_type == 'tag' && !contains(github.ref_name, '-rc') }}
-      run: crane tag ghcr.io/${{ github.repository }}:${{ github.ref_name }} latest
+      run: |
+        crane tag ghcr.io/${{ github.repository }}:${{ github.ref_name }} latest
+        crane tag docker.io/otto8/${{ github.event.repository.name }}:${{ github.ref_name }} latest
 
     - name: Deploy to Test Render
       if: ${{ env.DEPLOY_TO_TEST == 'true' }}
