@@ -50,7 +50,8 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
 
 export default function Threads() {
     const navigate = useNavigate();
-    const { agentId, workflowId } = useLoaderData<typeof clientLoader>();
+    const { agentId, workflowId, userId } =
+        useLoaderData<typeof clientLoader>();
 
     const getThreads = useSWR(
         ThreadsService.getThreads.key(),
@@ -66,6 +67,8 @@ export default function Threads() {
         WorkflowService.getWorkflows.key(),
         WorkflowService.getWorkflows
     );
+
+    console.log("something");
 
     const agentMap = useMemo(() => {
         // note(tylerslaton): the or condition here is because the getAgents.data can
@@ -95,21 +98,28 @@ export default function Threads() {
     const threads = useMemo(() => {
         if (!getThreads.data) return [];
 
-        if (!agentId && !workflowId) return getThreads.data;
+        let filteredThreads = getThreads.data;
 
-        switch (true) {
-            case !!agentId:
-                return getThreads.data.filter(
-                    (thread) => thread.agentID === agentId
-                );
-            case !!workflowId:
-                return getThreads.data.filter(
-                    (thread) => thread.workflowID === workflowId
-                );
-            default:
-                return getThreads.data;
+        if (agentId) {
+            filteredThreads = filteredThreads.filter(
+                (thread) => thread.agentID === agentId
+            );
         }
-    }, [getThreads.data, agentId, workflowId]);
+
+        if (workflowId) {
+            filteredThreads = filteredThreads.filter(
+                (thread) => thread.workflowID === workflowId
+            );
+        }
+
+        if (userId) {
+            filteredThreads = filteredThreads.filter(
+                (thread) => thread.userID === userId
+            );
+        }
+
+        return filteredThreads;
+    }, [getThreads.data, agentId, workflowId, userId]);
 
     const deleteThread = useAsync(ThreadsService.deleteThread, {
         onSuccess: ThreadsService.revalidateThreads,
@@ -121,9 +131,7 @@ export default function Threads() {
                 <TypographyH2 className="mb-8">Threads</TypographyH2>
                 <DataTable
                     columns={getColumns()}
-                    data={threads.filter(
-                        (thread) => thread.agentID || thread.workflowID
-                    )}
+                    data={threads}
                     sort={[{ id: "created", desc: true }]}
                     classNames={{
                         row: "!max-h-[200px] grow-0 height-[200px]",

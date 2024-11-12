@@ -1,6 +1,6 @@
-export type User = {
-    id: number;
-    created: Date;
+import { EntityMeta } from "~/lib/model/primitives";
+
+export type User = EntityMeta & {
     username: string;
     email: string;
     role: Role;
