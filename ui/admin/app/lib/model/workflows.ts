@@ -47,5 +47,5 @@ export type Workflow = EntityMeta &
         slugAssigned: boolean;
     };
 
-export type CreateWorkflow = WorkflowBase;
+export type CreateWorkflow = Partial<WorkflowBase> & Pick<WorkflowBase, "name">;
 export type UpdateWorkflow = WorkflowBase;
