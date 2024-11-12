@@ -52,5 +52,5 @@
 			<Message {msg} {onLoadFile} />
 		{/if}
 	{/each}
-	<Input {assistant} bind:this={inputBox} {onError} {onFocus} />
+	<Input {assistant} bind:this={inputBox} readonly={messages.inProgress} {onError} {onFocus} />
 </div>

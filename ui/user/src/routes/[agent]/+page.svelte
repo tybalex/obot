@@ -4,11 +4,13 @@
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Messages from '$lib/components/Messages.svelte';
 	import Editor from '$lib/components/Editor.svelte';
+	import type { Editor as EditorType } from '$lib/components/Editor.svelte';
 	import { loadFile } from '$lib/components/Editor.svelte';
 	import Notifications from '$lib/components/Notifications.svelte';
 	import { NotificationMessage } from '$lib/components/Notifications.svelte';
 	import type { Input } from '$lib/components/messages/Input.svelte';
 	import type { Messages as MessagesType } from '$lib/services';
+	import { setContext } from 'svelte';
 
 	let editorVisible = $state(false);
 	let assistant = $page.params.agent;
@@ -52,6 +54,10 @@
 			}, 100);
 		}
 	}
+
+	setContext('editor', {
+		loadFile: handleLoadFile
+	} as EditorType);
 
 	$effect(() => {
 		if ($profile.unauthorized) {

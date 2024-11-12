@@ -106,6 +106,7 @@ export interface Profile {
 	email: string;
 	iconURL: string;
 	role: number;
+	loaded?: boolean;
 	isAdmin?: () => boolean;
 	unauthorized?: boolean;
 }

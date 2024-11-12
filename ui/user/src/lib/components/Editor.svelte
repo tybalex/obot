@@ -4,6 +4,10 @@
 	import { ChatService } from '$lib/services';
 	import type { EditorFile } from '$lib/stores/editorfiles';
 
+	export interface Editor {
+		loadFile: (file: string) => void;
+	}
+
 	function hasFile(name: string): boolean {
 		let files: EditorFile[] | undefined;
 		editorFiles.subscribe((value) => (files = value))();
@@ -78,14 +82,6 @@
 		});
 	}
 
-	onMount(() => {
-		if (window.location.href.indexOf('#editor:') > -1) {
-			selectFile(window.location.href.split('#editor:')[1]);
-		} else {
-			selectFile('');
-		}
-	});
-
 	function remove(i: number) {
 		editorFiles.update((files) => {
 			files.splice(i, 1);
@@ -103,6 +99,14 @@
 		}
 		return $editorFiles.find((file) => file.name === name)?.selected || false;
 	}
+
+	onMount(() => {
+		if (window.location.href.indexOf('#editor:') > -1) {
+			selectFile(window.location.href.split('#editor:')[1]);
+		} else {
+			selectFile('');
+		}
+	});
 </script>
 
 <div>

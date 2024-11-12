@@ -13,6 +13,7 @@ export async function getProfile(): Promise<Profile> {
 	obj.isAdmin = () => {
 		return obj.role === 1;
 	};
+	obj.loaded = true;
 	return obj;
 }
 

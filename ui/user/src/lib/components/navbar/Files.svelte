@@ -4,6 +4,8 @@
 	import { ChatService } from '$lib/services';
 	import { popover } from '$lib/actions';
 	import Modal from '$lib/components/Modal.svelte';
+	import { getContext } from 'svelte';
+	import type { Editor } from '$lib/components/Editor.svelte';
 
 	const { ref, tooltip, toggle } = popover({
 		placement: 'bottom'
@@ -13,8 +15,6 @@
 		files.set(await ChatService.listFiles($currentAssistant.id));
 	}
 
-	let fileToDelete = $state<string | undefined>();
-
 	async function deleteFile() {
 		if (!fileToDelete) {
 			return;
@@ -23,6 +23,9 @@
 		await loadFiles();
 		fileToDelete = undefined;
 	}
+
+	const editor: Editor = getContext('editor');
+	let fileToDelete = $state<string | undefined>();
 </script>
 
 <button
@@ -55,7 +58,12 @@
 			{#each $files.items as file}
 				<li class="group">
 					<div class="flex">
-						<button class="flex flex-1 items-center">
+						<button
+							class="flex flex-1 items-center"
+							onclick={() => {
+								editor.loadFile(file.name);
+							}}
+						>
 							<FileText class="h-8 w-8 rounded-md bg-gray-100 p-1 text-black" />
 							<span class="ms-3 text-sm font-medium dark:text-gray-100">{file.name}</span>
 						</button>

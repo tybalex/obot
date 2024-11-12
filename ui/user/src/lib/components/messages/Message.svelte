@@ -30,6 +30,13 @@
 				highlight.highlightElement(block);
 			}
 		});
+
+		const links = document.querySelectorAll('.message-content a');
+		links.forEach((link) => {
+			if (link instanceof HTMLAnchorElement && link.target == '') {
+				link.target = '_blank';
+			}
+		});
 	});
 </script>
 

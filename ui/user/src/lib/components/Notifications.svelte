@@ -19,9 +19,10 @@
 	import { CircleCheck } from '$lib/icons';
 	import { CircleX } from '$lib/icons';
 	import { X } from '$lib/icons';
-	import { errors } from '$lib/stores';
+	import { errors, profile } from '$lib/stores';
 
 	let notifications: NotificationMessage[] = $state([]);
+	let div: HTMLElement;
 
 	export function addNotification(notification: NotificationMessage) {
 		notifications = [...notifications, notification];
@@ -29,9 +30,16 @@
 			notifications = notifications.slice(1);
 		}, 5000);
 	}
+
+	$effect(() => {
+		if ($profile.loaded && div.classList.contains('hidden')) {
+			div.classList.remove('hidden');
+			div.classList.add('flex');
+		}
+	});
 </script>
 
-<div class="absolute bottom-0 right-0 z-50 mb-20 mr-4 flex flex-col">
+<div bind:this={div} class="absolute bottom-0 right-0 z-50 mb-20 mr-4 hidden flex-col">
 	{#each $errors as error, i}
 		<div
 			class="mb-4 flex w-full max-w-xs items-center rounded-lg bg-white p-4 text-gray-500 shadow dark:bg-gray-800 dark:text-white"

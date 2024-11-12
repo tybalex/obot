@@ -18,10 +18,11 @@
 	interface Props {
 		onError?: (err: Error) => void;
 		onFocus?: () => void;
+		readonly?: boolean;
 		assistant: string;
 	}
 
-	let { onError = () => {}, onFocus = () => {}, assistant }: Props = $props();
+	let { onError = () => {}, onFocus = () => {}, assistant, readonly }: Props = $props();
 
 	let value = $state('');
 	let chat: HTMLTextAreaElement;
@@ -130,6 +131,7 @@
 				id="chat"
 				rows="1"
 				bind:value
+				{readonly}
 				onkeydown={onKey}
 				bind:this={chat}
 				oninput={resize}

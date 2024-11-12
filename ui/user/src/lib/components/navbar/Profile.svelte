@@ -41,7 +41,7 @@
 			{/if}
 			<li>
 				<a
-					href="/oauth2/sign_out"
+					href="/oauth2/sign_out?rd=/"
 					rel="external"
 					class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white"
 					role="menuitem">Sign out</a
