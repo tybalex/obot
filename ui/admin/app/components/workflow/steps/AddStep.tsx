@@ -1,4 +1,4 @@
-import { ArrowRight, FileText, GitFork, Plus, RotateCw } from "lucide-react";
+import { ArrowRight, GitFork, Plus, RotateCw } from "lucide-react";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 
@@ -100,12 +100,12 @@ export function AddStepButton({ onAddStep }: AddStepButtonProps) {
                     side="top"
                 >
                     <div className="grid gap-4">
-                        <Button
+                        {/* <Button
                             className="dark:bg-zinc-600 dark:text-white"
                             onClick={() => createNewStep("template")}
                         >
                             <FileText className="w-4 h-4 mr-2" /> Template
-                        </Button>
+                        </Button> */}
                         <Button
                             className="dark:bg-zinc-600 dark:text-white"
                             onClick={() => createNewStep("while")}
