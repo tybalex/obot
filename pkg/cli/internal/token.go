@@ -11,7 +11,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/adrg/xdg"
@@ -67,8 +66,13 @@ func Token(ctx context.Context, baseURL, appName string) (string, error) {
 		existed = true
 	}
 
-	token := strings.TrimSpace(string(tokenData))
-	if testToken(ctx, baseURL, token) {
+	var scopedTokens map[string]string
+	if err = json.Unmarshal(tokenData, &scopedTokens); err != nil {
+		// Ignore unmarshal errors and just store new tokens.
+		scopedTokens = make(map[string]string, 1)
+	}
+
+	if token, ok := scopedTokens[baseURL]; ok && testToken(ctx, baseURL, token) {
 		return token, nil
 	}
 
@@ -99,12 +103,18 @@ func Token(ctx context.Context, baseURL, appName string) (string, error) {
 	ctx, timeoutCancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer timeoutCancel()
 
-	token, err = get(ctx, baseURL, uuid)
+	token, err := get(ctx, baseURL, uuid)
 	if err != nil {
 		return "", fmt.Errorf("failed to get token: %w", err)
 	}
 
-	return token, os.WriteFile(tokenFile, []byte(token), 0600)
+	scopedTokens[baseURL] = token
+	tokenData, err = json.Marshal(scopedTokens)
+	if err != nil {
+		return "", fmt.Errorf("failed to store token: %w", err)
+	}
+
+	return token, os.WriteFile(tokenFile, tokenData, 0600)
 }
 
 type createRequest struct {
