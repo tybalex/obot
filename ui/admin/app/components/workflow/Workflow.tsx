@@ -6,9 +6,9 @@ import { cn } from "~/lib/utils";
 
 import { TypographyH4, TypographyP } from "~/components/Typography";
 import { AgentForm } from "~/components/agent";
+import { BasicToolForm } from "~/components/tools/BasicToolForm";
 import { Card, CardDescription } from "~/components/ui/card";
 import { ScrollArea } from "~/components/ui/scroll-area";
-import { BasicToolForm } from "~/components/workflow/BasicToolForm";
 import { ParamsForm } from "~/components/workflow/ParamsForm";
 import {
     WorkflowProvider,
@@ -37,8 +37,6 @@ function WorkflowContent({ className }: WorkflowProps) {
 
     const partialSetWorkflow = useCallback(
         (changes: Partial<typeof workflow>) => {
-            console.log("called");
-
             const updatedWorkflow = {
                 ...workflow,
                 ...workflowUpdates,
@@ -105,7 +103,7 @@ function WorkflowContent({ className }: WorkflowProps) {
                     </TypographyH4>
 
                     <StepsForm
-                        workflow={workflow}
+                        workflow={workflowUpdates}
                         onChange={(values) =>
                             debouncedSetWorkflowInfo({ steps: values.steps })
                         }

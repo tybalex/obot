@@ -93,7 +93,6 @@ export default function Threads() {
     }, [getWorkflows.data]);
 
     const threads = useMemo(() => {
-        console.log(agentId);
         if (!getThreads.data) return [];
 
         if (!agentId && !workflowId) return getThreads.data;

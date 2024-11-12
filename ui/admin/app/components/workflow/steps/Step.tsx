@@ -13,6 +13,7 @@ import { useState } from "react";
 import { Step } from "~/lib/model/workflows";
 import { cn } from "~/lib/utils";
 
+import { BasicToolForm } from "~/components/tools/BasicToolForm";
 import {
     Accordion,
     AccordionContent,
@@ -90,16 +91,11 @@ export function StepComponent({
                                 </span>
                             </AccordionTrigger>
                             <AccordionContent className="p-1 pb-6">
-                                <StringArrayForm
-                                    initialItems={step.tools || []}
+                                <BasicToolForm
+                                    defaultValues={step}
                                     onChange={(values) =>
-                                        onUpdate({
-                                            ...step,
-                                            tools: values.items,
-                                        })
+                                        onUpdate({ ...step, ...values })
                                     }
-                                    itemName="Tool"
-                                    placeholder="Add a tool"
                                 />
                             </AccordionContent>
                         </AccordionItem>
