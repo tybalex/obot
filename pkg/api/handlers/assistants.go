@@ -15,7 +15,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/invoke"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
-	"k8s.io/apiserver/pkg/authentication/user"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -33,7 +33,7 @@ func NewAssistantHandler(invoker *invoke.Invoker, events *events.Emitter, gptScr
 	}
 }
 
-func (a *AssistantHandler) getAgent(req api.Context, id string) (*v1.Agent, error) {
+func getAgent(req api.Context, id string) (*v1.Agent, error) {
 	var ref v1.Reference
 	if err := req.Get(&ref, id); err != nil {
 		return nil, err
@@ -56,22 +56,23 @@ func (a *AssistantHandler) Invoke(req api.Context) error {
 		id = req.PathValue("id")
 	)
 
-	agent, err := a.getAgent(req, id)
+	agent, err := getAgent(req, id)
 	if err != nil {
 		return err
 	}
 
-	threadID := getUserThreadID(id, req.User)
+	thread, err := getUserThread(req, id)
+	if err != nil {
+		return err
+	}
+
 	input, err := req.Body()
 	if err != nil {
 		return err
 	}
 
 	resp, err := a.invoker.Agent(req.Context(), req.Storage, agent, string(input), invoke.Options{
-		ThreadName:   threadID,
-		CreateThread: true,
-		UserUID:      req.User.GetUID(),
-		AgentRefName: agent.Name,
+		ThreadName: thread.Name,
 	})
 	if err != nil {
 		return err
@@ -125,21 +126,43 @@ func convertAssistant(agent v1.Agent) types.Assistant {
 	return assistant
 }
 
-func getUserThreadID(agentID string, user user.Info) string {
-	id := user.GetUID()
+func getUserThread(req api.Context, agentID string) (*v1.Thread, error) {
+	id := req.User.GetUID()
 	if id == "" {
 		id = "none"
 	}
-	return name.SafeConcatNameWithSeparatorAndLength(64, ".", system.ThreadPrefix,
+	id = name.SafeConcatNameWithSeparatorAndLength(64, ".", system.ThreadPrefix,
 		agentID, id)
+
+	var thread v1.Thread
+	if err := req.Get(&thread, id); kclient.IgnoreNotFound(err) != nil {
+		return nil, err
+	} else if err == nil {
+		return &thread, nil
+	}
+
+	agent, err := getAgent(req, agentID)
+	if err != nil {
+		return nil, err
+	}
+
+	newThread, err := invoke.CreateThreadForAgent(req.Context(), req.Storage, agent, id, req.User.GetUID(), agent.Spec.Manifest.RefName)
+	if apierrors.IsAlreadyExists(err) {
+		return &thread, req.Get(&thread, id)
+	}
+	return newThread, err
 }
 
 func (a *AssistantHandler) Events(req api.Context) error {
 	var (
-		id       = req.PathValue("id")
-		runID    = req.Request.Header.Get("Last-Event-ID")
-		threadID = getUserThreadID(id, req.User)
+		id    = req.PathValue("id")
+		runID = req.Request.Header.Get("Last-Event-ID")
 	)
+
+	thread, err := getUserThread(req, id)
+	if err != nil {
+		return err
+	}
 
 	_, events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
 		Follow:        true,
@@ -147,7 +170,7 @@ func (a *AssistantHandler) Events(req api.Context) error {
 		LastRunName:   strings.TrimSuffix(runID, ":after"),
 		MaxRuns:       10,
 		After:         strings.HasSuffix(runID, ":after"),
-		ThreadName:    threadID,
+		ThreadName:    thread.Name,
 		WaitForThread: true,
 	})
 	if err != nil {
@@ -162,8 +185,8 @@ func (a *AssistantHandler) Files(req api.Context) error {
 		id = req.PathValue("id")
 	)
 
-	var thread v1.Thread
-	if err := req.Get(&thread, getUserThreadID(id, req.User)); err != nil {
+	thread, err := getUserThread(req, id)
+	if err != nil {
 		return err
 	}
 
@@ -182,8 +205,8 @@ func (a *AssistantHandler) GetFile(req api.Context) error {
 		id = req.PathValue("id")
 	)
 
-	var thread v1.Thread
-	if err := req.Get(&thread, getUserThreadID(id, req.User)); err != nil {
+	thread, err := getUserThread(req, id)
+	if err != nil {
 		return err
 	}
 
@@ -199,8 +222,8 @@ func (a *AssistantHandler) UploadFile(req api.Context) error {
 		id = req.PathValue("id")
 	)
 
-	var thread v1.Thread
-	if err := req.Get(&thread, getUserThreadID(id, req.User)); err != nil {
+	thread, err := getUserThread(req, id)
+	if err != nil {
 		return err
 	}
 
@@ -208,7 +231,7 @@ func (a *AssistantHandler) UploadFile(req api.Context) error {
 		return types.NewErrHttp(http.StatusTooEarly, fmt.Sprintf("no workspace found for assistant %s", id))
 	}
 
-	_, err := uploadFileToWorkspace(req.Context(), req, a.gptScript, thread.Status.WorkspaceID, "files/")
+	_, err = uploadFileToWorkspace(req.Context(), req, a.gptScript, thread.Status.WorkspaceID, "files/")
 	return err
 }
 
@@ -217,8 +240,8 @@ func (a *AssistantHandler) DeleteFile(req api.Context) error {
 		id = req.PathValue("id")
 	)
 
-	var thread v1.Thread
-	if err := req.Get(&thread, getUserThreadID(id, req.User)); err != nil {
+	thread, err := getUserThread(req, id)
+	if err != nil {
 		return err
 	}
 
@@ -234,8 +257,8 @@ func (a *AssistantHandler) Knowledge(req api.Context) error {
 		id = req.PathValue("id")
 	)
 
-	var thread v1.Thread
-	if err := req.Get(&thread, getUserThreadID(id, req.User)); err != nil {
+	thread, err := getUserThread(req, id)
+	if err != nil {
 		return err
 	}
 
@@ -251,8 +274,8 @@ func (a *AssistantHandler) UploadKnowledge(req api.Context) error {
 		id = req.PathValue("id")
 	)
 
-	var thread v1.Thread
-	if err := req.Get(&thread, getUserThreadID(id, req.User)); err != nil {
+	thread, err := getUserThread(req, id)
+	if err != nil {
 		return err
 	}
 
@@ -273,8 +296,8 @@ func (a *AssistantHandler) DeleteKnowledge(req api.Context) error {
 		id = req.PathValue("id")
 	)
 
-	var thread v1.Thread
-	if err := req.Get(&thread, getUserThreadID(id, req.User)); err != nil {
+	thread, err := getUserThread(req, id)
+	if err != nil {
 		return err
 	}
 
@@ -316,13 +339,13 @@ func (a *AssistantHandler) AddTool(req api.Context) error {
 		tool = req.PathValue("tool")
 	)
 
-	agent, err := a.getAgent(req, id)
+	agent, err := getAgent(req, id)
 	if err != nil {
 		return err
 	}
 
-	var thread v1.Thread
-	if err := req.Get(&thread, getUserThreadID(id, req.User)); err != nil {
+	thread, err := getUserThread(req, id)
+	if err != nil {
 		return err
 	}
 
@@ -336,7 +359,7 @@ func (a *AssistantHandler) AddTool(req api.Context) error {
 	}
 
 	thread.Spec.Manifest.Tools = append(thread.Spec.Manifest.Tools, tool)
-	if err := req.Update(&thread); err != nil {
+	if err := req.Update(thread); err != nil {
 		return err
 	}
 
@@ -349,8 +372,8 @@ func (a *AssistantHandler) RemoveTool(req api.Context) error {
 		tool = req.PathValue("tool")
 	)
 
-	var thread v1.Thread
-	if err := req.Get(&thread, getUserThreadID(id, req.User)); err != nil {
+	thread, err := getUserThread(req, id)
+	if err != nil {
 		return err
 	}
 
@@ -361,7 +384,7 @@ func (a *AssistantHandler) RemoveTool(req api.Context) error {
 		return types.NewErrNotFound("tool %s not found", tool)
 	}
 	thread.Spec.Manifest.Tools = removed
-	if err := req.Update(&thread); err != nil {
+	if err := req.Update(thread); err != nil {
 		return err
 	}
 
@@ -373,13 +396,13 @@ func (a *AssistantHandler) Tools(req api.Context) error {
 		id = req.PathValue("id")
 	)
 
-	agent, err := a.getAgent(req, id)
+	agent, err := getAgent(req, id)
 	if err != nil {
 		return err
 	}
 
-	var thread v1.Thread
-	if err := req.Get(&thread, getUserThreadID(id, req.User)); kclient.IgnoreNotFound(err) != nil {
+	thread, err := getUserThread(req, id)
+	if err != nil {
 		return err
 	}
 

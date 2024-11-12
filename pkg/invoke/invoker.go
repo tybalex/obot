@@ -187,10 +187,10 @@ func getThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent
 		return &thread, c.Get(ctx, router.Key(agent.Namespace, opt.ThreadName), &thread)
 	}
 
-	return createThreadForAgent(ctx, c, agent, opt.ThreadName, opt.UserUID, opt.AgentRefName)
+	return CreateThreadForAgent(ctx, c, agent, opt.ThreadName, opt.UserUID, opt.AgentRefName)
 }
 
-func createThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, threadName, userUID, agentRefName string) (*v1.Thread, error) {
+func CreateThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, threadName, userUID, agentRefName string) (*v1.Thread, error) {
 	var (
 		fromWorkspaceNames []string
 		err                error
@@ -235,10 +235,6 @@ func (i *Invoker) updateThreadFields(ctx context.Context, c kclient.WithWatch, a
 		thread.Spec.AgentName = agent.Name
 		updated = true
 	}
-	if thread.Spec.UserUID != opt.UserUID {
-		thread.Spec.UserUID = opt.UserUID
-		updated = true
-	}
 	if updated {
 		return c.Status().Update(ctx, thread)
 	}
@@ -248,7 +244,7 @@ func (i *Invoker) updateThreadFields(ctx context.Context, c kclient.WithWatch, a
 func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, input string, opt Options) (_ *Response, err error) {
 	thread, err := getThreadForAgent(ctx, c, agent, opt)
 	if apierror.IsNotFound(err) && opt.CreateThread && strings.HasPrefix(opt.ThreadName, system.ThreadPrefix) {
-		thread, err = createThreadForAgent(ctx, c, agent, opt.ThreadName, opt.UserUID, opt.AgentRefName)
+		thread, err = CreateThreadForAgent(ctx, c, agent, opt.ThreadName, opt.UserUID, opt.AgentRefName)
 	}
 	if err != nil {
 		return nil, err
