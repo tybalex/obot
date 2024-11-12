@@ -30,12 +30,14 @@ func (u *UnsupportedError) Error() string {
 type Handler struct {
 	invoker   *invoke.Invoker
 	gptScript *gptscript.GPTScript
+	limit     int
 }
 
-func New(invoker *invoke.Invoker, gptScript *gptscript.GPTScript) *Handler {
+func New(invoker *invoke.Invoker, gptScript *gptscript.GPTScript, limit int) *Handler {
 	return &Handler{
 		invoker:   invoker,
 		gptScript: gptScript,
+		limit:     limit,
 	}
 }
 
@@ -122,6 +124,25 @@ func (h *Handler) IngestFile(req router.Request, _ router.Response) error {
 	if file.Spec.Approved == nil || !*file.Spec.Approved {
 		// Not approved, wait for user action
 		return nil
+	}
+
+	// If files have been approved, check whether the current knowledge set's approved files has exceeded limit
+	var files v1.KnowledgeFileList
+	if err := req.Client.List(req.Ctx, &files, kclient.InNamespace(ks.Namespace), kclient.MatchingFields{
+		"spec.knowledgeSetName": ks.Name,
+	}); err != nil {
+		return err
+	}
+	ingestedFilesCount := 0
+	for _, f := range files.Items {
+		if f.Status.State == types.KnowledgeFileStateIngested {
+			ingestedFilesCount++
+		}
+	}
+	if ingestedFilesCount >= h.limit {
+		file.Status.State = types.KnowledgeFileStateError
+		file.Status.Error = "You have reached the maximum of files you can ingest"
+		return req.Client.Status().Update(req.Ctx, file)
 	}
 
 	if err := h.ingest(req.Ctx, req.Client, file, &ks, &source, thread); err != nil {

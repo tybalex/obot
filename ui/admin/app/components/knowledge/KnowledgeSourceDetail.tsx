@@ -7,6 +7,7 @@ import {
     EditIcon,
     Eye,
     FileClock,
+    InfoIcon,
     MinusIcon,
     Plus,
     RefreshCcw,
@@ -399,7 +400,27 @@ const KnowledgeSourceDetail: FC<KnowledgeSourceDetailProps> = ({
                     </div>
                     <div className="flex justify-between items-center h-[20px]">
                         <Label>Files Synced:</Label>
-                        <Label>{files.length}</Label>
+                        <Label className="flex items-center">
+                            {files.length}
+                            {sourceType === KnowledgeSourceType.Website &&
+                                files.length >= 250 && (
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-2 w-2"
+                                            >
+                                                <InfoIcon className="h-2 w-2" />
+                                            </Button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            You have reached the maximum number
+                                            of files that can be synced
+                                        </TooltipContent>
+                                    </Tooltip>
+                                )}
+                        </Label>
                     </div>
                     <div className="flex justify-between items-center h-[20px]">
                         <Label>Files added to Knowledge:</Label>
@@ -612,12 +633,21 @@ const KnowledgeSourceDetail: FC<KnowledgeSourceDetailProps> = ({
                             </Label>
                         )}
                     </div>
-                    <div className="flex justify-between items-center h-[20px]">
+                    <div className="flex justify-between items-center">
                         <Label>Status:</Label>
                         {knowledgeSource.state ===
                             KnowledgeSourceStatus.Syncing && (
-                            <div className="break-words text-gray-400 max-w-[800px]">
-                                <Label>{knowledgeSource.status}</Label>
+                            <div className="ml-4 break-words text-gray-400 overflow-y-auto truncate">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Label className="cursor-pointer">
+                                            {knowledgeSource.status}
+                                        </Label>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        {knowledgeSource.status}
+                                    </TooltipContent>
+                                </Tooltip>
                             </div>
                         )}
                     </div>
@@ -628,7 +658,7 @@ const KnowledgeSourceDetail: FC<KnowledgeSourceDetailProps> = ({
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="w-[15px]">
-                                    <div className="flex justify-center items-center ">
+                                    <div className="flex justify-center items-center">
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
                                                 <Button

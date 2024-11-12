@@ -474,9 +474,17 @@ export default function AgentKnowledgePanel({
                                 </div>
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={() => {
-                                    setSourceType(KnowledgeSourceType.Notion);
-                                    setIsAddSourceModalOpen(true);
+                                onClick={async () => {
+                                    const res =
+                                        await KnowledgeService.createKnowledgeSource(
+                                            agentId,
+                                            {
+                                                notionConfig: {},
+                                            }
+                                        );
+                                    getKnowledgeSources.mutate();
+                                    setSelectedKnowledgeSourceId(res.id);
+                                    setIsEditKnowledgeSourceModalOpen(true);
                                 }}
                                 className="cursor-pointer"
                                 disabled={knowledgeSources.some(
