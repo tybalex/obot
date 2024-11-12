@@ -34,7 +34,7 @@ export function DeleteWorkflowButton({ id }: DeleteWorkflowButtonProps) {
                 confirmProps={{ variant: "destructive", children: "Delete" }}
                 description="This action cannot be undone."
             >
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                     <Button
                         variant="ghost"
                         size="icon"
