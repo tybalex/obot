@@ -149,16 +149,27 @@ func getThread(ctx context.Context, c kclient.WithWatch, source *v1.KnowledgeSou
 	})
 }
 
+func getAuthStatus(ctx context.Context, c kclient.Client, knowledgeSet *v1.KnowledgeSet, toolReferenceName string) (string, types.OAuthAppLoginAuthStatus, error) {
+	if knowledgeSet.Spec.WorkflowName != "" {
+		var workflow v1.Workflow
+		if err := c.Get(ctx, router.Key(knowledgeSet.Namespace, knowledgeSet.Spec.WorkflowName), &workflow); err != nil {
+			return "", types.OAuthAppLoginAuthStatus{}, err
+		}
+		return workflow.Name, workflow.Status.External.AuthStatus[toolReferenceName], nil
+	}
+
+	var agent v1.Agent
+	if err := c.Get(ctx, router.Key(knowledgeSet.Namespace, knowledgeSet.Spec.AgentName), &agent); err != nil {
+		return "", types.OAuthAppLoginAuthStatus{}, err
+	}
+	return agent.Name, agent.Status.External.AuthStatus[toolReferenceName], nil
+}
+
 func (k *Handler) Sync(req router.Request, _ router.Response) error {
 	source := req.Object.(*v1.KnowledgeSource)
 
 	var knowledgeSet v1.KnowledgeSet
 	if err := req.Get(&knowledgeSet, source.Namespace, source.Spec.KnowledgeSetName); err != nil {
-		return err
-	}
-
-	var agent v1.Agent
-	if err := req.Get(&agent, knowledgeSet.Namespace, knowledgeSet.Spec.AgentName); err != nil {
 		return err
 	}
 
@@ -171,18 +182,22 @@ func (k *Handler) Sync(req router.Request, _ router.Response) error {
 
 	toolReferenceName := string(sourceType) + "-data-source"
 
-	credentialTool, err := v1.CredentialTool(req.Ctx, req.Client, agent.Namespace, toolReferenceName)
+	credentialTool, err := v1.CredentialTool(req.Ctx, req.Client, source.Namespace, toolReferenceName)
 	if err != nil {
 		return err
 	}
 
-	authStatus := agent.Status.External.AuthStatus[toolReferenceName]
+	credentialContextID, authStatus, err := getAuthStatus(req.Ctx, req.Client, &knowledgeSet, toolReferenceName)
+	if err != nil {
+		return err
+	}
+
 	if credentialTool != "" && (authStatus.Required == nil || (*authStatus.Required && !authStatus.Authenticated)) {
 		return nil
 	}
 
 	invokeOpts := invoke.SystemTaskOptions{
-		CredentialContextIDs: []string{agent.Name},
+		CredentialContextIDs: []string{credentialContextID},
 	}
 
 	thread, err := getThread(req.Ctx, req.Client, source)

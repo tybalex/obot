@@ -54,6 +54,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/otto8-ai/otto8/apiclient/types.OneDriveConfig":                            schema_otto8_ai_otto8_apiclient_types_OneDriveConfig(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Progress":                                  schema_otto8_ai_otto8_apiclient_types_Progress(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Prompt":                                    schema_otto8_ai_otto8_apiclient_types_Prompt(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.PromptResponse":                            schema_otto8_ai_otto8_apiclient_types_PromptResponse(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Run":                                       schema_otto8_ai_otto8_apiclient_types_Run(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.RunList":                                   schema_otto8_ai_otto8_apiclient_types_RunList(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Step":                                      schema_otto8_ai_otto8_apiclient_types_Step(ref),
@@ -79,6 +80,7 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/otto8-ai/otto8/apiclient/types.While":                                     schema_otto8_ai_otto8_apiclient_types_While(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Workflow":                                  schema_otto8_ai_otto8_apiclient_types_Workflow(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.WorkflowCall":                              schema_otto8_ai_otto8_apiclient_types_WorkflowCall(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.WorkflowEnv":                               schema_otto8_ai_otto8_apiclient_types_WorkflowEnv(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.WorkflowExternalStatus":                    schema_otto8_ai_otto8_apiclient_types_WorkflowExternalStatus(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.WorkflowList":                              schema_otto8_ai_otto8_apiclient_types_WorkflowList(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.WorkflowManifest":                          schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref),
@@ -1819,7 +1821,7 @@ func schema_otto8_ai_otto8_apiclient_types_Progress(ref common.ReferenceCallback
 					},
 					"prompt": {
 						SchemaProps: spec.SchemaProps{
-							Description: "If prompt is set content will also me set, but you can ignore the content field and instead handle the explicit information in the prompt field which will provider more information for things such as OAuth",
+							Description: "If prompt is set, content will also be set, but you can ignore the content field and instead handle the explicit information in the prompt field which will provider more information for things such as OAuth",
 							Ref:         ref("github.com/otto8-ai/otto8/apiclient/types.Prompt"),
 						},
 					},
@@ -1959,6 +1961,39 @@ func schema_otto8_ai_otto8_apiclient_types_Prompt(ref common.ReferenceCallback) 
 		},
 		Dependencies: []string{
 			"github.com/otto8-ai/otto8/apiclient/types.Time"},
+	}
+}
+
+func schema_otto8_ai_otto8_apiclient_types_PromptResponse(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"id": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"response": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -3031,6 +3066,36 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowCall(ref common.ReferenceCall
 	}
 }
 
+func schema_otto8_ai_otto8_apiclient_types_WorkflowEnv(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"value": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"description": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
 func schema_otto8_ai_otto8_apiclient_types_WorkflowExternalStatus(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -3263,6 +3328,33 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref common.Reference
 							Format: "",
 						},
 					},
+					"credentials": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+					"env": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.WorkflowEnv"),
+									},
+								},
+							},
+						},
+					},
 					"steps": {
 						SchemaProps: spec.SchemaProps{
 							Type: []string{"array"},
@@ -3287,7 +3379,7 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref common.Reference
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/apiclient/types.AgentIcons", "github.com/otto8-ai/otto8/apiclient/types.Step"},
+			"github.com/otto8-ai/otto8/apiclient/types.AgentIcons", "github.com/otto8-ai/otto8/apiclient/types.Step", "github.com/otto8-ai/otto8/apiclient/types.WorkflowEnv"},
 	}
 }
 
@@ -3411,10 +3503,38 @@ func schema_storage_apis_ottootto8ai_v1_AgentSpec(ref common.ReferenceCallback) 
 							},
 						},
 					},
+					"credentials": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
 					"credentialContextID": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
+						},
+					},
+					"env": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
 						},
 					},
 				},
@@ -3991,6 +4111,13 @@ func schema_storage_apis_ottootto8ai_v1_KnowledgeSetSpec(ref common.ReferenceCal
 					"agentName": {
 						SchemaProps: spec.SchemaProps{
 							Description: "AgentName is the name of the agent that created and owns this knowledge set",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"workflowName": {
+						SchemaProps: spec.SchemaProps{
+							Description: "WorkflowName is the name of the workflow that created and owns this knowledge set",
 							Type:        []string{"string"},
 							Format:      "",
 						},

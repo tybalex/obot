@@ -24,7 +24,7 @@ func createWorkspace(ctx context.Context, c kclient.Client, workflow *v1.Workflo
 			Finalizers: []string{v1.WorkspaceFinalizer},
 		},
 		Spec: v1.WorkspaceSpec{
-			AgentName: workflow.Name,
+			WorkflowName: workflow.Name,
 		},
 	}
 	if err := create.OrGet(ctx, c, ws); err != nil {
@@ -47,7 +47,7 @@ func createKnowledgeSet(ctx context.Context, c kclient.Client, workflow *v1.Work
 			Finalizers: []string{v1.KnowledgeSetFinalizer},
 		},
 		Spec: v1.KnowledgeSetSpec{
-			AgentName: workflow.Name,
+			WorkflowName: workflow.Name,
 		},
 	}
 	if err := create.OrGet(ctx, c, ks); err != nil {
