@@ -1,6 +1,6 @@
 # Model Providers
 
-Each packaged model provider has a slightly different, but all require at least, the `OTTO8_*_MODEL_PROVIDER_API_KEY` environment variable are required, where `*` stands in for the name of the provider (e.g. `OTTO8_AZURE_OPENAI_MODEL_PROVIDER_API_KEY`).
+Each packaged model provider has a slightly different configuration, but all require at least, the `OTTO8_*_MODEL_PROVIDER_API_KEY` environment variable are required, where `*` stands in for the name of the provider (e.g. `OTTO8_AZURE_OPENAI_MODEL_PROVIDER_API_KEY`).
 
 Below is a summary of the configuration options for each provider. However, the packaged model providers are configured to indicate which environment variables are required and which ones are not set in the current environment. For example, `/api/tool-references/azure-openai-model-provider` would indicate the status of the Azure OpenAI model provider. If the environment variables are not set, then the API would return something like:
 
