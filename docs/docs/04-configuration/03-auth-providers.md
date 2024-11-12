@@ -25,6 +25,6 @@ GitHub authentication has the following optional configuration:
 
 - `OTTO8_AUTH_GITHUB_ORG`: The name of the organization allowed for authentication. Ignored if not set.
 - `OTTO8_AUTH_GITHUB_TEAM`: The name of the team allowed for authentication. Ignored if not set.
-- `OTTO8_AUTH_GITHUB_REPOS`: A comma-separated list of the names of the repositories allowed for authentication, in the format `org/repo`. Ignored if not set.
+- `OTTO8_AUTH_GITHUB_REPO`: Restrict logins to collaborators of this repository formatted as `orgname/repo`. Ignored if not set.
 - `OTTO8_AUTH_GITHUB_TOKEN`: The token to use when verifying repository collaborators (must have push access to the repository).
 - `OTTO8_AUTH_GITHUB_ALLOW_USERS`: A comma-separated list of users allowed to login even if they don't belong to the organization or team.
