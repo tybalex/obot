@@ -4,16 +4,18 @@ import {
     Link,
     useLoaderData,
     useNavigate,
+    useSearchParams,
 } from "@remix-run/react";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { PuzzleIcon, Trash } from "lucide-react";
-import { useMemo } from "react";
+import { PuzzleIcon, Trash, XIcon } from "lucide-react";
+import { useCallback, useMemo } from "react";
 import { $path } from "remix-routes";
 import useSWR, { preload } from "swr";
 import { z } from "zod";
 
 import { Agent } from "~/lib/model/agents";
 import { Thread } from "~/lib/model/threads";
+import { User } from "~/lib/model/users";
 import { Workflow } from "~/lib/model/workflows";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
@@ -130,8 +132,15 @@ export default function Threads() {
 
     return (
         <div className="h-full flex flex-col">
-            <div className="flex-auto overflow-hidden p-8">
-                <TypographyH2 className="mb-8">Threads</TypographyH2>
+            <div className="flex-auto flex flex-col overflow-hidden p-8 gap-4">
+                <TypographyH2>Threads</TypographyH2>
+
+                <ThreadFilters
+                    users={getUsers.data ?? []}
+                    agents={getAgents.data ?? []}
+                    workflows={getWorkflows.data ?? []}
+                />
+
                 <DataTable
                     columns={getColumns()}
                     data={threads}
@@ -247,6 +256,74 @@ export default function Threads() {
             }),
         ];
     }
+}
+
+function ThreadFilters({
+    users,
+    agents,
+    workflows,
+}: {
+    users: User[];
+    agents: Agent[];
+    workflows: Workflow[];
+}) {
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const removeParam = useCallback(
+        (key: string) =>
+            setSearchParams((prev) => {
+                const params = new URLSearchParams(prev);
+                params.delete(key);
+                return params;
+            }),
+        [setSearchParams]
+    );
+
+    const filters = useMemo(() => {
+        const threadFilters = {
+            agentId: (value: string) =>
+                agents.find((agent) => agent.id === value)?.name,
+            userId: (value: string) =>
+                users.find((user) => user.id === value)?.email,
+            workflowId: (value: string) =>
+                workflows.find((workflow) => workflow.id === value)?.name,
+        };
+
+        const labels = {
+            agentId: "Agent",
+            userId: "User",
+            workflowId: "Workflow",
+        };
+
+        const query = RouteService.getQueryParams(
+            "/threads",
+            searchParams.toString()
+        );
+
+        return Object.entries(query ?? {}).map(([key, value]) => ({
+            key,
+            label: labels[key as keyof SearchParams],
+            value: threadFilters[key as keyof SearchParams](value),
+            onRemove: () => removeParam(key),
+        }));
+    }, [agents, removeParam, searchParams, users, workflows]);
+
+    return (
+        <div className="flex gap-2">
+            {filters.map((filter) => (
+                <Button
+                    key={filter.key}
+                    size="badge"
+                    onClick={filter.onRemove}
+                    variant="secondary"
+                    shape="pill"
+                    endContent={<XIcon />}
+                >
+                    <b>{filter.label}:</b> {filter.value}
+                </Button>
+            ))}
+        </div>
+    );
 }
 
 const columnHelper = createColumnHelper<Thread>();
