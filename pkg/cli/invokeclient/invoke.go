@@ -24,7 +24,7 @@ type Options struct {
 
 func Invoke(ctx context.Context, c *apiclient.Client, id, input string, opts Options) (err error) {
 	var (
-		printer           = events.NewPrinter(opts.Quiet, opts.Details)
+		printer           = events.NewPrinter(ctx, c, opts.Quiet, opts.Details)
 		inputter inputter = VerboseInputter{
 			client: c,
 		}

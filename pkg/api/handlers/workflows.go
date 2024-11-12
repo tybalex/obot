@@ -10,6 +10,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/api"
 	"github.com/otto8-ai/otto8/pkg/api/server"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/workflow"
+	"github.com/otto8-ai/otto8/pkg/invoke"
 	"github.com/otto8-ai/otto8/pkg/render"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
@@ -19,13 +20,48 @@ import (
 type WorkflowHandler struct {
 	gptscript *gptscript.GPTScript
 	serverURL string
+	invoker   *invoke.Invoker
 }
 
-func NewWorkflowHandler(gClient *gptscript.GPTScript, serverURL string) *WorkflowHandler {
+func NewWorkflowHandler(gClient *gptscript.GPTScript, serverURL string, invoker *invoke.Invoker) *WorkflowHandler {
 	return &WorkflowHandler{
 		gptscript: gClient,
 		serverURL: serverURL,
+		invoker:   invoker,
 	}
+}
+
+func (a *WorkflowHandler) Authenticate(req api.Context) error {
+	var (
+		id       = req.PathValue("id")
+		workflow v1.Workflow
+	)
+
+	if err := req.Get(&workflow, id); err != nil {
+		return err
+	}
+
+	agent, err := render.Workflow(req.Context(), req.Storage, &workflow, render.WorkflowOptions{})
+	if err != nil {
+		return err
+	}
+
+	agent.Spec.Manifest.Prompt = "#!sys.echo\nDONE"
+	if len(agent.Spec.Credentials) == 0 {
+		return nil
+	}
+
+	resp, err := a.invoker.Agent(req.Context(), req.Storage, agent, "", invoke.Options{
+		Synchronous:           true,
+		ThreadCredentialScope: new(bool),
+	})
+	if err != nil {
+		return err
+	}
+	defer resp.Close()
+
+	req.ResponseWriter.Header().Set("X-Otto-Thread-Id", resp.Thread.Name)
+	return req.WriteEvents(resp.Events)
 }
 
 func (a *WorkflowHandler) Update(req api.Context) error {

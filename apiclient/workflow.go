@@ -81,3 +81,17 @@ func (c *Client) DeleteWorkflow(ctx context.Context, id string) error {
 	defer resp.Body.Close()
 	return nil
 }
+
+func (c *Client) AuthenticateWorkflow(ctx context.Context, wfID string) (*types.InvokeResponse, error) {
+	url := fmt.Sprintf("/workflows/%s/authenticate", wfID)
+
+	_, resp, err := c.doRequest(ctx, http.MethodPost, url, nil, "Accept", "text/event-stream")
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.InvokeResponse{
+		Events:   toStream[types.Progress](resp),
+		ThreadID: resp.Header.Get("X-Otto-Thread-Id"),
+	}, nil
+}

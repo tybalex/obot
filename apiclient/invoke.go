@@ -16,6 +16,11 @@ type InvokeOptions struct {
 	Async          bool
 }
 
+func (c *Client) PromptResponse(ctx context.Context, resp types.PromptResponse) error {
+	_, _, err := c.postJSON(ctx, "/prompt", resp)
+	return err
+}
+
 func (c *Client) Invoke(ctx context.Context, agentID string, input string, opts InvokeOptions) (*types.InvokeResponse, error) {
 	url := fmt.Sprintf("/invoke/%s?async=%v&step=%s", agentID, opts.Async, opts.WorkflowStepID)
 	if opts.ThreadID != "" {

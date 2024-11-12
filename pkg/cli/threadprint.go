@@ -20,7 +20,7 @@ func (l *ThreadPrint) Customize(cmd *cobra.Command) {
 
 func (l *ThreadPrint) Run(cmd *cobra.Command, args []string) error {
 	var (
-		printer = events.NewPrinter(l.Quiet, l.Verbose)
+		printer = events.NewPrinter(cmd.Context(), l.root.Client, l.Quiet, l.Verbose)
 	)
 
 	events, err := l.root.Client.ThreadEvents(cmd.Context(), args[0], apiclient.ThreadEventsOptions{

@@ -35,7 +35,10 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, oauthServerU
 		Cache:        agent.Spec.Manifest.Cache,
 		Type:         "agent",
 		ModelName:    agent.Spec.Manifest.Model,
+		Credentials:  agent.Spec.Credentials,
 	}
+
+	extraEnv = append(extraEnv, agent.Spec.Env...)
 
 	if mainTool.Instructions == "" {
 		mainTool.Instructions = v1.DefaultAgentPrompt

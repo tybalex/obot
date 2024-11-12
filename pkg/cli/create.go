@@ -12,27 +12,18 @@ import (
 
 	"github.com/otto8-ai/otto8/apiclient"
 	"github.com/otto8-ai/otto8/apiclient/types"
-	"github.com/otto8-ai/otto8/pkg/cli/textio"
 	"github.com/spf13/cobra"
 	yamlv3 "gopkg.in/yaml.v3"
 )
 
 type Create struct {
-	Quiet       bool              `usage:"Only print ID after successful creation." short:"q"`
-	Name        string            `usage:"Name of the agent."`
-	Description string            `usage:"Description of the agent."`
-	Ref         string            `usage:"The path segment of the agent in the published URL (defaults to ID of agent)."`
-	Tools       []string          `usage:"List of tools the agent can use."`
-	Steps       []string          `usage:"The steps for a workflow."`
-	Output      string            `usage:"The output for a workflow."`
-	Params      map[string]string `usage:"The parameters for the agent." hidden:"true"`
-	File        string            `usage:"The file to read the agent manifest from." short:"f"`
-	Replace     bool              `usage:"If loading from file, replace the agent with the same refName if it exists." short:"r"`
-	root        *Otto
+	Quiet bool `usage:"Only print ID after successful creation." short:"q"`
+	root  *Otto
 }
 
 func (l *Create) Customize(cmd *cobra.Command) {
-	cmd.Use = "create [flags]"
+	cmd.Use = "create [flags] FILE"
+	cmd.Args = cobra.ExactArgs(1)
 }
 
 func parseManifests(data []byte) (result []types.WorkflowManifest, _ error) {
@@ -63,14 +54,14 @@ func parseManifests(data []byte) (result []types.WorkflowManifest, _ error) {
 	return
 }
 
-func (l *Create) loadFromFile(ctx context.Context) error {
+func (l *Create) loadFromFile(ctx context.Context, file string) error {
 	var (
 		data []byte
 		err  error
 	)
 
-	if strings.HasPrefix(l.File, "http://") || strings.HasPrefix(l.File, "https://") {
-		resp, err := http.Get(l.File)
+	if strings.HasPrefix(file, "http://") || strings.HasPrefix(file, "https://") {
+		resp, err := http.Get(file)
 		if err != nil {
 			return err
 		}
@@ -79,7 +70,7 @@ func (l *Create) loadFromFile(ctx context.Context) error {
 			return err
 		}
 	} else {
-		data, err = os.ReadFile(l.File)
+		data, err = os.ReadFile(file)
 		if err != nil {
 			return err
 		}
@@ -92,16 +83,24 @@ func (l *Create) loadFromFile(ctx context.Context) error {
 
 	for _, newManifest := range manifests {
 		if len(newManifest.Steps) > 0 || newManifest.Output != "" {
-			if l.Replace && l.Ref != "" {
+			if newManifest.RefName != "" {
 				workflows, err := l.root.Client.ListWorkflows(ctx, apiclient.ListWorkflowsOptions{
-					RefName: l.Ref,
+					RefName: newManifest.RefName,
 				})
 				if err != nil {
 					return err
 				}
 				if len(workflows.Items) > 0 {
 					_, err = l.root.Client.UpdateWorkflow(ctx, workflows.Items[0].ID, newManifest)
-					return err
+					if err != nil {
+						return err
+					}
+					if l.Quiet {
+						fmt.Println(workflows.Items[0].ID)
+					} else {
+						fmt.Printf("Workflow updated: %s\n", workflows.Items[0].ID)
+					}
+					return nil
 				}
 			}
 
@@ -116,16 +115,24 @@ func (l *Create) loadFromFile(ctx context.Context) error {
 				fmt.Printf("Workflow created: %s\n", workflow.ID)
 			}
 		} else {
-			if l.Replace && l.Ref != "" {
+			if newManifest.RefName != "" {
 				agents, err := l.root.Client.ListAgents(ctx, apiclient.ListAgentsOptions{
-					RefName: l.Ref,
+					RefName: newManifest.RefName,
 				})
 				if err != nil {
 					return err
 				}
 				if len(agents.Items) > 0 {
 					_, err = l.root.Client.UpdateAgent(ctx, agents.Items[0].ID, newManifest.AgentManifest)
-					return err
+					if err != nil {
+						return err
+					}
+					if l.Quiet {
+						fmt.Println(agents.Items[0].ID)
+					} else {
+						fmt.Printf("Agent update: %s\n", agents.Items[0].ID)
+					}
+					return nil
 				}
 			}
 
@@ -146,73 +153,5 @@ func (l *Create) loadFromFile(ctx context.Context) error {
 }
 
 func (l *Create) Run(cmd *cobra.Command, args []string) error {
-	if l.File != "" {
-		return l.loadFromFile(cmd.Context())
-	}
-
-	prompt := strings.Join(args, " ")
-	if prompt == "" && !l.Quiet {
-		textio.Info("Creating an agent")
-		fmt.Println()
-		textio.Print("You are about to create an agent. An agent is AI that will respond to user " +
-			"input according to the instructions you provide.")
-		fmt.Println()
-		result, err := textio.Ask("Enter the instructions",
-			"You're a friendly assistant")
-		if err != nil {
-			return err
-		}
-		prompt = result
-	}
-
-	agentManifest := types.AgentManifest{
-		Name:        l.Name,
-		Description: l.Description,
-		RefName:     l.Ref,
-		Prompt:      prompt,
-		Tools:       l.Tools,
-		Params:      l.Params,
-	}
-
-	var (
-		id, link string
-	)
-	if l.Output != "" || len(l.Steps) > 0 {
-		wf := types.WorkflowManifest{
-			AgentManifest: agentManifest,
-			Output:        l.Output,
-		}
-		for _, step := range l.Steps {
-			wf.Steps = append(wf.Steps, types.Step{
-				Step: step,
-			})
-		}
-		workflow, err := l.root.Client.CreateWorkflow(cmd.Context(), wf)
-		if err != nil {
-			return err
-		}
-		id, link = workflow.ID, workflow.Links["invoke"]
-	} else {
-		agent, err := l.root.Client.CreateAgent(cmd.Context(), agentManifest)
-		if err != nil {
-			return err
-		}
-		id, link = agent.ID, agent.Links["invoke"]
-	}
-
-	if l.Quiet {
-		fmt.Println(id)
-	} else {
-		fmt.Println()
-		textio.Info(fmt.Sprintf("Agent created."))
-		textio.Info(fmt.Sprintf(""))
-		textio.Info(fmt.Sprintf("ID: %s", id))
-		textio.Info(fmt.Sprintf("URL: %s", link))
-		fmt.Println()
-		textio.Print(fmt.Sprintf("You can now interact with your new agent by running:"))
-		fmt.Println()
-		fmt.Printf("CLI:  otto invoke %s Hello\n", id)
-		fmt.Printf("cURL: curl -d Hello %s\n", link)
-	}
-	return nil
+	return l.loadFromFile(cmd.Context(), args[0])
 }

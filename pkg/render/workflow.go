@@ -58,11 +58,25 @@ func Workflow(ctx context.Context, c kclient.Client, wf *v1.Workflow, opts Workf
 		},
 		Spec: v1.AgentSpec{
 			Manifest:            agentManifest,
+			Credentials:         wf.Spec.Manifest.Credentials,
 			CredentialContextID: wf.Name,
 		},
 		Status: v1.AgentStatus{
 			WorkspaceName: wf.Status.WorkspaceName,
 		},
+	}
+
+	for _, env := range wf.Spec.Manifest.Env {
+		if env.Name == "" {
+			continue
+		}
+		if env.Value == "" {
+			agent.Spec.Credentials = append(agent.Spec.Credentials,
+				fmt.Sprintf(`github.com/gptscript-ai/credential as %s with "%s" as message and "%s" as env and %s as field`,
+					env.Name, env.Description, env.Name, env.Name))
+		} else {
+			agent.Spec.Env = append(agent.Spec.Env, fmt.Sprintf("%s=%s", env.Name, env.Value))
+		}
 	}
 
 	if step := opts.Step; step != nil {

@@ -8,6 +8,11 @@ type InvokeResponse struct {
 	ThreadID string
 }
 
+type PromptResponse struct {
+	ID        string            `json:"id,omitempty"`
+	Responses map[string]string `json:"response,omitempty"`
+}
+
 type Progress struct {
 	// RunID should be populated for all progress events to associate this event with a run
 	// If RunID is not populated, the event will not specify tied to any particular run
@@ -36,7 +41,7 @@ type Progress struct {
 	InputIsStepTemplateInput bool `json:"inputIsStepTemplateInput,omitempty"`
 	// StepTemplateInvoke indicates that a step template is being invoked
 	StepTemplateInvoke *StepTemplateInvoke `json:"stepTemplateInvoke,omitempty"`
-	// If prompt is set content will also me set, but you can ignore the content field and instead handle the explicit
+	// If prompt is set, content will also be set, but you can ignore the content field and instead handle the explicit
 	// information in the prompt field which will provider more information for things such as OAuth
 	Prompt *Prompt `json:"prompt,omitempty"`
 	// The step that is currently being executed. When this is set the following events are assumed to be part of

@@ -135,15 +135,16 @@ func (r *Response) Result(ctx context.Context) (TaskResult, error) {
 }
 
 type Options struct {
-	Synchronous      bool
-	ThreadName       string
-	WorkflowStepName string
-	WorkflowStepID   string
-	PreviousRunName  string
-	ForceNoResume    bool
-	CreateThread     bool
-	UserUID          string
-	AgentRefName     string
+	Synchronous           bool
+	ThreadName            string
+	WorkflowStepName      string
+	WorkflowStepID        string
+	PreviousRunName       string
+	ForceNoResume         bool
+	CreateThread          bool
+	ThreadCredentialScope *bool
+	UserUID               string
+	AgentRefName          string
 }
 
 func (i *Invoker) getChatState(ctx context.Context, c kclient.Client, run *v1.Run) (result, lastThreadName string, _ error) {
@@ -190,12 +191,21 @@ func getThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent
 }
 
 func createThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, threadName, userUID, agentRefName string) (*v1.Thread, error) {
-	agent, err := wait.For(ctx, c, agent, func(agent *v1.Agent) bool {
-		return agent.Status.WorkspaceName != ""
-	})
-	if err != nil {
-		return nil, err
+	var (
+		fromWorkspaceNames []string
+		err                error
+	)
+
+	if agent.Name != "" {
+		agent, err = wait.For(ctx, c, agent, func(agent *v1.Agent) bool {
+			return agent.Status.WorkspaceName != ""
+		})
+		if err != nil {
+			return nil, err
+		}
+		fromWorkspaceNames = []string{agent.Status.WorkspaceName}
 	}
+
 	thread := v1.Thread{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: system.ThreadPrefix,
@@ -207,7 +217,7 @@ func createThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Ag
 				Tools: agent.Spec.Manifest.DefaultThreadTools,
 			},
 			AgentName:          agent.Name,
-			FromWorkspaceNames: []string{agent.Status.WorkspaceName},
+			FromWorkspaceNames: fromWorkspaceNames,
 			UserUID:            userUID,
 			AgentRefName:       agentRefName,
 		},
@@ -249,6 +259,9 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agen
 	}
 
 	credContextIDs := []string{thread.Name}
+	if opt.ThreadCredentialScope != nil && !*opt.ThreadCredentialScope {
+		credContextIDs = nil
+	}
 	if agent.Spec.CredentialContextID != "" {
 		credContextIDs = append(credContextIDs, agent.Spec.CredentialContextID)
 	} else if agent.Name != "" {

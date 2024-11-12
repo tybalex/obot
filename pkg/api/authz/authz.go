@@ -50,6 +50,7 @@ var staticRules = map[string][]string{
 		"/api/assistants/{path...}",
 		"GET /api/me",
 		"POST /api/llm-proxy/",
+		"POST /api/prompt",
 		"GET /api/models",
 	},
 }

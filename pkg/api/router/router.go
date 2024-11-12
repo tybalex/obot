@@ -13,7 +13,7 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	agents := handlers.NewAgentHandler(services.GPTClient, services.ServerURL)
 	assistants := handlers.NewAssistantHandler(services.Invoker, services.Events, services.GPTClient)
-	workflows := handlers.NewWorkflowHandler(services.GPTClient, services.ServerURL)
+	workflows := handlers.NewWorkflowHandler(services.GPTClient, services.ServerURL, services.Invoker)
 	invoker := handlers.NewInvokeHandler(services.Invoker)
 	threads := handlers.NewThreadHandler(services.GPTClient, services.Events)
 	runs := handlers.NewRunHandler(services.Events)
@@ -21,6 +21,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	webhooks := handlers.NewWebhookHandler()
 	cronJobs := handlers.NewCronJobHandler()
 	models := handlers.NewModelHandler()
+	prompt := handlers.NewPromptHandler(services.GPTClient)
 
 	// Version
 	mux.HandleFunc("GET /api/version", handlers.GetVersion)
@@ -81,6 +82,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("GET /api/workflows/{id}/script.gpt", workflows.Script)
 	mux.HandleFunc("GET /api/workflows/{id}/script/tool.gpt", workflows.Script)
 	mux.HandleFunc("POST /api/workflows", workflows.Create)
+	mux.HandleFunc("POST /api/workflows/{id}/authenticate", workflows.Authenticate)
 	mux.HandleFunc("PUT /api/workflows/{id}", workflows.Update)
 	mux.HandleFunc("DELETE /api/workflows/{id}", workflows.Delete)
 
@@ -184,6 +186,9 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("DELETE /api/models/{id}", models.Delete)
 	mux.HandleFunc("GET /api/models", models.List)
 	mux.HandleFunc("GET /api/models/{id}", models.ByID)
+
+	// Prompt
+	mux.HandleFunc("POST /api/prompt", prompt.Prompt)
 
 	// Gateway APIs
 	services.GatewayServer.AddRoutes(services.APIServer)

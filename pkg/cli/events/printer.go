@@ -1,11 +1,13 @@
 package events
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/otto8-ai/otto8/apiclient"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/logger"
 	"github.com/otto8-ai/otto8/pkg/cli/textio"
@@ -14,6 +16,8 @@ import (
 var log = logger.Package()
 
 type Quiet struct {
+	Client *apiclient.Client
+	Ctx    context.Context
 }
 
 func (q *Quiet) Print(input string, events <-chan types.Progress) error {
@@ -22,7 +26,11 @@ func (q *Quiet) Print(input string, events <-chan types.Progress) error {
 		if event.Error != "" {
 			return fmt.Errorf("%s", event.Error)
 		}
-		if event.Content != "" {
+		if event.Prompt != nil {
+			if err := handlePrompt(q.Ctx, q.Client, event.Prompt); err != nil {
+				return err
+			}
+		} else if event.Content != "" {
 			lastContent = event.Content
 			fmt.Print(event.Content)
 		}
@@ -35,6 +43,8 @@ func (q *Quiet) Print(input string, events <-chan types.Progress) error {
 
 type Verbose struct {
 	Details bool
+	Client  *apiclient.Client
+	Ctx     context.Context
 }
 
 func (v *Verbose) Print(input string, events <-chan types.Progress) error {
@@ -93,6 +103,12 @@ outer:
 			} else if event.ToolCall != nil {
 				out.EnsureNewline()
 				out.Print(fmt.Sprintf("> Running tool (%s): %s\n", color.MagentaString(event.ToolCall.Name), color.MagentaString(event.ToolCall.Input)))
+			} else if event.Prompt != nil {
+				out.EnsureNewline()
+				out.Print(fmt.Sprintf("> %s\n", color.CyanString(event.Prompt.Message)))
+				if err := handlePrompt(v.Ctx, v.Client, event.Prompt); err != nil {
+					return err
+				}
 			} else if event.Content != "" {
 				if lastType != "content" {
 					out.EnsureNewline()
@@ -106,4 +122,25 @@ outer:
 
 	out.EnsureNewline()
 	return nil
+}
+
+func handlePrompt(ctx context.Context, c *apiclient.Client, prompt *types.Prompt) error {
+	promptResponse := types.PromptResponse{
+		ID:        prompt.ID,
+		Responses: make(map[string]string),
+	}
+
+	for _, field := range prompt.Fields {
+		v, err := textio.Ask(field, "")
+		if err != nil {
+			return err
+		}
+		promptResponse.Responses[field] = v
+	}
+
+	if len(promptResponse.Responses) == 0 {
+		return nil
+	}
+
+	return c.PromptResponse(ctx, promptResponse)
 }

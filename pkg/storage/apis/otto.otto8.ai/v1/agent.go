@@ -45,7 +45,9 @@ func (a *Agent) FieldNames() []string {
 type AgentSpec struct {
 	Manifest            types.AgentManifest `json:"manifest,omitempty"`
 	InputFilters        []string            `json:"inputFilters,omitempty"`
+	Credentials         []string            `json:"credentials,omitempty"`
 	CredentialContextID string              `json:"credentialContextID,omitempty"`
+	Env                 []string            `json:"env,omitempty"`
 }
 
 type AgentStatus struct {
