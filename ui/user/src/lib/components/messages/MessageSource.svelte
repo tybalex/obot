@@ -24,11 +24,12 @@
 		disconnect();
 		es = ChatService.newMessageEventSource(assistant);
 		es.onmessage = handleMessage;
+		es.onopen = () => {
+			console.log('Message EventSource opened');
+		};
 		es.onerror = (e: Event) => {
 			if (e.eventPhase === EventSource.CLOSED) {
-				disconnect();
-				setTimeout(connect, 5000);
-				return;
+				console.log('Message EventSource closed');
 			}
 		};
 	}
