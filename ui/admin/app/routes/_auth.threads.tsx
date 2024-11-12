@@ -17,6 +17,7 @@ import { Thread } from "~/lib/model/threads";
 import { Workflow } from "~/lib/model/workflows";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
+import { UserService } from "~/lib/service/api/userService";
 import { WorkflowService } from "~/lib/service/api/workflowService";
 import { RouteService } from "~/lib/service/routeService";
 import { timeSince } from "~/lib/utils";
@@ -68,7 +69,7 @@ export default function Threads() {
         WorkflowService.getWorkflows
     );
 
-    console.log("something");
+    const getUsers = useSWR(UserService.getUsers.key(), UserService.getUsers);
 
     const agentMap = useMemo(() => {
         // note(tylerslaton): the or condition here is because the getAgents.data can
@@ -98,7 +99,9 @@ export default function Threads() {
     const threads = useMemo(() => {
         if (!getThreads.data) return [];
 
-        let filteredThreads = getThreads.data;
+        let filteredThreads = getThreads.data.filter(
+            (thread) => thread.agentID || thread.workflowID
+        );
 
         if (agentId) {
             filteredThreads = filteredThreads.filter(
@@ -176,6 +179,17 @@ export default function Threads() {
                             )}
                             {row.original.agentID ? "Agent" : "Workflow"}
                         </TypographyP>
+                    );
+                },
+            }),
+            columnHelper.accessor("userID", {
+                header: "User",
+                cell: ({ row }) => {
+                    if (!getUsers.data) return row.original.userID;
+                    return (
+                        getUsers.data.find(
+                            (user) => user.id === row.original.userID
+                        )?.email ?? "-"
                     );
                 },
             }),
