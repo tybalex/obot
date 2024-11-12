@@ -2,7 +2,10 @@ package events
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"io/fs"
+	"os"
 	"strings"
 	"time"
 
@@ -27,6 +30,7 @@ func (q *Quiet) Print(input string, events <-chan types.Progress) error {
 			return fmt.Errorf("%s", event.Error)
 		}
 		if event.Prompt != nil {
+			fmt.Printf("> %s (use @file.txt syntax to read value from file)\n", event.Prompt.Message)
 			if err := handlePrompt(q.Ctx, q.Client, event.Prompt); err != nil {
 				return err
 			}
@@ -105,7 +109,7 @@ outer:
 				out.Print(fmt.Sprintf("> Running tool (%s): %s\n", color.MagentaString(event.ToolCall.Name), color.MagentaString(event.ToolCall.Input)))
 			} else if event.Prompt != nil {
 				out.EnsureNewline()
-				out.Print(fmt.Sprintf("> %s\n", color.CyanString(event.Prompt.Message)))
+				out.Print(fmt.Sprintf("> %s\n", color.CyanString(event.Prompt.Message+` (use @file.txt syntax to read value from file)`)))
 				if err := handlePrompt(v.Ctx, v.Client, event.Prompt); err != nil {
 					return err
 				}
@@ -134,6 +138,15 @@ func handlePrompt(ctx context.Context, c *apiclient.Client, prompt *types.Prompt
 		v, err := textio.Ask(field, "")
 		if err != nil {
 			return err
+		}
+		if strings.HasPrefix(v, "@") {
+			data, err := os.ReadFile(v[1:])
+			if errors.Is(err, fs.ErrNotExist) {
+			} else if err != nil {
+				return err
+			} else {
+				v = string(data)
+			}
 		}
 		promptResponse.Responses[field] = v
 	}
