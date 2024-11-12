@@ -20,6 +20,7 @@ import {
 } from "~/components/ui/tooltip";
 import { CreateWorkflow } from "~/components/workflow/CreateWorkflow";
 import { DeleteWorkflowButton } from "~/components/workflow/DeleteWorkflow";
+import { WorkflowViewYaml } from "~/components/workflow/WorkflowView";
 
 export async function clientLoader() {
     mutate(WorkflowService.getWorkflows.key(), ThreadsService.getThreads.key());
@@ -129,6 +130,8 @@ export default function Workflows() {
                 id: "actions",
                 cell: ({ row }) => (
                     <div className="flex gap-2 justify-end">
+                        <WorkflowViewYaml workflow={row.original} />
+
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" asChild>
