@@ -1,4 +1,4 @@
-import { List, PuzzleIcon, WrenchIcon } from "lucide-react";
+import { Library, List, PuzzleIcon, WrenchIcon } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { Workflow as WorkflowType } from "~/lib/model/workflows";
@@ -6,6 +6,7 @@ import { cn } from "~/lib/utils";
 
 import { TypographyH4, TypographyP } from "~/components/Typography";
 import { AgentForm } from "~/components/agent";
+import { AgentKnowledgePanel } from "~/components/knowledge";
 import { BasicToolForm } from "~/components/tools/BasicToolForm";
 import { Card, CardDescription } from "~/components/ui/card";
 import { ScrollArea } from "~/components/ui/scroll-area";
@@ -107,6 +108,25 @@ function WorkflowContent({ className }: WorkflowProps) {
                         onChange={(values) =>
                             debouncedSetWorkflowInfo({ steps: values.steps })
                         }
+                    />
+                </Card>
+
+                <Card className="p-4 m-4 flex flex-col gap-4">
+                    <TypographyH4 className="flex items-center gap-2">
+                        <Library className="w-4 h-4" />
+                        Knowledge
+                    </TypographyH4>
+
+                    <CardDescription>
+                        Provide knowledge to the workflow in the form of files,
+                        websites, or external links in order to give it context
+                        about various topics.
+                    </CardDescription>
+
+                    <AgentKnowledgePanel
+                        agent={workflowUpdates}
+                        agentId={workflow.id}
+                        updateAgent={debouncedSetWorkflowInfo}
                     />
                 </Card>
             </ScrollArea>
