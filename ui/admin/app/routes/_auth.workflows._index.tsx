@@ -41,16 +41,29 @@ export default function Workflows() {
         WorkflowService.getWorkflows
     );
 
+    const getThreads = useSWR(
+        ThreadsService.getThreads.key(),
+        ThreadsService.getThreads
+    );
+
     const threadCounts = useMemo(() => {
-        if (!getWorkflows.data || !Array.isArray(getWorkflows.data)) return {};
-        return getWorkflows.data?.reduce(
-            (acc, workflow) => {
-                acc[workflow.id] = (acc[workflow.id] || 0) + 1;
+        if (
+            !getWorkflows.data ||
+            !getThreads.data ||
+            !Array.isArray(getWorkflows.data)
+        )
+            return {};
+
+        return getThreads.data?.reduce(
+            (acc, thread) => {
+                if (!thread.workflowID) return acc;
+
+                acc[thread.workflowID] = (acc[thread.workflowID] || 0) + 1;
                 return acc;
             },
             {} as Record<string, number>
         );
-    }, [getWorkflows.data]);
+    }, [getThreads.data, getWorkflows.data]);
 
     return (
         <div>
