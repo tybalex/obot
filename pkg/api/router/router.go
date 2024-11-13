@@ -39,6 +39,8 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	// Assistants
 	mux.HandleFunc("GET /api/assistants", assistants.List)
+	mux.HandleFunc("GET /api/assistants/{id}/credentials", assistants.ListCredentials)
+	mux.HandleFunc("DELETE /api/assistants/{id}/credentials/{cred_id}", assistants.DeleteCredential)
 	mux.HandleFunc("GET /api/assistants/{id}/events", assistants.Events)
 	mux.HandleFunc("POST /api/assistants/{id}/invoke", assistants.Invoke)
 	mux.HandleFunc("GET /api/assistants/{id}/tools", assistants.Tools)

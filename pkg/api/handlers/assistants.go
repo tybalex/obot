@@ -153,6 +153,49 @@ func getUserThread(req api.Context, agentID string) (*v1.Thread, error) {
 	return newThread, err
 }
 
+func (a *AssistantHandler) DeleteCredential(req api.Context) error {
+	var (
+		id   = req.PathValue("id")
+		cred = req.PathValue("cred_id")
+	)
+
+	thread, err := getUserThread(req, id)
+	if err != nil {
+		return err
+	}
+
+	if err := req.GPTClient.DeleteCredential(req.Context(), thread.Name, cred); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (a *AssistantHandler) ListCredentials(req api.Context) error {
+	var (
+		id = req.PathValue("id")
+	)
+
+	thread, err := getUserThread(req, id)
+	if err != nil {
+		return err
+	}
+
+	creds, err := req.GPTClient.ListCredentials(req.Context(), gptscript.ListCredentialsOptions{
+		CredentialContexts: []string{thread.Name},
+	})
+	if err != nil {
+		return err
+	}
+
+	var result types.CredentialList
+	for _, cred := range creds {
+		result.Items = append(result.Items, convertCredential(cred))
+	}
+
+	return req.Write(result)
+}
+
 func (a *AssistantHandler) Events(req api.Context) error {
 	var (
 		id    = req.PathValue("id")

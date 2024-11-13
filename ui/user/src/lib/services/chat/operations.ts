@@ -1,6 +1,7 @@
 import {
 	type Assistants,
 	type AssistantToolList,
+	type CredentialList,
 	type Files,
 	type KnowledgeFile,
 	type KnowledgeFiles,
@@ -74,6 +75,18 @@ export async function listFiles(assistant: string): Promise<Files> {
 
 export async function invoke(assistant: string, msg: string | object) {
 	await doPost(`/assistants/${assistant}/invoke`, msg);
+}
+
+export async function listCredentials(assistant: string): Promise<CredentialList> {
+	const list = (await doGet(`/assistants/${assistant}/credentials`)) as CredentialList;
+	if (!list.items) {
+		list.items = [];
+	}
+	return list;
+}
+
+export async function deleteCredential(assistant: string, id: string) {
+	return doDelete(`/assistants/${assistant}/credentials/${id}`);
 }
 
 export async function listTools(assistant: string): Promise<AssistantToolList> {

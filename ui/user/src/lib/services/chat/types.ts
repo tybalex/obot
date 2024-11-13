@@ -166,3 +166,11 @@ export interface AssistantToolList {
 	readonly?: boolean;
 	items: AssistantTool[];
 }
+
+export interface Credential {
+	name: string;
+}
+
+export interface CredentialList {
+	items: Credential[];
+}
