@@ -12,7 +12,7 @@ export const truncate = (str: string, maxLength: number) => {
     return str.slice(0, maxLength) + "...";
 };
 
-const pluralize = (count: number, singular: string, plural: string) =>
+export const pluralize = (count: number, singular: string, plural: string) =>
     `${count === 1 ? singular : plural}`;
 
 export const timeSince = (date: Date) => {

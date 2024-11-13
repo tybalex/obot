@@ -17,6 +17,7 @@ const QueryParamSchemaMap = {
     "/thread/:id": z.undefined(),
     "/threads": z.object({
         agentId: z.string().optional(),
+        userId: z.string().optional(),
         workflowId: z.string().optional(),
     }),
     "/workflows": z.undefined(),

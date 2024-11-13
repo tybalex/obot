@@ -4,19 +4,22 @@ import {
     Link,
     useLoaderData,
     useNavigate,
+    useSearchParams,
 } from "@remix-run/react";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { PuzzleIcon, Trash } from "lucide-react";
-import { useMemo } from "react";
+import { PuzzleIcon, Trash, XIcon } from "lucide-react";
+import { useCallback, useMemo } from "react";
 import { $path } from "remix-routes";
 import useSWR, { preload } from "swr";
 import { z } from "zod";
 
 import { Agent } from "~/lib/model/agents";
 import { Thread } from "~/lib/model/threads";
+import { User } from "~/lib/model/users";
 import { Workflow } from "~/lib/model/workflows";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
+import { UserService } from "~/lib/service/api/userService";
 import { WorkflowService } from "~/lib/service/api/workflowService";
 import { RouteService } from "~/lib/service/routeService";
 import { timeSince } from "~/lib/utils";
@@ -50,7 +53,8 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
 
 export default function Threads() {
     const navigate = useNavigate();
-    const { agentId, workflowId } = useLoaderData<typeof clientLoader>();
+    const { agentId, workflowId, userId } =
+        useLoaderData<typeof clientLoader>();
 
     const getThreads = useSWR(
         ThreadsService.getThreads.key(),
@@ -66,6 +70,8 @@ export default function Threads() {
         WorkflowService.getWorkflows.key(),
         WorkflowService.getWorkflows
     );
+
+    const getUsers = useSWR(UserService.getUsers.key(), UserService.getUsers);
 
     const agentMap = useMemo(() => {
         // note(tylerslaton): the or condition here is because the getAgents.data can
@@ -95,21 +101,30 @@ export default function Threads() {
     const threads = useMemo(() => {
         if (!getThreads.data) return [];
 
-        if (!agentId && !workflowId) return getThreads.data;
+        let filteredThreads = getThreads.data.filter(
+            (thread) => thread.agentID || thread.workflowID
+        );
 
-        switch (true) {
-            case !!agentId:
-                return getThreads.data.filter(
-                    (thread) => thread.agentID === agentId
-                );
-            case !!workflowId:
-                return getThreads.data.filter(
-                    (thread) => thread.workflowID === workflowId
-                );
-            default:
-                return getThreads.data;
+        if (agentId) {
+            filteredThreads = filteredThreads.filter(
+                (thread) => thread.agentID === agentId
+            );
         }
-    }, [getThreads.data, agentId, workflowId]);
+
+        if (workflowId) {
+            filteredThreads = filteredThreads.filter(
+                (thread) => thread.workflowID === workflowId
+            );
+        }
+
+        if (userId) {
+            filteredThreads = filteredThreads.filter(
+                (thread) => thread.userID === userId
+            );
+        }
+
+        return filteredThreads;
+    }, [getThreads.data, agentId, workflowId, userId]);
 
     const deleteThread = useAsync(ThreadsService.deleteThread, {
         onSuccess: ThreadsService.revalidateThreads,
@@ -117,13 +132,18 @@ export default function Threads() {
 
     return (
         <div className="h-full flex flex-col">
-            <div className="flex-auto overflow-hidden p-8">
-                <TypographyH2 className="mb-8">Threads</TypographyH2>
+            <div className="flex-auto flex flex-col overflow-hidden p-8 gap-4">
+                <TypographyH2>Threads</TypographyH2>
+
+                <ThreadFilters
+                    users={getUsers.data ?? []}
+                    agents={getAgents.data ?? []}
+                    workflows={getWorkflows.data ?? []}
+                />
+
                 <DataTable
                     columns={getColumns()}
-                    data={threads.filter(
-                        (thread) => thread.agentID || thread.workflowID
-                    )}
+                    data={threads}
                     sort={[{ id: "created", desc: true }]}
                     classNames={{
                         row: "!max-h-[200px] grow-0 height-[200px]",
@@ -168,6 +188,17 @@ export default function Threads() {
                             )}
                             {row.original.agentID ? "Agent" : "Workflow"}
                         </TypographyP>
+                    );
+                },
+            }),
+            columnHelper.accessor("userID", {
+                header: "User",
+                cell: ({ row }) => {
+                    if (!getUsers.data) return row.original.userID;
+                    return (
+                        getUsers.data.find(
+                            (user) => user.id === row.original.userID
+                        )?.email ?? "-"
                     );
                 },
             }),
@@ -225,6 +256,74 @@ export default function Threads() {
             }),
         ];
     }
+}
+
+function ThreadFilters({
+    users,
+    agents,
+    workflows,
+}: {
+    users: User[];
+    agents: Agent[];
+    workflows: Workflow[];
+}) {
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const removeParam = useCallback(
+        (key: string) =>
+            setSearchParams((prev) => {
+                const params = new URLSearchParams(prev);
+                params.delete(key);
+                return params;
+            }),
+        [setSearchParams]
+    );
+
+    const filters = useMemo(() => {
+        const threadFilters = {
+            agentId: (value: string) =>
+                agents.find((agent) => agent.id === value)?.name,
+            userId: (value: string) =>
+                users.find((user) => user.id === value)?.email,
+            workflowId: (value: string) =>
+                workflows.find((workflow) => workflow.id === value)?.name,
+        };
+
+        const labels = {
+            agentId: "Agent",
+            userId: "User",
+            workflowId: "Workflow",
+        };
+
+        const query = RouteService.getQueryParams(
+            "/threads",
+            searchParams.toString()
+        );
+
+        return Object.entries(query ?? {}).map(([key, value]) => ({
+            key,
+            label: labels[key as keyof SearchParams],
+            value: threadFilters[key as keyof SearchParams](value),
+            onRemove: () => removeParam(key),
+        }));
+    }, [agents, removeParam, searchParams, users, workflows]);
+
+    return (
+        <div className="flex gap-2">
+            {filters.map((filter) => (
+                <Button
+                    key={filter.key}
+                    size="badge"
+                    onClick={filter.onRemove}
+                    variant="secondary"
+                    shape="pill"
+                    endContent={<XIcon />}
+                >
+                    <b>{filter.label}:</b> {filter.value}
+                </Button>
+            ))}
+        </div>
+    );
 }
 
 const columnHelper = createColumnHelper<Thread>();
