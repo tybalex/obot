@@ -62,7 +62,8 @@ func Workflow(ctx context.Context, c kclient.Client, wf *v1.Workflow, opts Workf
 			CredentialContextID: wf.Name,
 		},
 		Status: v1.AgentStatus{
-			WorkspaceName: wf.Status.WorkspaceName,
+			WorkspaceName:     wf.Status.WorkspaceName,
+			KnowledgeSetNames: wf.Status.KnowledgeSetNames,
 		},
 	}
 
