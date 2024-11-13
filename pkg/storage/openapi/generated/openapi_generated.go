@@ -5881,6 +5881,11 @@ func schema_storage_apis_ottootto8ai_v1_ToolReferenceStatus(ref common.Reference
 							Format: "int64",
 						},
 					},
+					"lastReferenceCheck": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
+						},
+					},
 					"tool": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ToolShortDescription"),
@@ -5896,7 +5901,7 @@ func schema_storage_apis_ottootto8ai_v1_ToolReferenceStatus(ref common.Reference
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ToolShortDescription"},
+			"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1.ToolShortDescription", "k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
 	}
 }
 

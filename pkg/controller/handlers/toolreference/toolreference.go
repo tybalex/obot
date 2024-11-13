@@ -207,11 +207,13 @@ func (h *Handler) PollRegistry(ctx context.Context, c client.Client) {
 
 func (h *Handler) Populate(req router.Request, resp router.Response) error {
 	toolRef := req.Object.(*v1.ToolReference)
-	if toolRef.Generation == toolRef.Status.ObservedGeneration {
+	if retry := time.Until(toolRef.Status.LastReferenceCheck.Time); toolRef.Generation == toolRef.Status.ObservedGeneration && retry > -time.Hour {
+		resp.RetryAfter(time.Hour + retry)
 		return nil
 	}
 
 	// Reset status
+	toolRef.Status.LastReferenceCheck = metav1.Now()
 	toolRef.Status.ObservedGeneration = toolRef.Generation
 	toolRef.Status.Reference = toolRef.Spec.Reference
 	toolRef.Status.Tool = nil

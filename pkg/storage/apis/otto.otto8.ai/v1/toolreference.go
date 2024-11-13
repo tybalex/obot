@@ -42,6 +42,7 @@ type ToolShortDescription struct {
 type ToolReferenceStatus struct {
 	Reference          string                `json:"reference,omitempty"`
 	ObservedGeneration int64                 `json:"observedGeneration,omitempty"`
+	LastReferenceCheck metav1.Time           `json:"lastReferenceCheck,omitempty"`
 	Tool               *ToolShortDescription `json:"tool,omitempty"`
 	Error              string                `json:"error,omitempty"`
 }
