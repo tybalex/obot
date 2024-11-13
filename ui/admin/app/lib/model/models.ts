@@ -83,10 +83,6 @@ const ModelToProviderMap = {
 };
 
 export function getModelsForProvider(providerId: string) {
-    if (!providerId) return [];
-
-    if (!(providerId in ModelToProviderMap))
-        throw new Error(`Unknown provider: ${providerId}`);
-
+    if (!providerId || !(providerId in ModelToProviderMap)) return [];
     return ModelToProviderMap[providerId as keyof typeof ModelToProviderMap];
 }
