@@ -56,7 +56,7 @@ func New() *cobra.Command {
 		cmd.Command(&Tools{root: root},
 			&ToolUnregister{root: root},
 			&ToolRegister{root: root},
-			&StepTemplateUpdate{root: root}),
+			&ToolUpdate{root: root}),
 		&Webhooks{root: root},
 		&Server{},
 		&Version{},

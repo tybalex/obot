@@ -8,8 +8,9 @@ import (
 )
 
 type Tools struct {
-	root  *Otto8
-	Quiet bool `usage:"Only print IDs of tools" short:"q"`
+	root   *Otto8
+	Quiet  bool   `usage:"Only print IDs of tools" short:"q"`
+	Output string `usage:"Output format (table, json, yaml)" short:"o" default:"table"`
 }
 
 func (l *Tools) Customize(cmd *cobra.Command) {
@@ -21,6 +22,10 @@ func (l *Tools) Customize(cmd *cobra.Command) {
 func (l *Tools) Run(cmd *cobra.Command, args []string) error {
 	toolRefs, err := l.root.Client.ListToolReferences(cmd.Context(), apiclient.ListToolReferencesOptions{})
 	if err != nil {
+		return err
+	}
+
+	if ok, err := output(l.Output, toolRefs); ok || err != nil {
 		return err
 	}
 

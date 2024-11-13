@@ -9,9 +9,10 @@ import (
 )
 
 type Threads struct {
-	root  *Otto8
-	Quiet bool `usage:"Only print IDs of threads" short:"q"`
-	Wide  bool `usage:"Print more information" short:"w"`
+	root   *Otto8
+	Quiet  bool   `usage:"Only print IDs of threads" short:"q"`
+	Wide   bool   `usage:"Print more information" short:"w"`
+	Output string `usage:"Output format (table, json, yaml)" short:"o" default:"table"`
 }
 
 func (l *Threads) Customize(cmd *cobra.Command) {
@@ -25,8 +26,13 @@ func (l *Threads) Run(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		opts.AgentID = args[0]
 	}
+
 	threads, err := l.root.Client.ListThreads(cmd.Context(), opts)
 	if err != nil {
+		return err
+	}
+
+	if ok, err := output(l.Output, threads); ok || err != nil {
 		return err
 	}
 

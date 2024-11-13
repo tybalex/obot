@@ -8,9 +8,10 @@ import (
 )
 
 type Webhooks struct {
-	root  *Otto8
-	Quiet bool `usage:"Only print IDs of agents" short:"q"`
-	Wide  bool `usage:"Print more information" short:"w"`
+	root   *Otto8
+	Quiet  bool   `usage:"Only print IDs of agents" short:"q"`
+	Wide   bool   `usage:"Print more information" short:"w"`
+	Output string `usage:"Output format (table, json, yaml)" short:"o" default:"table"`
 }
 
 func (l *Webhooks) Customize(cmd *cobra.Command) {
@@ -20,6 +21,10 @@ func (l *Webhooks) Customize(cmd *cobra.Command) {
 func (l *Webhooks) Run(cmd *cobra.Command, args []string) error {
 	whs, err := l.root.Client.ListWebhooks(cmd.Context())
 	if err != nil {
+		return err
+	}
+
+	if ok, err := output(l.Output, whs); ok || err != nil {
 		return err
 	}
 

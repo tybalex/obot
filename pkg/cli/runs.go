@@ -14,9 +14,10 @@ import (
 
 type Runs struct {
 	root   *Otto8
-	Wide   bool `usage:"Print more information" short:"w"`
-	Quiet  bool `usage:"Only print IDs of runs" short:"q"`
-	Follow bool `usage:"Follow the output of runs" short:"f"`
+	Wide   bool   `usage:"Print more information" short:"w"`
+	Quiet  bool   `usage:"Only print IDs of runs" short:"q"`
+	Output string `usage:"Output format (table, json, yaml)" short:"o" default:"table"`
+	Follow bool   `usage:"Follow the output of runs" short:"f"`
 }
 
 func (l *Runs) Customize(cmd *cobra.Command) {
@@ -108,6 +109,9 @@ func (l *Runs) Run(cmd *cobra.Command, args []string) error {
 	} else {
 		runs, err := l.root.Client.ListRuns(cmd.Context(), opts)
 		if err != nil {
+			return err
+		}
+		if ok, err := output(l.Output, runs); ok || err != nil {
 			return err
 		}
 		list = sliceToIter(runs.Items)

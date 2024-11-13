@@ -9,9 +9,10 @@ import (
 )
 
 type Agents struct {
-	root  *Otto8
-	Quiet bool `usage:"Only print IDs of agents" short:"q"`
-	Wide  bool `usage:"Print more information" short:"w"`
+	root   *Otto8
+	Quiet  bool   `usage:"Only print IDs of agents" short:"q"`
+	Wide   bool   `usage:"Print more information" short:"w"`
+	Output string `usage:"Output format (table, json, yaml)" short:"o" default:"table"`
 }
 
 func (l *Agents) Customize(cmd *cobra.Command) {
@@ -21,6 +22,10 @@ func (l *Agents) Customize(cmd *cobra.Command) {
 func (l *Agents) Run(cmd *cobra.Command, args []string) error {
 	agents, err := l.root.Client.ListAgents(cmd.Context(), apiclient.ListAgentsOptions{})
 	if err != nil {
+		return err
+	}
+
+	if ok, err := output(l.Output, agents); ok || err != nil {
 		return err
 	}
 
