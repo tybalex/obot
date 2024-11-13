@@ -63,6 +63,10 @@ func (s *Server) wrap(f api.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
+		rw.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0")
+		rw.Header().Set("Pragma", "no-cache")
+		rw.Header().Set("Expires", "0")
+
 		user, err := s.authenticator.Authenticate(req)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusUnauthorized)
