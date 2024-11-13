@@ -31,6 +31,10 @@ func IsRunID(id string) bool {
 	return strings.HasPrefix(id, RunPrefix)
 }
 
+func IsWebhookID(id string) bool {
+	return strings.HasPrefix(id, WebhookPrefix)
+}
+
 func IsWorkflowID(id string) bool {
 	return strings.HasPrefix(id, WorkflowPrefix)
 }

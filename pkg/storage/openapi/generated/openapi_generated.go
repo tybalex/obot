@@ -1395,6 +1395,12 @@ func schema_otto8_ai_otto8_apiclient_types_Metadata(ref common.ReferenceCallback
 							},
 						},
 					},
+					"type": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
@@ -2883,12 +2889,6 @@ func schema_otto8_ai_otto8_apiclient_types_WebhookManifest(ref common.ReferenceC
 						},
 					},
 					"workflowID": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"afterWorkflowStepName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -6229,12 +6229,6 @@ func schema_storage_apis_ottootto8ai_v1_WebhookSpec(ref common.ReferenceCallback
 						},
 					},
 					"workflowID": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
-					"afterWorkflowStepName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",

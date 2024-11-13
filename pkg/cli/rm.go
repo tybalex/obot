@@ -49,6 +49,12 @@ func (l *Delete) Run(cmd *cobra.Command, args []string) error {
 			} else {
 				fmt.Printf("Workflow deleted: %s\n", id)
 			}
+		case system.IsWebhookID(id):
+			if err := l.root.Client.DeleteWebhook(cmd.Context(), id); err != nil {
+				errs = append(errs, err)
+			} else {
+				fmt.Printf("Webhook deleted: %s\n", id)
+			}
 		default:
 			errs = append(errs, errors.New("invalid ID: "+id))
 		}
