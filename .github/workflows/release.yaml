@@ -42,4 +42,4 @@ jobs:
       - name: Create WinGet Package Update Pull Request
         run: |
           $url = "${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/otto8_${{ github.ref_name }}_windows_amd64.zip"
-          ./wingetcreate.exe update --submit --token "${{ secrets.WINGET_GH_TOKEN }}" --urls $url --version "${{ github.ref_name }}" gptscript-ai.otto8
+          ./wingetcreate.exe update --submit --token "${{ secrets.WINGET_GH_TOKEN }}" --urls $url --version "${{ github.ref_name }}" otto8-ai.otto8
