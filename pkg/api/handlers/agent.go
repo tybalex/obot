@@ -20,12 +20,15 @@ import (
 type AgentHandler struct {
 	gptscript *gptscript.GPTScript
 	serverURL string
+	// This is currently a hack to access the workflow handler
+	workflowHandler *WorkflowHandler
 }
 
 func NewAgentHandler(gClient *gptscript.GPTScript, serverURL string) *AgentHandler {
 	return &AgentHandler{
-		serverURL: serverURL,
-		gptscript: gClient,
+		serverURL:       serverURL,
+		gptscript:       gClient,
+		workflowHandler: NewWorkflowHandler(gClient, serverURL, nil),
 	}
 }
 
@@ -484,8 +487,13 @@ func (a *AgentHandler) DeleteKnowledgeSource(req api.Context) error {
 }
 
 func (a *AgentHandler) EnsureCredentialForKnowledgeSource(req api.Context) error {
+	agentID := req.PathValue("id")
+	if system.IsWorkflowID(agentID) {
+		return a.workflowHandler.EnsureCredentialForKnowledgeSource(req)
+	}
+
 	var agent v1.Agent
-	if err := req.Get(&agent, req.PathValue("agent_id")); err != nil {
+	if err := req.Get(&agent, agentID); err != nil {
 		return err
 	}
 

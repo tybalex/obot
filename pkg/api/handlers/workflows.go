@@ -14,6 +14,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/render"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
+	"github.com/otto8-ai/otto8/pkg/wait"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -163,6 +164,74 @@ func (a *WorkflowHandler) List(req api.Context) error {
 	}
 
 	return req.Write(resp)
+}
+
+func (a *WorkflowHandler) EnsureCredentialForKnowledgeSource(req api.Context) error {
+	var wf v1.Workflow
+	if err := req.Get(&wf, req.PathValue("id")); err != nil {
+		return err
+	}
+
+	ref := req.PathValue("ref")
+	authStatus := wf.Status.External.AuthStatus[ref]
+
+	// If auth is not required, then don't continue.
+	if authStatus.Required != nil && !*authStatus.Required {
+		return req.Write(convertWorkflow(wf, server.GetURLPrefix(req)))
+	}
+
+	// if auth is already authenticated, then don't continue.
+	if authStatus.Authenticated {
+		return req.Write(convertWorkflow(wf, server.GetURLPrefix(req)))
+	}
+
+	credentialTool, err := v1.CredentialTool(req.Context(), req.Storage, req.Namespace(), ref)
+	if err != nil {
+		return err
+	}
+
+	if credentialTool == "" {
+		// The only way to get here is if the controller hasn't set the field yet.
+		if wf.Status.External.AuthStatus == nil {
+			wf.Status.External.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
+		}
+
+		authStatus.Required = &[]bool{false}[0]
+		wf.Status.External.AuthStatus[ref] = authStatus
+		return req.Write(convertWorkflow(wf, server.GetURLPrefix(req)))
+	}
+
+	oauthLogin := &v1.OAuthAppLogin{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      system.OAuthAppLoginPrefix + wf.Name + ref,
+			Namespace: req.Namespace(),
+		},
+		Spec: v1.OAuthAppLoginSpec{
+			CredentialContext: wf.Name,
+			ToolReference:     ref,
+		},
+	}
+
+	if err = req.Delete(oauthLogin); err != nil {
+		return err
+	}
+
+	oauthLogin, err = wait.For(req.Context(), req.Storage, oauthLogin, func(obj *v1.OAuthAppLogin) bool {
+		return obj.Status.External.Authenticated || obj.Status.External.Error != "" || obj.Status.External.URL != ""
+	}, wait.Option{
+		Create: true,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to ensure credential for workflow %q: %w", wf.Name, err)
+	}
+
+	// Don't need to actually update the knowledge ref, there is a controller that will do that.
+	if wf.Status.External.AuthStatus == nil {
+		wf.Status.External.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
+	}
+	wf.Status.External.AuthStatus[ref] = oauthLogin.Status.External
+
+	return req.Write(convertWorkflow(wf, server.GetURLPrefix(req)))
 }
 
 func (a *WorkflowHandler) Script(req api.Context) error {

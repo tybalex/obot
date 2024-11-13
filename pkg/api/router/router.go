@@ -35,7 +35,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("POST /api/agents", agents.Create)
 	mux.HandleFunc("PUT /api/agents/{id}", agents.Update)
 	mux.HandleFunc("DELETE /api/agents/{id}", agents.Delete)
-	mux.HandleFunc("POST /api/agents/{agent_id}/oauth-credentials/{ref}/login", agents.EnsureCredentialForKnowledgeSource)
+	mux.HandleFunc("POST /api/agents/{id}/oauth-credentials/{ref}/login", agents.EnsureCredentialForKnowledgeSource)
 
 	// Assistants
 	mux.HandleFunc("GET /api/assistants", assistants.List)
@@ -87,6 +87,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("POST /api/workflows/{id}/authenticate", workflows.Authenticate)
 	mux.HandleFunc("PUT /api/workflows/{id}", workflows.Update)
 	mux.HandleFunc("DELETE /api/workflows/{id}", workflows.Delete)
+	mux.HandleFunc("POST /api/workflows/{id}/oauth-credentials/{ref}/login", workflows.EnsureCredentialForKnowledgeSource)
 
 	// Workflow knowledge files
 	mux.HandleFunc("GET /api/workflows/{agent_id}/knowledge-files", agents.ListKnowledgeFiles)
