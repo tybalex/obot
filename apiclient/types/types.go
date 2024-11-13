@@ -13,4 +13,5 @@ type Metadata struct {
 	Deleted  *Time             `json:"deleted,omitempty"`
 	Links    map[string]string `json:"links,omitempty"`
 	Metadata map[string]string `json:"metadata,omitempty"`
+	Type     string            `json:"type,omitempty"`
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 
 	"github.com/gptscript-ai/go-gptscript"
@@ -593,6 +594,7 @@ func MetadataFrom(obj kclient.Object, linkKV ...string) types.Metadata {
 		ID:      obj.GetName(),
 		Created: *types.NewTime(obj.GetCreationTimestamp().Time),
 		Links:   map[string]string{},
+		Type:    strings.ToLower(reflect.TypeOf(obj).Elem().Name()),
 	}
 	if delTime := obj.GetDeletionTimestamp(); delTime != nil {
 		m.Deleted = types.NewTime(delTime.Time)
