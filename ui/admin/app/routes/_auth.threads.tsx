@@ -98,6 +98,17 @@ export default function Threads() {
         );
     }, [getWorkflows.data]);
 
+    const userMap = useMemo(() => {
+        if (!getUsers.data || !Array.isArray(getUsers.data)) return {};
+        return getUsers.data.reduce(
+            (acc, user) => {
+                acc[user.id] = user;
+                return acc;
+            },
+            {} as Record<string, User>
+        );
+    }, [getUsers.data]);
+
     const threads = useMemo(() => {
         if (!getThreads.data) return [];
 
@@ -136,9 +147,9 @@ export default function Threads() {
                 <TypographyH2>Threads</TypographyH2>
 
                 <ThreadFilters
-                    users={getUsers.data ?? []}
-                    agents={getAgents.data ?? []}
-                    workflows={getWorkflows.data ?? []}
+                    userMap={userMap}
+                    agentMap={agentMap}
+                    workflowMap={workflowMap}
                 />
 
                 <DataTable
@@ -191,17 +202,11 @@ export default function Threads() {
                     );
                 },
             }),
-            columnHelper.accessor("userID", {
-                header: "User",
-                cell: ({ row }) => {
-                    if (!getUsers.data) return row.original.userID;
-                    return (
-                        getUsers.data.find(
-                            (user) => user.id === row.original.userID
-                        )?.email ?? "-"
-                    );
-                },
-            }),
+            columnHelper.accessor(
+                (thread) =>
+                    thread.userID ? userMap[thread.userID]?.email || "-" : "-",
+                { header: "User" }
+            ),
             columnHelper.accessor("created", {
                 id: "created",
                 header: "Created",
@@ -259,13 +264,13 @@ export default function Threads() {
 }
 
 function ThreadFilters({
-    users,
-    agents,
-    workflows,
+    userMap,
+    agentMap,
+    workflowMap,
 }: {
-    users: User[];
-    agents: Agent[];
-    workflows: Workflow[];
+    userMap: Record<string, User>;
+    agentMap: Record<string, Agent>;
+    workflowMap: Record<string, Workflow>;
 }) {
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -281,12 +286,9 @@ function ThreadFilters({
 
     const filters = useMemo(() => {
         const threadFilters = {
-            agentId: (value: string) =>
-                agents.find((agent) => agent.id === value)?.name,
-            userId: (value: string) =>
-                users.find((user) => user.id === value)?.email,
-            workflowId: (value: string) =>
-                workflows.find((workflow) => workflow.id === value)?.name,
+            agentId: (value: string) => agentMap[value]?.name ?? value,
+            userId: (value: string) => userMap[value]?.email ?? "-",
+            workflowId: (value: string) => workflowMap[value]?.name ?? value,
         };
 
         const labels = {
@@ -306,7 +308,7 @@ function ThreadFilters({
             value: threadFilters[key as keyof SearchParams](value),
             onRemove: () => removeParam(key),
         }));
-    }, [agents, removeParam, searchParams, users, workflows]);
+    }, [agentMap, removeParam, searchParams, userMap, workflowMap]);
 
     return (
         <div className="flex gap-2">
