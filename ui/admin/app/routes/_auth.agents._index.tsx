@@ -1,7 +1,7 @@
 import { PlusIcon } from "@radix-ui/react-icons";
 import { Link, useNavigate } from "@remix-run/react";
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { SquarePen, Trash } from "lucide-react";
+import { SquarePen } from "lucide-react";
 import { useMemo } from "react";
 import { $path } from "remix-routes";
 import useSWR, { mutate, preload } from "swr";
@@ -13,6 +13,7 @@ import { generateRandomName } from "~/lib/service/nameGenerator";
 import { timeSince } from "~/lib/utils";
 
 import { TypographyH2, TypographyP } from "~/components/Typography";
+import { DeleteAgent } from "~/components/agent/DeleteAgent";
 import { DataTable } from "~/components/composed/DataTable";
 import { Button } from "~/components/ui/button";
 import {
@@ -20,7 +21,6 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { useAsync } from "~/hooks/useAsync";
 
 export async function clientLoader() {
     mutate(AgentService.getAgents.key(), ThreadsService.getThreads.key());
@@ -55,13 +55,6 @@ export default function Agents() {
     );
 
     const agents = getAgents.data || [];
-
-    const deleteAgent = useAsync(AgentService.deleteAgent, {
-        onSuccess: () => {
-            AgentService.revalidateAgents();
-            ThreadsService.revalidateThreads();
-        },
-    });
 
     return (
         <div>
@@ -177,23 +170,7 @@ export default function Agents() {
                             </TooltipContent>
                         </Tooltip>
 
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() =>
-                                        deleteAgent.execute(row.original.id)
-                                    }
-                                >
-                                    <Trash />
-                                </Button>
-                            </TooltipTrigger>
-
-                            <TooltipContent>
-                                <p>Delete Agent</p>
-                            </TooltipContent>
-                        </Tooltip>
+                        <DeleteAgent id={row.original.id} />
                     </div>
                 ),
             }),
