@@ -15,8 +15,8 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
-	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241115172653-aba0474b01f4
-	github.com/gptscript-ai/gptscript v0.9.6-0.20241115160003-164d6a499f26
+	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241106212914-ba040ce8f47b
+	github.com/gptscript-ai/gptscript v0.9.6-0.20241111221355-31f2edfbe970
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/oauth2-proxy/oauth2-proxy/v7 v7.0.0-00010101000000-000000000000
 	github.com/otto8-ai/kinm v0.0.0-20241106213623-2a34e5d88241
