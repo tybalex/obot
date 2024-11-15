@@ -17,16 +17,16 @@ type WorkflowList List[Workflow]
 
 type WorkflowManifest struct {
 	AgentManifest `json:",inline"`
-	Credentials   []string      `json:"credentials,omitempty"`
-	Env           []WorkflowEnv `json:"env,omitempty"`
-	Steps         []Step        `json:"steps,omitempty"`
-	Output        string        `json:"output,omitempty"`
+	Credentials   []string      `json:"credentials"`
+	Env           []WorkflowEnv `json:"env"`
+	Steps         []Step        `json:"steps"`
+	Output        string        `json:"output"`
 }
 
 type WorkflowEnv struct {
-	Name        string `json:"name,omitempty"`
-	Value       string `json:"value,omitempty"`
-	Description string `json:"description,omitempty"`
+	Name        string `json:"name"`
+	Value       string `json:"value"`
+	Description string `json:"description"`
 }
 
 type Step struct {

@@ -6,6 +6,13 @@ type Time struct {
 	Time time.Time
 }
 
+func (t *Time) GetTime() time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return t.Time
+}
+
 // NewTimeFromPointer creates a new Time object from a pointer to a time.Time object. If the pointer is nil, the
 // function returns nil.
 func NewTimeFromPointer(t *time.Time) *Time {

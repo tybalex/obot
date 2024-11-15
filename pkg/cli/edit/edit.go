@@ -3,7 +3,7 @@ package edit
 import (
 	"bytes"
 	"context"
-	"fmt"
+	"errors"
 	"os"
 	"strings"
 
@@ -45,6 +45,8 @@ func commentError(err error, buf []byte) []byte {
 	return append(header.Bytes(), buf...)
 }
 
+var ErrEditAborted = errors.New("edit aborted")
+
 func Edit(ctx context.Context, content []byte, suffix string, save func([]byte) error) error {
 	editor := editor.NewDefaultEditor(envs)
 	for {
@@ -57,7 +59,7 @@ func Edit(ctx context.Context, content []byte, suffix string, save func([]byte) 
 		}
 
 		if bytes.Equal(buf, content) {
-			return fmt.Errorf("aborted")
+			return ErrEditAborted
 		}
 
 		buf = stripComments(buf)

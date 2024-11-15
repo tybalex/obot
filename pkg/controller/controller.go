@@ -8,7 +8,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/controller/data"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/toolreference"
 	"github.com/otto8-ai/otto8/pkg/services"
-	// Enable logrus logging in baaah
+	// Enable logrus logging in nah
 	_ "github.com/otto8-ai/nah/pkg/logrus"
 )
 

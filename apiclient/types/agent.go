@@ -25,7 +25,7 @@ type AgentIcons struct {
 
 type AgentManifest struct {
 	Name                 string            `json:"name"`
-	Icons                *AgentIcons       `json:"icons,omitempty"`
+	Icons                *AgentIcons       `json:"icons"`
 	Description          string            `json:"description"`
 	Temperature          *float32          `json:"temperature"`
 	Cache                *bool             `json:"cache"`
@@ -33,14 +33,14 @@ type AgentManifest struct {
 	Prompt               string            `json:"prompt"`
 	KnowledgeDescription string            `json:"knowledgeDescription"`
 	Agents               []string          `json:"agents"`
-	Workflows            []string          `json:"workflows,omitempty"`
+	Workflows            []string          `json:"workflows"`
 	Tools                []string          `json:"tools"`
 	AvailableThreadTools []string          `json:"availableThreadTools"`
 	DefaultThreadTools   []string          `json:"defaultThreadTools"`
 	OAuthApps            []string          `json:"oauthApps"`
 	MaxThreadTools       int               `json:"maxThreadTools"`
-	Params               map[string]string `json:"params,omitempty"`
-	Model                string            `json:"model,omitempty"`
+	Params               map[string]string `json:"params"`
+	Model                string            `json:"model"`
 }
 
 type AgentExternalStatus struct {

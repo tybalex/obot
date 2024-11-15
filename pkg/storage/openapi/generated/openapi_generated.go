@@ -529,12 +529,13 @@ func schema_otto8_ai_otto8_apiclient_types_AgentManifest(ref common.ReferenceCal
 					},
 					"model": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 				},
-				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "knowledgeDescription", "agents", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools"},
+				Required: []string{"name", "icons", "description", "temperature", "cache", "refName", "prompt", "knowledgeDescription", "agents", "workflows", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools", "params", "model"},
 			},
 		},
 		Dependencies: []string{
@@ -2883,22 +2884,32 @@ func schema_otto8_ai_otto8_apiclient_types_WebhookManifest(ref common.ReferenceC
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
 					"description": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"refName": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
-					"workflowID": {
+					"workflow": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"headers": {
@@ -2917,17 +2928,20 @@ func schema_otto8_ai_otto8_apiclient_types_WebhookManifest(ref common.ReferenceC
 					},
 					"secret": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"validationHeader": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 				},
+				Required: []string{"name", "description", "refName", "workflow", "headers", "secret", "validationHeader"},
 			},
 		},
 	}
@@ -3081,23 +3095,27 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowEnv(ref common.ReferenceCallb
 				Properties: map[string]spec.Schema{
 					"name": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"value": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"description": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 				},
+				Required: []string{"name", "value", "description"},
 			},
 		},
 	}
@@ -3331,8 +3349,9 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref common.Reference
 					},
 					"model": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"credentials": {
@@ -3377,12 +3396,13 @@ func schema_otto8_ai_otto8_apiclient_types_WorkflowManifest(ref common.Reference
 					},
 					"output": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 				},
-				Required: []string{"name", "description", "temperature", "cache", "refName", "prompt", "knowledgeDescription", "agents", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools"},
+				Required: []string{"name", "icons", "description", "temperature", "cache", "refName", "prompt", "knowledgeDescription", "agents", "workflows", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools", "params", "model", "credentials", "env", "steps", "output"},
 			},
 		},
 		Dependencies: []string{
@@ -6237,22 +6257,32 @@ func schema_storage_apis_ottootto8ai_v1_WebhookSpec(ref common.ReferenceCallback
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
+					"name": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
 					"description": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"refName": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
-					"workflowID": {
+					"workflow": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"headers": {
@@ -6271,23 +6301,26 @@ func schema_storage_apis_ottootto8ai_v1_WebhookSpec(ref common.ReferenceCallback
 					},
 					"secret": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
 					"validationHeader": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
 						},
 					},
-					"passwordHash": {
+					"tokenHash": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "byte",
 						},
 					},
 				},
+				Required: []string{"name", "description", "refName", "workflow", "headers", "secret", "validationHeader"},
 			},
 		},
 	}

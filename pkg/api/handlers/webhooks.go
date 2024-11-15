@@ -151,9 +151,22 @@ func convertWebhook(webhook v1.Webhook, urlPrefix string) *types.Webhook {
 }
 
 func (a *WebhookHandler) ByID(req api.Context) error {
-	var wh v1.Webhook
-	if err := req.Get(&wh, req.PathValue("id")); err != nil {
-		return err
+	var (
+		wh v1.Webhook
+		id = req.PathValue("id")
+	)
+	if system.IsWebhookID(id) {
+		if err := req.Get(&wh, id); err != nil {
+			return err
+		}
+	} else {
+		var ref v1.WebhookReference
+		if err := req.Get(&ref, id); err != nil {
+			return err
+		}
+		if err := req.Get(&wh, ref.Spec.WebhookName); err != nil {
+			return err
+		}
 	}
 
 	return req.Write(convertWebhook(wh, server.GetURLPrefix(req)))
@@ -228,7 +241,7 @@ func (a *WebhookHandler) Execute(req api.Context) error {
 		input.WriteString(req.Request.Header.Get(k))
 	}
 
-	workflowID := webhook.Spec.WebhookManifest.WorkflowID
+	workflowID := webhook.Spec.WebhookManifest.Workflow
 	if !system.IsWorkflowID(workflowID) {
 		var ref v1.Reference
 		if err = req.Get(&ref, workflowID); err != nil || ref.Spec.WorkflowName == "" {
@@ -282,18 +295,15 @@ func validateSecretHeader(secret string, body []byte, values []string) error {
 
 func validateManifest(req api.Context, manifest types.WebhookManifest) error {
 	// Ensure that the WorkflowID is set and the workflow exists
-	if manifest.WorkflowID == "" {
+	if manifest.Workflow == "" {
 		return apierrors.NewBadRequest("webhook manifest must have a workflow name")
 	}
 
 	var workflow v1.Workflow
-	if err := req.Get(&workflow, manifest.WorkflowID); types.IsNotFound(err) {
-		var ref v1.Reference
-		if err = req.Get(&ref, manifest.WorkflowID); err != nil || ref.Spec.WorkflowName == "" {
-			return apierrors.NewBadRequest(fmt.Sprintf("workflow %s does not exist", manifest.WorkflowID))
+	if system.IsWorkflowID(manifest.Workflow) {
+		if err := req.Get(&workflow, manifest.Workflow); err != nil {
+			return err
 		}
-	} else if err != nil {
-		return err
 	}
 
 	if (manifest.ValidationHeader != "") != (manifest.Secret != "") {

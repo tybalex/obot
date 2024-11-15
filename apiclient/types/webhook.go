@@ -8,12 +8,13 @@ type Webhook struct {
 }
 
 type WebhookManifest struct {
-	Description      string   `json:"description,omitempty"`
-	RefName          string   `json:"refName,omitempty"`
-	WorkflowID       string   `json:"workflowID,omitempty"`
-	Headers          []string `json:"headers,omitempty"`
-	Secret           string   `json:"secret,omitempty"`
-	ValidationHeader string   `json:"validationHeader,omitempty"`
+	Name             string   `json:"name"`
+	Description      string   `json:"description"`
+	RefName          string   `json:"refName"`
+	Workflow         string   `json:"workflow"`
+	Headers          []string `json:"headers"`
+	Secret           string   `json:"secret"`
+	ValidationHeader string   `json:"validationHeader"`
 }
 
 type WebhookExternalStatus struct {

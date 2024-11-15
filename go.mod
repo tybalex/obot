@@ -190,6 +190,7 @@ require (
 	github.com/nwaples/rardecode/v2 v2.0.0-beta.4 // indirect
 	github.com/ohler55/ojg v1.24.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.6-0.20230925090304-df64c4bbad77 // indirect
+	github.com/otto8-ai/namegenerator v0.0.0-20241115024503-63dbbe8f03f4 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect

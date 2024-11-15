@@ -111,8 +111,21 @@ func convertAgent(agent v1.Agent, prefix string) *types.Agent {
 
 func (a *AgentHandler) ByID(req api.Context) error {
 	var agent v1.Agent
-	if err := req.Get(&agent, req.PathValue("id")); err != nil {
-		return err
+	if system.IsAgentID(req.PathValue("id")) {
+		if err := req.Get(&agent, req.PathValue("id")); err != nil {
+			return err
+		}
+	} else {
+		var ref v1.Reference
+		if err := req.Get(&ref, req.PathValue("id")); err != nil {
+			return err
+		}
+		if ref.Spec.AgentName == "" {
+			return types.NewErrNotFound("reference %q is not an agent reference", ref.Name)
+		}
+		if err := req.Get(&agent, ref.Spec.AgentName); err != nil {
+			return err
+		}
 	}
 
 	return req.Write(convertAgent(agent, server.GetURLPrefix(req)))

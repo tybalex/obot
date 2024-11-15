@@ -4,15 +4,21 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
-	"github.com/otto8-ai/otto8/apiclient"
-	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/namegenerator"
+	"github.com/otto8-ai/otto8/pkg/cli/edit"
+	"github.com/otto8-ai/otto8/pkg/cli/templates"
+	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	yamlv3 "gopkg.in/yaml.v3"
 )
 
@@ -23,10 +29,14 @@ type Create struct {
 
 func (l *Create) Customize(cmd *cobra.Command) {
 	cmd.Use = "create [flags] FILE"
-	cmd.Args = cobra.ExactArgs(1)
 }
 
-func parseManifests(data []byte) (result []types.WorkflowManifest, _ error) {
+type manifest struct {
+	Type string
+	Data []byte
+}
+
+func parseManifests(data []byte) (result []manifest, _ error) {
 	var (
 		dec = yamlv3.NewDecoder(bytes.NewReader(data))
 	)
@@ -39,119 +49,116 @@ func parseManifests(data []byte) (result []types.WorkflowManifest, _ error) {
 			return nil, err
 		}
 
+		typeName, _ := parsed["type"].(string)
+		if typeName == "" {
+			return nil, fmt.Errorf("missing type field in manifest")
+		}
+
 		jsonData, err := json.Marshal(parsed)
 		if err != nil {
 			return nil, err
 		}
 
-		var manifest types.WorkflowManifest
-		if err := json.Unmarshal(jsonData, &manifest); err != nil {
-			return nil, err
-		}
-		result = append(result, manifest)
+		result = append(result, manifest{
+			Type: typeName,
+			Data: jsonData,
+		})
 	}
 
 	return
 }
 
-func (l *Create) loadFromFile(ctx context.Context, file string) error {
-	var (
-		data []byte
-		err  error
-	)
-
+func readInput(file string) (io.ReadCloser, error) {
 	if strings.HasPrefix(file, "http://") || strings.HasPrefix(file, "https://") {
 		resp, err := http.Get(file)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		data, err = io.ReadAll(resp.Body)
-		if err != nil {
-			return err
-		}
-	} else {
-		data, err = os.ReadFile(file)
-		if err != nil {
-			return err
-		}
+		return resp.Body, nil
 	}
 
-	manifests, err := parseManifests(data)
+	return os.Open(file)
+}
+
+func (l *Create) create(ctx context.Context, input io.ReadCloser) error {
+	defer input.Close()
+
+	data, err := io.ReadAll(input)
 	if err != nil {
 		return err
 	}
 
-	for _, newManifest := range manifests {
-		if len(newManifest.Steps) > 0 || newManifest.Output != "" {
-			if newManifest.RefName != "" {
-				workflows, err := l.root.Client.ListWorkflows(ctx, apiclient.ListWorkflowsOptions{
-					RefName: newManifest.RefName,
-				})
-				if err != nil {
-					return err
-				}
-				if len(workflows.Items) > 0 {
-					_, err = l.root.Client.UpdateWorkflow(ctx, workflows.Items[0].ID, newManifest)
-					if err != nil {
-						return err
-					}
-					if l.Quiet {
-						fmt.Println(workflows.Items[0].ID)
-					} else {
-						fmt.Printf("Workflow updated: %s\n", workflows.Items[0].ID)
-					}
-					return nil
-				}
-			}
+	manifests, err := parseManifests(data)
+	if err != nil {
+		return fmt.Errorf("failed to parse manifest: %v", err)
+	}
 
-			workflow, err := l.root.Client.CreateWorkflow(ctx, newManifest)
-			if err != nil {
-				return err
-			}
-
-			if l.Quiet {
-				fmt.Println(workflow.ID)
-			} else {
-				fmt.Printf("Workflow created: %s\n", workflow.ID)
-			}
+	for _, manifest := range manifests {
+		id, err := l.root.Client.Create(ctx, manifest.Type, manifest.Data)
+		if err != nil {
+			return err
+		}
+		if l.Quiet {
+			fmt.Println(id)
 		} else {
-			if newManifest.RefName != "" {
-				agents, err := l.root.Client.ListAgents(ctx, apiclient.ListAgentsOptions{
-					RefName: newManifest.RefName,
-				})
-				if err != nil {
-					return err
-				}
-				if len(agents.Items) > 0 {
-					_, err = l.root.Client.UpdateAgent(ctx, agents.Items[0].ID, newManifest.AgentManifest)
-					if err != nil {
-						return err
-					}
-					if l.Quiet {
-						fmt.Println(agents.Items[0].ID)
-					} else {
-						fmt.Printf("Agent update: %s\n", agents.Items[0].ID)
-					}
-					return nil
-				}
-			}
-
-			agent, err := l.root.Client.CreateAgent(ctx, newManifest.AgentManifest)
-			if err != nil {
-				return err
-			}
-
-			if l.Quiet {
-				fmt.Println(agent.ID)
-			} else {
-				fmt.Printf("Agent created: %s\n", agent.ID)
-			}
+			fmt.Printf("Created %s: %s\n", manifest.Type, id)
 		}
 	}
 
 	return nil
 }
 
+func newName() string {
+	caser := cases.Title(language.English)
+	return caser.String(strings.ReplaceAll(namegenerator.NewNameGenerator(time.Now().UnixNano()).Generate(), "-", " "))
+}
+
+func (l *Create) fromTemplate(ctx context.Context) (string, error) {
+	sel, err := pterm.DefaultInteractiveSelect.
+		WithDefaultText("Select a type to create").
+		WithOptions([]string{
+			"Agent",
+			"Workflow",
+			"Webhook",
+		}).Show()
+	if err != nil {
+		return "", err
+	}
+
+	template, err := templates.FS.ReadFile(strings.ToLower(sel) + ".yaml")
+	if err != nil {
+		return "", err
+	}
+
+	template = bytes.ReplaceAll(template, []byte("%NAME%"), []byte(newName()))
+
+	err = edit.Edit(ctx, template, ".yaml", func(data []byte) error {
+		template = data
+		return nil
+	})
+	if errors.Is(err, edit.ErrEditAborted) {
+		return string(template), nil
+	}
+
+	return string(template), err
+}
+
 func (l *Create) Run(cmd *cobra.Command, args []string) error {
-	return l.loadFromFile(cmd.Context(), args[0])
+	var input io.ReadCloser
+
+	if len(args) == 0 {
+		template, err := l.fromTemplate(cmd.Context())
+		if err != nil {
+			return err
+		}
+		input = io.NopCloser(strings.NewReader(template))
+	} else {
+		var err error
+		input, err = readInput(args[0])
+		if err != nil {
+			return err
+		}
+	}
+
+	return l.create(cmd.Context(), input)
 }
