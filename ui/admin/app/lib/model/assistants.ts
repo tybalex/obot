@@ -3,7 +3,7 @@ import { EntityMeta } from "~/lib/model/primitives";
 
 export type Assistant = EntityMeta & {
     name: string;
-    entityId: string;
+    entityID: string;
     description: string;
     icons: AgentIcons;
     type: "agent" | "workflow";

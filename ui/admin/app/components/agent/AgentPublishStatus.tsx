@@ -56,10 +56,10 @@ export function AgentPublishStatus({
             const route =
                 refAgent.type === "agent"
                     ? $path("/agents/:agent", {
-                          agent: refAgent.entityId,
+                          agent: refAgent.entityID,
                       })
                     : $path("/workflows/:workflow", {
-                          workflow: refAgent.entityId,
+                          workflow: refAgent.entityID,
                       });
 
             return (
