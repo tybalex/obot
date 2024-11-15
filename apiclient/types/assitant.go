@@ -5,6 +5,7 @@ type Assistant struct {
 	Name        string     `json:"name"`
 	Description string     `json:"description"`
 	Icons       AgentIcons `json:"icons"`
+	EntityID    string     `json:"entityID"`
 }
 
 type AssistantList List[Assistant]

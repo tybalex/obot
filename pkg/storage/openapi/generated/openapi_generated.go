@@ -574,8 +574,15 @@ func schema_otto8_ai_otto8_apiclient_types_Assistant(ref common.ReferenceCallbac
 							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.AgentIcons"),
 						},
 					},
+					"entityID": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
 				},
-				Required: []string{"Metadata", "name", "description", "icons"},
+				Required: []string{"Metadata", "name", "description", "icons", "entityID"},
 			},
 		},
 		Dependencies: []string{

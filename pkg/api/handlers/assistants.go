@@ -120,6 +120,7 @@ func convertAssistant(agent v1.Agent) types.Assistant {
 		Metadata:    MetadataFrom(&agent),
 		Name:        agent.Spec.Manifest.Name,
 		Description: agent.Spec.Manifest.Description,
+		EntityID:    agent.ObjectMeta.Name,
 		Icons:       icons,
 	}
 	assistant.ID = agent.Spec.Manifest.RefName
