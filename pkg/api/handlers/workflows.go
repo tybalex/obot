@@ -7,6 +7,7 @@ import (
 
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
 	"github.com/otto8-ai/otto8/pkg/api/server"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/workflow"
@@ -130,16 +131,17 @@ func (a *WorkflowHandler) Create(req api.Context) error {
 func convertWorkflow(workflow v1.Workflow, prefix string) *types.Workflow {
 	var links []string
 	if prefix != "" {
-		refName := workflow.Name
-		if workflow.Status.External.RefNameAssigned && workflow.Spec.Manifest.RefName != "" {
-			refName = workflow.Spec.Manifest.RefName
+		alias := workflow.Name
+		if workflow.Status.AliasAssigned && workflow.Spec.Manifest.Alias != "" {
+			alias = workflow.Spec.Manifest.Alias
 		}
-		links = []string{"invoke", prefix + "/invoke/" + refName}
+		links = []string{"invoke", prefix + "/invoke/" + alias}
 	}
 	return &types.Workflow{
-		Metadata:               MetadataFrom(&workflow, links...),
-		WorkflowManifest:       workflow.Spec.Manifest,
-		WorkflowExternalStatus: workflow.Status.External,
+		Metadata:         MetadataFrom(&workflow, links...),
+		WorkflowManifest: workflow.Spec.Manifest,
+		AliasAssigned:    workflow.Status.AliasAssigned,
+		AuthStatus:       workflow.Status.AuthStatus,
 	}
 }
 
@@ -148,21 +150,9 @@ func (a *WorkflowHandler) ByID(req api.Context) error {
 		workflow v1.Workflow
 		id       = req.PathValue("id")
 	)
-	if system.IsWorkflowID(id) {
-		if err := req.Get(&workflow, id); err != nil {
-			return err
-		}
-	} else {
-		var ref v1.Reference
-		if err := req.Get(&ref, id); err != nil {
-			return err
-		}
-		if ref.Spec.WorkflowName == "" {
-			return types.NewErrNotFound("reference %q is not an agent reference", ref.Name)
-		}
-		if err := req.Get(&workflow, ref.Spec.WorkflowName); err != nil {
-			return err
-		}
+
+	if err := alias.Get(req.Context(), req.Storage, &workflow, req.Namespace(), id); err != nil {
+		return err
 	}
 
 	return req.Write(convertWorkflow(workflow, server.GetURLPrefix(req)))
@@ -189,7 +179,7 @@ func (a *WorkflowHandler) EnsureCredentialForKnowledgeSource(req api.Context) er
 	}
 
 	ref := req.PathValue("ref")
-	authStatus := wf.Status.External.AuthStatus[ref]
+	authStatus := wf.Status.AuthStatus[ref]
 
 	// If auth is not required, then don't continue.
 	if authStatus.Required != nil && !*authStatus.Required {
@@ -208,12 +198,12 @@ func (a *WorkflowHandler) EnsureCredentialForKnowledgeSource(req api.Context) er
 
 	if credentialTool == "" {
 		// The only way to get here is if the controller hasn't set the field yet.
-		if wf.Status.External.AuthStatus == nil {
-			wf.Status.External.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
+		if wf.Status.AuthStatus == nil {
+			wf.Status.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
 		}
 
 		authStatus.Required = &[]bool{false}[0]
-		wf.Status.External.AuthStatus[ref] = authStatus
+		wf.Status.AuthStatus[ref] = authStatus
 		return req.Write(convertWorkflow(wf, server.GetURLPrefix(req)))
 	}
 
@@ -243,10 +233,10 @@ func (a *WorkflowHandler) EnsureCredentialForKnowledgeSource(req api.Context) er
 	}
 
 	// Don't need to actually update the knowledge ref, there is a controller that will do that.
-	if wf.Status.External.AuthStatus == nil {
-		wf.Status.External.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
+	if wf.Status.AuthStatus == nil {
+		wf.Status.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
 	}
-	wf.Status.External.AuthStatus[ref] = oauthLogin.Status.External
+	wf.Status.AuthStatus[ref] = oauthLogin.Status.External
 
 	return req.Write(convertWorkflow(wf, server.GetURLPrefix(req)))
 }

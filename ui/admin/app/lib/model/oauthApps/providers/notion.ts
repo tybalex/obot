@@ -92,7 +92,7 @@ const steps: OAuthFormStep<z.infer<typeof schema>>[] = [
 
 export const NotionOAuthApp = {
     schema,
-    refName: "notion",
+    alias: "notion",
     type: "notion",
     displayName: "Notion",
     logo: assetUrl("/assets/notion_logo.png"),

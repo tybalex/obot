@@ -6,6 +6,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+var (
+	_ Aliasable = (*Webhook)(nil)
+)
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type Webhook struct {
@@ -16,13 +20,25 @@ type Webhook struct {
 	Status WebhookStatus `json:"status,omitempty"`
 }
 
+func (w *Webhook) GetAliasName() string {
+	return w.Spec.WebhookManifest.Alias
+}
+
+func (w *Webhook) SetAssigned() {
+	w.Status.AliasAssigned = true
+}
+
+func (w *Webhook) IsAssigned() bool {
+	return w.Status.AliasAssigned
+}
+
 func (*Webhook) GetColumns() [][]string {
 	return [][]string{
 		{"Name", "Name"},
-		{"RefName", "Spec.RefName"},
-		{"Workflow", "Spec.WorkflowID"},
+		{"Alias", "Spec.Alias"},
+		{"Workflow", "Spec.Workflow"},
 		{"Created", "{{ago .CreationTimestamp}}"},
-		{"Last Success", "{{agoptr .Status.LastSuccessfulRunCompleted}}"},
+		{"Last Success", "{{ago .Status.LastSuccessfulRunCompleted}}"},
 		{"Description", "Spec.Description"},
 	}
 }
@@ -42,8 +58,9 @@ type WebhookSpec struct {
 }
 
 type WebhookStatus struct {
-	External                   types.WebhookExternalStatus `json:"external,omitempty"`
-	LastSuccessfulRunCompleted *metav1.Time                `json:"lastSuccessfulRunCompleted,omitempty"`
+	Alias                      string       `json:"alias,omitempty"`
+	AliasAssigned              bool         `json:"aliasAssigned,omitempty"`
+	LastSuccessfulRunCompleted *metav1.Time `json:"lastSuccessfulRunCompleted,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

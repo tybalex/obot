@@ -5,6 +5,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+var (
+	_ Aliasable   = (*Workflow)(nil)
+	_ AliasScoped = (*Workflow)(nil)
+)
+
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 type Workflow struct {
@@ -15,14 +20,31 @@ type Workflow struct {
 	Status WorkflowStatus `json:"status,omitempty"`
 }
 
+func (in *Workflow) GetAliasName() string {
+	return in.Spec.Manifest.Alias
+}
+
+func (in *Workflow) SetAssigned() {
+	in.Status.AliasAssigned = true
+}
+
+func (in *Workflow) IsAssigned() bool {
+	return in.Status.AliasAssigned
+}
+
+func (in *Workflow) GetAliasScope() string {
+	return "Agent"
+}
+
 type WorkflowSpec struct {
 	Manifest types.WorkflowManifest `json:"manifest,omitempty"`
 }
 
 type WorkflowStatus struct {
-	External          types.WorkflowExternalStatus `json:"external,omitempty"`
-	WorkspaceName     string                       `json:"workspaceName,omitempty"`
-	KnowledgeSetNames []string                     `json:"knowledgeSetNames,omitempty"`
+	WorkspaceName     string                                   `json:"workspaceName,omitempty"`
+	KnowledgeSetNames []string                                 `json:"knowledgeSetNames,omitempty"`
+	AliasAssigned     bool                                     `json:"aliasAssigned,omitempty"`
+	AuthStatus        map[string]types.OAuthAppLoginAuthStatus `json:"authStatus,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

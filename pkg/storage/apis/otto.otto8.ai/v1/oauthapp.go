@@ -11,8 +11,8 @@ import (
 
 var (
 	_ fields.Fields = (*OAuthApp)(nil)
-	_ fields.Fields = (*OAuthAppReference)(nil)
 	_ fields.Fields = (*OAuthAppLogin)(nil)
+	_ Aliasable     = (*OAuthApp)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -22,6 +22,17 @@ type OAuthApp struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	Spec              OAuthAppSpec `json:"spec,omitempty"`
 	Status            EmptyStatus  `json:"status,omitempty"`
+}
+
+func (r *OAuthApp) GetAliasName() string {
+	return r.Spec.Manifest.Integration
+}
+
+func (r *OAuthApp) SetAssigned() {
+}
+
+func (r *OAuthApp) IsAssigned() bool {
+	return true
 }
 
 func (r *OAuthApp) Has(field string) bool {
@@ -73,58 +84,6 @@ type OAuthAppList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []OAuthApp `json:"items"`
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
-type OAuthAppReference struct {
-	metav1.TypeMeta   `json:",inline"`
-	metav1.ObjectMeta `json:"metadata,omitempty"`
-	Spec              OAuthAppReferenceSpec `json:"spec,omitempty"`
-	Status            EmptyStatus           `json:"status,omitempty"`
-}
-
-func (*OAuthAppReference) NamespaceScoped() bool {
-	return false
-}
-
-func (r *OAuthAppReference) DeleteRefs() []Ref {
-	return []Ref{
-		{ObjType: new(OAuthApp), Name: r.Spec.AppName, Namespace: r.Spec.AppNamespace},
-	}
-}
-
-func (r *OAuthAppReference) Has(field string) bool {
-	return r.Get(field) != ""
-}
-
-func (r *OAuthAppReference) Get(field string) string {
-	if r != nil {
-		switch field {
-		case "spec.appName":
-			return r.Spec.AppName
-		case "spec.appNamespace":
-			return r.Spec.AppNamespace
-		}
-	}
-	return ""
-}
-
-func (r *OAuthAppReference) FieldNames() []string {
-	return []string{"spec.appName", "spec.appNamespace"}
-}
-
-type OAuthAppReferenceSpec struct {
-	AppName      string `json:"appName,omitempty"`
-	AppNamespace string `json:"appNamespace,omitempty"`
-}
-
-// +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-
-type OAuthAppReferenceList struct {
-	metav1.TypeMeta `json:",inline"`
-	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []OAuthAppReference `json:"items"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

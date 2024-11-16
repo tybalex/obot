@@ -23,7 +23,7 @@ export function AgentPublishStatus({
 }: AgentPublishStatusProps) {
     const getAssistants = useSWR(
         () =>
-            agent.refName && !agent.refNameAssigned
+            agent.alias && !agent.aliasAssigned
                 ? AssistantApiService.getAssistants.key()
                 : null,
         () => AssistantApiService.getAssistants()
@@ -32,26 +32,26 @@ export function AgentPublishStatus({
     const refAgent = useMemo(() => {
         if (!getAssistants.data) return null;
 
-        return getAssistants.data.find(({ id }) => id === agent.refName);
-    }, [getAssistants.data, agent.refName]);
+        return getAssistants.data.find(({ id }) => id === agent.alias);
+    }, [getAssistants.data, agent.alias]);
 
     return (
         <div className="flex w-full justify-between px-8 pt-4 items-center gap-4">
             {renderAgentRef()}
 
-            {agent.refName ? (
-                <Unpublish onUnpublish={() => onChange({ refName: "" })} />
+            {agent.alias ? (
+                <Unpublish onUnpublish={() => onChange({ alias: "" })} />
             ) : (
                 <Publish
-                    refName={agent.refName}
-                    onPublish={(refName) => onChange({ refName })}
+                    alias={agent.alias}
+                    onPublish={(alias) => onChange({ alias })}
                 />
             )}
         </div>
     );
 
     function renderAgentRef() {
-        if (!agent.refName) return <div />;
+        if (!agent.alias) return <div />;
 
         if (refAgent) {
             const route =
@@ -85,9 +85,9 @@ export function AgentPublishStatus({
             );
         }
 
-        if (!agent.refNameAssigned) return <div />;
+        if (!agent.aliasAssigned) return <div />;
 
-        const agentUrl = ConsumptionUrl(`/${agent.refName}`);
+        const agentUrl = ConsumptionUrl(`/${agent.alias}`);
 
         return (
             <div className="flex items-center gap-2">

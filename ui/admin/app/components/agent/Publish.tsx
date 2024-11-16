@@ -18,18 +18,18 @@ import { Input } from "~/components/ui/input";
 
 type PublishProps = {
     className?: string;
-    refName: string;
-    onPublish: (refName: string) => void;
+    alias: string;
+    onPublish: (alias: string) => void;
 };
 
 export function Publish({
     className,
-    refName: _refName,
+    alias: _alias,
     onPublish,
 }: PublishProps) {
-    const [refName, setRefName] = useState(_refName);
+    const [alias, setAlias] = useState(_alias);
 
-    const handlePublish = () => onPublish(refName);
+    const handlePublish = () => onPublish(alias);
 
     return (
         <Dialog>
@@ -46,8 +46,8 @@ export function Publish({
                     </DialogTitle>
                     <Input
                         className="w-1/2"
-                        value={refName}
-                        onChange={(e) => setRefName(e.target.value)}
+                        value={alias}
+                        onChange={(e) => setAlias(e.target.value)}
                     />
                 </div>
                 <div className="space-y-4 py-4">
@@ -55,7 +55,7 @@ export function Publish({
                         This agent will be available at:
                     </TypographyMuted>
                     <TypographyMutedAccent>
-                        {`${window.location.protocol}//${window.location.host}/${refName}`}
+                        {`${window.location.protocol}//${window.location.host}/${alias}`}
                     </TypographyMutedAccent>
                     <TypographyMuted>
                         If you have another agent with this handle, you will

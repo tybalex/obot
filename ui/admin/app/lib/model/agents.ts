@@ -7,8 +7,8 @@ export type AgentBase = {
     description: string;
     temperature?: number;
     cache?: boolean;
-    refName: string;
-    refNameAssigned?: boolean;
+    alias: string;
+    aliasAssigned?: boolean;
     prompt: string;
     agents?: string[];
     workflows?: string[];

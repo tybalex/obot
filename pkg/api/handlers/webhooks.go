@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
 	"github.com/otto8-ai/otto8/pkg/api/server"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
@@ -18,7 +19,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -133,15 +133,15 @@ func (a *WebhookHandler) Create(req api.Context) error {
 
 func convertWebhook(webhook v1.Webhook, urlPrefix string) *types.Webhook {
 	var links []string
-	if urlPrefix != "" && webhook.Status.External.RefName != "" {
-		links = []string{"invoke", fmt.Sprintf("%s/webhooks/%s", urlPrefix, webhook.Status.External.RefName)}
+	if urlPrefix != "" && webhook.Status.Alias != "" {
+		links = []string{"invoke", fmt.Sprintf("%s/webhooks/%s", urlPrefix, webhook.Status.Alias)}
 	}
 
 	manifest := webhook.Spec.WebhookManifest
 	wh := &types.Webhook{
 		Metadata:                   MetadataFrom(&webhook, links...),
 		WebhookManifest:            manifest,
-		RefNameAssigned:            webhook.Status.External.RefNameAssigned,
+		AliasAssigned:              webhook.Status.AliasAssigned,
 		LastSuccessfulRunCompleted: v1.NewTime(webhook.Status.LastSuccessfulRunCompleted),
 	}
 
@@ -155,18 +155,9 @@ func (a *WebhookHandler) ByID(req api.Context) error {
 		wh v1.Webhook
 		id = req.PathValue("id")
 	)
-	if system.IsWebhookID(id) {
-		if err := req.Get(&wh, id); err != nil {
-			return err
-		}
-	} else {
-		var ref v1.WebhookReference
-		if err := req.Get(&ref, id); err != nil {
-			return err
-		}
-		if err := req.Get(&wh, ref.Spec.WebhookName); err != nil {
-			return err
-		}
+
+	if err := alias.Get(req.Context(), req.Storage, &wh, req.Namespace(), id); err != nil {
+		return err
 	}
 
 	return req.Write(convertWebhook(wh, server.GetURLPrefix(req)))
@@ -187,13 +178,8 @@ func (a *WebhookHandler) List(req api.Context) error {
 }
 
 func (a *WebhookHandler) Execute(req api.Context) error {
-	var ref v1.WebhookReference
-	if err := req.Get(&ref, req.PathValue("id")); err != nil {
-		return err
-	}
-
 	var webhook v1.Webhook
-	if err := req.Storage.Get(req.Context(), kclient.ObjectKey{Namespace: ref.Spec.WebhookNamespace, Name: ref.Spec.WebhookName}, &webhook); err != nil {
+	if err := alias.Get(req.Context(), req.Storage, &webhook, req.Namespace(), req.PathValue("id")); err != nil {
 		return err
 	}
 
@@ -241,14 +227,9 @@ func (a *WebhookHandler) Execute(req api.Context) error {
 		input.WriteString(req.Request.Header.Get(k))
 	}
 
-	workflowID := webhook.Spec.WebhookManifest.Workflow
-	if !system.IsWorkflowID(workflowID) {
-		var ref v1.Reference
-		if err = req.Get(&ref, workflowID); err != nil || ref.Spec.WorkflowName == "" {
-			return fmt.Errorf("failed to get workflow with ref %s: %w", workflowID, err)
-		}
-
-		workflowID = ref.Spec.WorkflowName
+	var workflow v1.Workflow
+	if err := alias.Get(req.Context(), req.Storage, &workflow, req.Namespace(), webhook.Spec.WebhookManifest.Workflow); err != nil {
+		return err
 	}
 
 	if err = req.Create(&v1.WorkflowExecution{
@@ -259,7 +240,7 @@ func (a *WebhookHandler) Execute(req api.Context) error {
 			Namespace: req.Namespace(),
 		},
 		Spec: v1.WorkflowExecutionSpec{
-			WorkflowName: workflowID,
+			WorkflowName: workflow.Name,
 			WebhookName:  webhook.Name,
 			Input:        input.String(),
 		},

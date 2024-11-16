@@ -5,12 +5,8 @@ import "strings"
 type Workflow struct {
 	Metadata
 	WorkflowManifest
-	WorkflowExternalStatus
-}
-
-type WorkflowExternalStatus struct {
-	RefNameAssigned bool                               `json:"refNameAssigned,omitempty"`
-	AuthStatus      map[string]OAuthAppLoginAuthStatus `json:"authStatus,omitempty"`
+	AliasAssigned bool                               `json:"aliasAssigned,omitempty"`
+	AuthStatus    map[string]OAuthAppLoginAuthStatus `json:"authStatus,omitempty"`
 }
 
 type WorkflowList List[Workflow]

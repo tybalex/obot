@@ -6,6 +6,7 @@ import (
 
 	"github.com/otto8-ai/nah/pkg/router"
 	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
 	"github.com/robfig/cron/v3"
@@ -37,14 +38,9 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 		return nil
 	}
 
-	workflowID := cj.Spec.WorkflowID
-	if !system.IsWorkflowID(workflowID) {
-		var ref v1.Reference
-		if err = req.Get(&ref, cj.Namespace, workflowID); err != nil || ref.Spec.WorkflowName == "" {
-			return fmt.Errorf("failed to get workflow with ref %s: %w", workflowID, err)
-		}
-
-		workflowID = ref.Spec.WorkflowName
+	var workflow v1.Workflow
+	if err := alias.Get(req.Ctx, req.Client, &workflow, cj.Namespace, cj.Spec.Workflow); err != nil {
+		return err
 	}
 
 	if err = req.Client.Create(req.Ctx,
@@ -54,7 +50,7 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 				Namespace:    req.Namespace,
 			},
 			Spec: v1.WorkflowExecutionSpec{
-				WorkflowName: workflowID,
+				WorkflowName: workflow.Name,
 				Input:        cj.Spec.Input,
 				CronJobName:  cj.Name,
 			},

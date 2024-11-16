@@ -39,7 +39,7 @@ func (c *Client) CreateAgent(ctx context.Context, agent types.AgentManifest) (*t
 }
 
 type ListAgentsOptions struct {
-	RefName string
+	Alias string
 }
 
 func (c *Client) ListAgents(ctx context.Context, opts ListAgentsOptions) (result types.AgentList, err error) {
@@ -60,10 +60,10 @@ func (c *Client) ListAgents(ctx context.Context, opts ListAgentsOptions) (result
 		return result, err
 	}
 
-	if opts.RefName != "" {
+	if opts.Alias != "" {
 		var filtered types.AgentList
 		for _, agent := range result.Items {
-			if agent.RefName == opts.RefName && agent.RefNameAssigned {
+			if agent.Alias == opts.Alias && agent.AliasAssigned {
 				filtered.Items = append(filtered.Items, agent)
 			}
 		}

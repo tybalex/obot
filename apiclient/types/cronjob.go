@@ -11,7 +11,7 @@ type CronJob struct {
 type CronJobManifest struct {
 	Description string `json:"description,omitempty"`
 	Schedule    string `json:"schedule,omitempty"`
-	WorkflowID  string `json:"workflowID,omitempty"`
+	Workflow    string `json:"workflow,omitempty"`
 	Input       string `json:"input,omitempty"`
 }
 

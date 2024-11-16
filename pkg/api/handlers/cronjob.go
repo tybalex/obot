@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
 	"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
@@ -108,14 +109,9 @@ func (a *CronJobHandler) Execute(req api.Context) error {
 		return err
 	}
 
-	workflowID := cronJob.Spec.WorkflowID
-	if !system.IsWorkflowID(workflowID) {
-		var ref v1.Reference
-		if err := req.Get(&ref, workflowID); err != nil || ref.Spec.WorkflowName == "" {
-			return fmt.Errorf("failed to get workflow with ref %s: %w", workflowID, err)
-		}
-
-		workflowID = ref.Spec.WorkflowName
+	var workflow v1.Workflow
+	if err := alias.Get(req.Context(), req.Storage, &workflow, cronJob.Namespace, cronJob.Spec.Workflow); err != nil {
+		return err
 	}
 
 	if err := req.Create(&v1.WorkflowExecution{
@@ -124,7 +120,7 @@ func (a *CronJobHandler) Execute(req api.Context) error {
 			Namespace:    req.Namespace(),
 		},
 		Spec: v1.WorkflowExecutionSpec{
-			WorkflowName: workflowID,
+			WorkflowName: workflow.Name,
 			Input:        cronJob.Spec.Input,
 			CronJobName:  cronJob.Name,
 		},
@@ -162,12 +158,7 @@ func parseAndValidateCronManifest(req api.Context) (*types.CronJobManifest, erro
 	}
 
 	var workflow v1.Workflow
-	if err := req.Get(&workflow, manifest.WorkflowID); types.IsNotFound(err) {
-		var ref v1.Reference
-		if err = req.Get(&ref, manifest.WorkflowID); err != nil || ref.Spec.WorkflowName == "" {
-			return nil, apierrors.NewBadRequest(fmt.Sprintf("workflow %s does not exist", manifest.WorkflowID))
-		}
-	} else if err != nil {
+	if err := alias.Get(req.Context(), req.Storage, &workflow, req.Namespace(), manifest.Workflow); err != nil {
 		return nil, err
 	}
 

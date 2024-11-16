@@ -154,7 +154,7 @@ If you do not have a multi-tenant application, you can skip this step.\n
 
 export const Microsoft365OAuthApp = {
     schema,
-    refName: "microsoft365",
+    alias: "microsoft365",
     type: "microsoft365",
     displayName: "Microsoft 365",
     logo: assetUrl("/assets/office365_logo.svg"),

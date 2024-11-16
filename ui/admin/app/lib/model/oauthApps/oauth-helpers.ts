@@ -34,7 +34,7 @@ export type OAuthFormStep<T extends object = Record<string, string>> =
 export type OAuthAppSpec = {
     schema: ZodObject<Record<string, ZodType>>;
     displayName: string;
-    refName: string;
+    alias: string;
     type: OAuthProvider;
     logo?: string;
     darkLogo?: string;

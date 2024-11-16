@@ -59,7 +59,7 @@ const steps: OAuthFormStep<typeof schema.shape>[] = [
 
 export const GitHubOAuthApp = {
     schema,
-    refName: "github",
+    alias: "github",
     type: "github",
     displayName: "GitHub",
     logo: assetUrl("assets/github_logo.png"),

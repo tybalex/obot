@@ -16,6 +16,7 @@ const (
 	OAuthAppPrefix          = "oa1"
 	KnowledgeSetPrefix      = "kst1"
 	OAuthAppLoginPrefix     = "oal1"
+	EmailReceiverPrefix     = "er1"
 	ModelPrefix             = "m1"
 )
 
@@ -37,4 +38,8 @@ func IsWebhookID(id string) bool {
 
 func IsWorkflowID(id string) bool {
 	return strings.HasPrefix(id, WorkflowPrefix)
+}
+
+func IsEmailReceiverID(id string) bool {
+	return strings.HasPrefix(id, EmailReceiverPrefix)
 }

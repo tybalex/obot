@@ -335,8 +335,8 @@ func agentsByName(ctx context.Context, db kclient.Client, namespace string) (map
 	}
 
 	for _, agent := range agents.Items {
-		if agent.Spec.Manifest.RefName != "" && agent.Status.External.RefNameAssigned {
-			result[agent.Spec.Manifest.RefName] = agent
+		if agent.Spec.Manifest.Alias != "" && agent.Status.AliasAssigned {
+			result[agent.Spec.Manifest.Alias] = agent
 		}
 	}
 
@@ -368,8 +368,8 @@ func WorkflowByName(ctx context.Context, db kclient.Client, namespace string) (m
 	}
 
 	for _, workflow := range workflows.Items {
-		if workflow.Spec.Manifest.RefName != "" && workflow.Status.External.RefNameAssigned {
-			result[workflow.Spec.Manifest.RefName] = workflow
+		if workflow.Spec.Manifest.Alias != "" && workflow.Status.AliasAssigned {
+			result[workflow.Spec.Manifest.Alias] = workflow
 		}
 	}
 

@@ -50,7 +50,7 @@ func convertThread(thread v1.Thread) types.Thread {
 		CurrentRunID:   thread.Status.CurrentRunName,
 		State:          state,
 		ParentThreadID: parent,
-		AgentRefName:   thread.Spec.AgentRefName,
+		AgentAlias:     thread.Spec.AgentAlias,
 		UserID:         thread.Spec.UserUID,
 	}
 }

@@ -156,14 +156,14 @@ func getAuthStatus(ctx context.Context, c kclient.Client, knowledgeSet *v1.Knowl
 		if err := c.Get(ctx, router.Key(knowledgeSet.Namespace, knowledgeSet.Spec.WorkflowName), &workflow); err != nil {
 			return "", types.OAuthAppLoginAuthStatus{}, err
 		}
-		return workflow.Name, workflow.Status.External.AuthStatus[toolReferenceName], nil
+		return workflow.Name, workflow.Status.AuthStatus[toolReferenceName], nil
 	}
 
 	var agent v1.Agent
 	if err := c.Get(ctx, router.Key(knowledgeSet.Namespace, knowledgeSet.Spec.AgentName), &agent); err != nil {
 		return "", types.OAuthAppLoginAuthStatus{}, err
 	}
-	return agent.Name, agent.Status.External.AuthStatus[toolReferenceName], nil
+	return agent.Name, agent.Status.AuthStatus[toolReferenceName], nil
 }
 
 func (k *Handler) Sync(req router.Request, _ router.Response) error {

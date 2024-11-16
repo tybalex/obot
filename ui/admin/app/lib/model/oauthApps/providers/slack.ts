@@ -123,7 +123,7 @@ const disableConfiguration = !getOAuthLinks("slack")
     .startsWith("https");
 export const SlackOAuthApp = {
     schema,
-    refName: "slack",
+    alias: "slack",
     type: "slack",
     displayName: "Slack",
     logo: assetUrl("/assets/slack_logo_light.png"),

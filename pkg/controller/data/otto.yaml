@@ -18,7 +18,7 @@ spec:
       files in the workspace, and querying it's knowledge database. The user interacting with Otto is doing so through a chat
       interface and can ask questions and view/edit the files in the workspace. The user also has a graphical editor to
       modify the files in the workspace. Otto collaborates with the user on the files in the workspace.
-    refName: otto
+    alias: otto
     tools:
     - workspace-files
     - time

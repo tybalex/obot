@@ -8,6 +8,7 @@ import (
 
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
 	"github.com/otto8-ai/otto8/pkg/api/server"
 	"github.com/otto8-ai/otto8/pkg/render"
@@ -95,39 +96,26 @@ func (a *AgentHandler) Create(req api.Context) error {
 func convertAgent(agent v1.Agent, prefix string) *types.Agent {
 	var links []string
 	if prefix != "" {
-		refName := agent.Name
-		if agent.Status.External.RefNameAssigned && agent.Spec.Manifest.RefName != "" {
-			refName = agent.Spec.Manifest.RefName
+		alias := agent.Name
+		if agent.Status.AliasAssigned && agent.Spec.Manifest.Alias != "" {
+			alias = agent.Spec.Manifest.Alias
 		}
-		links = []string{"invoke", prefix + "/invoke/" + refName}
+		links = []string{"invoke", prefix + "/invoke/" + alias}
 	}
 
 	return &types.Agent{
-		Metadata:            MetadataFrom(&agent, links...),
-		AgentManifest:       agent.Spec.Manifest,
-		AgentExternalStatus: agent.Status.External,
+		Metadata:      MetadataFrom(&agent, links...),
+		AgentManifest: agent.Spec.Manifest,
+		AliasAssigned: agent.Status.AliasAssigned,
+		AuthStatus:    agent.Status.AuthStatus,
 	}
 }
 
 func (a *AgentHandler) ByID(req api.Context) error {
 	var agent v1.Agent
-	if system.IsAgentID(req.PathValue("id")) {
-		if err := req.Get(&agent, req.PathValue("id")); err != nil {
-			return err
-		}
-	} else {
-		var ref v1.Reference
-		if err := req.Get(&ref, req.PathValue("id")); err != nil {
-			return err
-		}
-		if ref.Spec.AgentName == "" {
-			return types.NewErrNotFound("reference %q is not an agent reference", ref.Name)
-		}
-		if err := req.Get(&agent, ref.Spec.AgentName); err != nil {
-			return err
-		}
+	if err := alias.Get(req.Context(), req.Storage, &agent, req.Namespace(), req.PathValue("id")); err != nil {
+		return err
 	}
-
 	return req.Write(convertAgent(agent, server.GetURLPrefix(req)))
 }
 
@@ -512,7 +500,7 @@ func (a *AgentHandler) EnsureCredentialForKnowledgeSource(req api.Context) error
 	}
 
 	ref := req.PathValue("ref")
-	authStatus := agent.Status.External.AuthStatus[ref]
+	authStatus := agent.Status.AuthStatus[ref]
 
 	// If auth is not required, then don't continue.
 	if authStatus.Required != nil && !*authStatus.Required {
@@ -531,12 +519,12 @@ func (a *AgentHandler) EnsureCredentialForKnowledgeSource(req api.Context) error
 
 	if credentialTool == "" {
 		// The only way to get here is if the controller hasn't set the field yet.
-		if agent.Status.External.AuthStatus == nil {
-			agent.Status.External.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
+		if agent.Status.AuthStatus == nil {
+			agent.Status.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
 		}
 
 		authStatus.Required = &[]bool{false}[0]
-		agent.Status.External.AuthStatus[ref] = authStatus
+		agent.Status.AuthStatus[ref] = authStatus
 		return req.Write(convertAgent(agent, server.GetURLPrefix(req)))
 	}
 
@@ -566,10 +554,10 @@ func (a *AgentHandler) EnsureCredentialForKnowledgeSource(req api.Context) error
 	}
 
 	// Don't need to actually update the knowledge ref, there is a controller that will do that.
-	if agent.Status.External.AuthStatus == nil {
-		agent.Status.External.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
+	if agent.Status.AuthStatus == nil {
+		agent.Status.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
 	}
-	agent.Status.External.AuthStatus[ref] = oauthLogin.Status.External
+	agent.Status.AuthStatus[ref] = oauthLogin.Status.External
 
 	return req.Write(convertAgent(agent, server.GetURLPrefix(req)))
 }

@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/system"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -19,17 +20,20 @@ func (*CronJob) GetColumns() [][]string {
 		{"Name", "Name"},
 		{"Workflow", "Spec.WorkflowID"},
 		{"Schedule", "Spec.Schedule"},
-		{"Last Success", "{{agoptr .Status.LastSuccessfulRunCompleted}}"},
-		{"Last Run", "{{agoptr .Status.LastRunStartedAt}}"},
+		{"Last Success", "{{ago .Status.LastSuccessfulRunCompleted}}"},
+		{"Last Run", "{{ago .Status.LastRunStartedAt}}"},
 		{"Created", "{{ago .CreationTimestamp}}"},
 		{"Description", "Spec.Description"},
 	}
 }
 
 func (c *CronJob) DeleteRefs() []Ref {
-	return []Ref{
-		{ObjType: new(Workflow), Name: c.Spec.WorkflowID},
+	if system.IsWorkflowID(c.Spec.Workflow) {
+		return []Ref{
+			{ObjType: new(Workflow), Name: c.Spec.Workflow},
+		}
 	}
+	return nil
 }
 
 type CronJobSpec struct {

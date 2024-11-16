@@ -60,7 +60,7 @@ export type CreateOAuthApp = Partial<OAuthAppBase> & {
 
 export type OAuthApp = EntityMeta &
     OAuthAppBase & {
-        refNameAssigned?: boolean;
+        aliasAssigned?: boolean;
         links: {
             authURL: string;
             tokenURL: string;

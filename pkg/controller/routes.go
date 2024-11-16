@@ -3,13 +3,13 @@ package controller
 import (
 	"github.com/otto8-ai/nah/pkg/handlers"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/agents"
+	"github.com/otto8-ai/otto8/pkg/controller/handlers/alias"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/cleanup"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/cronjob"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/knowledgefile"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/knowledgeset"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/knowledgesource"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/oauthapp"
-	"github.com/otto8-ai/otto8/pkg/controller/handlers/reference"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/runs"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/threads"
 	"github.com/otto8-ai/otto8/pkg/controller/handlers/toolreference"
@@ -71,10 +71,8 @@ func (c *Controller) setupRoutes() error {
 	root.Type(&v1.ToolReference{}).HandlerFunc(toolRef.Populate)
 
 	// Reference
-	root.Type(&v1.Reference{}).HandlerFunc(cleanup.Cleanup)
-	root.Type(&v1.Agent{}).HandlerFunc(reference.AssociateWithReference)
-	root.Type(&v1.Workflow{}).HandlerFunc(reference.AssociateWithReference)
-	root.Type(&v1.Reference{}).HandlerFunc(reference.Cleanup)
+	root.Type(&v1.Agent{}).HandlerFunc(alias.AssignAlias)
+	root.Type(&v1.Workflow{}).HandlerFunc(alias.AssignAlias)
 
 	// Knowledge files
 	root.Type(&v1.KnowledgeFile{}).HandlerFunc(cleanup.Cleanup)
@@ -96,11 +94,8 @@ func (c *Controller) setupRoutes() error {
 
 	// Webhooks
 	root.Type(&v1.Webhook{}).HandlerFunc(cleanup.Cleanup)
-	root.Type(&v1.Webhook{}).HandlerFunc(reference.AssociateWebhookWithReference)
+	root.Type(&v1.Webhook{}).HandlerFunc(alias.AssignAlias)
 	root.Type(&v1.Webhook{}).HandlerFunc(webHooks.SetSuccessRunTime)
-
-	// Webhook references
-	root.Type(&v1.WebhookReference{}).HandlerFunc(reference.CleanupWebhook)
 
 	// Cronjobs
 	root.Type(&v1.CronJob{}).HandlerFunc(cleanup.Cleanup)
@@ -109,10 +104,7 @@ func (c *Controller) setupRoutes() error {
 
 	// OAuthApps
 	root.Type(&v1.OAuthApp{}).HandlerFunc(cleanup.Cleanup)
-	root.Type(&v1.OAuthApp{}).HandlerFunc(reference.CreateGlobalOAuthAppReference)
-
-	// OAuthAppReferences
-	root.Type(&v1.OAuthAppReference{}).HandlerFunc(cleanup.Cleanup)
+	root.Type(&v1.OAuthApp{}).HandlerFunc(alias.AssignAlias)
 
 	// OAuthAppLogins
 	root.Type(&v1.OAuthAppLogin{}).HandlerFunc(cleanup.Cleanup)

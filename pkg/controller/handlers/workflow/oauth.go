@@ -53,10 +53,10 @@ func BackPopulateAuthStatus(req router.Request, _ router.Response) error {
 			}
 		}
 
-		if workflow.Status.External.AuthStatus == nil {
-			workflow.Status.External.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
+		if workflow.Status.AuthStatus == nil {
+			workflow.Status.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
 		}
-		workflow.Status.External.AuthStatus[login.Spec.ToolReference] = login.Status.External
+		workflow.Status.AuthStatus[login.Spec.ToolReference] = login.Status.External
 	}
 
 	if updateRequired {

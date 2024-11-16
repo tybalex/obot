@@ -51,7 +51,7 @@ type ThreadSpec struct {
 	Manifest              types.ThreadManifest `json:"manifest,omitempty"`
 	ParentThreadName      string               `json:"parentThreadName,omitempty"`
 	AgentName             string               `json:"agentName,omitempty"`
-	AgentRefName          string               `json:"agentRefName,omitempty"`
+	AgentAlias            string               `json:"agentAlias,omitempty"`
 	WorkflowName          string               `json:"workflowName,omitempty"`
 	WorkflowExecutionName string               `json:"workflowExecutionName,omitempty"`
 	KnowledgeSourceName   string               `json:"remoteKnowledgeSourceName,omitempty"`

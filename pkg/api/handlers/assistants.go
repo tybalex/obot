@@ -10,6 +10,7 @@ import (
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/otto8-ai/nah/pkg/name"
 	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
 	"github.com/otto8-ai/otto8/pkg/events"
 	"github.com/otto8-ai/otto8/pkg/invoke"
@@ -34,20 +35,10 @@ func NewAssistantHandler(invoker *invoke.Invoker, events *events.Emitter, gptScr
 }
 
 func getAgent(req api.Context, id string) (*v1.Agent, error) {
-	var ref v1.Reference
-	if err := req.Get(&ref, id); err != nil {
-		return nil, err
-	}
-
-	if ref.Spec.AgentName == "" {
-		return nil, types.NewErrNotFound("assistant not found: %s", id)
-	}
-
 	var agent v1.Agent
-	if err := req.Get(&agent, ref.Spec.AgentName); err != nil {
+	if err := alias.Get(req.Context(), req.Storage, &agent, req.Namespace(), id); err != nil {
 		return nil, err
 	}
-
 	return &agent, nil
 }
 
@@ -89,18 +80,19 @@ func (a *AssistantHandler) Invoke(req api.Context) error {
 }
 
 func (a *AssistantHandler) List(req api.Context) error {
-	var refs v1.ReferenceList
-	if err := req.List(&refs); err != nil {
+	var refs v1.AliasList
+	if err := req.Storage.List(req.Context(), &refs); err != nil {
 		return err
 	}
 
 	assistants := types.AssistantList{
 		Items: make([]types.Assistant, 0, len(refs.Items)),
 	}
+
 	for _, ref := range refs.Items {
-		if ref.Spec.AgentName != "" {
+		if ref.Spec.TargetKind == "Agent" && ref.Spec.TargetNamespace == req.Namespace() {
 			var agent v1.Agent
-			if err := req.Get(&agent, ref.Spec.AgentName); kclient.IgnoreNotFound(err) != nil {
+			if err := req.Get(&agent, ref.Spec.TargetName); kclient.IgnoreNotFound(err) != nil {
 				return err
 			} else if err == nil {
 				assistants.Items = append(assistants.Items, convertAssistant(agent))
@@ -123,7 +115,7 @@ func convertAssistant(agent v1.Agent) types.Assistant {
 		EntityID:    agent.ObjectMeta.Name,
 		Icons:       icons,
 	}
-	assistant.ID = agent.Spec.Manifest.RefName
+	assistant.ID = agent.Spec.Manifest.Alias
 	return assistant
 }
 
@@ -147,7 +139,7 @@ func getUserThread(req api.Context, agentID string) (*v1.Thread, error) {
 		return nil, err
 	}
 
-	newThread, err := invoke.CreateThreadForAgent(req.Context(), req.Storage, agent, id, req.User.GetUID(), agent.Spec.Manifest.RefName)
+	newThread, err := invoke.CreateThreadForAgent(req.Context(), req.Storage, agent, id, req.User.GetUID(), agent.Spec.Manifest.Alias)
 	if apierrors.IsAlreadyExists(err) {
 		return &thread, req.Get(&thread, id)
 	}

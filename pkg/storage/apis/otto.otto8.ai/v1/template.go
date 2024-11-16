@@ -23,7 +23,6 @@ type TemplateSpec struct {
 }
 
 type TemplateStatus struct {
-	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

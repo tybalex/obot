@@ -144,7 +144,7 @@ type Options struct {
 	CreateThread          bool
 	ThreadCredentialScope *bool
 	UserUID               string
-	AgentRefName          string
+	AgentAlias            string
 }
 
 func (i *Invoker) getChatState(ctx context.Context, c kclient.Client, run *v1.Run) (result, lastThreadName string, _ error) {
@@ -187,10 +187,10 @@ func getThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent
 		return &thread, c.Get(ctx, router.Key(agent.Namespace, opt.ThreadName), &thread)
 	}
 
-	return CreateThreadForAgent(ctx, c, agent, opt.ThreadName, opt.UserUID, opt.AgentRefName)
+	return CreateThreadForAgent(ctx, c, agent, opt.ThreadName, opt.UserUID, opt.AgentAlias)
 }
 
-func CreateThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, threadName, userUID, agentRefName string) (*v1.Thread, error) {
+func CreateThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, threadName, userUID, agentAlias string) (*v1.Thread, error) {
 	var (
 		fromWorkspaceNames []string
 		err                error
@@ -219,7 +219,7 @@ func CreateThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Ag
 			AgentName:          agent.Name,
 			FromWorkspaceNames: fromWorkspaceNames,
 			UserUID:            userUID,
-			AgentRefName:       agentRefName,
+			AgentAlias:         agentAlias,
 		},
 	}
 	return &thread, c.Create(ctx, &thread)
@@ -227,8 +227,8 @@ func CreateThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Ag
 
 func (i *Invoker) updateThreadFields(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, thread *v1.Thread, opt Options) error {
 	var updated bool
-	if opt.AgentRefName != "" && thread.Spec.AgentRefName != opt.AgentRefName {
-		thread.Spec.AgentRefName = opt.AgentRefName
+	if opt.AgentAlias != "" && thread.Spec.AgentAlias != opt.AgentAlias {
+		thread.Spec.AgentAlias = opt.AgentAlias
 		updated = true
 	}
 	if thread.Spec.AgentName != agent.Name {
@@ -244,7 +244,7 @@ func (i *Invoker) updateThreadFields(ctx context.Context, c kclient.WithWatch, a
 func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, input string, opt Options) (_ *Response, err error) {
 	thread, err := getThreadForAgent(ctx, c, agent, opt)
 	if apierror.IsNotFound(err) && opt.CreateThread && strings.HasPrefix(opt.ThreadName, system.ThreadPrefix) {
-		thread, err = CreateThreadForAgent(ctx, c, agent, opt.ThreadName, opt.UserUID, opt.AgentRefName)
+		thread, err = CreateThreadForAgent(ctx, c, agent, opt.ThreadName, opt.UserUID, opt.AgentAlias)
 	}
 	if err != nil {
 		return nil, err

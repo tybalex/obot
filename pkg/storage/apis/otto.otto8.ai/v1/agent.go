@@ -11,6 +11,7 @@ import (
 
 var (
 	_ fields.Fields = (*Agent)(nil)
+	_ Aliasable     = (*Agent)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -21,6 +22,18 @@ type Agent struct {
 
 	Spec   AgentSpec   `json:"spec,omitempty"`
 	Status AgentStatus `json:"status,omitempty"`
+}
+
+func (a *Agent) IsAssigned() bool {
+	return a.Status.AliasAssigned
+}
+
+func (a *Agent) GetAliasName() string {
+	return a.Spec.Manifest.Alias
+}
+
+func (a *Agent) SetAssigned() {
+	a.Status.AliasAssigned = true
 }
 
 func (a *Agent) Has(field string) bool {
@@ -51,9 +64,10 @@ type AgentSpec struct {
 }
 
 type AgentStatus struct {
-	KnowledgeSetNames []string                  `json:"knowledgeSetNames,omitempty"`
-	WorkspaceName     string                    `json:"workspaceName,omitempty"`
-	External          types.AgentExternalStatus `json:"external,omitempty"`
+	KnowledgeSetNames []string                                 `json:"knowledgeSetNames,omitempty"`
+	WorkspaceName     string                                   `json:"workspaceName,omitempty"`
+	AliasAssigned     bool                                     `json:"aliasAssigned,omitempty"`
+	AuthStatus        map[string]types.OAuthAppLoginAuthStatus `json:"authStatus,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

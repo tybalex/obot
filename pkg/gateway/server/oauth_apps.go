@@ -15,6 +15,7 @@ import (
 	"time"
 
 	types2 "github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
 	"github.com/otto8-ai/otto8/pkg/api/handlers"
 	kcontext "github.com/otto8-ai/otto8/pkg/gateway/context"
@@ -535,15 +536,9 @@ func convertOAuthAppRegistrationToOAuthApp(app v1.OAuthApp, baseURL string) type
 }
 
 func getOAuthAppFromName(apiContext api.Context) (*v1.OAuthApp, error) {
-	var ref v1.OAuthAppReference
-	if err := apiContext.Get(&ref, apiContext.PathValue("id")); err != nil {
+	var oauthApp v1.OAuthApp
+	if err := alias.Get(apiContext.Context(), apiContext.Storage, &oauthApp, apiContext.Namespace(), apiContext.PathValue("id")); err != nil {
 		return nil, err
 	}
-
-	var app v1.OAuthApp
-	if err := apiContext.Storage.Get(apiContext.Context(), kclient.ObjectKey{Namespace: ref.Spec.AppNamespace, Name: ref.Spec.AppName}, &app); err != nil {
-		return nil, err
-	}
-
-	return &app, nil
+	return &oauthApp, nil
 }

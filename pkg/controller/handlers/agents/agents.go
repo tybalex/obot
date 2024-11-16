@@ -113,10 +113,10 @@ func BackPopulateAuthStatus(req router.Request, _ router.Response) error {
 			}
 		}
 
-		if agent.Status.External.AuthStatus == nil {
-			agent.Status.External.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
+		if agent.Status.AuthStatus == nil {
+			agent.Status.AuthStatus = make(map[string]types.OAuthAppLoginAuthStatus)
 		}
-		agent.Status.External.AuthStatus[login.Spec.ToolReference] = login.Status.External
+		agent.Status.AuthStatus[login.Spec.ToolReference] = login.Status.External
 	}
 
 	if updateRequired {

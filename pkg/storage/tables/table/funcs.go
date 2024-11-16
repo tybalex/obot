@@ -16,7 +16,6 @@ import (
 var (
 	FuncMap = map[string]any{
 		"ago":          FormatCreated,
-		"agoptr":       FormatTimePointer,
 		"until":        FormatUntil,
 		"json":         FormatJSON,
 		"jsoncompact":  FormatJSONCompact,
@@ -76,14 +75,17 @@ func FormatID(obj kclient.Object) (string, error) {
 	return obj.GetName(), nil
 }
 
-func FormatTimePointer(data *metav1.Time) string {
-	if data == nil {
-		return ""
+func FormatCreated(obj any) string {
+	var data metav1.Time
+	switch v := obj.(type) {
+	case metav1.Time:
+		data = v
+	case *metav1.Time:
+		if v == nil {
+			return ""
+		}
+		data = *v
 	}
-	return FormatCreated(*data)
-}
-
-func FormatCreated(data metav1.Time) string {
 	return duration.HumanDuration(time.Now().UTC().Sub(data.Time)) + " ago"
 }
 

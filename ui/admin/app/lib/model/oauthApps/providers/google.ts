@@ -183,7 +183,7 @@ const steps: OAuthFormStep<typeof schema.shape>[] = [
 
 export const GoogleOAuthApp = {
     schema,
-    refName: "google",
+    alias: "google",
     type: "google",
     displayName: "Google",
     logo: assetUrl("/assets/google_logo.png"),

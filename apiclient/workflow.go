@@ -39,7 +39,7 @@ func (c *Client) CreateWorkflow(ctx context.Context, workflow types.WorkflowMani
 }
 
 type ListWorkflowsOptions struct {
-	RefName string
+	Alias string
 }
 
 func (c *Client) ListWorkflows(ctx context.Context, opts ListWorkflowsOptions) (result types.WorkflowList, err error) {
@@ -60,10 +60,10 @@ func (c *Client) ListWorkflows(ctx context.Context, opts ListWorkflowsOptions) (
 		return result, err
 	}
 
-	if opts.RefName != "" {
+	if opts.Alias != "" {
 		var filtered types.WorkflowList
 		for _, workflow := range result.Items {
-			if workflow.RefName == opts.RefName && workflow.RefNameAssigned {
+			if workflow.Alias == opts.Alias && workflow.AliasAssigned {
 				filtered.Items = append(filtered.Items, workflow)
 			}
 		}

@@ -25,7 +25,7 @@ Another way to trigger a workflow is via a **webhook**. This feature is still un
 ```
 curl -X POST 'http://127.0.0.1:8080/api/webhooks' -d '{ \
   "description": "Webhook to respond to pagerduty events", \
-  "refName": "pd-hook", \
+  "alias": "pd-hook", \
   "workflowID": "w1km9xw"}'
 ```
 This will produce a webhook that can be called at http://localhost:8080/api/webhooks/pd-hook. When called, the body of the webhook request will be sent to the workflow as input.

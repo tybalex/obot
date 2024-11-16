@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
 	"github.com/otto8-ai/otto8/pkg/invoke"
 	"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
@@ -23,11 +24,8 @@ func NewInvokeHandler(invoker *invoke.Invoker) *InvokeHandler {
 func (i *InvokeHandler) Invoke(req api.Context) error {
 	var (
 		id          = req.PathValue("id")
-		agentID     string
-		wfID        string
 		agent       v1.Agent
 		wf          v1.Workflow
-		ref         v1.Reference
 		threadID    = req.PathValue("thread")
 		stepID      = req.URL.Query().Get("step")
 		synchronous = req.URL.Query().Get("async") != "true"
@@ -37,38 +35,43 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 		threadID = req.Request.Header.Get("X-Otto-Thread-Id")
 	}
 
-	if system.IsAgentID(id) {
-		agentID = id
-	} else if system.IsWorkflowID(id) {
-		wfID = id
-	} else if system.IsThreadID(id) {
+	if system.IsThreadID(id) {
 		var thread v1.Thread
 		if err := req.Get(&thread, id); err != nil {
 			return err
 		}
-		agentID = thread.Spec.AgentName
-		wfID = thread.Spec.WorkflowName
-		threadID = id
+		if thread.Spec.AgentName != "" {
+			if err := req.Get(&agent, thread.Spec.AgentName); err != nil {
+				return err
+			}
+		} else if thread.Spec.WorkflowName != "" {
+			if err := req.Get(&wf, thread.Spec.WorkflowName); err != nil {
+				return err
+			}
+		}
+	} else if system.IsAgentID(id) {
+		if err := req.Get(&agent, id); err != nil {
+			return err
+		}
+	} else if system.IsWorkflowID(id) {
+		if err := req.Get(&wf, id); err != nil {
+			return err
+		}
 	} else {
-		if err := req.Get(&ref, id); apierrors.IsNotFound(err) {
+		err := alias.Get(req.Context(), req.Storage, &agent, req.Namespace(), id)
+		if apierrors.IsNotFound(err) {
+			newErr := alias.Get(req.Context(), req.Storage, &wf, req.Namespace(), id)
+			if apierrors.IsNotFound(newErr) {
+				return err
+			} else if newErr != nil {
+				return newErr
+			}
 		} else if err != nil {
 			return err
-		} else if ref.Spec.AgentName != "" {
-			agentID = ref.Spec.AgentName
-		} else if ref.Spec.WorkflowName != "" {
-			wfID = ref.Spec.WorkflowName
 		}
 	}
 
-	if agentID != "" {
-		if err := req.Get(&agent, agentID); err != nil {
-			return err
-		}
-	} else if wfID != "" {
-		if err := req.Get(&wf, wfID); err != nil {
-			return err
-		}
-	} else {
+	if agent.Name == "" && wf.Name == "" {
 		return apierrors.NewBadRequest("invalid id, most be agent or workflow id")
 	}
 
@@ -79,7 +82,7 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 
 	var resp *invoke.Response
 
-	if agentID != "" {
+	if agent.Name != "" {
 		resp, err = i.invoker.Agent(req.Context(), req.Storage, &agent, string(input), invoke.Options{
 			ThreadName:   threadID,
 			Synchronous:  synchronous,
