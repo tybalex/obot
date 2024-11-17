@@ -48,8 +48,6 @@ lint-admin:
 package-tools:
 	./tools/package-tools.sh
 
-in-docker-build: all package-tools
-
 no-changes:
 	@if [ -n "$$(git status --porcelain)" ]; then \
 		git status --porcelain; \

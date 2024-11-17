@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e -x -o pipefail
 
+BIN_DIR=${BIN_DIR:-./bin}
+
 cd $(dirname $0)/..
 
 if [ ! -e otto8-tools ]; then
@@ -44,4 +46,19 @@ if [ ! -e aws-encryption-provider ]; then
 fi
 
 cd aws-encryption-provider
-go build -o /bin/aws-encryption-provider cmd/server/main.go
+go build -o ${BIN_DIR}/aws-encryption-provider cmd/server/main.go
+
+cd ../..
+
+if ! command -v uv; then
+    pip install uv
+fi
+
+if [ ! -e otto8-tools/venv ]; then
+    uv venv otto8-tools/venv
+fi
+
+source otto8-tools/venv/bin/activate
+
+find otto8-tools -name requirements.txt -exec cat {} \; -exec echo \; | sort -u > requirements.txt
+uv pip install -r requirements.txt

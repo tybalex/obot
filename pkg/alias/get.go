@@ -14,11 +14,23 @@ import (
 )
 
 func Get(ctx context.Context, c kclient.Client, obj v1.Aliasable, namespace string, name string) error {
-	errLookup := c.Get(ctx, router.Key(namespace, name), obj.(kclient.Object))
-	if kclient.IgnoreNotFound(errLookup) != nil {
-		return errLookup
-	} else if errLookup == nil {
-		return nil
+	var errLookup error
+	if namespace == "" {
+		gvk, err := c.GroupVersionKindFor(obj.(kclient.Object))
+		if err != nil {
+			return err
+		}
+		errLookup = apierrors.NewNotFound(schema.GroupResource{
+			Group:    gvk.Group,
+			Resource: gvk.Kind,
+		}, name)
+	} else {
+		errLookup = c.Get(ctx, router.Key(namespace, name), obj.(kclient.Object))
+		if kclient.IgnoreNotFound(errLookup) != nil {
+			return errLookup
+		} else if errLookup == nil {
+			return nil
+		}
 	}
 
 	gvk, err := c.GroupVersionKindFor(obj.(kclient.Object))

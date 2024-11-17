@@ -1,12 +1,25 @@
-FROM cgr.dev/chainguard/wolfi-base AS builder
+FROM cgr.dev/chainguard/wolfi-base AS base
 
-RUN apk add --no-cache go npm make git pnpm curl
+RUN apk add --no-cache go make git npm pnpm
+
+FROM base AS bin
 WORKDIR /app
 COPY . .
 RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/root/.cache/uv \
     --mount=type=cache,target=/root/go/pkg/mod \
-    make in-docker-build
+    make all
+
+FROM base AS tools
+RUN apk add --no-cache curl python-3.13 py3.13-pip
+WORKDIR /app
+COPY . .
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=cache,target=/root/go/pkg/mod \
+    UV_LINK_MODE=copy BIN_DIR=/bin make package-tools
 
 FROM cgr.dev/chainguard/wolfi-base AS final
 RUN apk add --no-cache git python-3.13 py3.13-pip openssh-server npm bash tini procps libreoffice
@@ -16,13 +29,6 @@ RUN sed -E 's/^#(PermitRootLogin)no/\1yes/' /etc/ssh/sshd_config -i
 RUN ssh-keygen -A
 RUN mkdir /run/sshd && /usr/sbin/sshd
 COPY encryption.yaml /
-COPY --from=builder /app/bin/otto8 /bin/
-COPY --link --from=builder /app/otto8-tools /otto8-tools
-RUN <<EOF
-for i in $(find /otto8-tools/[^k]* -name requirements.txt -exec cat {} \; -exec echo \; | sort -u); do
-    pip install "$i"
-done
-EOF
 COPY --chmod=0755 <<EOF /bin/run.sh
 #!/bin/bash
 set -e
@@ -46,9 +52,12 @@ VERSIONS
 exec tini -- otto8 server
 EOF
 
+COPY --link --from=tools /app/otto8-tools /otto8-tools
+COPY --from=bin /app/bin/otto8 /bin/
+
 EXPOSE 22
 # libreoffice executables
-ENV PATH=$PATH:/usr/lib/libreoffice/program
+ENV PATH=/otto8-tools/venv/bin:$PATH:/usr/lib/libreoffice/program
 ENV HOME=/data
 ENV XDG_CACHE_HOME=/data/cache
 ENV GPTSCRIPT_SYSTEM_TOOLS_DIR=/otto8-tools/
