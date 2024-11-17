@@ -22,14 +22,16 @@ func (in WorkflowState) IsTerminal() bool {
 type Thread struct {
 	Metadata
 	ThreadManifest
-	AgentID        string `json:"agentID,omitempty"`
-	WorkflowID     string `json:"workflowID,omitempty"`
-	State          string `json:"state,omitempty"`
-	LastRunID      string `json:"lastRunID,omitempty"`
-	CurrentRunID   string `json:"currentRunID,omitempty"`
-	ParentThreadID string `json:"parentThreadID,omitempty"`
-	UserID         string `json:"userID,omitempty"`
-	AgentAlias     string `json:"agentAlias,omitempty"`
+	AgentID         string `json:"agentID,omitempty"`
+	WorkflowID      string `json:"workflowID,omitempty"`
+	WebhookID       string `json:"webhookID,omitempty"`
+	EmailReceiverID string `json:"emailReceiverID,omitempty"`
+	State           string `json:"state,omitempty"`
+	LastRunID       string `json:"lastRunID,omitempty"`
+	CurrentRunID    string `json:"currentRunID,omitempty"`
+	ParentThreadID  string `json:"parentThreadID,omitempty"`
+	UserID          string `json:"userID,omitempty"`
+	AgentAlias      string `json:"agentAlias,omitempty"`
 }
 
 type ThreadList List[Thread]

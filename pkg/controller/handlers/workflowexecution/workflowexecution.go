@@ -134,6 +134,7 @@ func (h *Handler) newThread(ctx context.Context, c kclient.Client, wf *v1.Workfl
 			WorkflowName:          we.Spec.WorkflowName,
 			WorkflowExecutionName: we.Name,
 			WebhookName:           we.Spec.WebhookName,
+			EmailReceiverName:     we.Spec.EmailReceiverName,
 			CronJobName:           we.Spec.CronJobName,
 			FromWorkspaceNames:    []string{workspaceName},
 		},

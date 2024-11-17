@@ -29,6 +29,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/invoke"
 	"github.com/otto8-ai/otto8/pkg/jwt"
 	"github.com/otto8-ai/otto8/pkg/proxy"
+	"github.com/otto8-ai/otto8/pkg/smtp"
 	"github.com/otto8-ai/otto8/pkg/storage"
 	"github.com/otto8-ai/otto8/pkg/storage/scheme"
 	"github.com/otto8-ai/otto8/pkg/storage/services"
@@ -60,6 +61,7 @@ type Config struct {
 	AWSKMSKeyARN               string `usage:"The ARN of the AWS KMS key to use for encrypting credential storage" env:"OTTO8_AWS_KMS_KEY_ARN" name:"aws-kms-key-arn"`
 	EncryptionConfigFile       string `usage:"The path to the encryption configuration file" default:"./encryption.yaml"`
 	KnowledgeSetIngestionLimit int    `usage:"The maximum number of files to ingest into a knowledge set" default:"1000" env:"OTTO_KNOWLEDGESET_INGESTION_LIMIT" name:"knowledge-set-ingestion-limit"`
+	EmailServerName            string `usage:"The name of the email server to display for email receivers (default: ui-hostname value)"`
 
 	AuthConfig
 	GatewayConfig
@@ -70,6 +72,7 @@ type Services struct {
 	ToolRegistryURL            string
 	WorkspaceProviderType      string
 	ServerURL                  string
+	EmailServerName            string
 	DevUIPort                  int
 	Events                     *events.Emitter
 	StorageClient              storage.Client
@@ -258,6 +261,10 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		authenticators = union.New(authenticators, authn.NoAuth{})
 	}
 
+	if config.EmailServerName != "" {
+		go smtp.Start(ctx, storageClient, config.EmailServerName)
+	}
+
 	// For now, always auto-migrate the gateway database
 	return &Services{
 		WorkspaceProviderType:      config.WorkspaceProviderType,
@@ -275,6 +282,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		GatewayServer:              gatewayServer,
 		ProxyServer:                proxyServer,
 		KnowledgeSetIngestionLimit: config.KnowledgeSetIngestionLimit,
+		EmailServerName:            config.EmailServerName,
 	}, nil
 }
 

@@ -21,7 +21,7 @@ type EmailReceiver struct {
 }
 
 func (in *EmailReceiver) GetAliasName() string {
-	return in.Spec.EmailReceiverManifest.Alias
+	return in.Spec.EmailReceiverManifest.User
 }
 
 func (in *EmailReceiver) SetAssigned() {
@@ -35,8 +35,8 @@ func (in *EmailReceiver) IsAssigned() bool {
 func (*EmailReceiver) GetColumns() [][]string {
 	return [][]string{
 		{"Name", "Name"},
-		{"Alias", "Spec.Alias"},
-		{"Workflow", "Spec.WorkflowID"},
+		{"User", "Spec.User"},
+		{"Workflow", "Spec.Workflow"},
 		{"Created", "{{ago .CreationTimestamp}}"},
 		{"Description", "Spec.Description"},
 	}

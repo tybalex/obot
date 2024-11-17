@@ -57,6 +57,7 @@ type ThreadSpec struct {
 	KnowledgeSourceName   string               `json:"remoteKnowledgeSourceName,omitempty"`
 	KnowledgeSetName      string               `json:"knowledgeSetName,omitempty"`
 	WebhookName           string               `json:"webhookName,omitempty"`
+	EmailReceiverName     string               `json:"emailReceiverName,omitempty"`
 	CronJobName           string               `json:"cronJobName,omitempty"`
 	WorkspaceName         string               `json:"workspaceName,omitempty"`
 	FromWorkspaceNames    []string             `json:"fromWorkspaceNames,omitempty"`
@@ -71,6 +72,7 @@ func (in *Thread) DeleteRefs() []Ref {
 		{ObjType: &Workflow{}, Name: in.Spec.WorkflowName},
 		{ObjType: &CronJob{}, Name: in.Spec.CronJobName},
 		{ObjType: &Webhook{}, Name: in.Spec.WebhookName},
+		{ObjType: &EmailReceiver{}, Name: in.Spec.EmailReceiverName},
 		{ObjType: &Thread{}, Name: in.Status.PreviousThreadName},
 		{ObjType: &KnowledgeSource{}, Name: in.Spec.KnowledgeSourceName},
 		{ObjType: &KnowledgeSet{}, Name: in.Spec.KnowledgeSetName},

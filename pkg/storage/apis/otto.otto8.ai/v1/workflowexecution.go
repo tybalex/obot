@@ -60,6 +60,7 @@ type WorkflowExecutionSpec struct {
 	Input                 string `json:"input,omitempty"`
 	WorkflowName          string `json:"workflowName,omitempty"`
 	WebhookName           string `json:"webhookName,omitempty"`
+	EmailReceiverName     string `json:"emailReceiverName,omitempty"`
 	CronJobName           string `json:"cronJobName,omitempty"`
 	ParentThreadName      string `json:"parentThreadName,omitempty"`
 	ParentRunName         string `json:"parentRunName,omitempty"`

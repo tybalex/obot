@@ -27,7 +27,7 @@ func Get(ctx context.Context, c kclient.Client, obj v1.Aliasable, namespace stri
 	}
 
 	var alias v1.Alias
-	if err := c.Get(ctx, router.Key(namespace, Key(gvk, obj, name)), &alias); apierrors.IsNotFound(err) {
+	if err := c.Get(ctx, router.Key("", Key(gvk, obj, name)), &alias); apierrors.IsNotFound(err) {
 		return errLookup
 	} else if err != nil {
 		return errors.Join(errLookup, err)

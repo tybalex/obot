@@ -25,6 +25,8 @@ func AddToSchemeWithGV(scheme *runtime.Scheme, schemeGroupVersion schema.GroupVe
 		&AliasList{},
 		&Agent{},
 		&AgentList{},
+		&EmailReceiver{},
+		&EmailReceiverList{},
 		&Run{},
 		&RunList{},
 		&RunState{},

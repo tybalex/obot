@@ -55,6 +55,12 @@ func (l *Delete) Run(cmd *cobra.Command, args []string) error {
 			} else {
 				fmt.Printf("Webhook deleted: %s\n", id)
 			}
+		case system.IsEmailReceiverID(id):
+			if err := l.root.Client.DeleteEmailReceiver(cmd.Context(), id); err != nil {
+				errs = append(errs, err)
+			} else {
+				fmt.Printf("Email receiver deleted: %s\n", id)
+			}
 		default:
 			errs = append(errs, errors.New("invalid ID: "+id))
 		}

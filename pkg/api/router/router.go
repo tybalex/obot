@@ -22,6 +22,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	cronJobs := handlers.NewCronJobHandler()
 	models := handlers.NewModelHandler()
 	prompt := handlers.NewPromptHandler(services.GPTClient)
+	emailreceiver := handlers.NewEmailReceiverHandler(services.EmailServerName)
 
 	// Version
 	mux.HandleFunc("GET /api/version", handlers.GetVersion)
@@ -171,6 +172,17 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("DELETE /api/webhooks/{id}", webhooks.Delete)
 	mux.HandleFunc("PUT /api/webhooks/{id}", webhooks.Update)
 	mux.HandleFunc("POST /api/webhooks/{id}", webhooks.Execute)
+
+	// Email Receivers
+	mux.HandleFunc("POST /api/email-receivers", emailreceiver.Create)
+	mux.HandleFunc("GET /api/email-receivers", emailreceiver.List)
+	mux.HandleFunc("GET /api/email-receivers/{id}", emailreceiver.ByID)
+	mux.HandleFunc("DELETE /api/email-receivers/{id}", emailreceiver.Delete)
+	mux.HandleFunc("PUT /api/email-receivers/{id}", emailreceiver.Update)
+
+	// Email Receivers for generic create
+	mux.HandleFunc("POST /api/emailreceivers", emailreceiver.Create)
+	mux.HandleFunc("GET /api/emailreceivers/{id}", emailreceiver.ByID)
 
 	// CronJobs
 	mux.HandleFunc("POST /api/cronjobs", cronJobs.Create)

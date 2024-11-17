@@ -884,6 +884,12 @@ func schema_otto8_ai_otto8_apiclient_types_EmailReceiver(ref common.ReferenceCal
 							Format: "",
 						},
 					},
+					"emailAddress": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 				Required: []string{"Metadata", "EmailReceiverManifest"},
 			},
@@ -941,11 +947,10 @@ func schema_otto8_ai_otto8_apiclient_types_EmailReceiverManifest(ref common.Refe
 							Format:  "",
 						},
 					},
-					"alias": {
+					"user": {
 						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"workflow": {
@@ -970,7 +975,7 @@ func schema_otto8_ai_otto8_apiclient_types_EmailReceiverManifest(ref common.Refe
 						},
 					},
 				},
-				Required: []string{"name", "description", "alias", "workflow"},
+				Required: []string{"name", "description", "workflow"},
 			},
 		},
 	}
@@ -2459,6 +2464,18 @@ func schema_otto8_ai_otto8_apiclient_types_Thread(ref common.ReferenceCallback) 
 						},
 					},
 					"workflowID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"webhookID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"emailReceiverID": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -4073,11 +4090,10 @@ func schema_storage_apis_ottootto8ai_v1_EmailReceiverSpec(ref common.ReferenceCa
 							Format:  "",
 						},
 					},
-					"alias": {
+					"user": {
 						SchemaProps: spec.SchemaProps{
-							Default: "",
-							Type:    []string{"string"},
-							Format:  "",
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"workflow": {
@@ -4102,7 +4118,7 @@ func schema_storage_apis_ottootto8ai_v1_EmailReceiverSpec(ref common.ReferenceCa
 						},
 					},
 				},
-				Required: []string{"name", "description", "alias", "workflow"},
+				Required: []string{"name", "description", "workflow"},
 			},
 		},
 	}
@@ -5791,6 +5807,12 @@ func schema_storage_apis_ottootto8ai_v1_ThreadSpec(ref common.ReferenceCallback)
 							Format: "",
 						},
 					},
+					"emailReceiverName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"cronJobName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -6496,6 +6518,12 @@ func schema_storage_apis_ottootto8ai_v1_WorkflowExecutionSpec(ref common.Referen
 						},
 					},
 					"webhookName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"emailReceiverName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",

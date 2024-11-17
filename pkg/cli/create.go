@@ -120,12 +120,13 @@ func (l *Create) fromTemplate(ctx context.Context) (string, error) {
 			"Agent",
 			"Workflow",
 			"Webhook",
+			"Email Receiver",
 		}).Show()
 	if err != nil {
 		return "", err
 	}
 
-	template, err := templates.FS.ReadFile(strings.ToLower(sel) + ".yaml")
+	template, err := templates.FS.ReadFile(strings.ToLower(strings.ReplaceAll(sel, " ", "") + ".yaml"))
 	if err != nil {
 		return "", err
 	}
