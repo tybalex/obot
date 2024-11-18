@@ -49,7 +49,16 @@ func parseManifests(data []byte) (result []manifest, _ error) {
 			return nil, err
 		}
 
-		typeName, _ := parsed["type"].(string)
+		var typeName string
+		for k, v := range parsed {
+			if strings.EqualFold(k, "type") {
+				typeName, _ = v.(string)
+				if typeName != "" {
+					break
+				}
+			}
+		}
+
 		if typeName == "" {
 			return nil, fmt.Errorf("missing type field in manifest")
 		}
