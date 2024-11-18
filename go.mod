@@ -16,11 +16,13 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/gptscript-ai/cmd v0.0.0-20240907001148-ffd49061124a
 	github.com/gptscript-ai/go-gptscript v0.9.6-0.20241115201052-7efb3409cfcc
-	github.com/gptscript-ai/gptscript v0.9.6-0.20241115160003-164d6a499f26
+	github.com/gptscript-ai/gptscript v0.9.6-0.20241118210913-51c4b5bd45ed
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
+	github.com/mhale/smtpd v0.8.3
 	github.com/oauth2-proxy/oauth2-proxy/v7 v7.0.0-00010101000000-000000000000
 	github.com/otto8-ai/kinm v0.0.0-20241106213623-2a34e5d88241
 	github.com/otto8-ai/nah v0.0.0-20241103035236-f2497c45ddb0
+	github.com/otto8-ai/namegenerator v0.0.0-20241115024503-63dbbe8f03f4
 	github.com/otto8-ai/otto8/apiclient v0.0.0-00010101000000-000000000000
 	github.com/otto8-ai/otto8/logger v0.0.0-00010101000000-000000000000
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
@@ -31,6 +33,7 @@ require (
 	golang.org/x/crypto v0.28.0
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
 	golang.org/x/term v0.25.0
+	golang.org/x/text v0.19.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/gorm v1.25.12
 	k8s.io/api v0.31.1
@@ -172,7 +175,6 @@ require (
 	github.com/mattn/go-runewidth v0.0.16 // indirect
 	github.com/mbland/hmacauth v0.0.0-20170912233209-44256dfd4bfa // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
-	github.com/mhale/smtpd v0.8.3 // indirect
 	github.com/mholt/archiver/v4 v4.0.0-alpha.8 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.1 // indirect
@@ -191,7 +193,6 @@ require (
 	github.com/nwaples/rardecode/v2 v2.0.0-beta.4 // indirect
 	github.com/ohler55/ojg v1.24.1 // indirect
 	github.com/olekukonko/tablewriter v0.0.6-0.20230925090304-df64c4bbad77 // indirect
-	github.com/otto8-ai/namegenerator v0.0.0-20241115024503-63dbbe8f03f4 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
@@ -258,7 +259,6 @@ require (
 	golang.org/x/oauth2 v0.23.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
 	golang.org/x/tools v0.26.0 // indirect
 	google.golang.org/api v0.198.0 // indirect
