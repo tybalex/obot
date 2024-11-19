@@ -110,6 +110,9 @@ func (c *Controller) setupRoutes() error {
 	root.Type(&v1.OAuthAppLogin{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.OAuthAppLogin{}).HandlerFunc(oauthLogins.RunTool)
 
+	// Alias
+	root.Type(&v1.Alias{}).HandlerFunc(alias.UnassignAlias)
+
 	// WorkflowSteps
 	steps := root.Type(&v1.WorkflowStep{})
 	steps.HandlerFunc(cleanup.Cleanup)

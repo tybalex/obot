@@ -3,12 +3,14 @@ package alias
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/otto8-ai/nah/pkg/name"
 	"github.com/otto8-ai/nah/pkg/router"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -39,7 +41,7 @@ func Get(ctx context.Context, c kclient.Client, obj v1.Aliasable, namespace stri
 	}
 
 	var alias v1.Alias
-	if err := c.Get(ctx, router.Key("", Key(gvk, obj, name)), &alias); apierrors.IsNotFound(err) {
+	if err := c.Get(ctx, router.Key("", KeyFromScopeID(GetScope(gvk, obj), name)), &alias); apierrors.IsNotFound(err) {
 		return errLookup
 	} else if err != nil {
 		return errors.Join(errLookup, err)
@@ -50,11 +52,11 @@ func Get(ctx context.Context, c kclient.Client, obj v1.Aliasable, namespace stri
 	return c.Get(ctx, router.Key(alias.Spec.TargetNamespace, alias.Spec.TargetName), obj.(kclient.Object))
 }
 
-func keyFromName(scope, id string) string {
+func KeyFromScopeID(scope, id string) string {
 	return strings.ToLower(name.SafeHashConcatName(id, scope))
 }
 
-func getScope(gvk schema.GroupVersionKind, obj v1.Aliasable) string {
+func GetScope(gvk schema.GroupVersionKind, obj v1.Aliasable) string {
 	if scoped, ok := obj.(v1.AliasScoped); ok && scoped.GetAliasScope() != "" {
 		return scoped.GetAliasScope()
 	}
@@ -62,6 +64,28 @@ func getScope(gvk schema.GroupVersionKind, obj v1.Aliasable) string {
 	return gvk.Kind
 }
 
-func Key(gvk schema.GroupVersionKind, obj v1.Aliasable, id string) string {
-	return keyFromName(getScope(gvk, obj), id)
+type GVKLookup interface {
+	GroupVersionKindFor(obj runtime.Object) (schema.GroupVersionKind, error)
+}
+
+type FromGVK schema.GroupVersionKind
+
+func (f FromGVK) GroupVersionKindFor(_ runtime.Object) (schema.GroupVersionKind, error) {
+	return schema.GroupVersionKind(f), nil
+}
+
+func Name(lookup GVKLookup, obj v1.Aliasable) (string, error) {
+	id := obj.GetAliasName()
+	if id == "" {
+		return "", nil
+	}
+	runtimeObject, ok := obj.(runtime.Object)
+	if !ok {
+		return "", fmt.Errorf("object %T does not implement runtime.Object, can not lookup gvk", obj)
+	}
+	gvk, err := lookup.GroupVersionKindFor(runtimeObject)
+	if err != nil {
+		return "", err
+	}
+	return KeyFromScopeID(GetScope(gvk, obj), id), nil
 }
