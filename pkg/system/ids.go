@@ -18,6 +18,7 @@ const (
 	OAuthAppLoginPrefix     = "oal1"
 	EmailReceiverPrefix     = "er1"
 	ModelPrefix             = "m1"
+	AliasPrefix             = "al1"
 )
 
 func IsThreadID(id string) bool {

@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/otto8-ai/nah/pkg/name"
 	"github.com/otto8-ai/nah/pkg/router"
+	"github.com/otto8-ai/otto8/pkg/hash"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
+	"github.com/otto8-ai/otto8/pkg/system"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -53,7 +54,7 @@ func Get(ctx context.Context, c kclient.Client, obj v1.Aliasable, namespace stri
 }
 
 func KeyFromScopeID(scope, id string) string {
-	return strings.ToLower(name.SafeHashConcatName(id, scope))
+	return system.AliasPrefix + hash.String(name.SafeHashConcatName(id, scope))[:8]
 }
 
 func GetScope(gvk schema.GroupVersionKind, obj v1.Aliasable) string {

@@ -108,6 +108,12 @@ func UnassignAlias(req router.Request, _ router.Response) error {
 		return err
 	}
 
+	// Check if alias name algorithm has changed
+	if src.Name != alias.KeyFromScopeID(alias.GetScope(gvk, aliasable), src.Spec.Name) {
+		log.Infof("Alias name algorithm has changed, deleting alias %s", src.Name)
+		return req.Delete(src)
+	}
+
 	aliasName, err := alias.Name(req.Client, aliasable)
 	if err != nil {
 		return err
