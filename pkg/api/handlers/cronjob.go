@@ -54,8 +54,7 @@ func (a *CronJobHandler) Create(req api.Context) error {
 		return err
 	}
 
-	req.WriteHeader(http.StatusCreated)
-	return req.Write(convertCronJob(cronJob))
+	return req.WriteCreated(convertCronJob(cronJob))
 }
 
 func (a *CronJobHandler) Update(req api.Context) error {

@@ -37,11 +37,12 @@ func (i *Invoker) Step(ctx context.Context, c kclient.WithWatch, step *v1.Workfl
 	}
 
 	return i.Agent(ctx, c, &agent, input, Options{
-		ThreadName:       wfe.Status.ThreadName,
-		WorkflowStepName: step.Name,
-		WorkflowStepID:   step.Spec.Step.ID,
-		PreviousRunName:  opt.PreviousRunName,
-		ForceNoResume:    opt.PreviousRunName == "",
+		ThreadName:            wfe.Status.ThreadName,
+		WorkflowStepName:      step.Name,
+		WorkflowStepID:        step.Spec.Step.ID,
+		WorkflowExecutionName: wfe.Name,
+		PreviousRunName:       opt.PreviousRunName,
+		ForceNoResume:         opt.PreviousRunName == "",
 	})
 }
 

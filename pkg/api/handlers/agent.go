@@ -89,8 +89,7 @@ func (a *AgentHandler) Create(req api.Context) error {
 		return err
 	}
 
-	req.WriteHeader(http.StatusCreated)
-	return req.Write(convertAgent(agent, server.GetURLPrefix(req)))
+	return req.WriteCreated(convertAgent(agent, server.GetURLPrefix(req)))
 }
 
 func convertAgent(agent v1.Agent, prefix string) *types.Agent {

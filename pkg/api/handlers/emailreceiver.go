@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
@@ -78,8 +76,7 @@ func (e *EmailReceiverHandler) Create(req api.Context) error {
 		return err
 	}
 
-	req.WriteHeader(http.StatusCreated)
-	return req.Write(convertEmailReceiver(er, e.hostname))
+	return req.WriteCreated(convertEmailReceiver(er, e.hostname))
 }
 
 func convertEmailReceiver(emailReceiver v1.EmailReceiver, hostname string) *types.EmailReceiver {

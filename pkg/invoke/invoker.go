@@ -139,6 +139,7 @@ type Options struct {
 	ThreadName            string
 	WorkflowStepName      string
 	WorkflowStepID        string
+	WorkflowExecutionName string
 	PreviousRunName       string
 	ForceNoResume         bool
 	CreateThread          bool
@@ -304,15 +305,16 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agen
 	}
 
 	return i.createRun(ctx, c, thread, tools, input, runOptions{
-		Synchronous:          opt.Synchronous,
-		AgentName:            agent.Name,
-		DefaultModel:         defaultModel,
-		Env:                  extraEnv,
-		CredentialContextIDs: credContextIDs,
-		WorkflowStepName:     opt.WorkflowStepName,
-		WorkflowStepID:       opt.WorkflowStepID,
-		PreviousRunName:      opt.PreviousRunName,
-		ForceNoResume:        opt.ForceNoResume,
+		Synchronous:           opt.Synchronous,
+		AgentName:             agent.Name,
+		DefaultModel:          defaultModel,
+		Env:                   extraEnv,
+		CredentialContextIDs:  credContextIDs,
+		WorkflowStepName:      opt.WorkflowStepName,
+		WorkflowStepID:        opt.WorkflowStepID,
+		WorkflowExecutionName: opt.WorkflowExecutionName,
+		PreviousRunName:       opt.PreviousRunName,
+		ForceNoResume:         opt.ForceNoResume,
 	})
 }
 

@@ -72,9 +72,7 @@ func (a *AssistantHandler) Invoke(req api.Context) error {
 
 	req.ResponseWriter.Header().Set("X-Otto-Thread-Id", resp.Thread.Name)
 
-	req.WriteHeader(http.StatusCreated)
-	req.ResponseWriter.Header().Set("Content-Type", "application/json")
-	return req.Write(map[string]string{
+	return req.WriteCreated(map[string]string{
 		"threadID": resp.Thread.Name,
 	})
 }

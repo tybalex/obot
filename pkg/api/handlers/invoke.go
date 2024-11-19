@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
 	"github.com/otto8-ai/otto8/pkg/invoke"
@@ -110,7 +108,6 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 		return req.WriteEvents(resp.Events)
 	}
 
-	req.WriteHeader(http.StatusCreated)
 	req.ResponseWriter.Header().Set("Content-Type", "application/json")
 	return req.Write(map[string]string{
 		"threadID": resp.Thread.Name,

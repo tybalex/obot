@@ -115,6 +115,7 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	// Invoker
 	mux.HandleFunc("POST /api/invoke/{id}", invoker.Invoke)
+	mux.HandleFunc("POST /api/invoke/{id}/thread/{thread}", invoker.Invoke)
 	mux.HandleFunc("POST /api/invoke/{id}/threads/{thread}", invoker.Invoke)
 
 	// Threads

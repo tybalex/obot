@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/gptscript-ai/go-gptscript"
@@ -124,8 +123,7 @@ func (a *WorkflowHandler) Create(req api.Context) error {
 		return err
 	}
 
-	req.WriteHeader(http.StatusCreated)
-	return req.Write(convertWorkflow(workflow, server.GetURLPrefix(req)))
+	return req.WriteCreated(convertWorkflow(workflow, server.GetURLPrefix(req)))
 }
 
 func convertWorkflow(workflow v1.Workflow, prefix string) *types.Workflow {

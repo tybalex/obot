@@ -127,8 +127,7 @@ func (a *WebhookHandler) Create(req api.Context) error {
 		return err
 	}
 
-	req.WriteHeader(http.StatusCreated)
-	return req.Write(convertWebhook(wh, server.GetURLPrefix(req)))
+	return req.WriteCreated(convertWebhook(wh, server.GetURLPrefix(req)))
 }
 
 func convertWebhook(webhook v1.Webhook, urlPrefix string) *types.Webhook {

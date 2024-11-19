@@ -50,6 +50,9 @@ func (r *Context) WriteEvents(events <-chan types.Progress) error {
 	sendJSON := r.Accepts("application/json")
 	if sendEvents {
 		r.ResponseWriter.Header().Set("Content-Type", "text/event-stream")
+		defer func() {
+			_ = r.WriteDataEvent(EventClose{})
+		}()
 	}
 
 	var (
@@ -95,7 +98,15 @@ func (r *Context) Body() ([]byte, error) {
 	return io.ReadAll(io.LimitReader(r.Request.Body, 1<<20))
 }
 
+func (r *Context) WriteCreated(obj any) error {
+	return r.write(obj, http.StatusCreated)
+}
+
 func (r *Context) Write(obj any) error {
+	return r.write(obj, http.StatusOK)
+}
+
+func (r *Context) write(obj any, code int) error {
 	if data, ok := obj.([]byte); ok {
 		r.ResponseWriter.Header().Set("Content-Type", "application/octet-stream")
 		_, err := r.ResponseWriter.Write(data)
@@ -106,8 +117,11 @@ func (r *Context) Write(obj any) error {
 		return err
 	}
 	r.ResponseWriter.Header().Set("Content-Type", "application/json")
+	r.ResponseWriter.WriteHeader(code)
 	return json.NewEncoder(r.ResponseWriter).Encode(obj)
 }
+
+type EventClose struct{}
 
 func (r *Context) WriteDataEvent(obj any) error {
 	if prg, ok := obj.(types.Progress); ok && prg.RunID != "" {
@@ -120,6 +134,10 @@ func (r *Context) WriteDataEvent(obj any) error {
 				return err
 			}
 		}
+	}
+	if _, ok := obj.(EventClose); ok {
+		_, err := r.ResponseWriter.Write([]byte("event: close\ndata: \n\n"))
+		return err
 	}
 	data, err := json.Marshal(obj)
 	if err != nil {
