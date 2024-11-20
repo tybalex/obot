@@ -57,8 +57,8 @@ func isValidTool(tool gptscript.Tool) bool {
 
 func (h *Handler) toolsToToolReferences(ctx context.Context, toolType types.ToolReferenceType, entries map[string]indexEntry) (result []client.Object) {
 	for name, entry := range entries {
-		if strings.HasPrefix(entry.Reference, ".") {
-			entry.Reference = h.registryURL + "/" + entry.Reference
+		if ref, ok := strings.CutPrefix(entry.Reference, "./"); ok {
+			entry.Reference = h.registryURL + "/" + ref
 		}
 
 		if entry.All {
