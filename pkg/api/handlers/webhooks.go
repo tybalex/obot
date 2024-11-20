@@ -132,8 +132,12 @@ func (a *WebhookHandler) Create(req api.Context) error {
 
 func convertWebhook(webhook v1.Webhook, urlPrefix string) *types.Webhook {
 	var links []string
-	if urlPrefix != "" && webhook.Status.Alias != "" {
-		links = []string{"invoke", fmt.Sprintf("%s/webhooks/%s", urlPrefix, webhook.Status.Alias)}
+	if urlPrefix != "" {
+		path := webhook.Name
+		if webhook.Status.AliasAssigned {
+			path = webhook.Spec.Alias
+		}
+		links = []string{"invoke", fmt.Sprintf("%s/webhooks/%s", urlPrefix, path)}
 	}
 
 	manifest := webhook.Spec.WebhookManifest

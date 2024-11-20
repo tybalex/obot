@@ -6382,12 +6382,6 @@ func schema_storage_apis_ottootto8ai_v1_WebhookStatus(ref common.ReferenceCallba
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
-					"alias": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"string"},
-							Format: "",
-						},
-					},
 					"aliasAssigned": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"boolean"},

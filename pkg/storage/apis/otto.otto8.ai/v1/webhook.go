@@ -58,7 +58,6 @@ type WebhookSpec struct {
 }
 
 type WebhookStatus struct {
-	Alias                      string       `json:"alias,omitempty"`
 	AliasAssigned              bool         `json:"aliasAssigned,omitempty"`
 	LastSuccessfulRunCompleted *metav1.Time `json:"lastSuccessfulRunCompleted,omitempty"`
 }
