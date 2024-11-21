@@ -500,7 +500,6 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.WithWatch, thread *v1.Th
 				"OTTO8_WORKFLOW_ID="+run.Spec.WorkflowName,
 				"OTTO8_WORKFLOW_STEP_ID="+run.Spec.WorkflowStepID,
 				"OTTO8_AGENT_ID="+run.Spec.AgentName,
-				"OPENAI_EMBEDDING_MODEL="+string(types.DefaultModelTextEmbedding),
 				"GPTSCRIPT_HTTP_ENV=OTTO8_TOKEN,OTTO8_RUN_ID,OTTO8_THREAD_ID,OTTO8_WORKFLOW_ID,OTTO8_WORKFLOW_STEP_ID,OTTO8_AGENT_ID",
 			),
 			DefaultModel:         run.Spec.DefaultModel,
