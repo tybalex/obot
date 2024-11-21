@@ -149,7 +149,9 @@ func convertWebhook(webhook v1.Webhook, urlPrefix string) *types.Webhook {
 		HasToken:                   len(webhook.Spec.TokenHash) > 0,
 	}
 
-	wh.Secret = fmt.Sprintf("%x", sha256.Sum256([]byte(webhook.Spec.Secret)))
+	if webhook.Spec.Secret != "" {
+		wh.Secret = fmt.Sprintf("%x", sha256.Sum256([]byte(webhook.Spec.Secret)))
+	}
 
 	return wh
 }
