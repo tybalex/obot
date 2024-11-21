@@ -52,7 +52,7 @@ func (a *WebhookHandler) Update(req api.Context) error {
 		return err
 	}
 
-	if err := validateManifest(req, webhookReq.WebhookManifest); err != nil {
+	if err := validateManifest(req, webhookReq.WebhookManifest, false); err != nil {
 		return err
 	}
 
@@ -96,7 +96,7 @@ func (a *WebhookHandler) Create(req api.Context) error {
 		return err
 	}
 
-	if err := validateManifest(req, webhookReq.WebhookManifest); err != nil {
+	if err := validateManifest(req, webhookReq.WebhookManifest, true); err != nil {
 		return err
 	}
 
@@ -278,7 +278,7 @@ func validateSecretHeader(secret string, body []byte, values []string) error {
 	return fmt.Errorf("invalid secret header")
 }
 
-func validateManifest(req api.Context, manifest types.WebhookManifest) error {
+func validateManifest(req api.Context, manifest types.WebhookManifest, create bool) error {
 	// Ensure that the WorkflowID is set and the workflow exists
 	if manifest.Workflow == "" {
 		return apierrors.NewBadRequest("webhook manifest must have a workflow name")
@@ -291,7 +291,8 @@ func validateManifest(req api.Context, manifest types.WebhookManifest) error {
 		}
 	}
 
-	if (manifest.ValidationHeader != "") != (manifest.Secret != "") {
+	// On creation, the user must set both the validation header and secret or set neither.
+	if create && (manifest.ValidationHeader != "") != (manifest.Secret != "") {
 		return apierrors.NewBadRequest("webhook must have secret and header set together")
 	}
 
