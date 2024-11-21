@@ -82,13 +82,9 @@ func (a *WebhookHandler) Update(req api.Context) error {
 }
 
 func (a *WebhookHandler) Delete(req api.Context) error {
-	var (
-		id = req.PathValue("id")
-	)
-
 	return req.Delete(&v1.Webhook{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      id,
+			Name:      req.PathValue("id"),
 			Namespace: req.Namespace(),
 		},
 	})
@@ -159,12 +155,8 @@ func convertWebhook(webhook v1.Webhook, urlPrefix string) *types.Webhook {
 }
 
 func (a *WebhookHandler) ByID(req api.Context) error {
-	var (
-		wh v1.Webhook
-		id = req.PathValue("id")
-	)
-
-	if err := alias.Get(req.Context(), req.Storage, &wh, req.Namespace(), id); err != nil {
+	var wh v1.Webhook
+	if err := alias.Get(req.Context(), req.Storage, &wh, req.Namespace(), req.PathValue("id")); err != nil {
 		return err
 	}
 
@@ -183,6 +175,20 @@ func (a *WebhookHandler) List(req api.Context) error {
 	}
 
 	return req.Write(resp)
+}
+
+func (a *WebhookHandler) RemoveToken(req api.Context) error {
+	var wh v1.Webhook
+	if err := req.Get(&wh, req.PathValue("id")); err != nil {
+		return err
+	}
+
+	wh.Spec.TokenHash = nil
+	if err := req.Update(&wh); err != nil {
+		return fmt.Errorf("failed to remove token: %w", err)
+	}
+
+	return req.Write(convertWebhook(wh, server.GetURLPrefix(req)))
 }
 
 func (a *WebhookHandler) Execute(req api.Context) error {
