@@ -152,10 +152,11 @@ func toStream[T any](resp *http.Response) chan T {
 	go func() {
 		defer resp.Body.Close()
 		defer close(ch)
+		var eventName string
 		lines := bufio.NewScanner(resp.Body)
 		for lines.Scan() {
 			var obj T
-			if data, ok := strings.CutPrefix(lines.Text(), "data: "); ok {
+			if data, ok := strings.CutPrefix(lines.Text(), "data: "); ok && eventName == "" || eventName == "message" {
 				if log.IsDebug() {
 					log.Fields("data", data).Debugf("Received data")
 				}
@@ -169,6 +170,13 @@ func toStream[T any](resp *http.Response) chan T {
 						ch <- obj
 					}
 				}
+			} else if event, ok := strings.CutPrefix(lines.Text(), "event: "); ok {
+				if log.IsDebug() {
+					log.Fields("event", event).Debugf("Received event")
+				}
+				eventName = event
+			} else if strings.TrimSpace(lines.Text()) == "" {
+				eventName = ""
 			}
 		}
 	}()

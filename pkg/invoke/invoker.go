@@ -13,6 +13,7 @@ import (
 
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/otto8-ai/nah/pkg/router"
+	"github.com/otto8-ai/nah/pkg/uncached"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/logger"
 	"github.com/otto8-ai/otto8/pkg/events"
@@ -402,14 +403,15 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.WithWatch, thread *v1
 
 	if !thread.Spec.SystemTask {
 		err = retry.RetryOnConflict(retry.DefaultBackoff, func() error {
-			if err := c.Get(ctx, kclient.ObjectKeyFromObject(thread), thread); err != nil {
+			if err := c.Get(ctx, kclient.ObjectKeyFromObject(thread), uncached.Get(thread)); err != nil {
 				return err
 			}
 			thread.Status.CurrentRunName = run.Name
 			return c.Status().Update(ctx, thread)
 		})
 		if err != nil {
-			return nil, err
+			// Don't return error it's not critical, and will mostly likely make caller loose track of this
+			log.Errorf("failed to update thread %q for run %q: %v", thread.Name, run.Name, err)
 		}
 	}
 

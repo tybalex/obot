@@ -1,13 +1,17 @@
 package v1
 
 import (
+	"slices"
+
+	"github.com/otto8-ai/nah/pkg/fields"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	_ Aliasable   = (*Workflow)(nil)
-	_ AliasScoped = (*Workflow)(nil)
+	_ Aliasable     = (*Workflow)(nil)
+	_ AliasScoped   = (*Workflow)(nil)
+	_ fields.Fields = (*Workflow)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -18,6 +22,27 @@ type Workflow struct {
 
 	Spec   WorkflowSpec   `json:"spec,omitempty"`
 	Status WorkflowStatus `json:"status,omitempty"`
+}
+
+func (in *Workflow) Has(field string) (exists bool) {
+	return slices.Contains(in.FieldNames(), field)
+}
+
+func (in *Workflow) Get(field string) (value string) {
+	switch field {
+	case "spec.agentName":
+		return in.Spec.AgentName
+	case "spec.userID":
+		return in.Spec.UserID
+	}
+	return ""
+}
+
+func (in *Workflow) FieldNames() []string {
+	return []string{
+		"spec.agentName",
+		"spec.userID",
+	}
 }
 
 func (in *Workflow) GetAliasName() string {
@@ -37,7 +62,9 @@ func (in *Workflow) GetAliasScope() string {
 }
 
 type WorkflowSpec struct {
-	Manifest types.WorkflowManifest `json:"manifest,omitempty"`
+	AgentName string                 `json:"agentName,omitempty"`
+	UserID    string                 `json:"userID,omitempty"`
+	Manifest  types.WorkflowManifest `json:"manifest,omitempty"`
 }
 
 type WorkflowStatus struct {

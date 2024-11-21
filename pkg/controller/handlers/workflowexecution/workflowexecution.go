@@ -90,7 +90,7 @@ func (h *Handler) Run(req router.Request, _ router.Response) error {
 	if newState.IsBlocked() {
 		we.Status.State = newState
 		we.Status.Error = output
-		return nil
+		return apply.New(req.Client).Apply(req.Ctx, req.Object, steps...)
 	}
 
 	if newState == types.WorkflowStateComplete {

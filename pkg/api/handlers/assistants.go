@@ -34,9 +34,9 @@ func NewAssistantHandler(invoker *invoke.Invoker, events *events.Emitter, gptScr
 	}
 }
 
-func getAgent(req api.Context, id string) (*v1.Agent, error) {
+func getAssistant(req api.Context, id string) (*v1.Agent, error) {
 	var agent v1.Agent
-	if err := alias.Get(req.Context(), req.Storage, &agent, req.Namespace(), id); err != nil {
+	if err := alias.Get(req.Context(), req.Storage, &agent, "", id); err != nil {
 		return nil, err
 	}
 	return &agent, nil
@@ -47,7 +47,7 @@ func (a *AssistantHandler) Invoke(req api.Context) error {
 		id = req.PathValue("id")
 	)
 
-	agent, err := getAgent(req, id)
+	agent, err := getAssistant(req, id)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func getUserThread(req api.Context, agentID string) (*v1.Thread, error) {
 		return &thread, nil
 	}
 
-	agent, err := getAgent(req, agentID)
+	agent, err := getAssistant(req, agentID)
 	if err != nil {
 		return nil, err
 	}
@@ -373,7 +373,7 @@ func (a *AssistantHandler) AddTool(req api.Context) error {
 		tool = req.PathValue("tool")
 	)
 
-	agent, err := getAgent(req, id)
+	agent, err := getAssistant(req, id)
 	if err != nil {
 		return err
 	}
@@ -430,7 +430,7 @@ func (a *AssistantHandler) Tools(req api.Context) error {
 		id = req.PathValue("id")
 	)
 
-	agent, err := getAgent(req, id)
+	agent, err := getAssistant(req, id)
 	if err != nil {
 		return err
 	}

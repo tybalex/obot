@@ -136,7 +136,7 @@ func (r *Context) WriteDataEvent(obj any) error {
 		}
 	}
 	if _, ok := obj.(EventClose); ok {
-		_, err := r.ResponseWriter.Write([]byte("event: close\ndata: \n\n"))
+		_, err := r.ResponseWriter.Write([]byte("event: close\ndata: {}\n\n"))
 		return err
 	}
 	data, err := json.Marshal(obj)
@@ -200,11 +200,13 @@ func Watch[T client.Object](r Context, list client.ObjectList) (<-chan T, error)
 	return resp, nil
 }
 
-func (r *Context) List(obj client.ObjectList) error {
+func (r *Context) List(obj client.ObjectList, opts ...client.ListOption) error {
 	namespace := r.Namespace()
-	return r.Storage.List(r.Request.Context(), obj, &client.ListOptions{
-		Namespace: namespace,
-	})
+	return r.Storage.List(r.Request.Context(), obj, slices.Concat([]client.ListOption{
+		&client.ListOptions{
+			Namespace: namespace,
+		},
+	}, opts)...)
 }
 
 func (r *Context) Delete(obj client.Object) error {

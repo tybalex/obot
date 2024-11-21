@@ -15,13 +15,17 @@ import (
 	"github.com/otto8-ai/nah/pkg/router"
 	"github.com/otto8-ai/nah/pkg/typed"
 	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/otto8-ai/otto8/logger"
 	"github.com/otto8-ai/otto8/pkg/gz"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
+	"github.com/otto8-ai/otto8/pkg/wait"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+var log = logger.Package()
 
 type Emitter struct {
 	client        kclient.WithWatch
@@ -47,15 +51,16 @@ type liveState struct {
 }
 
 type WatchOptions struct {
-	History               bool
-	LastRunName           string
-	MaxRuns               int
-	After                 bool
-	ThreadName            string
-	ThreadResourceVersion string
-	Follow                bool
-	Run                   *v1.Run
-	WaitForThread         bool
+	History                  bool
+	LastRunName              string
+	MaxRuns                  int
+	After                    bool
+	ThreadName               string
+	ThreadResourceVersion    string
+	Follow                   bool
+	FollowWorkflowExecutions bool
+	Run                      *v1.Run
+	WaitForThread            bool
 }
 
 type callFramePrintState struct {
@@ -440,7 +445,7 @@ func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOption
 			}
 		}
 
-		nextRun, err := e.findNextRun(ctx, run, opts.Follow)
+		nextRun, err := e.findNextRun(ctx, run, opts)
 		if err != nil {
 			return err
 		}
@@ -477,7 +482,38 @@ func (e *Emitter) getThreadID(ctx context.Context, namespace, runName, workflowN
 	return "", fmt.Errorf("no thread found for run %s and workflow %s", runName, workflowName)
 }
 
-func (e *Emitter) isWorkflowDone(ctx context.Context, run v1.Run) (chan struct{}, func(), error) {
+func (e *Emitter) getNextWorkflowRun(ctx context.Context, run v1.Run) (*v1.Run, error) {
+	var runName string
+	_, err := wait.For(ctx, e.client, &v1.Thread{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: run.Namespace,
+			Name:      run.Spec.ThreadName,
+		},
+	}, func(thread *v1.Thread) bool {
+		if thread.Status.CurrentRunName != "" && thread.Status.CurrentRunName != run.Name {
+			runName = thread.Status.CurrentRunName
+			return true
+		}
+		if thread.Status.LastRunName != "" && thread.Status.LastRunName != run.Name {
+			runName = thread.Status.LastRunName
+			return true
+		}
+		return false
+	}, wait.Option{
+		Timeout: 15 * time.Minute,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var nextRun v1.Run
+	if err := e.client.Get(ctx, router.Key(run.Namespace, runName), &nextRun); err != nil {
+		return nil, err
+	}
+	return &nextRun, nil
+}
+
+func (e *Emitter) isWorkflowDone(ctx context.Context, run v1.Run, opts WatchOptions) (<-chan *v1.Run, func(), error) {
 	if run.Spec.WorkflowExecutionName == "" {
 		return nil, func() {}, nil
 	}
@@ -488,7 +524,7 @@ func (e *Emitter) isWorkflowDone(ctx context.Context, run v1.Run) (chan struct{}
 		return nil, nil, err
 	}
 
-	result := make(chan struct{})
+	result := make(chan *v1.Run, 1)
 	cancel := func() {
 		w.Stop()
 		go func() {
@@ -498,11 +534,19 @@ func (e *Emitter) isWorkflowDone(ctx context.Context, run v1.Run) (chan struct{}
 	}
 
 	go func() {
+		defer close(result)
 		defer cancel()
 		for event := range w.ResultChan() {
 			if wfe, ok := event.Object.(*v1.WorkflowExecution); ok {
 				if wfe.Status.State.IsTerminal() || wfe.Status.State.IsBlocked() {
-					close(result)
+					if opts.FollowWorkflowExecutions {
+						next, err := e.getNextWorkflowRun(ctx, run)
+						if err != nil {
+							log.Errorf("failed to get next workflow run for last run %q: %v", run.Name, err)
+						} else {
+							result <- next
+						}
+					}
 					return
 				}
 			}
@@ -512,7 +556,7 @@ func (e *Emitter) isWorkflowDone(ctx context.Context, run v1.Run) (chan struct{}
 	return result, cancel, nil
 }
 
-func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1.Run, error) {
+func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, opts WatchOptions) (*v1.Run, error) {
 	var (
 		runs     v1.RunList
 		criteria = []kclient.ListOption{
@@ -521,8 +565,7 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1
 		}
 	)
 
-	if !follow {
-		// If this isn't a workflow we are done at this point if follow is requested
+	if !opts.Follow {
 		return nil, nil
 	}
 
@@ -547,7 +590,7 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1
 		}
 	}()
 
-	isWorkflowDone, cancel, err := e.isWorkflowDone(ctx, run)
+	isWorkflowDone, cancel, err := e.isWorkflowDone(ctx, run, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -562,8 +605,8 @@ func (e *Emitter) findNextRun(ctx context.Context, run v1.Run, follow bool) (*v1
 			if run, ok := event.Object.(*v1.Run); ok {
 				return run, nil
 			}
-		case <-isWorkflowDone:
-			return nil, nil
+		case run := <-isWorkflowDone:
+			return run, nil
 		}
 	}
 

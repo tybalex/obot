@@ -1,9 +1,14 @@
 package v1
 
 import (
+	"slices"
+
+	"github.com/otto8-ai/nah/pkg/fields"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+var _ fields.Fields = (*WorkflowStep)(nil)
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
@@ -13,6 +18,24 @@ type WorkflowStep struct {
 
 	Spec   WorkflowStepSpec   `json:"spec,omitempty"`
 	Status WorkflowStepStatus `json:"status,omitempty"`
+}
+
+func (in *WorkflowStep) Has(field string) (exists bool) {
+	return slices.Contains(in.FieldNames(), field)
+}
+
+func (in *WorkflowStep) Get(field string) (value string) {
+	switch field {
+	case "spec.workflowExecutionName":
+		return in.Spec.WorkflowExecutionName
+	}
+	return ""
+}
+
+func (in *WorkflowStep) FieldNames() []string {
+	return []string{
+		"spec.workflowExecutionName",
+	}
 }
 
 func (in *WorkflowStep) IsGenerationInSync() bool {

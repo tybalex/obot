@@ -13,6 +13,7 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	agents := handlers.NewAgentHandler(services.GPTClient, services.ServerURL)
 	assistants := handlers.NewAssistantHandler(services.Invoker, services.Events, services.GPTClient)
+	tasks := handlers.NewTaskHandler(services.Invoker, services.Events)
 	workflows := handlers.NewWorkflowHandler(services.GPTClient, services.ServerURL, services.Invoker)
 	invoker := handlers.NewInvokeHandler(services.Invoker)
 	threads := handlers.NewThreadHandler(services.GPTClient, services.Events)
@@ -44,16 +45,28 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("DELETE /api/assistants/{id}/credentials/{cred_id}", assistants.DeleteCredential)
 	mux.HandleFunc("GET /api/assistants/{id}/events", assistants.Events)
 	mux.HandleFunc("POST /api/assistants/{id}/invoke", assistants.Invoke)
+	// Assistant tools
 	mux.HandleFunc("GET /api/assistants/{id}/tools", assistants.Tools)
 	mux.HandleFunc("DELETE /api/assistants/{id}/tools/{tool}", assistants.RemoveTool)
 	mux.HandleFunc("PUT /api/assistants/{id}/tools/{tool}", assistants.AddTool)
+	// Assistant files
 	mux.HandleFunc("GET /api/assistants/{id}/files", assistants.Files)
 	mux.HandleFunc("GET /api/assistants/{id}/file/{file...}", assistants.GetFile)
 	mux.HandleFunc("POST /api/assistants/{id}/files/{file...}", assistants.UploadFile)
 	mux.HandleFunc("DELETE /api/assistants/{id}/files/{file...}", assistants.DeleteFile)
+	// Assistant knowledge files
 	mux.HandleFunc("GET /api/assistants/{id}/knowledge", assistants.Knowledge)
 	mux.HandleFunc("POST /api/assistants/{id}/knowledge/{file}", assistants.UploadKnowledge)
 	mux.HandleFunc("DELETE /api/assistants/{id}/knowledge/{file...}", assistants.DeleteKnowledge)
+
+	// Tasks
+	mux.HandleFunc("GET /api/assistants/{assistant_id}/tasks", tasks.List)
+	mux.HandleFunc("GET /api/assistants/{assistant_id}/tasks/{id}", tasks.Get)
+	mux.HandleFunc("POST /api/assistants/{assistant_id}/tasks", tasks.Create)
+	mux.HandleFunc("PUT /api/assistants/{assistant_id}/tasks/{id}", tasks.Update)
+	mux.HandleFunc("DELETE /api/assistants/{assistant_id}/tasks/{id}", tasks.Delete)
+	mux.HandleFunc("POST /api/assistants/{assistant_id}/tasks/{id}/run", tasks.Run)
+	mux.HandleFunc("GET /api/assistants/{assistant_id}/tasks/{id}/threads/{thread_id}/events", tasks.Events)
 
 	// Agent files
 	mux.HandleFunc("GET /api/agents/{id}/files", agents.ListFiles)

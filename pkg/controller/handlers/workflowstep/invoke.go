@@ -3,9 +3,11 @@ package workflowstep
 import (
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/otto8-ai/nah/pkg/router"
+	"github.com/otto8-ai/nah/pkg/uncached"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/invoke"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
+	"k8s.io/client-go/util/retry"
 )
 
 func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {
@@ -38,11 +40,17 @@ func (h *Handler) RunInvoke(req router.Request, resp router.Response) error {
 		}
 		defer invokeResp.Close()
 
-		step.Status.ThreadName = invokeResp.Thread.Name
-		step.Status.RunNames = []string{invokeResp.Run.Name}
-
-		// Ignored error updating
-		_ = client.Status().Update(ctx, step)
+		err = retry.RetryOnConflict(retry.DefaultBackoff, func() error {
+			if err := client.Get(ctx, router.Key(step.Namespace, step.Name), uncached.Get(step)); err != nil {
+				return err
+			}
+			step.Status.ThreadName = invokeResp.Thread.Name
+			step.Status.RunNames = []string{invokeResp.Run.Name}
+			return client.Status().Update(ctx, step)
+		})
+		if err != nil {
+			return err
+		}
 
 		run = *invokeResp.Run
 	} else {

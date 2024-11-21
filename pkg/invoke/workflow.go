@@ -162,27 +162,22 @@ func (i *Invoker) deleteSteps(ctx context.Context, c kclient.Client, thread v1.T
 		steps v1.WorkflowStepList
 	)
 
-	if err := c.List(ctx, &steps, kclient.InNamespace(thread.Namespace)); err != nil {
+	if err := c.List(ctx, &steps, kclient.InNamespace(thread.Namespace), kclient.MatchingFields{
+		"spec.workflowExecutionName": thread.Spec.WorkflowExecutionName,
+	}); err != nil {
 		return err
 	}
 
 	if len(steps.Items) == 0 {
-		return types.NewErrNotFound("step not found: %s", stepID)
+		return nil
 	}
 
-	var deleted bool
 	for _, step := range steps.Items {
-		if step.Status.State == types.WorkflowStateError ||
-			step.Spec.WorkflowExecutionName == thread.Spec.WorkflowExecutionName && stepMatches(step.Spec.Step.ID, stepID) {
+		if step.Status.State == types.WorkflowStateError || stepMatches(step.Spec.Step.ID, stepID) {
 			if err := c.Delete(ctx, &step); kclient.IgnoreNotFound(err) != nil {
 				return err
 			}
-			deleted = true
 		}
-	}
-
-	if !deleted {
-		return types.NewErrNotFound("step not found: %s", stepID)
 	}
 
 	return nil

@@ -59,13 +59,14 @@ func convertThread(thread v1.Thread) types.Thread {
 
 func (a *ThreadHandler) Events(req api.Context) error {
 	var (
-		id            = req.PathValue("id")
-		follow        = req.URL.Query().Get("follow") == "true"
-		runID         = req.URL.Query().Get("runID")
-		maxRunString  = req.URL.Query().Get("maxRuns")
-		maxRuns       int
-		err           error
-		waitForThread = req.URL.Query().Get("waitForThread") == "true"
+		id              = req.PathValue("id")
+		follow          = req.URL.Query().Get("follow") == "true"
+		followWorkflows = req.URL.Query().Get("followWorflows") == "true"
+		runID           = req.URL.Query().Get("runID")
+		maxRunString    = req.URL.Query().Get("maxRuns")
+		maxRuns         int
+		err             error
+		waitForThread   = req.URL.Query().Get("waitForThread") == "true"
 	)
 
 	if runID == "" {
@@ -82,13 +83,14 @@ func (a *ThreadHandler) Events(req api.Context) error {
 	}
 
 	_, events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{
-		Follow:        follow,
-		History:       runID == "",
-		LastRunName:   strings.TrimSuffix(runID, ":after"),
-		MaxRuns:       maxRuns,
-		After:         strings.HasSuffix(runID, ":after"),
-		ThreadName:    id,
-		WaitForThread: waitForThread,
+		Follow:                   follow,
+		FollowWorkflowExecutions: followWorkflows,
+		History:                  runID == "",
+		LastRunName:              strings.TrimSuffix(runID, ":after"),
+		MaxRuns:                  maxRuns,
+		After:                    strings.HasSuffix(runID, ":after"),
+		ThreadName:               id,
+		WaitForThread:            waitForThread,
 	})
 	if err != nil {
 		return err
