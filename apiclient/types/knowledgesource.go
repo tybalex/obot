@@ -39,9 +39,11 @@ type KnowledgeSource struct {
 }
 
 type KnowledgeSourceManifest struct {
-	SyncSchedule         string `json:"syncSchedule,omitempty"`
-	AutoApprove          *bool  `json:"autoApprove,omitempty"`
-	KnowledgeSourceInput `json:",inline"`
+	SyncSchedule          string   `json:"syncSchedule,omitempty"`
+	AutoApprove           *bool    `json:"autoApprove,omitempty"`
+	FilePathPrefixInclude []string `json:"filePathPrefixInclude,omitempty"`
+	FilePathPrefixExclude []string `json:"filePathPrefixExclude,omitempty"`
+	KnowledgeSourceInput  `json:",inline"`
 }
 
 type KnowledgeSourceList List[KnowledgeSource]
