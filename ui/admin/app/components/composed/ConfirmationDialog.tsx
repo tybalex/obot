@@ -18,20 +18,22 @@ export function ConfirmationDialog({
     onConfirm,
     onCancel,
     confirmProps,
+    closeOnConfirm = true,
     ...dialogProps
 }: ComponentProps<typeof Dialog> & {
     children?: ReactNode;
     title: ReactNode;
     description?: ReactNode;
-    onConfirm: () => void;
-    onCancel?: () => void;
+    onConfirm: (e: React.MouseEvent<HTMLButtonElement>) => void;
+    onCancel?: (e: React.MouseEvent<HTMLButtonElement>) => void;
     confirmProps?: Omit<Partial<ComponentProps<typeof Button>>, "onClick">;
+    closeOnConfirm?: boolean;
 }) {
     return (
         <Dialog {...dialogProps}>
             {children && <DialogTrigger asChild>{children}</DialogTrigger>}
 
-            <DialogContent>
+            <DialogContent onClick={(e) => e.stopPropagation()}>
                 <DialogTitle>{title}</DialogTitle>
                 <DialogDescription>{description}</DialogDescription>
                 <DialogFooter>
@@ -39,11 +41,17 @@ export function ConfirmationDialog({
                         <Button variant="secondary">Cancel</Button>
                     </DialogClose>
 
-                    <DialogClose onClick={onConfirm} asChild>
-                        <Button {...confirmProps}>
+                    {closeOnConfirm ? (
+                        <DialogClose onClick={onConfirm} asChild>
+                            <Button {...confirmProps}>
+                                {confirmProps?.children ?? "Confirm"}
+                            </Button>
+                        </DialogClose>
+                    ) : (
+                        <Button {...confirmProps} onClick={onConfirm}>
                             {confirmProps?.children ?? "Confirm"}
                         </Button>
-                    </DialogClose>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>

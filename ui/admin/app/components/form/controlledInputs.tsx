@@ -10,6 +10,7 @@ import {
 
 import { cn } from "~/lib/utils";
 
+import { BasicInputItem } from "~/components/form/BasicInputItem";
 import { Checkbox } from "~/components/ui/checkbox";
 import {
     FormControl,
@@ -40,7 +41,11 @@ type BaseProps<
 export type ControlledInputProps<
     TValues extends FieldValues,
     TName extends FieldPath<TValues>,
-> = InputProps & BaseProps<TValues, TName>;
+> = InputProps &
+    BaseProps<TValues, TName> & {
+        classNames?: { wrapper?: string };
+        onChangeConversion?: (value: string) => string;
+    };
 
 export function ControlledInput<
     TValues extends FieldValues,
@@ -52,6 +57,8 @@ export function ControlledInput<
     className,
     description,
     onChange,
+    onChangeConversion,
+    classNames = {},
     ...inputProps
 }: ControlledInputProps<TValues, TName>) {
     return (
@@ -59,30 +66,30 @@ export function ControlledInput<
             control={control}
             name={name}
             render={({ field, fieldState }) => (
-                <FormItem>
-                    {label && <FormLabel>{label}</FormLabel>}
+                <BasicInputItem
+                    classNames={classNames}
+                    label={label}
+                    description={description}
+                >
+                    <Input
+                        {...field}
+                        {...inputProps}
+                        onChange={(e) => {
+                            if (onChangeConversion) {
+                                e.target.value = onChangeConversion(
+                                    e.target.value
+                                );
+                            }
 
-                    <FormControl>
-                        <Input
-                            {...field}
-                            {...inputProps}
-                            onChange={(e) => {
-                                field.onChange(e);
-                                onChange?.(e);
-                            }}
-                            className={cn(
-                                getFieldStateClasses(fieldState),
-                                className
-                            )}
-                        />
-                    </FormControl>
-
-                    <FormMessage />
-
-                    {description && (
-                        <FormDescription>{description}</FormDescription>
-                    )}
-                </FormItem>
+                            field.onChange(e);
+                            onChange?.(e);
+                        }}
+                        className={cn(
+                            getFieldStateClasses(fieldState),
+                            className
+                        )}
+                    />
+                </BasicInputItem>
             )}
         />
     );
@@ -110,26 +117,16 @@ export function ControlledTextarea<
             control={control}
             name={name}
             render={({ field, fieldState }) => (
-                <FormItem>
-                    {label && <FormLabel>{label}</FormLabel>}
-
-                    {description && (
-                        <FormDescription>{description}</FormDescription>
-                    )}
-
-                    <FormControl>
-                        <Textarea
-                            {...field}
-                            {...inputProps}
-                            className={cn(
-                                getFieldStateClasses(fieldState),
-                                className
-                            )}
-                        />
-                    </FormControl>
-
-                    <FormMessage />
-                </FormItem>
+                <BasicInputItem label={label} description={description}>
+                    <Textarea
+                        {...field}
+                        {...inputProps}
+                        className={cn(
+                            getFieldStateClasses(fieldState),
+                            className
+                        )}
+                    />
+                </BasicInputItem>
             )}
         />
     );
@@ -157,26 +154,16 @@ export function ControlledAutosizeTextarea<
             control={control}
             name={name}
             render={({ field, fieldState }) => (
-                <FormItem>
-                    {label && <FormLabel>{label}</FormLabel>}
-
-                    {description && (
-                        <FormDescription>{description}</FormDescription>
-                    )}
-
-                    <FormControl>
-                        <AutosizeTextarea
-                            {...field}
-                            {...inputProps}
-                            className={cn(
-                                getFieldStateClasses(fieldState),
-                                className
-                            )}
-                        />
-                    </FormControl>
-
-                    <FormMessage />
-                </FormItem>
+                <BasicInputItem label={label} description={description}>
+                    <AutosizeTextarea
+                        {...field}
+                        {...inputProps}
+                        className={cn(
+                            getFieldStateClasses(fieldState),
+                            className
+                        )}
+                    />
+                </BasicInputItem>
             )}
         />
     );
@@ -262,22 +249,12 @@ export function ControlledCustomInput<
             control={control}
             name={name}
             render={(args) => (
-                <FormItem>
-                    {label && <FormLabel>{label}</FormLabel>}
-
-                    <FormControl>
-                        {children({
-                            ...args,
-                            className: getFieldStateClasses(args.fieldState),
-                        })}
-                    </FormControl>
-
-                    <FormMessage />
-
-                    {description && (
-                        <FormDescription>{description}</FormDescription>
-                    )}
-                </FormItem>
+                <BasicInputItem label={label} description={description}>
+                    {children({
+                        ...args,
+                        className: getFieldStateClasses(args.fieldState),
+                    })}
+                </BasicInputItem>
             )}
         />
     );
