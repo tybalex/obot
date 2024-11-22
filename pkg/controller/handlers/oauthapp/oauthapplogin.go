@@ -1,7 +1,6 @@
 package oauthapp
 
 import (
-	"context"
 	"errors"
 	"time"
 
@@ -14,8 +13,6 @@ import (
 	"github.com/otto8-ai/otto8/pkg/system"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/util/retry"
-	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type LoginHandler struct {
@@ -75,12 +72,13 @@ func (h *LoginHandler) RunTool(req router.Request, _ router.Response) error {
 	// Ensure the task is stopped when this handler returns.
 	defer task.Close()
 
-	if err = updateLoginExternalStatus(req.Ctx, req.Client, login, v1.OAuthAppLoginStatus{}); err != nil {
+	login.Status.External = types.OAuthAppLoginAuthStatus{}
+	if err = req.Client.Status().Update(req.Ctx, login); err != nil {
 		return err
 	}
 
 	originalUID := login.UID
-	tick := time.NewTicker(5 * time.Second)
+	tick := time.NewTicker(time.Second)
 	defer tick.Stop()
 
 outer:
@@ -99,17 +97,19 @@ outer:
 			}
 
 			if frame.Prompt != nil && frame.Prompt.Metadata["authURL"] != "" {
-				if err = updateLoginExternalStatus(req.Ctx, req.Client, login, v1.OAuthAppLoginStatus{
+				login.Status = v1.OAuthAppLoginStatus{
 					External: types.OAuthAppLoginAuthStatus{
 						URL:      frame.Prompt.Metadata["authURL"],
 						Required: &[]bool{true}[0],
 					},
-				}); err != nil {
-					if setErrorErr := updateLoginExternalStatus(req.Ctx, req.Client, login, v1.OAuthAppLoginStatus{
+				}
+				if err = req.Client.Status().Update(req.Ctx, login); err != nil {
+					login.Status = v1.OAuthAppLoginStatus{
 						External: types.OAuthAppLoginAuthStatus{
 							Error: err.Error(),
 						},
-					}); setErrorErr != nil {
+					}
+					if setErrorErr := req.Client.Status().Update(req.Ctx, login); setErrorErr != nil {
 						err = errors.Join(err, setErrorErr)
 					}
 					return err
@@ -126,23 +126,14 @@ outer:
 		errMessage = err.Error()
 	}
 
-	return updateLoginExternalStatus(req.Ctx, req.Client, login, v1.OAuthAppLoginStatus{
+	login.Status = v1.OAuthAppLoginStatus{
 		External: types.OAuthAppLoginAuthStatus{
 			Error:         errMessage,
 			Authenticated: errMessage == "",
 			URL:           "",
 			Required:      &[]bool{true}[0],
 		},
-	})
-}
+	}
 
-func updateLoginExternalStatus(ctx context.Context, client kclient.Client, login *v1.OAuthAppLogin, status v1.OAuthAppLoginStatus) error {
-	return retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		if err := client.Get(ctx, router.Key(login.Namespace, login.Name), login); err != nil {
-			return err
-		}
-
-		login.Status = status
-		return client.Status().Update(ctx, login)
-	})
+	return req.Client.Status().Update(req.Ctx, login)
 }
