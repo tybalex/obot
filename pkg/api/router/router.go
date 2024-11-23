@@ -25,9 +25,10 @@ func Router(services *services.Services) (http.Handler, error) {
 	prompt := handlers.NewPromptHandler(services.GPTClient)
 	emailreceiver := handlers.NewEmailReceiverHandler(services.EmailServerName)
 	defaultModelAliases := handlers.NewDefaultModelAliasHandler()
+	version := handlers.NewVersionHandler(services.EmailServerName)
 
 	// Version
-	mux.HandleFunc("GET /api/version", handlers.GetVersion)
+	mux.HandleFunc("GET /api/version", version.GetVersion)
 
 	// Agents
 	mux.HandleFunc("GET /api/agents", agents.List)
@@ -45,6 +46,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("GET /api/assistants/{id}/credentials", assistants.ListCredentials)
 	mux.HandleFunc("DELETE /api/assistants/{id}/credentials/{cred_id}", assistants.DeleteCredential)
 	mux.HandleFunc("GET /api/assistants/{id}/events", assistants.Events)
+	mux.HandleFunc("POST /api/assistants/{id}/abort", assistants.Abort)
 	mux.HandleFunc("POST /api/assistants/{id}/invoke", assistants.Invoke)
 	// Assistant tools
 	mux.HandleFunc("GET /api/assistants/{id}/tools", assistants.Tools)
@@ -67,7 +69,12 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("PUT /api/assistants/{assistant_id}/tasks/{id}", tasks.Update)
 	mux.HandleFunc("DELETE /api/assistants/{assistant_id}/tasks/{id}", tasks.Delete)
 	mux.HandleFunc("POST /api/assistants/{assistant_id}/tasks/{id}/run", tasks.Run)
-	mux.HandleFunc("GET /api/assistants/{assistant_id}/tasks/{id}/threads/{thread_id}/events", tasks.Events)
+	mux.HandleFunc("GET /api/assistants/{assistant_id}/tasks/{id}/runs", tasks.ListRuns)
+	mux.HandleFunc("DELETE /api/assistants/{assistant_id}/tasks/{id}/runs/{run_id}", tasks.DeleteRun)
+	mux.HandleFunc("GET /api/assistants/{assistant_id}/tasks/{id}/events", tasks.Events)
+	mux.HandleFunc("POST /api/assistants/{assistant_id}/tasks/{id}/events", tasks.Abort)
+	mux.HandleFunc("GET /api/assistants/{assistant_id}/tasks/{id}/runs/{run_id}/events", tasks.Events)
+	mux.HandleFunc("POST /api/assistants/{assistant_id}/tasks/{id}/runs/{run_id}/events", tasks.Abort)
 
 	// Agent files
 	mux.HandleFunc("GET /api/agents/{id}/files", agents.ListFiles)
@@ -135,6 +142,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	// Threads
 	mux.HandleFunc("GET /api/threads", threads.List)
 	mux.HandleFunc("GET /api/threads/{id}", threads.ByID)
+	mux.HandleFunc("POST /api/threads/{id}/abort", threads.Abort)
 	mux.HandleFunc("GET /api/threads/{id}/events", threads.Events)
 	mux.HandleFunc("DELETE /api/threads/{id}", threads.Delete)
 	mux.HandleFunc("PUT /api/threads/{id}", threads.Update)

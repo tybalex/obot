@@ -5,6 +5,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/spf13/cobra"
 )
 
@@ -16,20 +17,28 @@ type Threads struct {
 }
 
 func (l *Threads) Customize(cmd *cobra.Command) {
-	cmd.Use = "threads [flags] AGENT_ID"
-	cmd.Args = cobra.MaximumNArgs(1)
+	cmd.Use = "threads [flags]"
 	cmd.Aliases = []string{"thread", "t"}
 }
 
 func (l *Threads) Run(cmd *cobra.Command, args []string) error {
-	var opts apiclient.ListThreadsOptions
+	var (
+		threads types.ThreadList
+		err     error
+	)
 	if len(args) > 0 {
-		opts.AgentID = args[0]
-	}
-
-	threads, err := l.root.Client.ListThreads(cmd.Context(), opts)
-	if err != nil {
-		return err
+		for _, arg := range args {
+			thread, err := l.root.Client.GetThread(cmd.Context(), arg)
+			if err != nil {
+				return err
+			}
+			threads.Items = append(threads.Items, *thread)
+		}
+	} else {
+		threads, err = l.root.Client.ListThreads(cmd.Context(), apiclient.ListThreadsOptions{})
+		if err != nil {
+			return err
+		}
 	}
 
 	if ok, err := output(l.Output, threads); ok || err != nil {

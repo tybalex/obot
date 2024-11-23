@@ -1,13 +1,17 @@
 package v1
 
 import (
+	"slices"
+
+	"github.com/otto8-ai/nah/pkg/fields"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/system"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	_ Aliasable = (*EmailReceiver)(nil)
+	_ Aliasable     = (*EmailReceiver)(nil)
+	_ fields.Fields = (*EmailReceiver)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -18,6 +22,22 @@ type EmailReceiver struct {
 
 	Spec   EmailReceiverSpec   `json:"spec,omitempty"`
 	Status EmailReceiverStatus `json:"status,omitempty"`
+}
+
+func (in *EmailReceiver) Has(field string) (exists bool) {
+	return slices.Contains(in.FieldNames(), field)
+}
+
+func (in *EmailReceiver) Get(field string) (value string) {
+	switch field {
+	case "spec.userID":
+		return in.Spec.UserID
+	}
+	return ""
+}
+
+func (in *EmailReceiver) FieldNames() []string {
+	return []string{"spec.userID"}
 }
 
 func (in *EmailReceiver) GetAliasName() string {

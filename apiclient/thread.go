@@ -19,12 +19,16 @@ func (c *Client) DeleteThread(ctx context.Context, id string) error {
 }
 
 type ThreadEventsOptions struct {
-	Follow bool
-	RunID  string
+	Follow  bool
+	RunID   string
+	MaxRuns int
 }
 
 func (c *Client) ThreadEvents(ctx context.Context, threadID string, opts ThreadEventsOptions) (result <-chan types.Progress, err error) {
 	path := fmt.Sprintf("/threads/%s/events?runID=%s&follow=%v", threadID, opts.RunID, opts.Follow)
+	if opts.MaxRuns > 0 {
+		path += fmt.Sprintf("&maxRuns=%d", opts.MaxRuns)
+	}
 
 	_, resp, err := c.doStream(ctx, http.MethodGet, path, nil)
 	if err != nil {

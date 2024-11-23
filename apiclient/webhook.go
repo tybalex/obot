@@ -9,6 +9,16 @@ import (
 	"github.com/otto8-ai/otto8/apiclient/types"
 )
 
+func (c *Client) GetWebhook(ctx context.Context, id string) (result *types.Webhook, _ error) {
+	_, resp, err := c.doRequest(ctx, http.MethodGet, fmt.Sprintf("/webhooks/"+id), nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return toObject(resp, &types.Webhook{})
+}
+
 func (c *Client) ListWebhooks(ctx context.Context) (result types.WebhookList, _ error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {

@@ -54,7 +54,25 @@ func convertThread(thread v1.Thread) types.Thread {
 		ParentThreadID:  parent,
 		AgentAlias:      thread.Spec.AgentAlias,
 		UserID:          thread.Spec.UserUID,
+		Abort:           thread.Spec.Abort,
 	}
+}
+
+func (a *ThreadHandler) Abort(req api.Context) error {
+	var (
+		id     = req.PathValue("id")
+		thread v1.Thread
+	)
+
+	if err := req.Get(&thread, id); err != nil {
+		return err
+	}
+
+	if err := abortThread(req, &thread); err != nil {
+		return err
+	}
+
+	return req.Write(thread)
 }
 
 func (a *ThreadHandler) Events(req api.Context) error {
@@ -79,7 +97,7 @@ func (a *ThreadHandler) Events(req api.Context) error {
 			return types.NewErrBadRequest("maxEvents must be an integer")
 		}
 	} else {
-		maxRuns = 10
+		maxRuns = 25
 	}
 
 	_, events, err := a.events.Watch(req.Context(), req.Namespace(), events.WatchOptions{

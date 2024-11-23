@@ -1,5 +1,5 @@
-import type { Progress, InputMessage, Message, Messages, Explain } from './types';
-import editorFiles from '$lib/stores/editorfiles';
+import items from '$lib/stores/editor.svelte';
+import type { Explain, InputMessage, Message, Messages, Progress } from './types';
 
 const ottoAIIcon = 'Otto';
 const profileIcon = 'Profile';
@@ -17,30 +17,27 @@ function toMessageFromInput(s: string): string {
 }
 
 function setFileContent(name: string, content: string, full: boolean = false) {
-	editorFiles.update((files) => {
-		const existing = files.find((f) => f.name === name);
-		if (existing) {
-			if (full) {
-				existing.contents = content;
-			} else if (content.length < existing.contents.length) {
-				existing.contents = content + existing.contents.slice(content.length);
-			} else {
-				existing.contents = content;
-			}
+	const existing = items.find((f) => f.id === name);
+	if (existing) {
+		if (full) {
+			existing.contents = content;
+		} else if (content.length < existing.contents.length) {
+			existing.contents = content + existing.contents.slice(content.length);
 		} else {
-			files.push({
-				name: name,
-				contents: content,
-				buffer: ''
-			});
+			existing.contents = content;
 		}
-
-		// select the file
-		files.forEach((f) => {
-			f.selected = f.name === name;
+	} else {
+		items.push({
+			id: name,
+			name: name,
+			contents: content,
+			buffer: ''
 		});
+	}
 
-		return files;
+	// select the file
+	items.forEach((f) => {
+		f.selected = f.name === name;
 	});
 }
 
@@ -135,6 +132,13 @@ function toMessages(progresses: Progress[]): Messages {
 
 	for (const [i, progress] of progresses.entries()) {
 		if (progress.error) {
+			if (progress.runID && progress.error.includes('abort')) {
+				for (const message of messages) {
+					if (message.runID === progress.runID) {
+						message.aborted = true;
+					}
+				}
+			}
 			// Errors are handled as events, so we can just ignore them here
 			continue;
 		}

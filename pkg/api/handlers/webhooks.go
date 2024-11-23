@@ -78,8 +78,8 @@ func (a *WebhookHandler) Update(req api.Context) error {
 		return err
 	}
 
-	processedWh, err := wait.For(req.Context(), req.Storage, &wh, func(wh *v1.Webhook) bool {
-		return wh.Generation == wh.Status.AliasObservedGeneration
+	processedWh, err := wait.For(req.Context(), req.Storage, &wh, func(wh *v1.Webhook) (bool, error) {
+		return wh.Generation == wh.Status.AliasObservedGeneration, nil
 	})
 	if err != nil {
 		return fmt.Errorf("failed to update webhook: %w", err)
@@ -130,8 +130,8 @@ func (a *WebhookHandler) Create(req api.Context) error {
 		wh.Spec.Headers[i] = textproto.CanonicalMIMEHeaderKey(h)
 	}
 
-	wh, err := wait.For(req.Context(), req.Storage, wh, func(wh *v1.Webhook) bool {
-		return wh.Generation == wh.Status.AliasObservedGeneration
+	wh, err := wait.For(req.Context(), req.Storage, wh, func(wh *v1.Webhook) (bool, error) {
+		return wh.Generation == wh.Status.AliasObservedGeneration, nil
 	}, wait.Option{Create: true})
 	if err != nil {
 		return fmt.Errorf("failed to create webhook: %w", err)

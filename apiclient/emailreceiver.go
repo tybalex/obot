@@ -9,6 +9,16 @@ import (
 	"github.com/otto8-ai/otto8/apiclient/types"
 )
 
+func (c *Client) GetEmailReceiver(ctx context.Context, id string) (*types.EmailReceiver, error) {
+	_, resp, err := c.doRequest(ctx, http.MethodGet, fmt.Sprintf("/email-receivers/"+id), nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return toObject(resp, &types.EmailReceiver{})
+}
+
 func (c *Client) ListEmailReceivers(ctx context.Context) (result types.EmailReceiverList, _ error) {
 	defer func() {
 		sort.Slice(result.Items, func(i, j int) bool {

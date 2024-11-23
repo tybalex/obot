@@ -21,8 +21,7 @@ type Runs struct {
 }
 
 func (l *Runs) Customize(cmd *cobra.Command) {
-	cmd.Use = "runs [flags] [AGENT_ID] [THREAD_ID]"
-	cmd.Args = cobra.MaximumNArgs(2)
+	cmd.Use = "runs [flags]"
 	cmd.Aliases = []string{"run", "r"}
 }
 
@@ -92,12 +91,6 @@ func (l *Runs) Run(cmd *cobra.Command, args []string) error {
 		flush bool
 		list  iter.Seq[types.Run]
 	)
-	if len(args) > 0 {
-		opts.AgentID = args[0]
-	}
-	if len(args) > 1 {
-		opts.ThreadID = args[1]
-	}
 
 	if l.Follow {
 		items, err := l.root.Client.StreamRuns(cmd.Context(), opts)
@@ -107,9 +100,23 @@ func (l *Runs) Run(cmd *cobra.Command, args []string) error {
 		list = chanToIter(items)
 		flush = true
 	} else {
-		runs, err := l.root.Client.ListRuns(cmd.Context(), opts)
-		if err != nil {
-			return err
+		var (
+			runs types.RunList
+			err  error
+		)
+		if len(args) > 0 {
+			for _, arg := range args {
+				run, err := l.root.Client.GetRun(cmd.Context(), arg)
+				if err != nil {
+					return err
+				}
+				runs.Items = append(runs.Items, *run)
+			}
+		} else {
+			runs, err = l.root.Client.ListRuns(cmd.Context(), opts)
+			if err != nil {
+				return err
+			}
 		}
 		if ok, err := output(l.Output, runs); ok || err != nil {
 			return err

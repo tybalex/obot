@@ -38,6 +38,12 @@ func (h *Handler) Resume(req router.Request, _ router.Response) error {
 		return err
 	}
 
+	if thread.Spec.Abort {
+		run.Status.Error = "thread was aborted"
+		run.Status.State = gptscript.Error
+		return nil
+	}
+
 	if run.Spec.PreviousRunName != "" {
 		if err := req.Get(&v1.Run{}, run.Namespace, run.Spec.PreviousRunName); apierrors.IsNotFound(err) {
 			run.Status.Error = fmt.Sprintf("run %s not found", run.Spec.PreviousRunName)

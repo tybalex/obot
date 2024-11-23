@@ -1,13 +1,17 @@
 package v1
 
 import (
+	"slices"
+
+	"github.com/otto8-ai/nah/pkg/fields"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/system"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var (
-	_ Aliasable = (*Webhook)(nil)
+	_ Aliasable     = (*Webhook)(nil)
+	_ fields.Fields = (*Webhook)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -18,6 +22,22 @@ type Webhook struct {
 
 	Spec   WebhookSpec   `json:"spec,omitempty"`
 	Status WebhookStatus `json:"status,omitempty"`
+}
+
+func (w *Webhook) FieldNames() []string {
+	return []string{"spec.userID"}
+}
+
+func (w *Webhook) Has(field string) (exists bool) {
+	return slices.Contains(w.FieldNames(), field)
+}
+
+func (w *Webhook) Get(field string) (value string) {
+	switch field {
+	case "spec.userID":
+		return w.Spec.UserID
+	}
+	return ""
 }
 
 func (w *Webhook) GetAliasName() string {

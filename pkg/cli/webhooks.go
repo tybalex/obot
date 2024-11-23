@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dustin/go-humanize"
+	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/spf13/cobra"
 )
 
@@ -19,9 +20,24 @@ func (l *Webhooks) Customize(cmd *cobra.Command) {
 }
 
 func (l *Webhooks) Run(cmd *cobra.Command, args []string) error {
-	whs, err := l.root.Client.ListWebhooks(cmd.Context())
-	if err != nil {
-		return err
+	var (
+		whs types.WebhookList
+		err error
+	)
+
+	if len(args) > 0 {
+		for _, arg := range args {
+			wh, err := l.root.Client.GetWebhook(cmd.Context(), arg)
+			if err != nil {
+				return err
+			}
+			whs.Items = append(whs.Items, *wh)
+		}
+	} else {
+		whs, err = l.root.Client.ListWebhooks(cmd.Context())
+		if err != nil {
+			return err
+		}
 	}
 
 	if ok, err := output(l.Output, whs); ok || err != nil {

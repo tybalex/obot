@@ -32,6 +32,7 @@ type Thread struct {
 	ParentThreadID  string `json:"parentThreadID,omitempty"`
 	UserID          string `json:"userID,omitempty"`
 	AgentAlias      string `json:"agentAlias,omitempty"`
+	Abort           bool   `json:"abort,omitempty"`
 }
 
 type ThreadList List[Thread]

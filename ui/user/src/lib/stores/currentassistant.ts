@@ -1,7 +1,7 @@
-import { writable } from 'svelte/store';
-import { storeWithInit } from './storeinit';
-import assistants from './assistants';
 import type { Assistant } from '$lib/services';
+import assistants from './assistants';
+import { storeWithInit } from './storeinit';
+import { writable } from 'svelte/store';
 
 const def: Assistant = {
 	id: '',

@@ -7,22 +7,28 @@
 		improve?: Explain;
 		changedFiles: Record<string, string>;
 	}
+
+	export interface Chat {
+		submit: (override?: Input) => Promise<void>;
+	}
 </script>
 
 <script lang="ts">
 	import { ChatService } from '$lib/services';
 	import { onMount } from 'svelte';
-	import { editorFiles } from '$lib/stores';
-	import { SendHorizontal } from '$lib/icons';
+	import { editor } from '$lib/stores';
+	import { autoHeight } from '$lib/actions/textarea';
+	import { ArrowUp } from 'lucide-svelte';
 
 	interface Props {
 		onError?: (err: Error) => void;
 		onFocus?: () => void;
+		onSubmit?: (input: string | Input) => void | Promise<void>;
 		readonly?: boolean;
 		assistant: string;
 	}
 
-	let { onError = () => {}, onFocus = () => {}, assistant, readonly }: Props = $props();
+	let { onError, onFocus, onSubmit, assistant, readonly }: Props = $props();
 
 	let value = $state('');
 	let chat: HTMLTextAreaElement;
@@ -54,34 +60,37 @@
 			}
 		}
 
-		for (const file of $editorFiles) {
+		for (const file of editor) {
 			if (file.modified) {
 				input.changedFiles[file.name] = file.buffer;
 			}
 		}
 
 		try {
-			await ChatService.invoke(assistant, toInvokeInput(input));
+			if (readonly && !override) {
+				await ChatService.abort(assistant);
+			} else {
+				const invokeInput = toInvokeInput(input);
+				await onSubmit?.(invokeInput);
+				await ChatService.invoke(assistant, invokeInput);
+			}
 		} catch (err) {
 			if (err instanceof Error) {
-				onError(err);
+				onError?.(err);
 			} else {
-				onError(new Error(String(err)));
+				onError?.(new Error(String(err)));
 			}
 			return;
 		}
 
 		if (input.changedFiles) {
-			editorFiles.update((files) => {
-				for (const file of files) {
-					if (input.changedFiles[file.name]) {
-						file.contents = input.changedFiles[file.name];
-						file.modified = false;
-						file.buffer = '';
-					}
+			for (const file of editor) {
+				if (input.changedFiles[file.name]) {
+					file.contents = input.changedFiles[file.name];
+					file.modified = false;
+					file.buffer = '';
 				}
-				return files;
-			});
+			}
 		}
 
 		value = '';
@@ -93,14 +102,6 @@
 		}
 		e.preventDefault();
 		await submit();
-		resize();
-	}
-
-	function resize() {
-		chat.style.height = 'auto';
-		// not totally sure why 4 is needed here, otherwise the textarea is too small and we
-		// get a scrollbar
-		chat.style.height = chat.scrollHeight + 4 + 'px';
 	}
 
 	function focusChat(e: KeyboardEvent) {
@@ -122,32 +123,51 @@
 </script>
 
 <div
-	class="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-white px-12 pb-8 pt-10 dark:from-black"
+	class="absolute inset-x-0 bottom-0 z-30 flex justify-center bg-gradient-to-t from-white px-3 pb-8 pt-10 dark:from-black"
 >
 	<div class="w-full max-w-[700px]">
 		<label for="chat" class="sr-only">Your message</label>
-		<div class="flex items-center rounded-lg px-3 py-2 dark:bg-black">
+		<div
+			class="flex items-center rounded-3xl
+		bg-gray-70
+		px-3
+		focus-within:border-none
+		focus-within:shadow-md
+		focus-within:ring-1
+		focus-within:ring-blue
+		dark:border-none
+		 dark:bg-gray-950"
+		>
 			<textarea
+				use:autoHeight
 				id="chat"
 				rows="1"
 				bind:value
 				{readonly}
 				onkeydown={onKey}
 				bind:this={chat}
-				oninput={resize}
 				onfocus={onFocus}
-				class="ml-4 mr-2 block w-full resize-none rounded-lg border-2 border-gray-300 bg-white p-2.5 text-sm text-gray-900
-								outline-none focus:border-blue-500 focus:ring-blue-500 dark:border-gray-300 dark:bg-black
-								 dark:text-white dark:placeholder-gray-300 dark:focus:border-blue-500 dark:focus:ring-blue-500"
+				class="peer
+				ml-4
+				mr-2
+				 w-full resize-none
+				 bg-gray-70 p-2.5 outline-none dark:bg-gray-950"
 				placeholder="Your message..."
 			></textarea>
 			<button
 				type="submit"
 				onclick={() => submit()}
-				class="inline-flex cursor-pointer justify-center rounded-full p-2 text-blue-600
-							 hover:bg-blue-100 dark:text-blue-500 dark:hover:bg-gray-800"
+				class="rounded-full bg-gray-70 p-1
+				text-blue
+				hover:border-none
+				hover:bg-gray-100
+							 dark:bg-gray-950 dark:text-blue dark:hover:bg-gray-900"
 			>
-				<SendHorizontal class="text-blue-500 dark:text-blue-500" />
+				{#if readonly}
+					<div class="m-1.5 h-3 w-3 place-self-center rounded-sm bg-blue"></div>
+				{:else}
+					<ArrowUp />
+				{/if}
 				<span class="sr-only">Send message</span>
 			</button>
 		</div>

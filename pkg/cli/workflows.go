@@ -5,6 +5,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/spf13/cobra"
 )
 
@@ -20,9 +21,24 @@ func (l *Workflows) Customize(cmd *cobra.Command) {
 }
 
 func (l *Workflows) Run(cmd *cobra.Command, args []string) error {
-	wfs, err := l.root.Client.ListWorkflows(cmd.Context(), apiclient.ListWorkflowsOptions{})
-	if err != nil {
-		return err
+	var (
+		wfs types.WorkflowList
+		err error
+	)
+
+	if len(args) > 0 {
+		for _, arg := range args {
+			wf, err := l.root.Client.GetWorkflow(cmd.Context(), arg)
+			if err != nil {
+				return err
+			}
+			wfs.Items = append(wfs.Items, *wf)
+		}
+	} else {
+		wfs, err = l.root.Client.ListWorkflows(cmd.Context(), apiclient.ListWorkflowsOptions{})
+		if err != nil {
+			return err
+		}
 	}
 
 	if ok, err := output(l.Output, wfs); ok || err != nil {

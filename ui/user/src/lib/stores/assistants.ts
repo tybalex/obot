@@ -1,7 +1,8 @@
-import { type Assistant, ChatService } from '$lib/services';
-import { writable } from 'svelte/store';
-import { storeWithInit } from '$lib/stores/storeinit';
 import { page } from '$app/stores';
+import { listAssistants } from '$lib/services/chat/operations';
+import { type Assistant } from '$lib/services/chat/types';
+import { storeWithInit } from '$lib/stores/storeinit';
+import { writable } from 'svelte/store';
 
 function assignSelected(assistants: Assistant[], selectedName: string): Assistant[] {
 	const result: Assistant[] = [];
@@ -20,7 +21,7 @@ export default storeWithInit(store, async () => {
 	page.subscribe(async (value) => {
 		const selectedName = value.params?.agent ?? '';
 		try {
-			const assistants = await ChatService.listAssistants();
+			const assistants = await listAssistants();
 			store.set(assignSelected(assistants.items, selectedName));
 		} catch {
 			// just ignore

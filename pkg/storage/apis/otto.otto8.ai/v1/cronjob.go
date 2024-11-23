@@ -1,10 +1,15 @@
 package v1
 
 import (
+	"slices"
+
+	"github.com/otto8-ai/nah/pkg/fields"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/system"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+var _ fields.Fields = (*CronJob)(nil)
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
@@ -13,6 +18,22 @@ type CronJob struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 	Spec              CronJobSpec   `json:"spec,omitempty"`
 	Status            CronJobStatus `json:"status,omitempty"`
+}
+
+func (c *CronJob) Has(field string) (exists bool) {
+	return slices.Contains(c.FieldNames(), field)
+}
+
+func (c *CronJob) Get(field string) (value string) {
+	switch field {
+	case "spec.userID":
+		return c.Spec.UserID
+	}
+	return ""
+}
+
+func (c *CronJob) FieldNames() []string {
+	return []string{"spec.userID"}
 }
 
 func (*CronJob) GetColumns() [][]string {

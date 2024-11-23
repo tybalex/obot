@@ -5,6 +5,7 @@ import (
 
 	"github.com/dustin/go-humanize"
 	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/spf13/cobra"
 )
 
@@ -20,9 +21,24 @@ func (l *Agents) Customize(cmd *cobra.Command) {
 }
 
 func (l *Agents) Run(cmd *cobra.Command, args []string) error {
-	agents, err := l.root.Client.ListAgents(cmd.Context(), apiclient.ListAgentsOptions{})
-	if err != nil {
-		return err
+	var (
+		agents types.AgentList
+		err    error
+	)
+
+	if len(args) > 0 {
+		for _, arg := range args {
+			agent, err := l.root.Client.GetAgent(cmd.Context(), arg)
+			if err != nil {
+				return err
+			}
+			agents.Items = append(agents.Items, *agent)
+		}
+	} else {
+		agents, err = l.root.Client.ListAgents(cmd.Context(), apiclient.ListAgentsOptions{})
+		if err != nil {
+			return err
+		}
 	}
 
 	if ok, err := output(l.Output, agents); ok || err != nil {

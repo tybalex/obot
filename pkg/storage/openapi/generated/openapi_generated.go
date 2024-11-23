@@ -63,14 +63,20 @@ func GetOpenAPIDefinitions(ref common.ReferenceCallback) map[string]common.OpenA
 		"github.com/otto8-ai/otto8/apiclient/types.PromptResponse":                            schema_otto8_ai_otto8_apiclient_types_PromptResponse(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Run":                                       schema_otto8_ai_otto8_apiclient_types_Run(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.RunList":                                   schema_otto8_ai_otto8_apiclient_types_RunList(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.Schedule":                                  schema_otto8_ai_otto8_apiclient_types_Schedule(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Step":                                      schema_otto8_ai_otto8_apiclient_types_Step(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.StepTemplateInvoke":                        schema_otto8_ai_otto8_apiclient_types_StepTemplateInvoke(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.SubFlow":                                   schema_otto8_ai_otto8_apiclient_types_SubFlow(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Task":                                      schema_otto8_ai_otto8_apiclient_types_Task(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.TaskEmail":                                 schema_otto8_ai_otto8_apiclient_types_TaskEmail(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.TaskIf":                                    schema_otto8_ai_otto8_apiclient_types_TaskIf(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.TaskList":                                  schema_otto8_ai_otto8_apiclient_types_TaskList(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.TaskManifest":                              schema_otto8_ai_otto8_apiclient_types_TaskManifest(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.TaskOnDemand":                              schema_otto8_ai_otto8_apiclient_types_TaskOnDemand(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.TaskRun":                                   schema_otto8_ai_otto8_apiclient_types_TaskRun(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.TaskRunList":                               schema_otto8_ai_otto8_apiclient_types_TaskRunList(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.TaskStep":                                  schema_otto8_ai_otto8_apiclient_types_TaskStep(ref),
+		"github.com/otto8-ai/otto8/apiclient/types.TaskWebhook":                               schema_otto8_ai_otto8_apiclient_types_TaskWebhook(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Template":                                  schema_otto8_ai_otto8_apiclient_types_Template(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.Thread":                                    schema_otto8_ai_otto8_apiclient_types_Thread(ref),
 		"github.com/otto8-ai/otto8/apiclient/types.ThreadList":                                schema_otto8_ai_otto8_apiclient_types_ThreadList(ref),
@@ -873,9 +879,22 @@ func schema_otto8_ai_otto8_apiclient_types_CronJobManifest(ref common.ReferenceC
 							Format: "",
 						},
 					},
+					"userID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"taskSchedule": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Schedule"),
+						},
+					},
 				},
 			},
 		},
+		Dependencies: []string{
+			"github.com/otto8-ai/otto8/apiclient/types.Schedule"},
 	}
 }
 
@@ -1043,6 +1062,12 @@ func schema_otto8_ai_otto8_apiclient_types_EmailReceiverManifest(ref common.Refe
 						},
 					},
 					"user": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"userID": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -1620,6 +1645,12 @@ func schema_otto8_ai_otto8_apiclient_types_Metadata(ref common.ReferenceCallback
 					"deleted": {
 						SchemaProps: spec.SchemaProps{
 							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
+						},
+					},
+					"revision": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"links": {
@@ -2407,6 +2438,55 @@ func schema_otto8_ai_otto8_apiclient_types_RunList(ref common.ReferenceCallback)
 	}
 }
 
+func schema_otto8_ai_otto8_apiclient_types_Schedule(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"interval": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Valid values are: \"hourly\", \"daily\", \"weekly\", \"monthly\"",
+							Default:     "",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"hour": {
+						SchemaProps: spec.SchemaProps{
+							Default: 0,
+							Type:    []string{"integer"},
+							Format:  "int32",
+						},
+					},
+					"minute": {
+						SchemaProps: spec.SchemaProps{
+							Default: 0,
+							Type:    []string{"integer"},
+							Format:  "int32",
+						},
+					},
+					"day": {
+						SchemaProps: spec.SchemaProps{
+							Default: 0,
+							Type:    []string{"integer"},
+							Format:  "int32",
+						},
+					},
+					"weekday": {
+						SchemaProps: spec.SchemaProps{
+							Default: 0,
+							Type:    []string{"integer"},
+							Format:  "int32",
+						},
+					},
+				},
+				Required: []string{"interval", "hour", "minute", "day", "weekday"},
+			},
+		},
+	}
+}
+
 func schema_otto8_ai_otto8_apiclient_types_Step(ref common.ReferenceCallback) common.OpenAPIDefinition {
 	return common.OpenAPIDefinition{
 		Schema: spec.Schema{
@@ -2601,12 +2681,28 @@ func schema_otto8_ai_otto8_apiclient_types_Task(ref common.ReferenceCallback) co
 							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.TaskManifest"),
 						},
 					},
+					"alias": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 				Required: []string{"Metadata", "TaskManifest"},
 			},
 		},
 		Dependencies: []string{
 			"github.com/otto8-ai/otto8/apiclient/types.Metadata", "github.com/otto8-ai/otto8/apiclient/types.TaskManifest"},
+	}
+}
+
+func schema_otto8_ai_otto8_apiclient_types_TaskEmail(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+			},
+		},
 	}
 }
 
@@ -2717,12 +2813,130 @@ func schema_otto8_ai_otto8_apiclient_types_TaskManifest(ref common.ReferenceCall
 							},
 						},
 					},
+					"schedule": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Schedule"),
+						},
+					},
+					"webhook": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.TaskWebhook"),
+						},
+					},
+					"email": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.TaskEmail"),
+						},
+					},
+					"onDemand": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.TaskOnDemand"),
+						},
+					},
 				},
-				Required: []string{"name", "description", "steps"},
+				Required: []string{"name", "description", "steps", "schedule", "webhook", "email", "onDemand"},
 			},
 		},
 		Dependencies: []string{
-			"github.com/otto8-ai/otto8/apiclient/types.TaskStep"},
+			"github.com/otto8-ai/otto8/apiclient/types.Schedule", "github.com/otto8-ai/otto8/apiclient/types.TaskEmail", "github.com/otto8-ai/otto8/apiclient/types.TaskOnDemand", "github.com/otto8-ai/otto8/apiclient/types.TaskStep", "github.com/otto8-ai/otto8/apiclient/types.TaskWebhook"},
+	}
+}
+
+func schema_otto8_ai_otto8_apiclient_types_TaskOnDemand(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"params": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"object"},
+							AdditionalProperties: &spec.SchemaOrBool{
+								Allows: true,
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func schema_otto8_ai_otto8_apiclient_types_TaskRun(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"Metadata": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.Metadata"),
+						},
+					},
+					"taskID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"task": {
+						SchemaProps: spec.SchemaProps{
+							Default: map[string]interface{}{},
+							Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.TaskManifest"),
+						},
+					},
+					"startTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
+						},
+					},
+					"endTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Time"),
+						},
+					},
+				},
+				Required: []string{"Metadata"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/otto8-ai/otto8/apiclient/types.Metadata", "github.com/otto8-ai/otto8/apiclient/types.TaskManifest", "github.com/otto8-ai/otto8/apiclient/types.Time"},
+	}
+}
+
+func schema_otto8_ai_otto8_apiclient_types_TaskRunList(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"items": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: map[string]interface{}{},
+										Ref:     ref("github.com/otto8-ai/otto8/apiclient/types.TaskRun"),
+									},
+								},
+							},
+						},
+					},
+				},
+				Required: []string{"items"},
+			},
+		},
+		Dependencies: []string{
+			"github.com/otto8-ai/otto8/apiclient/types.TaskRun"},
 	}
 }
 
@@ -2754,6 +2968,16 @@ func schema_otto8_ai_otto8_apiclient_types_TaskStep(ref common.ReferenceCallback
 		},
 		Dependencies: []string{
 			"github.com/otto8-ai/otto8/apiclient/types.TaskIf"},
+	}
+}
+
+func schema_otto8_ai_otto8_apiclient_types_TaskWebhook(ref common.ReferenceCallback) common.OpenAPIDefinition {
+	return common.OpenAPIDefinition{
+		Schema: spec.Schema{
+			SchemaProps: spec.SchemaProps{
+				Type: []string{"object"},
+			},
+		},
 	}
 }
 
@@ -3381,6 +3605,12 @@ func schema_otto8_ai_otto8_apiclient_types_WebhookManifest(ref common.ReferenceC
 							Default: "",
 							Type:    []string{"string"},
 							Format:  "",
+						},
+					},
+					"userID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 				},
@@ -4315,9 +4545,22 @@ func schema_storage_apis_ottootto8ai_v1_CronJobSpec(ref common.ReferenceCallback
 							Format: "",
 						},
 					},
+					"userID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"taskSchedule": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("github.com/otto8-ai/otto8/apiclient/types.Schedule"),
+						},
+					},
 				},
 			},
 		},
+		Dependencies: []string{
+			"github.com/otto8-ai/otto8/apiclient/types.Schedule"},
 	}
 }
 
@@ -4596,6 +4839,12 @@ func schema_storage_apis_ottootto8ai_v1_EmailReceiverSpec(ref common.ReferenceCa
 						},
 					},
 					"user": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"userID": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -6865,6 +7114,12 @@ func schema_storage_apis_ottootto8ai_v1_WebhookSpec(ref common.ReferenceCallback
 							Format:  "",
 						},
 					},
+					"userID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"tokenHash": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -7056,6 +7311,12 @@ func schema_storage_apis_ottootto8ai_v1_WorkflowExecutionSpec(ref common.Referen
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
 					"input": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"userID": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",

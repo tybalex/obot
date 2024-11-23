@@ -145,8 +145,8 @@ func getThread(ctx context.Context, c kclient.WithWatch, source *v1.KnowledgeSou
 		}
 	}
 
-	return wait.For(ctx, c, thread, func(thread *v1.Thread) bool {
-		return thread.Status.WorkspaceID != ""
+	return wait.For(ctx, c, thread, func(thread *v1.Thread) (bool, error) {
+		return thread.Status.WorkspaceID != "", nil
 	})
 }
 

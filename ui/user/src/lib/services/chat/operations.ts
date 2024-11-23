@@ -1,13 +1,18 @@
+import { baseURL, doDelete, doGet, doPost, doPut } from './http';
 import {
-	type Assistants,
 	type AssistantToolList,
+	type Assistants,
 	type CredentialList,
 	type Files,
 	type KnowledgeFile,
 	type KnowledgeFiles,
-	type Profile
+	type Profile,
+	type Task,
+	type TaskList,
+	type TaskRun,
+	type TaskRunList,
+	type Version
 } from './types';
-import { baseURL, doDelete, doGet, doPost, doPut } from './http';
 
 export async function getProfile(): Promise<Profile> {
 	const obj = (await doGet('/me')) as Profile;
@@ -16,6 +21,10 @@ export async function getProfile(): Promise<Profile> {
 	};
 	obj.loaded = true;
 	return obj;
+}
+
+export async function getVersion(): Promise<Version> {
+	return (await doGet('/version')) as Version;
 }
 
 export async function listAssistants(): Promise<Assistants> {
@@ -77,6 +86,10 @@ export async function invoke(assistant: string, msg: string | object) {
 	await doPost(`/assistants/${assistant}/invoke`, msg);
 }
 
+export async function abort(assistant: string) {
+	await doPost(`/assistants/${assistant}/abort`, {});
+}
+
 export async function listCredentials(assistant: string): Promise<CredentialList> {
 	const list = (await doGet(`/assistants/${assistant}/credentials`)) as CredentialList;
 	if (!list.items) {
@@ -105,6 +118,73 @@ export async function disableTool(assistant: string, tool: string): Promise<Assi
 	return (await doDelete(`/assistants/${assistant}/tools/${tool}`)) as AssistantToolList;
 }
 
-export function newMessageEventSource(assistant: string): EventSource {
+export async function saveTask(assistant: string, task: Task): Promise<Task> {
+	return (await doPut(`/assistants/${assistant}/tasks/${task.id}`, task)) as Task;
+}
+
+export async function runTask(
+	assistant: string,
+	taskID: string,
+	opts?: {
+		stepID?: string;
+		input?: string | object;
+	}
+): Promise<TaskRun> {
+	const url = `/assistants/${assistant}/tasks/${taskID}/run?step=${opts?.stepID ?? ''}`;
+	return (await doPost(url, opts?.input ?? {})) as TaskRun;
+}
+
+export function newMessageEventSource(
+	assistant: string,
+	opts?: {
+		task?: {
+			id: string;
+			follow?: boolean;
+		};
+	}
+): EventSource {
+	if (opts?.task) {
+		return new EventSource(
+			baseURL +
+				`/assistants/${assistant}/tasks/${opts.task.id}/events${opts.task.follow ? '?follow=true' : ''}`
+		);
+	}
 	return new EventSource(baseURL + `/assistants/${assistant}/events`);
+}
+
+export async function listTasks(assistant: string): Promise<TaskList> {
+	const list = (await doGet(`/assistants/${assistant}/tasks`)) as TaskList;
+	if (!list.items) {
+		list.items = [];
+	}
+	return list;
+}
+
+export async function createTask(assistant: string, task?: Task): Promise<Task> {
+	return (await doPost(
+		`/assistants/${assistant}/tasks`,
+		task ?? {
+			steps: []
+		}
+	)) as Task;
+}
+
+export async function deleteTask(assistant: string, id: string) {
+	return doDelete(`/assistants/${assistant}/tasks/${id}`);
+}
+
+export async function getTask(assistant: string, id: string): Promise<Task> {
+	return (await doGet(`/assistants/${assistant}/tasks/${id}`)) as Task;
+}
+
+export async function deleteTaskRun(assistant: string, id: string, runID: string) {
+	return doDelete(`/assistants/${assistant}/tasks/${id}/runs/${runID}`);
+}
+
+export async function listTaskRuns(assistant: string, id: string): Promise<TaskRunList> {
+	const list = (await doGet(`/assistants/${assistant}/tasks/${id}/runs`)) as TaskRunList;
+	if (!list.items) {
+		list.items = [];
+	}
+	return list;
 }

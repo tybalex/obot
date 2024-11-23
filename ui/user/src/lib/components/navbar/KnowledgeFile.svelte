@@ -19,11 +19,13 @@
 
 <div class="group flex" use:tt.ref>
 	<button class="flex flex-1 items-center">
-		<FileText class="h-8 w-8 rounded-md bg-gray-100 p-1 text-black" />
-		<span class="ms-3 text-sm font-medium dark:text-gray-100">{file.fileName.slice(0, 32)}</span>
+		<FileText />
+		<span class="ms-3"
+			>{file.fileName.length > 26 ? file.fileName.slice(0, 26) + '...' : file.fileName}</span
+		>
 		{#if file.state === 'error' || file.state === 'failed'}
-			<CircleX class="h-4 text-red-500" />
-			<div class="rounded-md bg-red-500 p-2 text-white" use:tt.tooltip>
+			<CircleX class="ms-2 h-4 text-red-600" />
+			<div class="rounded-md bg-red-600 p-2" use:tt.tooltip>
 				{file.error ? file.error : 'Failed'}
 			</div>
 		{:else if file.state === 'pending' || file.state === 'ingesting'}
@@ -38,6 +40,6 @@
 			}
 		}}
 	>
-		<Trash class="h-5 w-5 text-gray-400" />
+		<Trash class="h-5 w-5 text-gray" />
 	</button>
 </div>

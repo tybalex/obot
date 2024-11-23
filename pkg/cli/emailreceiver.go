@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dustin/go-humanize"
+	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/spf13/cobra"
 )
 
@@ -18,10 +19,24 @@ func (l *EmailReceivers) Customize(cmd *cobra.Command) {
 	cmd.Aliases = []string{"emailreceiver", "er"}
 }
 
-func (l *EmailReceivers) Run(cmd *cobra.Command, _ []string) error {
-	ers, err := l.root.Client.ListEmailReceivers(cmd.Context())
-	if err != nil {
-		return err
+func (l *EmailReceivers) Run(cmd *cobra.Command, args []string) error {
+	var (
+		ers types.EmailReceiverList
+		err error
+	)
+	if len(args) > 0 {
+		for _, arg := range args {
+			er, err := l.root.Client.GetEmailReceiver(cmd.Context(), arg)
+			if err != nil {
+				return err
+			}
+			ers.Items = append(ers.Items, *er)
+		}
+	} else {
+		ers, err = l.root.Client.ListEmailReceivers(cmd.Context())
+		if err != nil {
+			return err
+		}
 	}
 
 	if ok, err := output(l.Output, ers); ok || err != nil {

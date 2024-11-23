@@ -36,15 +36,19 @@
 	});
 </script>
 
-<label class="flex cursor-pointer justify-end gap-2 p-4 text-gray-300 hover:text-gray-100">
-	Upload (.pdf, .pptx, .txt)
-	<input bind:files type="file" class="hidden" accept=".pdf, .txt, .docs" />
-	{#await uploadInProgress}
-		<Loading class="h-5 w-5" />
-	{:catch error}
-		<Error {error} />
-	{/await}
-	{#if !uploadInProgress}
-		<Upload class="h-5 w-5" />
-	{/if}
-</label>
+<div class="flex justify-end">
+	<label
+		class="-mb-3 -mr-3 mt-3 flex cursor-pointer justify-end gap-2 rounded-3xl p-3 px-4 hover:bg-gray-500 hover:text-white"
+	>
+		Upload (.pdf, .pptx, .txt)
+		<input bind:files type="file" class="hidden" accept=".pdf, .txt, .doc, .docx" />
+		{#await uploadInProgress}
+			<Loading class="h-5 w-5" />
+		{:catch error}
+			<Error {error} />
+		{/await}
+		{#if !uploadInProgress}
+			<Upload class="h-5 w-5" />
+		{/if}
+	</label>
+</div>

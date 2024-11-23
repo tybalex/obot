@@ -53,8 +53,8 @@ func (a *AgentHandler) Update(req api.Context) error {
 		return err
 	}
 
-	processedAgent, err := wait.For(req.Context(), req.Storage, &agent, func(agent *v1.Agent) bool {
-		return agent.Generation == agent.Status.AliasObservedGeneration
+	processedAgent, err := wait.For(req.Context(), req.Storage, &agent, func(agent *v1.Agent) (bool, error) {
+		return agent.Generation == agent.Status.AliasObservedGeneration, nil
 	})
 	if err != nil {
 		return fmt.Errorf("failed to update agent: %w", err)
@@ -91,8 +91,8 @@ func (a *AgentHandler) Create(req api.Context) error {
 		},
 	}
 
-	agent, err := wait.For(req.Context(), req.Storage, agent, func(agent *v1.Agent) bool {
-		return agent.Generation == agent.Status.AliasObservedGeneration
+	agent, err := wait.For(req.Context(), req.Storage, agent, func(agent *v1.Agent) (bool, error) {
+		return agent.Generation == agent.Status.AliasObservedGeneration, nil
 	}, wait.Option{Create: true})
 	if err != nil {
 		return fmt.Errorf("failed to create agent: %w", err)
@@ -588,8 +588,8 @@ func (a *AgentHandler) EnsureCredentialForKnowledgeSource(req api.Context) error
 		return err
 	}
 
-	oauthLogin, err = wait.For(req.Context(), req.Storage, oauthLogin, func(obj *v1.OAuthAppLogin) bool {
-		return obj.Status.External.Authenticated || obj.Status.External.Error != "" || obj.Status.External.URL != ""
+	oauthLogin, err = wait.For(req.Context(), req.Storage, oauthLogin, func(obj *v1.OAuthAppLogin) (bool, error) {
+		return obj.Status.External.Authenticated || obj.Status.External.Error != "" || obj.Status.External.URL != "", nil
 	}, wait.Option{
 		Create: true,
 	})
@@ -641,10 +641,11 @@ func (a *AgentHandler) Script(req api.Context) error {
 
 func MetadataFrom(obj kclient.Object, linkKV ...string) types.Metadata {
 	m := types.Metadata{
-		ID:      obj.GetName(),
-		Created: *types.NewTime(obj.GetCreationTimestamp().Time),
-		Links:   map[string]string{},
-		Type:    strings.ToLower(reflect.TypeOf(obj).Elem().Name()),
+		ID:       obj.GetName(),
+		Created:  *types.NewTime(obj.GetCreationTimestamp().Time),
+		Links:    map[string]string{},
+		Type:     strings.ToLower(reflect.TypeOf(obj).Elem().Name()),
+		Revision: obj.GetResourceVersion(),
 	}
 	if delTime := obj.GetDeletionTimestamp(); delTime != nil {
 		m.Deleted = types.NewTime(delTime.Time)

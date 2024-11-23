@@ -30,8 +30,8 @@ func getWorkspaceIDs(ctx context.Context, c kclient.WithWatch, ws *v1.Workspace)
 				Namespace: ws.Namespace,
 				Name:      wsName,
 			},
-		}, func(ws *v1.Workspace) bool {
-			return ws.Status.WorkspaceID != ""
+		}, func(ws *v1.Workspace) (bool, error) {
+			return ws.Status.WorkspaceID != "", nil
 		})
 		if err != nil {
 			return nil, err

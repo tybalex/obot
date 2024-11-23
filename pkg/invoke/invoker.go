@@ -53,9 +53,10 @@ func NewInvoker(c kclient.WithWatch, gptClient *gptscript.GPTScript, serverURL, 
 }
 
 type Response struct {
-	Run    *v1.Run
-	Thread *v1.Thread
-	Events <-chan types.Progress
+	Run               *v1.Run
+	Thread            *v1.Thread
+	WorkflowExecution *v1.WorkflowExecution
+	Events            <-chan types.Progress
 
 	uncached kclient.WithWatch
 	cancel   func()
@@ -92,8 +93,8 @@ func (r *Response) Result(ctx context.Context) (TaskResult, error) {
 			Name:      r.Run.Name,
 			Namespace: r.Run.Namespace,
 		},
-	}, func(run *v1.RunState) bool {
-		return run.Spec.Done
+	}, func(run *v1.RunState) (bool, error) {
+		return run.Spec.Done, nil
 	})
 	if apierror.IsNotFound(err) {
 		return TaskResult{}, ErrToolResult{
@@ -198,8 +199,8 @@ func CreateThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Ag
 	)
 
 	if agent.Name != "" {
-		agent, err = wait.For(ctx, c, agent, func(agent *v1.Agent) bool {
-			return agent.Status.WorkspaceName != "" && len(agent.Status.KnowledgeSetNames) > 0
+		agent, err = wait.For(ctx, c, agent, func(agent *v1.Agent) (bool, error) {
+			return agent.Status.WorkspaceName != "" && len(agent.Status.KnowledgeSetNames) > 0, nil
 		})
 		if err != nil {
 			return nil, err
@@ -257,6 +258,10 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agen
 		return nil, err
 	}
 
+	if err := unAbortThread(ctx, c, thread); err != nil {
+		return nil, err
+	}
+
 	if err := i.updateThreadFields(ctx, c, agent, thread, opt); err != nil {
 		return nil, err
 	}
@@ -299,6 +304,14 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agen
 		PreviousRunName:       opt.PreviousRunName,
 		ForceNoResume:         opt.ForceNoResume,
 	})
+}
+
+func unAbortThread(ctx context.Context, c kclient.Client, thread *v1.Thread) error {
+	if thread.Spec.Abort {
+		thread.Spec.Abort = false
+		return c.Update(ctx, thread)
+	}
+	return nil
 }
 
 type runOptions struct {
@@ -445,8 +458,11 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.WithWatch, thread *v1.Th
 		})
 	}()
 
-	thread, err := wait.For(ctx, c, thread, func(thread *v1.Thread) bool {
-		return thread.Status.WorkspaceID != ""
+	thread, err := wait.For(ctx, c, thread, func(thread *v1.Thread) (bool, error) {
+		if thread.Spec.Abort {
+			return false, fmt.Errorf("thread was aborted while waiting for workspace")
+		}
+		return thread.Status.WorkspaceID != "", nil
 	})
 	if err != nil {
 		return fmt.Errorf("failed to wait for thread to be ready: %w", err)
@@ -773,7 +789,7 @@ func getCredentialCallingTool(runResp *gptscript.Run) (result gptscript.Tool) {
 	return
 }
 
-func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName string, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run) (retErr error) {
+func (i *Invoker) stream(ctx context.Context, c kclient.WithWatch, prevThreadName string, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run) (retErr error) {
 	var (
 		runEvent = runResp.Events()
 		wg       sync.WaitGroup
@@ -825,6 +841,9 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName s
 
 	runCtx, cancelRun := context.WithCancelCause(ctx)
 	defer cancelRun(retErr)
+
+	go timeoutAfter(runCtx, cancelRun, 10*time.Minute)
+	go watchThreadAbort(runCtx, c, thread, cancelRun)
 
 	var (
 		abortTimeout = func() {}
@@ -909,5 +928,25 @@ func (i *Invoker) stream(ctx context.Context, c kclient.Client, prevThreadName s
 				}
 			}
 		}
+	}
+}
+
+func watchThreadAbort(ctx context.Context, c kclient.WithWatch, thread *v1.Thread, cancel context.CancelCauseFunc) {
+	_, _ = wait.For(ctx, c, thread, func(thread *v1.Thread) (bool, error) {
+		if thread.Spec.Abort {
+			cancel(fmt.Errorf("thread was aborted, cancelling run"))
+			return true, nil
+		}
+		return false, nil
+	}, wait.Option{
+		Timeout: 11 * time.Minute,
+	})
+}
+
+func timeoutAfter(ctx context.Context, cancel func(err error), d time.Duration) {
+	select {
+	case <-ctx.Done():
+	case <-time.After(d):
+		cancel(fmt.Errorf("run exceeded maximum time of %v", d))
 	}
 }

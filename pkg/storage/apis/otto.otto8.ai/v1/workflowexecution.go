@@ -27,6 +27,8 @@ func (in *WorkflowExecution) Has(field string) bool {
 func (in *WorkflowExecution) Get(field string) string {
 	if in != nil {
 		switch field {
+		case "spec.userID":
+			return in.Spec.UserID
 		case "spec.webhookName":
 			return in.Spec.WebhookName
 		case "spec.cronJobName":
@@ -42,7 +44,7 @@ func (in *WorkflowExecution) Get(field string) string {
 }
 
 func (in *WorkflowExecution) FieldNames() []string {
-	return []string{"spec.webhookName", "spec.cronJobName", "spec.workflowName", "spec.parentRunName"}
+	return []string{"spec.userID", "spec.webhookName", "spec.cronJobName", "spec.workflowName", "spec.parentRunName"}
 }
 
 func (in *WorkflowExecution) GetColumns() [][]string {
@@ -58,6 +60,7 @@ func (in *WorkflowExecution) GetColumns() [][]string {
 
 type WorkflowExecutionSpec struct {
 	Input                 string `json:"input,omitempty"`
+	UserID                string `json:"userID,omitempty"`
 	WorkflowName          string `json:"workflowName,omitempty"`
 	WebhookName           string `json:"webhookName,omitempty"`
 	EmailReceiverName     string `json:"emailReceiverName,omitempty"`

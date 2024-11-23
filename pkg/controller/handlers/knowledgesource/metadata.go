@@ -28,8 +28,8 @@ func (k *Handler) getWorkspaceID(ctx context.Context, c kclient.WithWatch, sourc
 			Name:      source.Status.WorkspaceName,
 			Namespace: source.Namespace,
 		},
-	}, func(ws *v1.Workspace) bool {
-		return ws.Status.WorkspaceID != ""
+	}, func(ws *v1.Workspace) (bool, error) {
+		return ws.Status.WorkspaceID != "", nil
 	})
 	if err != nil {
 		return "", err

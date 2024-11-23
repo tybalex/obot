@@ -79,8 +79,8 @@ func (a *ModelHandler) Update(req api.Context) error {
 		return err
 	}
 
-	processedModel, err := wait.For(req.Context(), req.Storage, &existing, func(model *v1.Model) bool {
-		return model.Generation == model.Status.AliasObservedGeneration
+	processedModel, err := wait.For(req.Context(), req.Storage, &existing, func(model *v1.Model) (bool, error) {
+		return model.Generation == model.Status.AliasObservedGeneration, nil
 	})
 	if err != nil {
 		return fmt.Errorf("failed to update model: %w", err)
@@ -127,8 +127,8 @@ func (a *ModelHandler) Create(req api.Context) error {
 		return err
 	}
 
-	model, err := wait.For(req.Context(), req.Storage, model, func(model *v1.Model) bool {
-		return model.Generation == model.Status.AliasObservedGeneration
+	model, err := wait.For(req.Context(), req.Storage, model, func(model *v1.Model) (bool, error) {
+		return model.Generation == model.Status.AliasObservedGeneration, nil
 	}, wait.Option{Create: true})
 	if err != nil {
 		return fmt.Errorf("failed to create model: %w", err)

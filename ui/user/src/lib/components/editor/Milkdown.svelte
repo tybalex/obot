@@ -74,3 +74,16 @@
 </script>
 
 <div class="milkdown-editor" use:editor></div>
+
+<style>
+	/* The :global is to get rid of warnings about the selector not being found */
+	:global {
+		.milkdown-editor .milkdown milkdown-block-handle {
+			display: none;
+		}
+
+		.milkdown-editor .milkdown .ProseMirror {
+			@apply p-4 pt-0;
+		}
+	}
+</style>

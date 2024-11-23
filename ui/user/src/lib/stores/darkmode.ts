@@ -1,5 +1,5 @@
-import theme from './theme';
 import preferredTheme from './preferredtheme';
+import theme from './theme';
 import { derived } from 'svelte/store';
 
 const store = derived([theme, preferredTheme], ($values) => {

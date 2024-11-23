@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/otto8-ai/otto8/apiclient"
+	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/spf13/cobra"
 )
 
@@ -15,14 +16,27 @@ type Tools struct {
 
 func (l *Tools) Customize(cmd *cobra.Command) {
 	cmd.Use = "tools [flags]"
-	cmd.Args = cobra.NoArgs
 	cmd.Aliases = []string{"tool", "tl"}
 }
 
 func (l *Tools) Run(cmd *cobra.Command, args []string) error {
-	toolRefs, err := l.root.Client.ListToolReferences(cmd.Context(), apiclient.ListToolReferencesOptions{})
-	if err != nil {
-		return err
+	var (
+		toolRefs types.ToolReferenceList
+		err      error
+	)
+	if len(args) > 0 {
+		for _, arg := range args {
+			toolRef, err := l.root.Client.GetToolReference(cmd.Context(), arg)
+			if err != nil {
+				return err
+			}
+			toolRefs.Items = append(toolRefs.Items, *toolRef)
+		}
+	} else {
+		toolRefs, err = l.root.Client.ListToolReferences(cmd.Context(), apiclient.ListToolReferencesOptions{})
+		if err != nil {
+			return err
+		}
 	}
 
 	if ok, err := output(l.Output, toolRefs); ok || err != nil {

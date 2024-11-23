@@ -8,11 +8,21 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-func GetVersion(req api.Context) error {
-	return req.Write(getVersionResponse())
+type VersionHandler struct {
+	emailDomain string
 }
 
-func getVersionResponse() map[string]string {
+func NewVersionHandler(emailDomain string) *VersionHandler {
+	return &VersionHandler{
+		emailDomain: emailDomain,
+	}
+}
+
+func (v *VersionHandler) GetVersion(req api.Context) error {
+	return req.Write(v.getVersionResponse())
+}
+
+func (v *VersionHandler) getVersionResponse() map[string]string {
 	values := make(map[string]string)
 	versions := os.Getenv("OTTO8_SERVER_VERSIONS")
 	if versions != "" {
@@ -21,5 +31,6 @@ func getVersionResponse() map[string]string {
 		}
 	}
 	values["otto"] = version.Get().String()
+	values["emailDomain"] = v.emailDomain
 	return values
 }

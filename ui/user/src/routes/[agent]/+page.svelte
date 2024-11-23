@@ -4,19 +4,18 @@
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Messages from '$lib/components/Messages.svelte';
 	import Editor from '$lib/components/Editor.svelte';
-	import type { Editor as EditorType } from '$lib/components/Editor.svelte';
-	import { loadFile } from '$lib/components/Editor.svelte';
+	import { EditorService } from '$lib/services';
 	import Notifications from '$lib/components/Notifications.svelte';
 	import { NotificationMessage } from '$lib/components/Notifications.svelte';
 	import type { Input } from '$lib/components/messages/Input.svelte';
 	import type { Messages as MessagesType } from '$lib/services';
-	import { setContext } from 'svelte';
+	import { currentAssistant } from '$lib/stores';
 
-	let editorVisible = $state(false);
 	let assistant = $page.params.agent;
 	let notification: ReturnType<typeof Notifications>;
 	let messageDiv: HTMLDivElement | undefined;
 	let messages: ReturnType<typeof Messages>;
+	const visible = EditorService.visible;
 
 	function handleError(event: Error) {
 		notification.addNotification(new NotificationMessage(event));
@@ -27,8 +26,7 @@
 	}
 
 	function handleLoadFile(e: string) {
-		loadFile(assistant, e);
-		editorVisible = true;
+		EditorService.load(assistant, e);
 	}
 
 	function handleMessages(e: MessagesType) {
@@ -55,9 +53,16 @@
 		}
 	}
 
-	setContext('editor', {
-		loadFile: handleLoadFile
-	} as EditorType);
+	let title = $state();
+	let init = false;
+	$effect(() => {
+		if (typeof window === 'undefined' || !$currentAssistant.id || init) {
+			return;
+		}
+		EditorService.init($currentAssistant.id);
+		title = $currentAssistant.name;
+		init = true;
+	});
 
 	$effect(() => {
 		if ($profile.unauthorized) {
@@ -65,6 +70,14 @@
 		}
 	});
 </script>
+
+<svelte:head>
+	{#if title && title !== 'otto'}
+		<title>otto8 - {title}</title>
+	{:else}
+		<title>otto8</title>
+	{/if}
+</svelte:head>
 
 <Navbar />
 
@@ -83,15 +96,9 @@
 		</div>
 	</div>
 
-	{#if editorVisible}
+	{#if $visible}
 		<div class="w-1/2 overflow-auto pb-16 pt-16 scrollbar-none">
-			<Editor
-				onEditorClose={() => {
-					editorVisible = false;
-				}}
-				on:explain={submit}
-				on:improve={submit}
-			/>
+			<Editor on:explain={submit} on:improve={submit} />
 		</div>
 	{/if}
 

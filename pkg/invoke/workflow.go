@@ -10,35 +10,42 @@ import (
 	"github.com/otto8-ai/otto8/pkg/events"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
+	"github.com/otto8-ai/otto8/pkg/wait"
+	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/util/retry"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type WorkflowOptions struct {
-	ThreadName string
-	StepID     string
-	Events     bool
+	ThreadName            string
+	StepID                string
+	UserID                string
+	WorkflowExecutionName string
+	Events                bool
 }
 
-func (i *Invoker) startWorkflow(ctx context.Context, c kclient.WithWatch, wf *v1.Workflow, input string) (*v1.Thread, error) {
+func (i *Invoker) startWorkflow(ctx context.Context, c kclient.WithWatch, wf *v1.Workflow, input string, opt WorkflowOptions) (*v1.WorkflowExecution, *v1.Thread, error) {
 	wfe := &v1.WorkflowExecution{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: system.WorkflowExecutionPrefix,
+			Name:         opt.WorkflowExecutionName,
 			Namespace:    wf.Namespace,
 		},
 		Spec: v1.WorkflowExecutionSpec{
+			UserID:       opt.UserID,
 			Input:        input,
 			WorkflowName: wf.Name,
 		},
 	}
 
 	if err := c.Create(ctx, wfe); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	w, err := c.Watch(ctx, &v1.WorkflowExecutionList{}, kclient.InNamespace(wfe.Namespace), kclient.MatchingFields{"metadata.name": wfe.Name})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	defer func() {
@@ -54,30 +61,54 @@ func (i *Invoker) startWorkflow(ctx context.Context, c kclient.WithWatch, wf *v1
 		}
 
 		if wfe.Status.State == types.WorkflowStateError {
-			return nil, fmt.Errorf("workflow failed: %s", wfe.Status.Error)
+			return nil, nil, fmt.Errorf("workflow failed: %s", wfe.Status.Error)
 		}
 
 		if wfe.Status.ThreadName != "" {
 			var thread v1.Thread
-			return &thread, c.Get(ctx, router.Key(wfe.Namespace, wfe.Status.ThreadName), &thread)
+			return wfe, &thread, c.Get(ctx, router.Key(wfe.Namespace, wfe.Status.ThreadName), &thread)
 		}
 	}
 
-	return nil, fmt.Errorf("workflow did not start")
+	return nil, nil, fmt.Errorf("workflow did not start")
 }
 
 func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Workflow, input string, opt WorkflowOptions) (*Response, error) {
 	var (
-		thread *v1.Thread
-		err    error
+		thread     *v1.Thread
+		err        error
+		rerun      bool
+		threadName string
+		wfe        = &v1.WorkflowExecution{}
 	)
-	if opt.ThreadName != "" {
-		thread, err = i.rerunThread(ctx, c, wf, opt.ThreadName, opt.StepID)
+
+	if opt.WorkflowExecutionName != "" {
+		if err := c.Get(ctx, router.Key(wf.Namespace, opt.WorkflowExecutionName), wfe); apierror.IsNotFound(err) {
+			// Workflow execution does not exist, run with given wfe name
+		} else if err != nil {
+			return nil, err
+		} else {
+			wfe, err = wait.For(ctx, c, wfe, func(wfe *v1.WorkflowExecution) (bool, error) {
+				return wfe.Status.ThreadName != "", nil
+			})
+			if err != nil {
+				return nil, err
+			}
+			threadName = wfe.Status.ThreadName
+			rerun = true
+		}
+	} else if opt.ThreadName != "" {
+		threadName = opt.ThreadName
+		rerun = true
+	}
+
+	if rerun {
+		wfe, thread, err = i.rerunThreadWithRetry(ctx, c, wf, threadName, opt.StepID, input)
 		if err != nil {
 			return nil, err
 		}
 	} else {
-		thread, err = i.startWorkflow(ctx, c, wf, input)
+		wfe, thread, err = i.startWorkflow(ctx, c, wf, input, opt)
 		if err != nil {
 			return nil, err
 		}
@@ -87,9 +118,10 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 		closedChan := make(chan types.Progress)
 		close(closedChan)
 		return &Response{
-			cancel: func() {},
-			Thread: thread,
-			Events: closedChan,
+			cancel:            func() {},
+			Thread:            thread,
+			WorkflowExecution: wfe,
+			Events:            closedChan,
 		}, nil
 	}
 
@@ -104,43 +136,71 @@ func (i *Invoker) Workflow(ctx context.Context, c kclient.WithWatch, wf *v1.Work
 	}
 
 	return &Response{
-		cancel: func() {},
-		Thread: thread,
-		Run:    run,
-		Events: prg,
+		cancel:            func() {},
+		Thread:            thread,
+		Run:               run,
+		WorkflowExecution: wfe,
+		Events:            prg,
 	}, nil
 }
 
-func (i *Invoker) rerunThread(ctx context.Context, c kclient.WithWatch, wf *v1.Workflow, threadName, stepID string) (*v1.Thread, error) {
+func (i *Invoker) rerunThreadWithRetry(ctx context.Context, c kclient.WithWatch, wf *v1.Workflow, threadName, stepID, input string) (*v1.WorkflowExecution, *v1.Thread, error) {
+	var (
+		thread *v1.Thread
+		wfe    *v1.WorkflowExecution
+		err    error
+	)
+	err = retry.RetryOnConflict(retry.DefaultBackoff, func() error {
+		wfe, thread, err = i.rerunThread(ctx, c, wf, threadName, stepID, input)
+		return err
+	})
+	return wfe, thread, err
+}
+
+func (i *Invoker) rerunThread(ctx context.Context, c kclient.WithWatch, wf *v1.Workflow, threadName, stepID, input string) (*v1.WorkflowExecution, *v1.Thread, error) {
 	var (
 		thread v1.Thread
 		wfe    v1.WorkflowExecution
 	)
 
 	if err := c.Get(ctx, router.Key(wf.Namespace, threadName), &thread); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if thread.Spec.WorkflowName != wf.Name {
-		return nil, fmt.Errorf("thread does not belong to workflow: %s", wf.Name)
+		return nil, nil, fmt.Errorf("thread does not belong to workflow: %s", wf.Name)
 	}
 
 	if thread.Spec.WorkflowExecutionName == "" {
-		return nil, fmt.Errorf("thread does not have a workflow execution")
+		return nil, nil, fmt.Errorf("thread does not have a workflow execution")
+	}
+
+	if err := unAbortThread(ctx, c, &thread); err != nil {
+		return nil, nil, err
 	}
 
 	if err := c.Get(ctx, router.Key(wf.Namespace, thread.Spec.WorkflowExecutionName), &wfe); err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+
+	if input != "" && wfe.Spec.Input != input {
+		if stepID == "" {
+			// If input doesn't match, delete all steps and rerun
+			stepID = "*"
+		}
+		wfe.Spec.Input = input
+	}
+
+	if stepID != "*" {
+		step, _ := types.FindStep(&wf.Spec.Manifest, stepID)
+		if step == nil {
+			return nil, nil, fmt.Errorf("step not found: %s", stepID)
+		}
 	}
 
 	if stepID != "" {
-		step, _ := types.FindStep(&wf.Spec.Manifest, stepID)
-		if step == nil {
-			return nil, fmt.Errorf("step not found: %s", stepID)
-		}
-
 		if err := i.deleteSteps(ctx, c, thread, stepID); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
@@ -148,13 +208,13 @@ func (i *Invoker) rerunThread(ctx context.Context, c kclient.WithWatch, wf *v1.W
 		thread.Status.CurrentRunName = ""
 		thread.Status.LastRunName = ""
 		if err := c.Status().Update(ctx, &thread); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
 	wfe.Spec.WorkflowGeneration++
 	wfe.Spec.RunUntilStep = stepID
-	return &thread, c.Update(ctx, &wfe)
+	return &wfe, &thread, c.Update(ctx, &wfe)
 }
 
 func (i *Invoker) deleteSteps(ctx context.Context, c kclient.Client, thread v1.Thread, stepID string) error {
@@ -184,6 +244,9 @@ func (i *Invoker) deleteSteps(ctx context.Context, c kclient.Client, thread v1.T
 }
 
 func stepMatches(left, right string) bool {
+	if right == "*" {
+		return true
+	}
 	return stepLookupID(left) == stepLookupID(right)
 }
 

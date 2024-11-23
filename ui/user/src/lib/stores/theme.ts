@@ -1,5 +1,5 @@
-import { writable } from 'svelte/store';
 import { storeWithInit } from '$lib/stores/storeinit';
+import { writable } from 'svelte/store';
 
 export type Theme = 'light' | 'dark' | 'system';
 export const DefaultTheme: Theme = 'system';

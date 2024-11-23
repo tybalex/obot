@@ -1,6 +1,5 @@
-import { type Readable, type Subscriber, type Unsubscriber, type Writable } from 'svelte/store';
-
 import errorStore from './errors';
+import { type Readable, type Subscriber, type Unsubscriber, type Writable } from 'svelte/store';
 
 function toError(error: unknown): Error {
 	if (error instanceof Error) {

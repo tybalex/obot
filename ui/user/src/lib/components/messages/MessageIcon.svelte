@@ -14,11 +14,11 @@
 {#if !msg.icon}
 	<!-- Nothing -->
 {:else if msg.icon === 'stock:Pencil'}
-	<Pencil class="ml-1 mr-3 h-8 w-8" />
+	<Pencil class="h-8 w-8" />
 {:else if msg.icon === 'Otto'}
 	<Otto />
 {:else if msg.icon === 'Profile'}
 	<ProfileIcon />
 {:else}
-	<img class="h-8 w-8 rounded-md bg-gray-100 p-1 text-blue-400" src={msg.icon} alt="message icon" />
+	<img class="h-8 w-8 rounded-md bg-gray-100 p-1 text-blue" src={msg.icon} alt="message icon" />
 {/if}

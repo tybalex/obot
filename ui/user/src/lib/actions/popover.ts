@@ -1,13 +1,14 @@
 import {
+	type ComputePositionConfig,
 	autoUpdate,
 	computePosition,
 	flip,
-	shift,
 	offset,
-	type ComputePositionConfig
+	shift
 } from '@floating-ui/dom';
+import { tick } from 'svelte';
 import type { Action, ActionReturn } from 'svelte/action';
-import { type Readable, writable, type Writable } from 'svelte/store';
+import { type Readable, type Writable, writable } from 'svelte/store';
 
 interface Popover extends Readable<boolean> {
 	ref: Action;
@@ -18,6 +19,7 @@ interface Popover extends Readable<boolean> {
 
 interface PopoverOptions extends Partial<ComputePositionConfig> {
 	hover?: boolean;
+	assign?: (x: number, y: number) => void;
 }
 
 let id = 0;
@@ -49,10 +51,14 @@ export default function popover(opts?: PopoverOptions): Popover {
 				],
 				...opts
 			}).then(({ x, y }) => {
-				Object.assign(tooltip.style, {
-					left: `${x}px`,
-					top: `${y}px`
-				});
+				if (opts?.assign) {
+					opts.assign(x, y);
+				} else {
+					Object.assign(tooltip.style, {
+						left: `${x}px`,
+						top: `${y}px`
+					});
+				}
 			});
 		}
 
@@ -79,6 +85,9 @@ export default function popover(opts?: PopoverOptions): Popover {
 
 		tooltip.classList.add('hidden');
 		tooltip.classList.add('absolute');
+		tooltip.classList.add('transition-opacity');
+		tooltip.classList.add('duration-300');
+		tooltip.classList.add('opacity-0');
 
 		if (opts?.hover) {
 			ref.addEventListener('mouseenter', () => {
@@ -93,6 +102,9 @@ export default function popover(opts?: PopoverOptions): Popover {
 		open.subscribe((value) => {
 			if (value) {
 				tooltip.classList.remove('hidden');
+				tick().then(() => {
+					tooltip.classList.remove('opacity-0');
+				});
 				updatePosition();
 				close = autoUpdate(ref, tooltip, updatePosition);
 			} else {
@@ -100,6 +112,7 @@ export default function popover(opts?: PopoverOptions): Popover {
 					close();
 				}
 				tooltip.classList.add('hidden');
+				tooltip.classList.add('opacity-0');
 				close = null;
 			}
 		});

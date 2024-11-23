@@ -1,135 +1,40 @@
-<!-- @migration-task Error while migrating Svelte code: `<button>` is invalid inside `<button>` -->
-<script lang="ts" module>
-	import { editorFiles } from '$lib/stores';
-	import { ChatService } from '$lib/services';
-	import type { EditorFile } from '$lib/stores/editorfiles';
-
-	export interface Editor {
-		loadFile: (file: string) => void;
-	}
-
-	function hasFile(name: string): boolean {
-		let files: EditorFile[] | undefined;
-		editorFiles.subscribe((value) => (files = value))();
-		return files?.find((file) => file.name === name) !== undefined;
-	}
-
-	export async function loadFile(assistant: string, file: string) {
-		if (hasFile(file)) {
-			selectFile(file);
-			return;
-		}
-
-		try {
-			const contents = await ChatService.getFile(assistant, file);
-			const targetFile = {
-				name: file,
-				contents,
-				buffer: '',
-				modified: false,
-				selected: true
-			};
-
-			editorFiles.update((files) => {
-				const index = files.findIndex((f) => f.name === targetFile.name);
-				if (index === -1) {
-					files.push(targetFile);
-				}
-				return files;
-			});
-			selectFile(targetFile.name);
-		} catch {
-			// ignore error
-		}
-	}
-
-	function selectFile(name: string) {
-		editorFiles.update((files) => {
-			let found = false;
-			files.forEach((file) => {
-				file.selected = file.name === name;
-				found = found || file.selected;
-			});
-			if (!found && files.length > 0) {
-				files[0].selected = true;
-			}
-			return files;
-		});
-	}
-</script>
-
 <script lang="ts">
 	import { FileText, X } from '$lib/icons';
-	import { onMount } from 'svelte';
 	import Milkdown from '$lib/components/editor/Milkdown.svelte';
 	import Codemirror from '$lib/components/editor/Codemirror.svelte';
-
-	interface Props {
-		onEditorClose?: () => void;
-	}
-
-	const { onEditorClose }: Props = $props();
+	import { EditorService } from '$lib/services';
+	import Task from '$lib/components/tasks/Task.svelte';
 
 	function fileChanged(e: CustomEvent<{ name: string; contents: string }>) {
-		editorFiles.update((files) => {
-			files.forEach((file) => {
-				if (file.name === e.detail.name) {
-					file.buffer = e.detail.contents;
-					file.modified = true;
-				}
-			});
-			return files;
-		});
-	}
-
-	function remove(i: number) {
-		editorFiles.update((files) => {
-			files.splice(i, 1);
-			if (files.length == 0) {
-				onEditorClose?.();
+		for (const item of EditorService.items) {
+			if (item.name === e.detail.name) {
+				item.buffer = e.detail.contents;
+				item.modified = true;
 			}
-			return files;
-		});
-		selectFile(i == 0 ? '' : $editorFiles[i - 1].name);
-	}
-
-	function isSelected(name: string): boolean {
-		if ($editorFiles.length <= 1) {
-			return true;
 		}
-		return $editorFiles.find((file) => file.name === name)?.selected || false;
 	}
-
-	onMount(() => {
-		if (window.location.href.indexOf('#editor:') > -1) {
-			selectFile(window.location.href.split('#editor:')[1]);
-		} else {
-			selectFile('');
-		}
-	});
 </script>
 
 <div>
 	<div class="flex items-center justify-between">
 		<ul class="mb-4 flex flex-wrap text-center text-sm font-medium">
-			{#each $editorFiles as file, i}
+			{#each EditorService.items as item}
 				<li class="me-2">
 					<a
-						href={`#editor:${$editorFiles[i].name}`}
-						class:selected={isSelected(file.name)}
+						href={`#editor:${item.name}`}
+						class:selected={item.selected}
 						onclick={() => {
-							selectFile($editorFiles[i].name);
-							window.location.href = `#editor:${$editorFiles[i].name}`;
+							EditorService.select(item.id);
 						}}
-						class="selected active group flex items-center justify-center gap-2 rounded-t-lg p-4 text-black dark:border-blue-500 dark:text-white"
+						class="selected active group flex items-center justify-center gap-2 rounded-t-lg p-4 text-black dark:border-blue dark:text-white"
 						aria-current="page"
 					>
 						<FileText />
-						<span>{file.name}</span>
+						<span>{item.name}</span>
 						<button
 							class="ml-2"
 							onclick={() => {
-								remove(i);
+								EditorService.remove(item.id);
 							}}
 						>
 							<X />
@@ -141,7 +46,7 @@
 		<button
 			class="icon-button"
 			onclick={() => {
-				onEditorClose?.();
+				EditorService.visible.set(false);
 			}}
 		>
 			<X />
@@ -154,11 +59,20 @@
 			e.stopPropagation();
 		}}
 		role="none"
+		class="contents"
 	>
-		{#each $editorFiles as file}
-			<div class:hidden={!isSelected(file.name)}>
+		{#each EditorService.items as file}
+			<div class:hidden={!file.selected} class="contents">
 				{#if file.name.toLowerCase().endsWith('.md')}
 					<Milkdown {file} on:changed={fileChanged} />
+				{:else if file.task}
+					<Task
+						id={file.id}
+						onChanged={(task) => {
+							file.task = task;
+							file.name = task.name || file.name;
+						}}
+					/>
 				{:else}
 					<Codemirror {file} on:changed={fileChanged} on:explain on:improve />
 				{/if}

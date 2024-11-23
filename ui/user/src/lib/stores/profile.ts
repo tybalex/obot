@@ -1,6 +1,7 @@
-import { writable } from 'svelte/store';
-import { ChatService, type Profile } from '$lib/services';
+import { getProfile } from '$lib/services/chat/operations';
+import { type Profile } from '$lib/services/chat/types';
 import { storeWithInit } from './storeinit';
+import { writable } from 'svelte/store';
 
 const store = writable<Profile>({
 	email: '',
@@ -10,7 +11,7 @@ const store = writable<Profile>({
 
 async function init() {
 	try {
-		store.set(await ChatService.getProfile());
+		store.set(await getProfile());
 	} catch (e) {
 		if (e instanceof Error && e.message.startsWith('403')) {
 			store.set({

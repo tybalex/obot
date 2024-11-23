@@ -43,6 +43,10 @@ func (i *Invoker) SystemTask(ctx context.Context, thread *v1.Thread, tool, input
 		inputString = ""
 	}
 
+	if err := unAbortThread(ctx, i.uncached, thread); err != nil {
+		return nil, err
+	}
+
 	return i.createRun(ctx, i.uncached, thread, tool, inputString, runOptions{
 		Env:                  opt.Env,
 		CredentialContextIDs: opt.CredentialContextIDs,

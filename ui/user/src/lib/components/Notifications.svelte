@@ -42,7 +42,7 @@
 <div bind:this={div} class="absolute bottom-0 right-0 z-50 mb-20 mr-4 hidden flex-col">
 	{#each $errors as error, i}
 		<div
-			class="mb-4 flex w-full max-w-xs items-center rounded-lg bg-white p-4 text-gray-500 shadow dark:bg-gray-800 dark:text-white"
+			class="mb-4 flex w-full max-w-xs items-center rounded-lg bg-white p-4 text-gray shadow dark:bg-gray-800 dark:text-white"
 		>
 			<div
 				class="text-green-500 bg-green-100 dark:bg-green-800 dark:text-green-200 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg"
@@ -63,7 +63,7 @@
 	{/each}
 	{#each notifications as notification, i}
 		<div
-			class="mb-4 flex w-full max-w-xs items-center rounded-lg bg-white p-4 text-gray-500 shadow dark:bg-gray-800 dark:text-white"
+			class="mb-4 flex w-full max-w-xs items-center rounded-lg bg-white p-4 text-gray shadow dark:bg-gray-800 dark:text-white"
 		>
 			<div
 				class="text-green-500 bg-green-100 dark:bg-green-800 dark:text-green-200 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg"

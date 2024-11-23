@@ -89,8 +89,8 @@ func (a *WorkflowHandler) Update(req api.Context) error {
 		return err
 	}
 
-	processedWf, err := wait.For(req.Context(), req.Storage, &wf, func(wf *v1.Workflow) bool {
-		return wf.Generation == wf.Status.AliasObservedGeneration
+	processedWf, err := wait.For(req.Context(), req.Storage, &wf, func(wf *v1.Workflow) (bool, error) {
+		return wf.Generation == wf.Status.AliasObservedGeneration, nil
 	})
 	if err != nil {
 		return fmt.Errorf("failed to update workflow: %w", err)
@@ -134,8 +134,8 @@ func (a *WorkflowHandler) Create(req api.Context) error {
 		},
 	}
 
-	wf, err := wait.For(req.Context(), req.Storage, wf, func(wf *v1.Workflow) bool {
-		return wf.Generation == wf.Status.AliasObservedGeneration
+	wf, err := wait.For(req.Context(), req.Storage, wf, func(wf *v1.Workflow) (bool, error) {
+		return wf.Generation == wf.Status.AliasObservedGeneration, nil
 	}, wait.Option{Create: true})
 	if err != nil {
 		return fmt.Errorf("failed to create workflow: %w", err)
@@ -281,8 +281,8 @@ func (a *WorkflowHandler) EnsureCredentialForKnowledgeSource(req api.Context) er
 		return err
 	}
 
-	oauthLogin, err = wait.For(req.Context(), req.Storage, oauthLogin, func(obj *v1.OAuthAppLogin) bool {
-		return obj.Status.External.Authenticated || obj.Status.External.Error != "" || obj.Status.External.URL != ""
+	oauthLogin, err = wait.For(req.Context(), req.Storage, oauthLogin, func(obj *v1.OAuthAppLogin) (bool, error) {
+		return obj.Status.External.Authenticated || obj.Status.External.Error != "" || obj.Status.External.URL != "", nil
 	}, wait.Option{
 		Create: true,
 	})

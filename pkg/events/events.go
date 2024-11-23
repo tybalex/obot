@@ -489,16 +489,16 @@ func (e *Emitter) getNextWorkflowRun(ctx context.Context, run v1.Run) (*v1.Run, 
 			Namespace: run.Namespace,
 			Name:      run.Spec.ThreadName,
 		},
-	}, func(thread *v1.Thread) bool {
+	}, func(thread *v1.Thread) (bool, error) {
 		if thread.Status.CurrentRunName != "" && thread.Status.CurrentRunName != run.Name {
 			runName = thread.Status.CurrentRunName
-			return true
+			return true, nil
 		}
 		if thread.Status.LastRunName != "" && thread.Status.LastRunName != run.Name {
 			runName = thread.Status.LastRunName
-			return true
+			return true, nil
 		}
-		return false
+		return false, nil
 	}, wait.Option{
 		Timeout: 15 * time.Minute,
 	})

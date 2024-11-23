@@ -42,6 +42,29 @@ func getAssistant(req api.Context, id string) (*v1.Agent, error) {
 	return &agent, nil
 }
 
+func (a *AssistantHandler) Abort(req api.Context) error {
+	var (
+		id = req.PathValue("id")
+	)
+
+	thread, err := getUserThread(req, id)
+	if err != nil {
+		return err
+	}
+
+	return abortThread(req, thread)
+}
+
+func abortThread(req api.Context, thread *v1.Thread) error {
+	if !thread.Spec.Abort {
+		thread.Spec.Abort = true
+		if err := req.Update(thread); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (a *AssistantHandler) Invoke(req api.Context) error {
 	var (
 		id = req.PathValue("id")

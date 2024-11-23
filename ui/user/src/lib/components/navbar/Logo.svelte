@@ -51,9 +51,7 @@
 		{#if collapsedIcon(selected)}
 			<img src={collapsedIcon(selected)} alt="assistant icon" class="ml-3 h-8" />
 		{:else if selected?.name}
-			<div
-				class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-500"
-			>
+			<div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 dark:bg-gray">
 				{selected?.name ? selected?.name[0].toUpperCase() : '?'}
 			</div>
 			<span class="font-semibold dark:text-gray-100">{selected?.name ?? ''}</span>
@@ -81,7 +79,7 @@
 								<img src={icon(assistant)} alt="assistant icon" class="h-5 w-5 rounded-full" />
 							{:else}
 								<div
-									class="flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-500"
+									class="flex h-5 w-5 items-center justify-center rounded-full bg-gray-200 dark:bg-gray"
 								>
 									{assistant.name ? assistant.name[0].toUpperCase() : '?'}
 								</div>
@@ -94,7 +92,7 @@
 							>
 								{assistant.name}
 							</label>
-							<p class="text-xs font-normal text-gray-500 dark:text-gray-300">
+							<p class="text-xs font-normal text-gray dark:text-gray-300">
 								{assistant.description}
 							</p>
 						</div>

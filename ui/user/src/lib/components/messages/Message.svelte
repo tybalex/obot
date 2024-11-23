@@ -1,10 +1,33 @@
+<script module lang="ts">
+	export function formatTime(time: Date) {
+		const now = new Date();
+		if (
+			time.getDate() == now.getDate() &&
+			time.getMonth() == now.getMonth() &&
+			time.getFullYear() == now.getFullYear()
+		) {
+			return time.toLocaleTimeString(undefined, {
+				hour: 'numeric',
+				minute: 'numeric'
+			});
+		}
+		return time.toLocaleDateString(undefined, {
+			month: 'short',
+			day: 'numeric',
+			hour: 'numeric',
+			minute: 'numeric'
+		});
+	}
+</script>
+
 <script lang="ts">
 	import type { Message } from '$lib/services';
 	import Loading from '$lib/icons/Loading.svelte';
 	import highlight from 'highlight.js';
 	import MessageIcon from '$lib/components/messages/MessageIcon.svelte';
-	import { FileText } from '$lib/icons';
+	import { FileText, Pencil } from '$lib/icons';
 	import { toHTMLFromMarkdown } from '$lib/markdown.js';
+	import { currentAssistant } from '$lib/stores';
 
 	interface Props {
 		msg: Message;
@@ -38,86 +61,202 @@
 			}
 		});
 	});
+
+	function fileLoad() {
+		if (msg.file?.filename) {
+			onLoadFile(msg.file?.filename);
+		}
+	}
 </script>
 
-<div class="flex items-start gap-2.5" class:justify-end={msg.sent}>
-	<MessageIcon {msg} />
+{#snippet time()}
+	{#if msg.time}
+		<span class="mt-2 self-end text-sm text-gray">{formatTime(msg.time)}</span>
+	{/if}
+{/snippet}
 
-	<div class="leading-1.5 flex w-full flex-col" class:w-full={fullWidth}>
-		<div class="mb-2 flex items-center space-x-2 rtl:space-x-reverse">
-			{#if msg.sourceName}
-				<span class="text-sm font-semibold text-gray-900 dark:text-white">{msg.sourceName}</span>
-			{/if}
-			{#if msg.time}
-				<span class="text-sm font-normal text-gray-500 dark:text-gray-400"
-					>{msg.time.toLocaleDateString(undefined, {
-						year: 'numeric',
-						month: 'short',
-						day: 'numeric',
-						hour: 'numeric',
-						minute: 'numeric'
-					})}</span
-				>
-			{/if}
-		</div>
-		<div
-			style:display={showBubble ? 'flex' : 'contents'}
-			class:message-content={renderMarkdown}
-			class="leading-1.5 flex flex-col rounded-e-xl rounded-es-xl border-gray-200 bg-gray-900 p-4 text-white dark:bg-gray-700"
-		>
-			{#if msg.oauthURL}
-				<a
-					href={msg.oauthURL}
-					class="rounded-xl bg-ablue-900 p-4
-						text-white
-						hover:bg-ablue2-600
-					  hover:dark:bg-ablue2-600"
-					target="_blank"
-					>Authentication is required
-					<span class="underline">click here</span> to log-in using OAuth
-				</a>
-			{:else if content}
-				{#if msg.sent}
-					{#if msg.explain}
-						<div class="flex items-center gap-1 pb-3 pl-1">
-							<FileText class="h-4 w-4 text-white" />
-							<span>{msg.explain.filename}</span>
-						</div>
-						<pre
-							class="mb-4 overflow-x-auto rounded border-white bg-gray-100 p-4 text-black shadow-white">{msg
-								.explain.selection}</pre>
-					{/if}
-					{content}
-				{:else}
-					{@html toHTMLFromMarkdown(content)}
-				{/if}
-			{/if}
-			{#if msg.file?.filename}
-				<div class="flex items-center">
-					<button
-						onclick={() => {
-							if (msg.file?.filename) {
-								onLoadFile(msg.file?.filename);
-							}
-						}}
-						class="flex items-center gap-2 rounded border border-gray-200 p-2 px-4 text-black shadow hover:bg-gray-100 dark:bg-gray-900 dark:text-white hover:dark:bg-gray-700"
-					>
-						<FileText class="text-black" />
-						<span>{msg.file.filename}</span>
-					</button>
-				</div>
-			{/if}
-			{#if !msg.sent}
-				<div class="mt-3 flex h-6 items-end justify-end">
-					{#if !msg.done}
-						<div class="mx-1.5" role="status">
-							<Loading />
-							<span class="sr-only">Loading...</span>
-						</div>
-						<span class="text-sm font-normal text-gray-500 dark:text-gray-400">Loading...</span>
-					{/if}
-				</div>
-			{/if}
-		</div>
+{#snippet nameAndTime()}
+	<div class="mb-1 flex items-center space-x-2">
+		{#if msg.sourceName}
+			<span class="text-sm font-semibold"
+				>{msg.sourceName === 'Otto' ? $currentAssistant.name : msg.sourceName}</span
+			>
+		{/if}
+		{#if msg.time}
+			<span class="text-sm text-gray">{formatTime(msg.time)}</span>
+		{/if}
 	</div>
+{/snippet}
+
+{#snippet messageBody()}
+	<div
+		class:flex={showBubble}
+		class:contents={!showBubble}
+		class:message-content={renderMarkdown}
+		class="flex flex-col rounded-3xl bg-gray-70 px-6 py-4 text-black dark:bg-gray-950 dark:text-white"
+	>
+		{#if msg.oauthURL}
+			{@render oauth()}
+		{:else if content}
+			{@render messageContent()}
+		{/if}
+
+		{@render files()}
+		{@render loading()}
+	</div>
+{/snippet}
+
+{#snippet files()}
+	{#if msg.file?.filename}
+		<div
+			onclick={fileLoad}
+			role="none"
+			class="m-5 flex cursor-pointer flex-col
+		 divide-y divide-gray-300
+		 rounded-3xl border
+		 border-gray-300 bg-white
+		 text-black shadow-lg
+		   dark:bg-black
+		    dark:text-gray-50"
+		>
+			<div class="flex px-5 py-4">
+				<div class="flex grow justify-start gap-2">
+					<FileText />
+					<span>{msg.file.filename}</span>
+				</div>
+				<button onclick={fileLoad}>
+					<Pencil />
+					<span class="sr-only">Open</span></button
+				>
+			</div>
+			<div class="relative">
+				<div class="whitespace-pre-wrap p-5 font-body text-gray-700 dark:text-gray-300">
+					${msg.file.content.split('\n').splice(0, 6).join('\n')}
+				</div>
+				<div
+					class="absolute bottom-0 z-20 h-24 w-full rounded-3xl bg-gradient-to-b from-transparent to-white dark:to-black"
+				></div>
+			</div>
+		</div>
+	{/if}
+{/snippet}
+
+{#snippet explain()}
+	{#if msg.explain}
+		<div class="flex items-center gap-1 pb-3 pl-1">
+			<FileText class="h-4 w-4 text-white" />
+			<span>{msg.explain.filename}</span>
+		</div>
+		<pre class="mb-4 overflow-x-auto rounded border-white bg-gray-100 p-4 text-black">{msg.explain
+				.selection}</pre>
+	{/if}
+{/snippet}
+
+{#snippet messageContent()}
+	{#if msg.sent}
+		{@render explain()}
+		{content}
+	{:else}
+		{@html toHTMLFromMarkdown(content)}
+	{/if}
+{/snippet}
+
+{#snippet oauth()}
+	<a
+		href={msg.oauthURL}
+		class="hover:bg-ablue2-600 hover:dark:bg-ablue2-600 rounded-3xl
+						bg-blue-900
+						p-4
+					  text-white"
+		target="_blank"
+		>Authentication is required
+		<span class="underline">click here</span> to log-in using OAuth
+	</a>
+{/snippet}
+
+{#snippet loading()}
+	{#if !msg.sent}
+		<div class="mt-3 flex">
+			{#if !msg.done}
+				<Loading class="mx-1.5" />
+				<span class="text-sm font-normal text-gray dark:text-gray-400">Loading...</span>
+			{/if}
+		</div>
+	{/if}
+{/snippet}
+
+<div class="relative flex items-start gap-3" class:justify-end={msg.sent}>
+	{#if !msg.sent}
+		<MessageIcon {msg} />
+	{/if}
+
+	<div class="flex w-full flex-col" class:w-full={fullWidth}>
+		{#if !msg.sent}
+			{@render nameAndTime()}
+		{/if}
+		{@render messageBody()}
+		{#if msg.sent}
+			{@render time()}
+		{/if}
+	</div>
+	{#if msg.aborted}
+		<div
+			class="absolute bottom-0 z-20 flex h-full w-full items-center justify-center bg-white bg-opacity-60 text-xl font-semibold text-black text-opacity-30 dark:bg-black dark:bg-opacity-60 dark:text-white dark:text-opacity-30"
+		>
+			Aborted
+		</div>
+	{/if}
 </div>
+
+<style lang="postcss">
+	/* The :global is to get rid of warnings about the selector not being found */
+	:global {
+		.message-content h1 {
+			@apply my-4 text-4xl font-extrabold text-black dark:text-gray-100;
+		}
+
+		.message-content h2 {
+			@apply my-4 text-3xl font-bold text-black dark:text-gray-100;
+		}
+
+		.message-content h3 {
+			@apply my-4 text-2xl font-bold text-black dark:text-gray-100;
+		}
+
+		.message-content h4 {
+			@apply my-4 text-xl font-bold text-black dark:text-gray-100;
+		}
+
+		.message-content h5 {
+			@apply my-4 text-xl font-bold text-black dark:text-gray-100;
+		}
+
+		.message-content h6 {
+			@apply my-4 text-lg font-bold text-black dark:text-gray-100;
+		}
+
+		.message-content p {
+			@apply mb-2 text-gray-900 dark:text-gray-100;
+		}
+
+		.message-content a {
+			@apply font-medium text-blue-600 hover:underline dark:text-gray-400;
+		}
+
+		.message-content ul {
+			@apply relative mb-4 flex list-outside list-disc flex-col px-1 text-gray-900 marker:text-gray-900 dark:text-gray-100 dark:marker:text-gray-100;
+		}
+
+		.message-content ol {
+			@apply relative mb-4 flex list-outside list-decimal flex-col px-1 text-gray-900 marker:text-gray-900 dark:text-gray-100 dark:marker:text-gray-100;
+		}
+
+		.message-content ul li {
+			@apply ps-2;
+		}
+
+		.message-content code {
+			@apply scrollbar-none;
+		}
+	}
+</style>

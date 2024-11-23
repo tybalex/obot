@@ -14,14 +14,16 @@ import (
 )
 
 type Option struct {
-	Timeout time.Duration
-	Create  bool
+	Timeout       time.Duration
+	Create        bool
+	WaitForExists bool
 }
 
 func complete(opts ...Option) (result Option) {
 	for _, opt := range opts {
 		result.Timeout = types.FirstSet(result.Timeout, opt.Timeout)
 		result.Create = types.FirstSet(result.Create, opt.Create)
+		result.WaitForExists = types.FirstSet(result.WaitForExists, opt.WaitForExists)
 	}
 	if result.Timeout == 0 {
 		result.Timeout = 2 * time.Minute
@@ -59,7 +61,7 @@ func load(ctx context.Context, c kclient.Client, obj kclient.Object, create bool
 	return c.Get(ctx, kclient.ObjectKeyFromObject(obj), obj)
 }
 
-func For[T kclient.Object](ctx context.Context, c kclient.WithWatch, obj T, condition func(T) bool, opts ...Option) (def T, _ error) {
+func For[T kclient.Object](ctx context.Context, c kclient.WithWatch, obj T, condition func(T) (bool, error), opts ...Option) (def T, _ error) {
 	opt := complete(opts...)
 
 	obj = obj.DeepCopyObject().(T)
@@ -78,12 +80,15 @@ func For[T kclient.Object](ctx context.Context, c kclient.WithWatch, obj T, cond
 		return def, err
 	}
 
-	if err := load(ctx, c, obj, opt.Create); err != nil {
+	if err := load(ctx, c, obj, opt.Create); apierrors.IsNotFound(err) && opt.WaitForExists {
+	} else if err != nil {
 		return def, err
 	}
 
-	if condition(obj) {
-		return obj, nil
+	if obj.GetName() != "" {
+		if ok, err := condition(obj); ok || err != nil {
+			return obj, err
+		}
 	}
 
 	timeout := int64(opt.Timeout / time.Second)
@@ -115,7 +120,9 @@ func For[T kclient.Object](ctx context.Context, c kclient.WithWatch, obj T, cond
 			}, obj.GetName())
 		}
 		if event.Type == watch.Added || event.Type == watch.Modified {
-			if condition(event.Object.(T)) {
+			if ok, err := condition(event.Object.(T)); err != nil {
+				return def, err
+			} else if ok {
 				return event.Object.(T), nil
 			}
 		} else if event.Type == watch.Error {

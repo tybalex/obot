@@ -36,8 +36,8 @@ func getWorkspace(ctx context.Context, c kclient.WithWatch, thread *v1.Thread) (
 				Namespace: thread.Namespace,
 				Name:      thread.Spec.WorkspaceName,
 			},
-		}, func(ws *v1.Workspace) bool {
-			return ws.Status.WorkspaceID != ""
+		}, func(ws *v1.Workspace) (bool, error) {
+			return ws.Status.WorkspaceID != "", nil
 		})
 	}
 
@@ -51,8 +51,8 @@ func getWorkspace(ctx context.Context, c kclient.WithWatch, thread *v1.Thread) (
 			ThreadName:         thread.Name,
 			FromWorkspaceNames: thread.Spec.FromWorkspaceNames,
 		},
-	}, func(ws *v1.Workspace) bool {
-		return ws.Status.WorkspaceID != ""
+	}, func(ws *v1.Workspace) (bool, error) {
+		return ws.Status.WorkspaceID != "", nil
 	}, wait.Option{
 		Create: true,
 	})

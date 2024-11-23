@@ -65,6 +65,7 @@ type ThreadSpec struct {
 	UserUID               string               `json:"userUID,omitempty"`
 	TextEmbeddingModel    string               `json:"textEmbeddingModel,omitempty"`
 	SystemTask            bool                 `json:"systemTask,omitempty"`
+	Abort                 bool                 `json:"abort,omitempty"`
 }
 
 func (in *Thread) DeleteRefs() []Ref {

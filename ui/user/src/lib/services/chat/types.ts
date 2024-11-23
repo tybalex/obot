@@ -6,6 +6,7 @@ export interface Progress {
 	input?: string;
 	inputIsStepTemplateInput?: boolean;
 	stepTemplateInvoke?: StepTemplateInvoke;
+	step?: Step;
 	prompt?: Prompt;
 	toolInput?: ToolInput;
 	toolCall?: ToolCall;
@@ -14,6 +15,10 @@ export interface Progress {
 	error?: string;
 	runComplete?: boolean;
 	replayComplete?: boolean;
+}
+
+export interface Step {
+	id: string;
 }
 
 type StepTemplateInvoke = {
@@ -60,6 +65,7 @@ export interface Message {
 	runID: string;
 	time?: Date;
 	sent?: boolean;
+	aborted?: boolean;
 	icon?: string;
 	tool?: boolean;
 	toolCall?: boolean;
@@ -100,6 +106,10 @@ export interface Messages {
 	lastRunID?: string;
 	messages: Message[];
 	inProgress: boolean;
+}
+
+export interface Version {
+	emailDomain?: string;
 }
 
 export interface Profile {
@@ -173,4 +183,57 @@ export interface Credential {
 
 export interface CredentialList {
 	items: Credential[];
+}
+
+export interface TaskStep {
+	id: string;
+	step?: string;
+	if?: TaskIfStep;
+}
+
+export interface TaskIfStep {
+	condition: string;
+	steps?: TaskStep[];
+	else?: TaskStep[];
+}
+
+export interface Task {
+	id: string;
+	name?: string;
+	description?: string;
+	steps: TaskStep[];
+	schedule?: Schedule;
+	email?: object;
+	webhook?: object;
+	onDemand?: OnDemand;
+	alias?: string;
+}
+
+export interface OnDemand {
+	params?: Record<string, string>;
+}
+
+export interface Schedule {
+	interval: string;
+	hour: number;
+	minute: number;
+	day: number;
+	weekday: number;
+}
+
+export interface TaskList {
+	items: Task[];
+}
+
+export interface TaskRun {
+	id: string;
+	created: string;
+	taskID: string;
+	task: Task;
+	startTime?: string;
+	endTime?: string;
+}
+
+export interface TaskRunList {
+	items: TaskRun[];
 }

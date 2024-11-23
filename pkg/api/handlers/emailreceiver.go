@@ -42,8 +42,8 @@ func (e *EmailReceiverHandler) Update(req api.Context) error {
 		return err
 	}
 
-	processedEr, err := wait.For(req.Context(), req.Storage, &er, func(er *v1.EmailReceiver) bool {
-		return er.Generation == er.Status.AliasObservedGeneration
+	processedEr, err := wait.For(req.Context(), req.Storage, &er, func(er *v1.EmailReceiver) (bool, error) {
+		return er.Generation == er.Status.AliasObservedGeneration, nil
 	})
 	if err != nil {
 		return fmt.Errorf("failed to update email receiver: %w", err)
@@ -81,8 +81,8 @@ func (e *EmailReceiverHandler) Create(req api.Context) error {
 		},
 	}
 
-	er, err := wait.For(req.Context(), req.Storage, er, func(er *v1.EmailReceiver) bool {
-		return er.Generation == er.Status.AliasObservedGeneration
+	er, err := wait.For(req.Context(), req.Storage, er, func(er *v1.EmailReceiver) (bool, error) {
+		return er.Generation == er.Status.AliasObservedGeneration, nil
 	}, wait.Option{Create: true})
 	if err != nil {
 		return fmt.Errorf("failed to create email receiver: %w", err)

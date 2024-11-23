@@ -37,13 +37,13 @@
 	class="relative hidden h-screen w-full items-center text-black dark:text-white"
 >
 	<div
-		class="absolute right-0 top-0 flex items-center gap-4 p-4 pr-6 text-white hover:text-ablue-50"
+		class="absolute right-0 top-0 flex items-center gap-4 p-4 pr-6 text-white hover:text-blue-50"
 	>
 		<DarkModeToggle />
 		<a href="https://docs.otto8.ai" class="icon-button" rel="external">
 			<Book />
 		</a>
-		<a href="https://github.com/otto8-ai/otto8" class="icon-button text-white hover:text-ablue-50">
+		<a href="https://github.com/otto8-ai/otto8" class="icon-button text-white hover:text-blue-50">
 			{#if $darkMode}
 				<img src="/images/github-mark/github-mark-white.svg" alt="GitHub" class="h-8" />
 			{:else}
@@ -59,7 +59,7 @@
 				<img src="/images/otto8-logo-blue-black-text.svg" alt="otto8 icon" class="h-64 pb-4" />
 			{/if}
 		</div>
-		<h1 class="text-7xl text-ablue-50">
+		<h1 class="text-7xl text-blue-50">
 			Friendly. <span class="text-black dark:text-white">Open Source.</span> Assistant.
 		</h1>
 
