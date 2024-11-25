@@ -116,7 +116,7 @@ outer:
 				}
 			}
 
-			tick.Reset(5 * time.Second)
+			tick.Reset(time.Second)
 		}
 	}
 

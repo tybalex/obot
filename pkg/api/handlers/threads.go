@@ -61,7 +61,7 @@ func (a *ThreadHandler) Events(req api.Context) error {
 	var (
 		id              = req.PathValue("id")
 		follow          = req.URL.Query().Get("follow") == "true"
-		followWorkflows = req.URL.Query().Get("followWorflows") == "true"
+		followWorkflows = req.URL.Query().Get("followWorkflows") == "true"
 		runID           = req.URL.Query().Get("runID")
 		maxRunString    = req.URL.Query().Get("maxRuns")
 		maxRuns         int
