@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gptscript-ai/go-gptscript"
+	"github.com/gptscript-ai/gptscript/pkg/mvl"
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
@@ -17,6 +18,8 @@ import (
 	"github.com/otto8-ai/otto8/pkg/wait"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
+
+var log = mvl.Package()
 
 type WorkflowHandler struct {
 	gptscript *gptscript.GPTScript
@@ -149,10 +152,11 @@ func convertWorkflow(workflow v1.Workflow, req api.Context) (*types.Workflow, er
 	var embeddingModel string
 	if len(workflow.Status.KnowledgeSetNames) > 0 {
 		var ks v1.KnowledgeSet
-		if err := req.Get(&ks, workflow.Status.KnowledgeSetNames[0]); err != nil {
-			return nil, fmt.Errorf("failed to get KnowledgeSet %q: %v", workflow.Status.KnowledgeSetNames[0], err)
+		if err := req.Get(&ks, workflow.Status.KnowledgeSetNames[0]); err == nil {
+			embeddingModel = ks.Status.TextEmbeddingModel
+		} else {
+			log.Warnf("failed to get KnowledgeSet %q for workflow %q: %v", workflow.Status.KnowledgeSetNames[0], workflow.Name, err)
 		}
-		embeddingModel = ks.Status.TextEmbeddingModel
 	}
 
 	return &types.Workflow{
