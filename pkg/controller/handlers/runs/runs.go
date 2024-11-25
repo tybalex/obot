@@ -2,6 +2,7 @@ package runs
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/otto8-ai/nah/pkg/router"
@@ -9,8 +10,6 @@ import (
 	"github.com/otto8-ai/otto8/pkg/invoke"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var log = logger.Package()
@@ -21,16 +20,6 @@ type Handler struct {
 
 func New(invoker *invoke.Invoker) *Handler {
 	return &Handler{invoker: invoker}
-}
-
-func (*Handler) DeleteRunState(req router.Request, resp router.Response) error {
-	run := req.Object.(*v1.Run)
-	return client.IgnoreNotFound(req.Delete(&v1.RunState{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      run.Name,
-			Namespace: run.Namespace,
-		},
-	}))
 }
 
 func (h *Handler) Resume(req router.Request, _ router.Response) error {
@@ -69,4 +58,22 @@ func (h *Handler) Resume(req router.Request, _ router.Response) error {
 	}
 
 	return h.invoker.Resume(req.Ctx, req.Client, &thread, run)
+}
+
+// MigrateRemoveRunFinalizer (to be removed) removes the run finalizer from the run object which was used to cascade delete the run state,
+// which was moved to its own cleanup handler.
+func (h *Handler) MigrateRemoveRunFinalizer(req router.Request, _ router.Response) error {
+	run := req.Object.(*v1.Run)
+	changed := false
+	run.Finalizers = slices.DeleteFunc(run.ObjectMeta.Finalizers, func(i string) bool {
+		if i == v1.RunFinalizer {
+			changed = true
+			return true
+		}
+		return false
+	})
+	if changed {
+		return req.Client.Update(req.Ctx, run)
+	}
+	return nil
 }
