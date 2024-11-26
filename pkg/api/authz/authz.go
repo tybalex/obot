@@ -30,7 +30,7 @@ var staticRules = map[string][]string{
 		// Allow access to the oauth2 endpoints
 		"/oauth2/",
 
-		"POST /api/webhooks/{id}",
+		"POST /api/webhooks/{namespace}/{id}",
 		"GET /api/token-request/{id}",
 		"POST /api/token-request",
 		"GET /api/token-request/{id}/{service}",

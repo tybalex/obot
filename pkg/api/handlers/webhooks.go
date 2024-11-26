@@ -191,6 +191,12 @@ func (a *WebhookHandler) List(req api.Context) error {
 }
 
 func (a *WebhookHandler) RemoveToken(req api.Context) error {
+	// There is a chance that an unauthorized user could sneak through our authorization because of the pattern matching we are using.
+	// Check that the user is an admin here.
+	if !req.UserIsAdmin() {
+		return types.NewErrHttp(http.StatusForbidden, "unauthorized")
+	}
+
 	var wh v1.Webhook
 	if err := req.Get(&wh, req.PathValue("id")); err != nil {
 		return err
