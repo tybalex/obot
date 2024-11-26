@@ -26,7 +26,6 @@ export type ModelManifest = {
     targetModel?: string;
     modelProvider: string;
     active: boolean;
-    default: boolean;
     usage: ModelUsage;
 };
 
@@ -42,7 +41,6 @@ export const ModelManifestSchema = z.object({
     targetModel: z.string().min(1, "Required"),
     modelProvider: z.string().min(1, "Required"),
     active: z.boolean(),
-    default: z.boolean(),
     usage: z.nativeEnum(ModelUsage),
 });
 
@@ -90,6 +88,19 @@ const ModelToProviderMap = {
         "voyage-code-2",
     ],
 };
+
+export const ModelAliasToUsageMap = {
+    llm: ModelUsage.LLM,
+    "llm-mini": ModelUsage.LLM,
+    "text-embedding": ModelUsage.TextEmbedding,
+    "image-generation": ModelUsage.ImageGeneration,
+} as const;
+
+export function getModelUsageFromAlias(alias: string) {
+    if (!(alias in ModelAliasToUsageMap)) return null;
+
+    return ModelAliasToUsageMap[alias as keyof typeof ModelAliasToUsageMap];
+}
 
 export function getModelsForProvider(providerId: string) {
     if (!providerId || !(providerId in ModelToProviderMap)) return [];
