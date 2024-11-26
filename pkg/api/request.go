@@ -25,9 +25,10 @@ import (
 type Context struct {
 	http.ResponseWriter
 	*http.Request
-	GPTClient *gptscript.GPTScript
-	Storage   storage.Client
-	User      user.Info
+	GPTClient  *gptscript.GPTScript
+	Storage    storage.Client
+	User       user.Info
+	APIBaseURL string
 }
 
 type (

@@ -10,7 +10,6 @@ import (
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
-	"github.com/otto8-ai/otto8/pkg/api/server"
 	"github.com/otto8-ai/otto8/pkg/render"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
@@ -108,12 +107,12 @@ func (a *AgentHandler) Create(req api.Context) error {
 
 func convertAgent(agent v1.Agent, req api.Context) (*types.Agent, error) {
 	var links []string
-	if prefix := server.GetURLPrefix(req); prefix != "" {
+	if req.APIBaseURL != "" {
 		alias := agent.Name
 		if agent.Status.AliasAssigned && agent.Spec.Manifest.Alias != "" {
 			alias = agent.Spec.Manifest.Alias
 		}
-		links = []string{"invoke", prefix + "/invoke/" + alias}
+		links = []string{"invoke", req.APIBaseURL + "/invoke/" + alias}
 	}
 
 	var embeddingModel string

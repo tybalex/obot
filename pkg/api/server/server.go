@@ -22,17 +22,19 @@ type Server struct {
 	authenticator *authn.Authenticator
 	authorizer    *authz.Authorizer
 	proxyServer   *proxy.Proxy
+	baseURL       string
 
 	mux *http.ServeMux
 }
 
-func NewServer(storageClient storage.Client, gptClient *gptscript.GPTScript, authn *authn.Authenticator, authz *authz.Authorizer, proxyServer *proxy.Proxy) *Server {
+func NewServer(storageClient storage.Client, gptClient *gptscript.GPTScript, authn *authn.Authenticator, authz *authz.Authorizer, proxyServer *proxy.Proxy, baseURL string) *Server {
 	return &Server{
 		storageClient: storageClient,
 		gptClient:     gptClient,
 		authenticator: authn,
 		authorizer:    authz,
 		proxyServer:   proxyServer,
+		baseURL:       baseURL + "/api",
 
 		mux: http.NewServeMux(),
 	}
@@ -92,8 +94,8 @@ func (s *Server) wrap(f api.HandlerFunc) http.HandlerFunc {
 			GPTClient:      s.gptClient,
 			Storage:        s.storageClient,
 			User:           user,
+			APIBaseURL:     s.baseURL,
 		})
-
 		if errHttp := (*types.ErrHTTP)(nil); errors.As(err, &errHttp) {
 			http.Error(rw, errHttp.Message, errHttp.Code)
 		} else if errStatus := (*apierrors.StatusError)(nil); errors.As(err, &errStatus) {
@@ -102,11 +104,4 @@ func (s *Server) wrap(f api.HandlerFunc) http.HandlerFunc {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
 	}
-}
-
-func GetURLPrefix(req api.Context) string {
-	if req.Request.TLS == nil {
-		return "http://" + req.Request.Host + "/api"
-	}
-	return "https://" + req.Request.Host + "/api"
 }

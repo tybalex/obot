@@ -13,7 +13,6 @@ import (
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
-	"github.com/otto8-ai/otto8/pkg/api/server"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
 	"github.com/otto8-ai/otto8/pkg/wait"
@@ -86,7 +85,7 @@ func (a *WebhookHandler) Update(req api.Context) error {
 		return fmt.Errorf("failed to update webhook: %w", err)
 	}
 
-	return req.Write(convertWebhook(*processedWh, server.GetURLPrefix(req)))
+	return req.Write(convertWebhook(*processedWh, req.APIBaseURL))
 }
 
 func (a *WebhookHandler) Delete(req api.Context) error {
@@ -138,7 +137,7 @@ func (a *WebhookHandler) Create(req api.Context) error {
 		return fmt.Errorf("failed to create webhook: %w", err)
 	}
 
-	return req.WriteCreated(convertWebhook(*wh, server.GetURLPrefix(req)))
+	return req.WriteCreated(convertWebhook(*wh, req.APIBaseURL))
 }
 
 func convertWebhook(webhook v1.Webhook, urlPrefix string) *types.Webhook {
@@ -173,7 +172,7 @@ func (a *WebhookHandler) ByID(req api.Context) error {
 		return err
 	}
 
-	return req.Write(convertWebhook(wh, server.GetURLPrefix(req)))
+	return req.Write(convertWebhook(wh, req.APIBaseURL))
 }
 
 func (a *WebhookHandler) List(req api.Context) error {
@@ -184,7 +183,7 @@ func (a *WebhookHandler) List(req api.Context) error {
 
 	var resp types.WebhookList
 	for _, wh := range webhookList.Items {
-		resp.Items = append(resp.Items, *convertWebhook(wh, server.GetURLPrefix(req)))
+		resp.Items = append(resp.Items, *convertWebhook(wh, req.APIBaseURL))
 	}
 
 	return req.Write(resp)
@@ -207,7 +206,7 @@ func (a *WebhookHandler) RemoveToken(req api.Context) error {
 		return fmt.Errorf("failed to remove token: %w", err)
 	}
 
-	return req.Write(convertWebhook(wh, server.GetURLPrefix(req)))
+	return req.Write(convertWebhook(wh, req.APIBaseURL))
 }
 
 func (a *WebhookHandler) Execute(req api.Context) error {
