@@ -6,6 +6,7 @@ export const ModelUsage = {
     LLM: "llm",
     TextEmbedding: "text-embedding",
     ImageGeneration: "image-generation",
+    Other: "other",
 } as const;
 export type ModelUsage = (typeof ModelUsage)[keyof typeof ModelUsage];
 
@@ -13,6 +14,7 @@ const ModelUsageLabels = {
     [ModelUsage.LLM]: "LLM",
     [ModelUsage.TextEmbedding]: "Text Embedding",
     [ModelUsage.ImageGeneration]: "Image Generation",
+    [ModelUsage.Other]: "Other",
 } as const;
 
 export const getModelUsageLabel = (usage: string) => {
