@@ -47,50 +47,14 @@ export const ModelManifestSchema = z.object({
     usage: z.nativeEnum(ModelUsage),
 });
 
-export type ModelProvider = EntityMeta & {
-    description?: string;
-    builtin: boolean;
-    active: boolean;
-    modelProviderStatus: ModelProviderStatus;
+type ModelProviderManifest = {
     name: string;
-    reference: string;
-    toolType: "modelProvider";
+    toolReference: string;
 };
 
-// note(ryanhopperlowe): these values are hardcoded for now
-// ideally they should come from the backend
-const ModelToProviderMap = {
-    "openai-model-provider": [
-        "text-embedding-3-small",
-        "dall-e-3",
-        "gpt-4o-mini",
-        "gpt-3.5-turbo",
-        "text-embedding-ada-002",
-        "gpt-4o",
-    ],
-    "azure-openai-model-provider": [
-        "text-embedding-3-small",
-        "dall-e-3",
-        "gpt-4o-mini",
-        "gpt-3.5-turbo",
-        "text-embedding-ada-002",
-        "gpt-4o",
-    ],
-    "anthropic-model-provider": [
-        "claude-3-opus-latest",
-        "claude-3-5-sonnet-latest",
-        "claude-3-5-haiku-latest",
-    ],
-    "ollama-model-provider": ["llama3.2"],
-    "voyage-model-provider": [
-        "voyage-3",
-        "voyage-3-lite",
-        "voyage-finance-2",
-        "voyage-multilingual-2",
-        "voyage-law-2",
-        "voyage-code-2",
-    ],
-};
+export type ModelProvider = EntityMeta &
+    ModelProviderManifest &
+    ModelProviderStatus;
 
 export const ModelAliasToUsageMap = {
     llm: ModelUsage.LLM,
@@ -103,9 +67,4 @@ export function getModelUsageFromAlias(alias: string) {
     if (!(alias in ModelAliasToUsageMap)) return null;
 
     return ModelAliasToUsageMap[alias as keyof typeof ModelAliasToUsageMap];
-}
-
-export function getModelsForProvider(providerId: string) {
-    if (!providerId || !(providerId in ModelToProviderMap)) return [];
-    return ModelToProviderMap[providerId as keyof typeof ModelToProviderMap];
 }
