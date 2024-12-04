@@ -20,16 +20,18 @@ func Run(ctx context.Context, c services.Config) error {
 		return err
 	}
 
-	ctrl, err := controller.New(svcs)
-	if err != nil {
-		log.Fatalf("Failed to start controller: %v", err)
-	}
-	if err = ctrl.Start(ctx); err != nil {
-		log.Fatalf("Failed to start controller: %v", err)
-	}
-	if err = ctrl.PostStart(ctx); err != nil {
-		log.Fatalf("Failed to post start controller: %v", err)
-	}
+	go func() {
+		ctrl, err := controller.New(svcs)
+		if err != nil {
+			log.Fatalf("Failed to start controller: %v", err)
+		}
+		if err = ctrl.Start(ctx); err != nil {
+			log.Fatalf("Failed to start controller: %v", err)
+		}
+		if err = ctrl.PostStart(ctx); err != nil {
+			log.Fatalf("Failed to post start controller: %v", err)
+		}
+	}()
 
 	handler, err := router.Router(svcs)
 	if err != nil {
