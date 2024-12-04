@@ -16,7 +16,6 @@ import (
 	"github.com/otto8-ai/otto8/logger"
 	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
@@ -272,10 +271,8 @@ func (h *Handler) EnsureOpenAIEnvCredential(ctx context.Context, c client.Client
 
 		// If the openai-model-provider exists and the OPENAI_API_KEY environment variable is set, then ensure the credential exists.
 		var openAIModelProvider v1.ToolReference
-		if err := c.Get(ctx, client.ObjectKey{Namespace: system.DefaultNamespace, Name: "openai-model-provider"}, &openAIModelProvider); apierrors.IsNotFound(err) {
+		if err := c.Get(ctx, client.ObjectKey{Namespace: system.DefaultNamespace, Name: "openai-model-provider"}, &openAIModelProvider); err != nil {
 			continue
-		} else if err != nil {
-			return err
 		}
 
 		if cred, err := h.gptClient.RevealCredential(ctx, []string{string(openAIModelProvider.UID)}, "openai-model-provider"); err != nil {
