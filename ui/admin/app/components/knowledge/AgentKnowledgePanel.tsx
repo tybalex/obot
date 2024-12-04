@@ -83,25 +83,23 @@ export default function AgentKnowledgePanel({
     const getLocalFiles: SWRResponse<KnowledgeFile[], Error> = useSWR(
         KnowledgeService.getLocalKnowledgeFilesForAgent.key(agentId),
         ({ agentId }) =>
-            KnowledgeService.getLocalKnowledgeFilesForAgent(agentId).then(
-                (items) =>
-                    items
-                        .sort((a, b) => a.fileName.localeCompare(b.fileName))
-                        .map(
-                            (item) =>
-                                ({
-                                    ...item,
-                                }) as KnowledgeFile
-                        )
-                        .filter((item) => !item.deleted)
-            ),
+            KnowledgeService.getLocalKnowledgeFilesForAgent(agentId),
         {
             revalidateOnFocus: false,
             refreshInterval: blockPollingLocalFiles ? undefined : 5000,
         }
     );
     const localFiles = useMemo(
-        () => getLocalFiles.data || [],
+        () =>
+            getLocalFiles.data
+                ?.sort((a, b) => a.fileName.localeCompare(b.fileName))
+                .map(
+                    (item) =>
+                        ({
+                            ...item,
+                        }) as KnowledgeFile
+                )
+                .filter((item) => !item.deleted) || [],
         [getLocalFiles.data]
     );
 
@@ -114,7 +112,8 @@ export default function AgentKnowledgePanel({
         }
     );
     const knowledgeSources = useMemo(
-        () => getKnowledgeSources.data || [],
+        () =>
+            getKnowledgeSources.data?.filter((source) => !source.deleted) || [],
         [getKnowledgeSources.data]
     );
 
@@ -132,7 +131,10 @@ export default function AgentKnowledgePanel({
 
     const handleDeleteKnowledgeSource = async (id: string) => {
         await KnowledgeService.deleteKnowledgeSource(agentId, id);
-        getKnowledgeSources.mutate();
+        getKnowledgeSources.mutate(
+            (prev) => prev?.filter((source) => source.id !== id),
+            false
+        );
     };
 
     useEffect(() => {
