@@ -5436,6 +5436,12 @@ func schema_storage_apis_ottootto8ai_v1_KnowledgeSetStatus(ref common.ReferenceC
 							Format: "",
 						},
 					},
+					"emptyDatasetDeleted": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 					"suggestedDataDescription": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
