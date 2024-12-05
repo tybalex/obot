@@ -38,6 +38,7 @@ func (c *Controller) setupRoutes() error {
 
 	// Runs
 	root.Type(&v1.Run{}).HandlerFunc(runs.MigrateRemoveRunFinalizer) // to be removed
+	root.Type(&v1.Run{}).HandlerFunc(runs.DeleteFinished)
 	root.Type(&v1.Run{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.Run{}).HandlerFunc(runs.Resume)
 
