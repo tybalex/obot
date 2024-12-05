@@ -11,9 +11,9 @@ import { ModelProviderApiService } from "~/lib/service/api/modelProviderApiServi
 import { TypographyH2 } from "~/components/Typography";
 import { DataTable } from "~/components/composed/DataTable";
 import { AddModel } from "~/components/model/AddModel";
-import { DefaultModelAliasFormDialog } from "~/components/model/DefaultModelAliasForm";
 import { DeleteModel } from "~/components/model/DeleteModel";
 import { UpdateModelDialog } from "~/components/model/UpdateModel";
+import { DefaultModelAliasFormDialog } from "~/components/model/shared/DefaultModelAliasForm";
 import { Button } from "~/components/ui/button";
 import {
     Tooltip,
