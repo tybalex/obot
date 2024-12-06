@@ -182,9 +182,5 @@ func validateModelManifestAndSetDefaults(newModel *v1.Model) error {
 		errs = append(errs, fmt.Errorf("field modelProvider is required"))
 	}
 
-	if newModel.Spec.Manifest.Usage == "" {
-		newModel.Spec.Manifest.Usage = types.ModelUsageLLM
-	}
-
 	return errors.Join(errs...)
 }

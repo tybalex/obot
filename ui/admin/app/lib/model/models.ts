@@ -9,6 +9,7 @@ export const ModelUsage = {
     ImageGeneration: "image-generation",
     Vision: "vision",
     Other: "other",
+    Unknown: "",
 } as const;
 export type ModelUsage = (typeof ModelUsage)[keyof typeof ModelUsage];
 
@@ -18,6 +19,7 @@ const ModelUsageLabels = {
     [ModelUsage.ImageGeneration]: "Image Generation",
     [ModelUsage.Vision]: "Vision",
     [ModelUsage.Other]: "Other",
+    [ModelUsage.Unknown]: "Unknown",
 } as const;
 
 export const getModelUsageLabel = (usage: string) => {

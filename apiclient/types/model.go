@@ -29,4 +29,5 @@ const (
 	ModelUsageImage     ModelUsage = "image-generation"
 	ModelUsageVision    ModelUsage = "vision"
 	ModelUsageOther     ModelUsage = "other"
+	ModelUsageUnknown   ModelUsage = ""
 )
