@@ -128,6 +128,9 @@ func (d *Dispatcher) getModelProviderForModel(ctx context.Context, namespace, mo
 
 	switch m := m.(type) {
 	case *v1.DefaultModelAlias:
+		if m.Spec.Manifest.Model == "" {
+			return nil, fmt.Errorf("default model alias %q is not configured", model)
+		}
 		var model v1.Model
 		if err := alias.Get(ctx, d.client, &model, namespace, m.Spec.Manifest.Model); err != nil {
 			return nil, err
