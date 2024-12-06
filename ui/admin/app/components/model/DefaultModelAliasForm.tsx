@@ -8,8 +8,10 @@ import {
     Model,
     ModelAlias,
     ModelUsage,
+    filterModelsByUsage,
     getModelAliasLabel,
     getModelUsageFromAlias,
+    getModelUsageLabel,
 } from "~/lib/model/models";
 import { DefaultModelAliasApiService } from "~/lib/service/api/defaultModelAliasApiService";
 import { ModelApiService } from "~/lib/service/api/modelApiService";
@@ -35,7 +37,9 @@ import {
 import {
     Select,
     SelectContent,
+    SelectGroup,
     SelectItem,
+    SelectLabel,
     SelectTrigger,
     SelectValue,
 } from "~/components/ui/select";
@@ -67,14 +71,13 @@ export function DefaultModelAliasForm({
         ModelApiService.getModels
     );
 
-    const modelUsageMap = useMemo(() => {
-        return (models ?? []).reduce((acc, model) => {
-            if (!acc.has(model.usage)) acc.set(model.usage, []);
+    const otherModels = useMemo(() => {
+        if (!models) return [];
 
-            acc.get(model.usage)?.push(model);
-
-            return acc;
-        }, new Map<string, Model[]>());
+        return filterModelsByUsage(models, [
+            ModelUsage.Unknown,
+            ModelUsage.Other,
+        ]);
     }, [models]);
 
     const update = useAsync(
@@ -106,23 +109,26 @@ export function DefaultModelAliasForm({
         );
     }, [defaultAliases]);
 
-    const form = useForm<Record<string, string>>({ defaultValues });
+    const form = useForm<Record<string, string>>({
+        defaultValues,
+    });
+    const { reset, watch, handleSubmit, control } = form;
 
     useEffect(() => {
-        return form.watch((values) => {
+        return watch((values) => {
             const changedItems = defaultAliases?.filter(({ alias, model }) => {
                 return values[alias] !== model;
             });
 
             if (!changedItems?.length) return;
         }).unsubscribe;
-    }, [defaultAliases, form]);
+    }, [defaultAliases, watch]);
 
     useEffect(() => {
-        form.reset(defaultValues);
-    }, [defaultValues, form]);
+        reset(defaultValues);
+    }, [defaultValues, reset]);
 
-    const handleSubmit = form.handleSubmit((values) => {
+    const handleFormSubmit = handleSubmit((values) => {
         const updates = defaultAliases
             ?.filter(({ alias, model }) => values[alias] !== model)
             .map(({ alias }) => ({
@@ -135,21 +141,21 @@ export function DefaultModelAliasForm({
 
     return (
         <Form {...form}>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleFormSubmit} className="space-y-6">
                 {sortedDefaultAliases?.map(({ alias, model: defaultModel }) => (
                     <FormField
-                        control={form.control}
+                        control={control}
                         name={alias}
                         key={alias}
                         render={({ field: { ref: _, ...field } }) => {
-                            const usage = getModelUsageFromAlias(alias);
-                            const modelOptions = usage
-                                ? modelUsageMap.get(
-                                      usage === ModelUsage.Vision
-                                          ? ModelUsage.LLM
-                                          : usage
-                                  )
-                                : [];
+                            const usage =
+                                getModelUsageFromAlias(alias) ??
+                                ModelUsage.Unknown;
+
+                            const modelOptions = filterModelsByUsage(
+                                models ?? [],
+                                usage
+                            );
 
                             return (
                                 <FormItem className="flex justify-between items-center space-y-0">
@@ -176,7 +182,8 @@ export function DefaultModelAliasForm({
                                                 <SelectContent>
                                                     {renderSelectContent(
                                                         modelOptions,
-                                                        defaultModel
+                                                        defaultModel,
+                                                        usage
                                                     )}
                                                 </SelectContent>
                                             </Select>
@@ -204,7 +211,8 @@ export function DefaultModelAliasForm({
 
     function renderSelectContent(
         modelOptions: Model[] | undefined,
-        defaultModel: string
+        defaultModel: string,
+        usage: ModelUsage
     ) {
         if (!modelOptions) {
             if (!defaultModel)
@@ -216,11 +224,31 @@ export function DefaultModelAliasForm({
             return <SelectItem value={defaultModel}>{defaultModel}</SelectItem>;
         }
 
-        return modelOptions.map((model) => (
-            <SelectItem key={model.id} value={model.id}>
-                {model.name || model.id}
-            </SelectItem>
-        ));
+        return (
+            <>
+                <SelectGroup className="relative">
+                    <SelectLabel>{getModelUsageLabel(usage)}</SelectLabel>
+
+                    {modelOptions.map((model) => (
+                        <SelectItem key={model.id} value={model.id}>
+                            {model.name || model.id}
+                        </SelectItem>
+                    ))}
+                </SelectGroup>
+
+                {otherModels.length > 0 && (
+                    <SelectGroup>
+                        <SelectLabel>Other</SelectLabel>
+
+                        {otherModels.map((model) => (
+                            <SelectItem key={model.id} value={model.id}>
+                                {model.name || model.id}
+                            </SelectItem>
+                        ))}
+                    </SelectGroup>
+                )}
+            </>
+        );
     }
 }
 
