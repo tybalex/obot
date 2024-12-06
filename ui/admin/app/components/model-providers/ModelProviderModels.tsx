@@ -1,15 +1,16 @@
 import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
-import { SettingsIcon } from "lucide-react";
+import { PictureInPicture2Icon } from "lucide-react";
+import { useMemo } from "react";
 import useSWR from "swr";
 
 import { ModelProvider } from "~/lib/model/modelProviders";
-import { Model, getModelUsageLabel } from "~/lib/model/models";
+import { Model, ModelUsage, getModelUsageLabel } from "~/lib/model/models";
 import { ModelApiService } from "~/lib/service/api/modelApiService";
 
 import { DataTable } from "~/components/composed/DataTable";
 import { ModelProviderIcon } from "~/components/model-providers/ModelProviderIcon";
-import { DeleteModel } from "~/components/model/DeleteModel";
-import { Badge } from "~/components/ui/badge";
+import { UpdateModelActive } from "~/components/model/UpdateModelActive";
+import { UpdateModelUsage } from "~/components/model/UpdateModelUsage";
 import { Button } from "~/components/ui/button";
 import {
     Dialog,
@@ -33,22 +34,49 @@ type ModelsConfigureProps = {
 const columnHelper = createColumnHelper<Model>();
 
 export function ModelProvidersModels({ modelProvider }: ModelsConfigureProps) {
-    const getModels = useSWR(
-        ModelApiService.getModels.key(),
-        ModelApiService.getModels
-    );
+    const {
+        data: modelsData,
+        isLoading,
+        mutate,
+    } = useSWR(ModelApiService.getModels.key(), ModelApiService.getModels, {
+        revalidateOnFocus: false,
+    });
 
-    const models =
-        getModels.data?.filter(
-            (model) => model.modelProvider === modelProvider.id
-        ) ?? [];
+    const models = useMemo(() => {
+        return (
+            modelsData?.filter(
+                (model) => model.modelProvider === modelProvider.id
+            ) ?? []
+        );
+    }, [modelsData, modelProvider.id]);
+
+    const handleModelActiveChange = (id: string, active: boolean) => {
+        const updatedModelIndex = modelsData?.findIndex(
+            (model) => model.id === id
+        );
+        if (updatedModelIndex && updatedModelIndex !== -1 && modelsData) {
+            modelsData[updatedModelIndex].active = active;
+            mutate(modelsData, { revalidate: false });
+        }
+    };
+
+    const handleModelUsageChange = (id: string, usage: ModelUsage) => {
+        const updatedModelIndex = modelsData?.findIndex(
+            (model) => model.id === id
+        );
+        if (updatedModelIndex && updatedModelIndex !== -1 && modelsData) {
+            modelsData[updatedModelIndex].usage = usage;
+            mutate(modelsData, { revalidate: false });
+        }
+    };
+
     return (
         <Dialog>
             <Tooltip>
                 <TooltipTrigger asChild>
                     <DialogTrigger asChild>
                         <Button size="icon" variant="ghost">
-                            <SettingsIcon />
+                            <PictureInPicture2Icon />
                         </Button>
                     </DialogTrigger>
                 </TooltipTrigger>
@@ -72,11 +100,13 @@ export function ModelProvidersModels({ modelProvider }: ModelsConfigureProps) {
                     </DialogTitle>
                 </DialogHeader>
                 <ScrollArea className="h-[50vh]">
-                    <DataTable
-                        columns={getColumns()}
-                        data={models}
-                        sort={[{ id: "usage", desc: true }]}
-                    />
+                    {!isLoading && (
+                        <DataTable
+                            columns={getColumns()}
+                            data={models}
+                            sort={[{ id: "name", desc: false }]}
+                        />
+                    )}
                 </ScrollArea>
             </DialogContent>
         </Dialog>
@@ -93,17 +123,34 @@ export function ModelProvidersModels({ modelProvider }: ModelsConfigureProps) {
                 {
                     id: "usage",
                     header: "Usage",
-                    cell: ({ getValue }) =>
-                        getValue() ? (
-                            <Badge variant="outline">{getValue()}</Badge>
-                        ) : null,
+                    cell: ({ row }) => {
+                        return (
+                            <UpdateModelUsage
+                                model={row.original}
+                                key={row.original.id}
+                                onChange={(usage) =>
+                                    handleModelUsageChange(
+                                        row.original.id,
+                                        usage
+                                    )
+                                }
+                            />
+                        );
+                    },
                 }
             ),
             columnHelper.display({
-                id: "actions",
+                id: "active",
+                header: "Active",
                 cell: ({ row }) => (
-                    <div className="flex justify-end">
-                        <DeleteModel id={row.original.id} />
+                    <div className="flex justify-center">
+                        <UpdateModelActive
+                            model={row.original}
+                            key={row.original.id}
+                            onChange={(active) =>
+                                handleModelActiveChange(row.original.id, active)
+                            }
+                        />
                     </div>
                 ),
             }),
