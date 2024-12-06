@@ -67,7 +67,7 @@ export function ModelForm(props: ModelFormProps) {
             targetModel: model?.targetModel ?? "",
             modelProvider: model?.modelProvider ?? "",
             active: model?.active ?? true,
-            usage: model?.usage ?? ModelUsage.LLM,
+            usage: model?.usage ?? ModelUsage.Unknown,
         };
     }, [model]);
 
@@ -168,11 +168,12 @@ export function ModelForm(props: ModelFormProps) {
 
                             <SelectContent>
                                 {Object.entries(ModelUsage).map(
-                                    ([key, value]) => (
-                                        <SelectItem key={key} value={value}>
-                                            {getModelUsageLabel(value)}
-                                        </SelectItem>
-                                    )
+                                    ([key, value]) =>
+                                        value === ModelUsage.Unknown ? null : (
+                                            <SelectItem key={key} value={value}>
+                                                {getModelUsageLabel(value)}
+                                            </SelectItem>
+                                        )
                                 )}
                             </SelectContent>
                         </Select>
@@ -194,7 +195,7 @@ export function ModelForm(props: ModelFormProps) {
     function updateUsageFromModel(value: string) {
         const model = getAvailableModels.data?.find((m) => m.id === value);
 
-        const usage = model?.metadata?.usage ?? ModelUsage.Other;
+        const usage = model?.metadata?.usage || ModelUsage.Unknown;
 
         form.setValue("usage", usage);
     }
