@@ -296,7 +296,7 @@ export function DefaultModelAliasFormDialog({
                 <Button disabled={disabled}>Set Default Models</Button>
             </DialogTrigger>
 
-            <DialogContent>
+            <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Default Model Aliases</DialogTitle>
                 </DialogHeader>
