@@ -12,7 +12,7 @@ import (
 )
 
 func ForProvider(ctx context.Context, dispatcher *dispatcher.Dispatcher, modelProviderNamespace, modelProviderName string) (*openai.ModelsList, error) {
-	u, err := dispatcher.URLForModelProvider(ctx, modelProviderNamespace, modelProviderName)
+	u, token, err := dispatcher.URLForModelProvider(ctx, modelProviderNamespace, modelProviderName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get URL for model provider %q: %w", modelProviderName, err)
 	}
@@ -20,6 +20,10 @@ func ForProvider(ctx context.Context, dispatcher *dispatcher.Dispatcher, modelPr
 	r, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String()+"/v1/models", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request to model provider %s: %w", modelProviderName, err)
+	}
+
+	if token != "" {
+		r.Header.Set("Authorization", "Bearer "+token)
 	}
 
 	resp, err := http.DefaultClient.Do(r)

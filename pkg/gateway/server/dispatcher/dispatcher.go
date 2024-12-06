@@ -25,11 +25,12 @@ import (
 )
 
 type Dispatcher struct {
-	invoker   *invoke.Invoker
-	gptscript *gptscript.GPTScript
-	client    kclient.Client
-	lock      *sync.RWMutex
-	urls      map[string]*url.URL
+	invoker    *invoke.Invoker
+	gptscript  *gptscript.GPTScript
+	client     kclient.Client
+	lock       *sync.RWMutex
+	urls       map[string]*url.URL
+	openAICred string
 }
 
 func New(invoker *invoke.Invoker, c kclient.Client, gClient *gptscript.GPTScript) *Dispatcher {
@@ -42,14 +43,17 @@ func New(invoker *invoke.Invoker, c kclient.Client, gClient *gptscript.GPTScript
 	}
 }
 
-func (d *Dispatcher) URLForModelProvider(ctx context.Context, namespace, modelProviderName string) (*url.URL, error) {
+func (d *Dispatcher) URLForModelProvider(ctx context.Context, namespace, modelProviderName string) (*url.URL, string, error) {
 	key := namespace + "/" + modelProviderName
 	// Check the map with the read lock.
 	d.lock.RLock()
 	u, ok := d.urls[key]
 	d.lock.RUnlock()
-	if ok && (u.Hostname() == "127.0.0.1" || engine.IsDaemonRunning(u.String())) {
-		return u, nil
+	if ok && (u.Hostname() != "127.0.0.1" || engine.IsDaemonRunning(u.String())) {
+		if u.Host == "api.openai.com" {
+			return u, d.openAICred, nil
+		}
+		return u, "", nil
 	}
 
 	d.lock.Lock()
@@ -59,17 +63,24 @@ func (d *Dispatcher) URLForModelProvider(ctx context.Context, namespace, modelPr
 	// It could be that another thread beat us to the write lock and added the model provider we desire.
 	u, ok = d.urls[key]
 	if ok && (u.Hostname() != "127.0.0.1" || engine.IsDaemonRunning(u.String())) {
-		return u, nil
+		if u.Host == "api.openai.com" {
+			return u, d.openAICred, nil
+		}
+		return u, "", nil
 	}
 
 	// We didn't find the model provider (or the daemon stopped for some reason), so start it and add it to the map.
 	u, err := d.startModelProvider(ctx, namespace, modelProviderName)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	d.urls[key] = u
-	return u, nil
+	if u.Host == "api.openai.com" {
+		return u, d.openAICred, nil
+	}
+
+	return u, "", nil
 }
 
 func (d *Dispatcher) StopModelProvider(namespace, modelProviderName string) {
@@ -101,12 +112,12 @@ func (d *Dispatcher) TransformRequest(req *http.Request, namespace string) error
 		return fmt.Errorf("failed to get model: %w", err)
 	}
 
-	u, err := d.URLForModelProvider(req.Context(), namespace, model.Spec.Manifest.ModelProvider)
+	u, token, err := d.URLForModelProvider(req.Context(), namespace, model.Spec.Manifest.ModelProvider)
 	if err != nil {
 		return fmt.Errorf("failed to get model provider: %w", err)
 	}
 
-	return d.transformRequest(req, *u, body, model.Spec.Manifest.TargetModel)
+	return d.transformRequest(req, *u, body, model.Spec.Manifest.TargetModel, token)
 }
 
 func (d *Dispatcher) getModelProviderForModel(ctx context.Context, namespace, model string) (*v1.Model, error) {
@@ -175,6 +186,10 @@ func (d *Dispatcher) startModelProvider(ctx context.Context, namespace, modelPro
 		if len(missingEnvVars) > 0 {
 			return nil, fmt.Errorf("model provider is not configured: missing configuration parameters %s", strings.Join(missingEnvVars, ", "))
 		}
+
+		if modelProvider.Name == "openai-model-provider" {
+			d.openAICred = cred.Env["OTTO8_OPENAI_MODEL_PROVIDER_API_KEY"]
+		}
 	}
 
 	task, err := d.invoker.SystemTask(ctx, thread, modelProviderName, "", invoke.SystemTaskOptions{
@@ -192,7 +207,7 @@ func (d *Dispatcher) startModelProvider(ctx context.Context, namespace, modelPro
 	return url.Parse(strings.TrimSpace(result.Output))
 }
 
-func (d *Dispatcher) transformRequest(req *http.Request, u url.URL, body map[string]any, targetModel string) error {
+func (d *Dispatcher) transformRequest(req *http.Request, u url.URL, body map[string]any, targetModel, token string) error {
 	if u.Path == "" {
 		u.Path = "/v1"
 	}
@@ -208,6 +223,10 @@ func (d *Dispatcher) transformRequest(req *http.Request, u url.URL, body map[str
 
 	req.Body = io.NopCloser(bytes.NewReader(b))
 	req.ContentLength = int64(len(b))
+
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 	return nil
 }
 
