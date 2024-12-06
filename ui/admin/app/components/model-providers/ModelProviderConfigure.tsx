@@ -78,7 +78,7 @@ export function ModelProviderConfigure({
             </DialogDescription>
 
             <DialogContent
-                className="p-0 gap-0"
+                className="p-0 gap-0 max-w-2xl"
                 hideCloseButton={loadingModelProviderId !== ""}
             >
                 {loadingModelProviderId ? (
