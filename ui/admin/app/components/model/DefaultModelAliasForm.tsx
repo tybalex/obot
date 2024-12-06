@@ -17,6 +17,7 @@ import { DefaultModelAliasApiService } from "~/lib/service/api/defaultModelAlias
 import { ModelApiService } from "~/lib/service/api/modelApiService";
 
 import { TypographyP } from "~/components/Typography";
+import { SUGGESTED_MODEL_SELECTIONS } from "~/components/model/constants";
 import { Button } from "~/components/ui/button";
 import {
     Dialog,
@@ -71,6 +72,16 @@ export function DefaultModelAliasForm({
         ModelApiService.getModels
     );
 
+    const defaultAliasMap = useMemo(() => {
+        return Object.entries(SUGGESTED_MODEL_SELECTIONS).reduce(
+            (acc, [alias, modelName]) => {
+                acc[alias] = models?.find((model) => model.name === modelName);
+                return acc;
+            },
+            {} as Record<string, Model | undefined>
+        );
+    }, [models]);
+
     const otherModels = useMemo(() => {
         if (!models) return [];
 
@@ -102,12 +113,15 @@ export function DefaultModelAliasForm({
     const defaultValues = useMemo(() => {
         return defaultAliases?.reduce(
             (acc, alias) => {
-                acc[alias.alias] = alias.model;
+                // if a default model is not set, suggest the model from the SUGGESTED_MODEL_SELECTIONS
+                acc[alias.alias] =
+                    alias.model || defaultAliasMap[alias.alias]?.id || "";
+
                 return acc;
             },
             {} as Record<string, string>
         );
-    }, [defaultAliases]);
+    }, [defaultAliases, defaultAliasMap]);
 
     const form = useForm<Record<string, string>>({
         defaultValues,
@@ -183,7 +197,8 @@ export function DefaultModelAliasForm({
                                                     {renderSelectContent(
                                                         modelOptions,
                                                         defaultModel,
-                                                        usage
+                                                        usage,
+                                                        alias
                                                     )}
                                                 </SelectContent>
                                             </Select>
@@ -212,7 +227,8 @@ export function DefaultModelAliasForm({
     function renderSelectContent(
         modelOptions: Model[] | undefined,
         defaultModel: string,
-        usage: ModelUsage
+        usage: ModelUsage,
+        aliasFor: ModelAlias
     ) {
         if (!modelOptions) {
             if (!defaultModel)
@@ -231,7 +247,7 @@ export function DefaultModelAliasForm({
 
                     {modelOptions.map((model) => (
                         <SelectItem key={model.id} value={model.id}>
-                            {model.name || model.id}
+                            {getModelOptionLabel(model, aliasFor)}
                         </SelectItem>
                     ))}
                 </SelectGroup>
@@ -252,6 +268,21 @@ export function DefaultModelAliasForm({
     }
 }
 
+function getModelOptionLabel(model: Model, aliasFor: ModelAlias) {
+    // if the model name is the same as the suggested model name, show that it's suggested
+    const suggestionName = SUGGESTED_MODEL_SELECTIONS[aliasFor];
+    if (suggestionName === model.name) {
+        return (
+            <>
+                {model.name || model.id}{" "}
+                <span className="text-muted-foreground">(Suggested)</span>
+            </>
+        );
+    }
+
+    return model.name || model.id;
+}
+
 export function DefaultModelAliasFormDialog({
     disabled,
 }: {
@@ -262,7 +293,7 @@ export function DefaultModelAliasFormDialog({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button disabled={disabled}>Default Model</Button>
+                <Button disabled={disabled}>Set Default Models</Button>
             </DialogTrigger>
 
             <DialogContent>
