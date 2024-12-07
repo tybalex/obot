@@ -58,7 +58,7 @@ func (h *Handler) Resume(req router.Request, _ router.Response) error {
 
 	if run.Spec.PreviousRunName != "" {
 		if err := req.Get(&v1.Run{}, run.Namespace, run.Spec.PreviousRunName); apierrors.IsNotFound(err) {
-			run.Status.Error = fmt.Sprintf("run %s not found", run.Spec.PreviousRunName)
+			run.Status.Error = fmt.Sprintf("run %s not found: %s", run.Spec.PreviousRunName, run.Status.Error)
 			run.Status.State = gptscript.Error
 			return nil
 		} else if err != nil {
@@ -67,12 +67,7 @@ func (h *Handler) Resume(req router.Request, _ router.Response) error {
 	}
 
 	if run.Spec.Synchronous {
-		if h.invoker.IsSynchronousPending(run.Name) {
-			return nil
-		}
-		run.Status.Error = "run was interrupted most likely due to a system reset"
-		run.Status.State = gptscript.Error
-		return req.Client.Status().Update(req.Ctx, run)
+		return nil
 	}
 
 	return h.invoker.Resume(req.Ctx, req.Client, &thread, run)

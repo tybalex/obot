@@ -328,18 +328,6 @@ type runOptions struct {
 	Timeout               time.Duration
 }
 
-var (
-	synchronousPending = map[string]struct{}{}
-	synchrounousLock   sync.Mutex
-)
-
-func (i *Invoker) IsSynchronousPending(runName string) bool {
-	synchrounousLock.Lock()
-	defer synchrounousLock.Unlock()
-	_, ok := synchronousPending[runName]
-	return ok
-}
-
 func (i *Invoker) createRun(ctx context.Context, c kclient.WithWatch, thread *v1.Thread, tool any, input string, opts runOptions) (_ *Response, retErr error) {
 	previousRunName := thread.Status.LastRunName
 	if opts.PreviousRunName != "" {
@@ -382,20 +370,6 @@ func (i *Invoker) createRun(ctx context.Context, c kclient.WithWatch, thread *v1
 	if err := c.Create(ctx, &run); err != nil {
 		return nil, err
 	}
-
-	if opts.Synchronous {
-		synchrounousLock.Lock()
-		synchronousPending[run.Name] = struct{}{}
-		synchrounousLock.Unlock()
-	}
-
-	defer func() {
-		if retErr != nil {
-			synchrounousLock.Lock()
-			delete(synchronousPending, run.Name)
-			synchrounousLock.Unlock()
-		}
-	}()
 
 	if !thread.Spec.SystemTask {
 		err = retry.RetryOnConflict(retry.DefaultBackoff, func() error {
