@@ -66,6 +66,7 @@ type ThreadSpec struct {
 	TextEmbeddingModel    string               `json:"textEmbeddingModel,omitempty"`
 	SystemTask            bool                 `json:"systemTask,omitempty"`
 	Abort                 bool                 `json:"abort,omitempty"`
+	Env                   []string             `json:"env,omitempty"`
 }
 
 func (in *Thread) DeleteRefs() []Ref {

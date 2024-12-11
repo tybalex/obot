@@ -25,7 +25,7 @@ type Webhook struct {
 }
 
 func (w *Webhook) FieldNames() []string {
-	return []string{"spec.userID"}
+	return []string{"spec.threadName"}
 }
 
 func (w *Webhook) Has(field string) (exists bool) {
@@ -34,8 +34,8 @@ func (w *Webhook) Has(field string) (exists bool) {
 
 func (w *Webhook) Get(field string) (value string) {
 	switch field {
-	case "spec.userID":
-		return w.Spec.UserID
+	case "spec.threadName":
+		return w.Spec.ThreadName
 	}
 	return ""
 }
@@ -83,6 +83,7 @@ func (w *Webhook) DeleteRefs() []Ref {
 type WebhookSpec struct {
 	types.WebhookManifest `json:",inline"`
 	TokenHash             []byte `json:"tokenHash,omitempty"`
+	ThreadName            string
 }
 
 type WebhookStatus struct {

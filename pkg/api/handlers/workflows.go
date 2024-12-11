@@ -16,6 +16,7 @@ import (
 	"github.com/otto8-ai/otto8/pkg/system"
 	"github.com/otto8-ai/otto8/pkg/wait"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var log = mvl.Package()
@@ -325,6 +326,26 @@ func (a *WorkflowHandler) EnsureCredentialForKnowledgeSource(req api.Context) er
 	}
 
 	return req.WriteCreated(resp)
+}
+
+func (a *WorkflowHandler) WorkflowExecutions(req api.Context) error {
+	var (
+		id = req.PathValue("id")
+	)
+
+	var wfes v1.WorkflowExecutionList
+	if err := req.List(&wfes, kclient.MatchingFields{
+		"spec.workflowName": id,
+	}); err != nil {
+		return err
+	}
+
+	var resp types.WorkflowExecutionList
+	for _, we := range wfes.Items {
+		resp.Items = append(resp.Items, convertWorkflowExecution(we))
+	}
+
+	return req.Write(resp)
 }
 
 func (a *WorkflowHandler) Script(req api.Context) error {

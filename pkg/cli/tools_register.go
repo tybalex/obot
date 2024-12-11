@@ -9,7 +9,7 @@ import (
 
 type ToolRegister struct {
 	root  *Otto8
-	Quiet bool `usage:"Only print IDs of created tool references:"q"`
+	Quiet bool `usage:"Only print IDs of created tool references:" short:"q"`
 }
 
 func (l *ToolRegister) Customize(cmd *cobra.Command) {

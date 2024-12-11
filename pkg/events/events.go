@@ -260,10 +260,16 @@ func (e *Emitter) printRun(ctx context.Context, state *printState, run v1.Run, r
 			return err
 		}
 		step, _ := types.FindStep(wfe.Status.WorkflowManifest, run.Spec.WorkflowStepID)
+		if run.Spec.WorkflowStepID != "" && step == nil {
+			step = &types.Step{
+				ID: run.Spec.WorkflowStepID,
+			}
+		}
 		result <- types.Progress{
-			RunID: run.Name,
-			Time:  types.NewTime(wfe.CreationTimestamp.Time),
-			Step:  step,
+			RunID:       run.Name,
+			ParentRunID: run.Spec.PreviousRunName,
+			Time:        types.NewTime(wfe.CreationTimestamp.Time),
+			Step:        step,
 		}
 		state.lastStepPrinted = run.Spec.WorkflowStepID
 	}
@@ -707,6 +713,7 @@ func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *g
 								Name:        tool.Name,
 								Description: tool.Description,
 								Input:       subCall.Input,
+								Output:      getToolCallOutput(frames, callID),
 								Metadata:    tool.MetaData,
 							}
 						} else {
@@ -741,6 +748,14 @@ func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *g
 	lastPrint.frames[call.ID] = printed
 
 	return nil
+}
+
+func getToolCallOutput(frames gptscript.CallFrames, callID string) string {
+	out := frames[callID].Output
+	if len(out) == 1 {
+		return out[0].Content
+	}
+	return ""
 }
 
 func isSubCallTargetIDs(tool gptscript.Tool) (agentID string, workflowID string) {

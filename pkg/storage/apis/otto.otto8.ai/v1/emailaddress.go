@@ -30,14 +30,14 @@ func (in *EmailReceiver) Has(field string) (exists bool) {
 
 func (in *EmailReceiver) Get(field string) (value string) {
 	switch field {
-	case "spec.userID":
-		return in.Spec.UserID
+	case "spec.threadName":
+		return in.Spec.ThreadName
 	}
 	return ""
 }
 
 func (in *EmailReceiver) FieldNames() []string {
-	return []string{"spec.userID"}
+	return []string{"spec.threadName"}
 }
 
 func (in *EmailReceiver) GetAliasName() string {
@@ -81,6 +81,7 @@ func (in *EmailReceiver) DeleteRefs() []Ref {
 
 type EmailReceiverSpec struct {
 	types.EmailReceiverManifest `json:",inline"`
+	ThreadName                  string `json:"threadName,omitempty"`
 }
 
 type EmailReceiverStatus struct {

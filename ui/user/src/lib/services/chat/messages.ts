@@ -54,6 +54,8 @@ function reformatInputMessage(msg: Message) {
 			} else {
 				msg.message = [input.prompt];
 			}
+		} else if (input.prompt === '') {
+			msg.message = [''];
 		}
 		if (input.explain) {
 			msg.explain = input.explain;
@@ -67,8 +69,8 @@ function reformatInputMessage(msg: Message) {
 }
 
 function reformatWriteMessage(msg: Message, last: boolean) {
-	msg.icon = 'stock:Pencil';
-	msg.done = !last || msg.toolCall;
+	msg.icon = 'Pencil';
+	msg.done = !last || msg.toolCall !== undefined;
 	msg.sourceName = msg.done ? 'Wrote to Workspace' : 'Writing to Workspace';
 	let content = msg.message.join('').trim();
 	if (!content.endsWith('"}')) {
@@ -92,7 +94,7 @@ function reformatWriteMessage(msg: Message, last: boolean) {
 	}
 
 	if (last && msg.file?.filename && msg.file?.content) {
-		setFileContent(msg.file.filename, msg.file.content, msg.toolCall);
+		setFileContent(msg.file.filename, msg.file.content, msg.toolCall !== undefined);
 	}
 }
 
@@ -132,6 +134,7 @@ export function buildMessagesFromProgress(progresses: Progress[]): Messages {
 function toMessages(progresses: Progress[]): Messages {
 	let messages: Message[] = [];
 	let lastRunID: string | undefined;
+	let parentRunID: string | undefined;
 	let inProgress = false;
 
 	for (const [i, progress] of progresses.entries()) {
@@ -153,6 +156,14 @@ function toMessages(progresses: Progress[]): Messages {
 		} else {
 			// if it doesn't have a runID we don't know what do to with it, so ignore
 			continue;
+		}
+
+		if (progress.parentRunID) {
+			if (progress.runID === lastRunID) {
+				parentRunID = progress.parentRunID;
+			} else {
+				parentRunID = undefined;
+			}
 		}
 
 		if (progress.runComplete) {
@@ -180,7 +191,7 @@ function toMessages(progresses: Progress[]): Messages {
 		} else if (progress.input) {
 			// delete the current runID, this is to avoid duplicate messages
 			messages = messages.filter((m) => m.runID !== progress.runID);
-			messages.push(newInputMessage(progress));
+			messages.push(newInputMessage(progress, parentRunID));
 		} else if (progress.content) {
 			const found = messages.findLast(
 				(m) => m.contentID === progress.contentID && progress.contentID
@@ -220,9 +231,10 @@ function toMessages(progresses: Progress[]): Messages {
 	};
 }
 
-function newInputMessage(progress: Progress): Message {
+function newInputMessage(progress: Progress, parentRunID?: string): Message {
 	return {
 		runID: progress.runID || '',
+		parentRunID: parentRunID,
 		time: new Date(progress.time),
 		icon: profileIcon,
 		sourceName: 'You',
@@ -287,7 +299,7 @@ function newContentMessage(progress: Progress): Message {
 			result.icon = progress.toolCall.metadata.icon;
 		}
 		result.message = progress.toolCall.input ? [progress.toolCall.input] : [];
-		result.toolCall = true;
+		result.toolCall = progress.toolCall;
 		result.tool = true;
 	}
 

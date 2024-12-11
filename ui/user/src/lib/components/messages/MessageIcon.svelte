@@ -13,7 +13,7 @@
 
 {#if !msg.icon}
 	<!-- Nothing -->
-{:else if msg.icon === 'stock:Pencil'}
+{:else if msg.icon === 'Pencil'}
 	<Pencil class="h-8 w-8" />
 {:else if msg.icon === 'Otto'}
 	<Otto />

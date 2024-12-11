@@ -49,14 +49,15 @@ func (c *Controller) setupRoutes() error {
 	root.Type(&v1.Thread{}).HandlerFunc(threads.WorkflowState)
 
 	// Workflows
-	root.Type(&v1.Workflow{}).HandlerFunc(workflow.WorkspaceObjects)
 	root.Type(&v1.Workflow{}).HandlerFunc(workflow.EnsureIDs)
 	root.Type(&v1.Workflow{}).HandlerFunc(workflow.CreateWorkspaceAndKnowledgeSet)
 	root.Type(&v1.Workflow{}).HandlerFunc(workflow.BackPopulateAuthStatus)
+	root.Type(&v1.Workflow{}).HandlerFunc(cleanup.Cleanup)
 
 	// WorkflowExecutions
 	root.Type(&v1.WorkflowExecution{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.WorkflowExecution{}).HandlerFunc(workflowExecution.Run)
+	root.Type(&v1.WorkflowExecution{}).HandlerFunc(workflowExecution.ReassignThread)
 
 	// Agents
 	root.Type(&v1.Agent{}).HandlerFunc(agents.CreateWorkspaceAndKnowledgeSet)
@@ -75,6 +76,7 @@ func (c *Controller) setupRoutes() error {
 
 	// Reference
 	root.Type(&v1.Agent{}).HandlerFunc(alias.AssignAlias)
+	root.Type(&v1.EmailReceiver{}).HandlerFunc(alias.AssignAlias)
 	root.Type(&v1.Workflow{}).HandlerFunc(alias.AssignAlias)
 	root.Type(&v1.Model{}).HandlerFunc(alias.AssignAlias)
 	root.Type(&v1.DefaultModelAlias{}).HandlerFunc(alias.AssignAlias)

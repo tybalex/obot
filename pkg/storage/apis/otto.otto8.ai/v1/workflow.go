@@ -30,18 +30,15 @@ func (in *Workflow) Has(field string) (exists bool) {
 
 func (in *Workflow) Get(field string) (value string) {
 	switch field {
-	case "spec.agentName":
-		return in.Spec.AgentName
-	case "spec.userID":
-		return in.Spec.UserID
+	case "spec.threadName":
+		return in.Spec.ThreadName
 	}
 	return ""
 }
 
 func (in *Workflow) FieldNames() []string {
 	return []string{
-		"spec.agentName",
-		"spec.userID",
+		"spec.threadName",
 	}
 }
 
@@ -70,9 +67,21 @@ func (in *Workflow) SetAliasObservedGeneration(gen int64) {
 }
 
 type WorkflowSpec struct {
-	AgentName string                 `json:"agentName,omitempty"`
-	UserID    string                 `json:"userID,omitempty"`
-	Manifest  types.WorkflowManifest `json:"manifest,omitempty"`
+	ThreadName        string                 `json:"threadName,omitempty"`
+	Manifest          types.WorkflowManifest `json:"manifest,omitempty"`
+	KnowledgeSetNames []string               `json:"knowledgeSetNames,omitempty"`
+	WorkspaceName     string                 `json:"workspaceName,omitempty"`
+}
+
+func (in *Workflow) DeleteRefs() []Ref {
+	refs := []Ref{
+		{ObjType: &Thread{}, Name: in.Spec.ThreadName},
+		{ObjType: &Workspace{}, Name: in.Spec.WorkspaceName},
+	}
+	for _, name := range in.Spec.KnowledgeSetNames {
+		refs = append(refs, Ref{ObjType: &KnowledgeSet{}, Name: name})
+	}
+	return refs
 }
 
 type WorkflowStatus struct {

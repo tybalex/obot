@@ -8,7 +8,9 @@ export interface EditorItem {
 	modified?: boolean;
 	selected?: boolean;
 	task?: Task;
+	table?: string;
 }
 
 const items = $state<EditorItem[]>([]);
+
 export default items;

@@ -65,6 +65,8 @@ func (a *Agent) FieldNames() []string {
 
 type AgentSpec struct {
 	Manifest            types.AgentManifest `json:"manifest,omitempty"`
+	SystemTools         []string            `json:"systemTools,omitempty"`
+	ContextInput        string              `json:"contextInput,omitempty"`
 	InputFilters        []string            `json:"inputFilters,omitempty"`
 	Credentials         []string            `json:"credentials,omitempty"`
 	CredentialContextID string              `json:"credentialContextID,omitempty"`

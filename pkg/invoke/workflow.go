@@ -20,7 +20,7 @@ import (
 type WorkflowOptions struct {
 	ThreadName            string
 	StepID                string
-	UserID                string
+	OwningThreadName      string
 	WorkflowExecutionName string
 	Events                bool
 }
@@ -33,7 +33,7 @@ func (i *Invoker) startWorkflow(ctx context.Context, c kclient.WithWatch, wf *v1
 			Namespace:    wf.Namespace,
 		},
 		Spec: v1.WorkflowExecutionSpec{
-			UserID:       opt.UserID,
+			ThreadName:   opt.OwningThreadName,
 			Input:        input,
 			WorkflowName: wf.Name,
 		},
@@ -183,7 +183,7 @@ func (i *Invoker) rerunThread(ctx context.Context, c kclient.WithWatch, wf *v1.W
 		return nil, nil, err
 	}
 
-	if input != "" && wfe.Spec.Input != input {
+	if wfe.Spec.Input != input {
 		if stepID == "" {
 			// If input doesn't match, delete all steps and rerun
 			stepID = "*"

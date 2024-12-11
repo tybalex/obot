@@ -17,6 +17,11 @@ func createWorkspace(ctx context.Context, c kclient.Client, workflow *v1.Workflo
 		return nil
 	}
 
+	if workflow.Spec.WorkspaceName != "" {
+		workflow.Status.WorkspaceName = workflow.Spec.WorkspaceName
+		return nil
+	}
+
 	ws := &v1.Workspace{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:  workflow.Namespace,
@@ -37,6 +42,11 @@ func createWorkspace(ctx context.Context, c kclient.Client, workflow *v1.Workflo
 
 func createKnowledgeSet(ctx context.Context, c kclient.Client, workflow *v1.Workflow) error {
 	if len(workflow.Status.KnowledgeSetNames) > 0 {
+		return nil
+	}
+
+	if len(workflow.Spec.KnowledgeSetNames) > 0 {
+		workflow.Status.KnowledgeSetNames = workflow.Spec.KnowledgeSetNames
 		return nil
 	}
 

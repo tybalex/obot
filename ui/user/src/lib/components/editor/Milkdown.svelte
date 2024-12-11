@@ -16,7 +16,7 @@
 	import { Bold, Italic, Strikethrough } from 'lucide-svelte';
 	import { TooltipProvider } from '@milkdown/plugin-tooltip';
 	import { tooltipFactory } from '@milkdown/plugin-tooltip';
-	import { Ctx } from '@milkdown/ctx';
+	import { type Ctx } from '@milkdown/ctx';
 	import { toggleStrongCommand, toggleEmphasisCommand } from '@milkdown/kit/preset/commonmark';
 	import { toggleStrikethroughCommand } from '@milkdown/kit/preset/gfm';
 

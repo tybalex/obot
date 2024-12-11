@@ -142,3 +142,25 @@ func (h *Handler) newThread(ctx context.Context, c kclient.Client, wf *v1.Workfl
 
 	return &thread, c.Create(ctx, &thread)
 }
+
+func (h *Handler) ReassignThread(req router.Request, _ router.Response) error {
+	var (
+		wfe = req.Object.(*v1.WorkflowExecution)
+	)
+
+	if wfe.Status.ThreadName != "" || wfe.Spec.WorkflowName == "" {
+		return nil
+	}
+
+	var we v1.Workflow
+	if err := req.Get(&we, wfe.Namespace, wfe.Spec.WorkflowName); err != nil {
+		return kclient.IgnoreNotFound(err)
+	}
+
+	if we.Spec.ThreadName != "" {
+		wfe.Spec.ThreadName = we.Spec.ThreadName
+		return req.Client.Update(req.Ctx, wfe)
+	}
+
+	return nil
+}

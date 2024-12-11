@@ -9,6 +9,7 @@ const (
 	WebsiteCleanTool        = "website-cleaner"
 	ResultFormatterTool     = "result-formatter"
 	ModelProviderTool       = "otto8-model-provider"
+	WorkflowTool            = "workflow"
 
 	DefaultNamespace = "default"
 )

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"maps"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -102,6 +103,10 @@ func (r *Response) Result(ctx context.Context) (TaskResult, error) {
 		}
 	} else if err != nil {
 		return TaskResult{}, err
+	}
+
+	if runState.Name != r.Run.Name {
+		panic("runState doesnt match")
 	}
 
 	if runState.Spec.Error != "" {
@@ -233,7 +238,7 @@ func CreateThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Ag
 	return &thread, c.Create(ctx, &thread)
 }
 
-func (i *Invoker) updateThreadFields(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, thread *v1.Thread, opt Options) error {
+func (i *Invoker) updateThreadFields(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, thread *v1.Thread, extraEnv []string, opt Options) error {
 	var updated bool
 	if opt.AgentAlias != "" && thread.Spec.AgentAlias != opt.AgentAlias {
 		thread.Spec.AgentAlias = opt.AgentAlias
@@ -241,6 +246,10 @@ func (i *Invoker) updateThreadFields(ctx context.Context, c kclient.WithWatch, a
 	}
 	if thread.Spec.AgentName != agent.Name {
 		thread.Spec.AgentName = agent.Name
+		updated = true
+	}
+	if !slices.Equal(thread.Spec.Env, extraEnv) {
+		thread.Spec.Env = extraEnv
 		updated = true
 	}
 	if updated {
@@ -262,10 +271,6 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agen
 		return nil, err
 	}
 
-	if err := i.updateThreadFields(ctx, c, agent, thread, opt); err != nil {
-		return nil, err
-	}
-
 	credContextIDs := []string{thread.Name}
 	if opt.ThreadCredentialScope != nil && !*opt.ThreadCredentialScope {
 		credContextIDs = nil
@@ -281,6 +286,10 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agen
 		Thread: thread,
 	})
 	if err != nil {
+		return nil, err
+	}
+
+	if err := i.updateThreadFields(ctx, c, agent, thread, extraEnv, opt); err != nil {
 		return nil, err
 	}
 

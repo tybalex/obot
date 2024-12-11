@@ -53,7 +53,7 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 				WorkflowName: workflow.Name,
 				Input:        cj.Spec.Input,
 				CronJobName:  cj.Name,
-				UserID:       cj.Spec.UserID,
+				ThreadName:   cj.Spec.ThreadName,
 			},
 		},
 	); err != nil {
