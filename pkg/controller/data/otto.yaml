@@ -22,7 +22,6 @@ spec:
     tools:
     - workspace-files
     - time
-    - database
     - knowledge
     defaultThreadTools:
     - github-bundle
