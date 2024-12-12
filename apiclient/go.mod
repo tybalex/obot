@@ -2,12 +2,10 @@ module github.com/otto8-ai/otto8/apiclient
 
 go 1.23.1
 
-replace github.com/otto8-ai/otto8/logger => ../logger
-
 require (
 	github.com/getkin/kin-openapi v0.124.0
 	github.com/gptscript-ai/go-gptscript v0.9.4
-	github.com/otto8-ai/otto8/logger v0.0.0-00010101000000-000000000000
+	github.com/otto8-ai/otto8/logger v0.0.0-20241210141510-f6d8aba1961a
 )
 
 require (

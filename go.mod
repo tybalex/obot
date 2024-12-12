@@ -25,7 +25,7 @@ require (
 	github.com/otto8-ai/nah v0.0.0-20241207061352-8dac36960968
 	github.com/otto8-ai/namegenerator v0.0.0-20241115024503-63dbbe8f03f4
 	github.com/otto8-ai/otto8/apiclient v0.0.0-00010101000000-000000000000
-	github.com/otto8-ai/otto8/logger v0.0.0-00010101000000-000000000000
+	github.com/otto8-ai/otto8/logger v0.0.0-20241210141510-f6d8aba1961a
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pterm/pterm v0.12.79
 	github.com/robfig/cron/v3 v3.0.1
