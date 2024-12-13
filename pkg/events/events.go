@@ -71,7 +71,7 @@ type callFramePrintState struct {
 
 type printState struct {
 	frames          map[string]callFramePrintState
-	toolCalls       map[string]struct{}
+	toolCalls       map[string]string
 	lastStepPrinted string
 }
 
@@ -85,7 +85,7 @@ func newPrintState(oldState *printState) *printState {
 	}
 	return &printState{
 		frames:    map[string]callFramePrintState{},
-		toolCalls: map[string]struct{}{},
+		toolCalls: map[string]string{},
 	}
 }
 
@@ -700,8 +700,9 @@ func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *g
 
 		for _, callID := range slices.Sorted(maps.Keys(currentOutput.SubCalls)) {
 			subCall := currentOutput.SubCalls[callID]
-			if _, ok := last.SubCalls[callID]; !ok {
-				if _, seenTool := lastPrint.toolCalls[callID]; !seenTool {
+			output := getToolCallOutput(frames, callID)
+			if _, ok := last.SubCalls[callID]; !ok || lastPrint.toolCalls[callID] != output {
+				if lastOutput, seenTool := lastPrint.toolCalls[callID]; !seenTool || lastOutput != output {
 					if tool, ok := prg.ToolSet[subCall.ToolID]; ok {
 						_, workflowID := isSubCallTargetIDs(tool)
 						var (
@@ -713,7 +714,7 @@ func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *g
 								Name:        tool.Name,
 								Description: tool.Description,
 								Input:       subCall.Input,
-								Output:      getToolCallOutput(frames, callID),
+								Output:      output,
 								Metadata:    tool.MetaData,
 							}
 						} else {
@@ -736,7 +737,7 @@ func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *g
 							WorkflowCall: wc,
 						}
 					}
-					lastPrint.toolCalls[callID] = struct{}{}
+					lastPrint.toolCalls[callID] = output
 				}
 			}
 		}
@@ -751,8 +752,9 @@ func (e *Emitter) printCall(ctx context.Context, namespace, runID string, prg *g
 }
 
 func getToolCallOutput(frames gptscript.CallFrames, callID string) string {
-	out := frames[callID].Output
-	if len(out) == 1 {
+	frame := frames[callID]
+	out := frame.Output
+	if len(out) == 1 && frame.Type == gptscript.EventTypeCallFinish {
 		return out[0].Content
 	}
 	return ""

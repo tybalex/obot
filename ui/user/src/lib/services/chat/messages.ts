@@ -214,9 +214,9 @@ function toMessages(progresses: Progress[]): Messages {
 				messages.push(newContentMessage(progress));
 			}
 		} else if (progress.toolCall) {
-			// once we see a toolCall ignore all previous toolInputs
+			// once we see a toolCall ignore all previous toolInputs or toolCall
 			for (const msg of messages) {
-				if (msg.runID === progress.runID && msg.toolInput) {
+				if (msg.runID === progress.runID && (msg.toolInput || msg.toolCall)) {
 					msg.ignore = true;
 				}
 			}
