@@ -263,6 +263,9 @@ func Router(services *services.Services) (http.Handler, error) {
 	services.GatewayServer.AddRoutes(services.APIServer)
 
 	// UI
+	services.APIServer.HTTPHandle("/{$}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/admin/", http.StatusFound)
+	}))
 	services.APIServer.HTTPHandle("/", ui.Handler(services.DevUIPort, services.StorageClient))
 
 	return services.APIServer, nil
