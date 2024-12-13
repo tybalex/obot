@@ -8,7 +8,7 @@ export class Thread {
 	pending: boolean = $state(false);
 	readonly #assistant: string;
 	readonly #onError: ((error: Error) => void) | undefined;
-	readonly #es: EventSource;
+	#es: EventSource;
 	readonly #progresses: Progress[] = [];
 
 	constructor(
@@ -16,36 +16,42 @@ export class Thread {
 		opts?: {
 			task?: {
 				id: string;
-				follow?: boolean;
 			};
 			runID?: string;
 			onError?: (error: Error) => void;
 			onClose?: () => void;
 		}
 	) {
-		const es = newMessageEventSource(assistant, {
-			task: opts?.task,
-			runID: opts?.runID
-		});
-		es.onmessage = (e) => {
-			this.handleMessage(e);
-		};
-		es.onopen = () => {
-			console.log('Message EventSource opened');
-		};
-		es.addEventListener('close', () => {
-			console.log('Message EventSource closed');
-			opts?.onClose?.();
-			es.close();
-		});
-		es.onerror = (e: Event) => {
-			if (e.eventPhase === EventSource.CLOSED) {
-				console.log('Message EventSource closed');
-			}
-		};
+
+		const reconnect = (): EventSource => {
+			console.log('Message EventSource initializing');
+			this.replayComplete = false;
+			const es = newMessageEventSource(assistant, {
+				task: opts?.task,
+				runID: opts?.runID
+			});
+			es.onmessage = (e) => {
+				this.handleMessage(e);
+			};
+			es.onopen = () => {
+				console.log('Message EventSource opened');
+			};
+			es.addEventListener('close', () => {
+				console.log('Message EventSource closed by server');
+				opts?.onClose?.();
+				es.close();
+				this.#es = reconnect()
+			});
+			es.onerror = (e: Event) => {
+				if (e.eventPhase === EventSource.CLOSED) {
+					console.log('Message EventSource closed');
+				}
+			};
+			return es
+		}
 
 		this.#assistant = assistant;
-		this.#es = es;
+		this.#es = reconnect();
 		this.#onError = opts?.onError;
 	}
 

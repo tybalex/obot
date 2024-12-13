@@ -438,8 +438,10 @@ func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOption
 			if err := e.printParent(ctx, opts.MaxRuns-1, state, run, result); !apierrors.IsNotFound(err) && err != nil {
 				return err
 			}
-			result <- types.Progress{
-				ReplayComplete: true,
+			if run.Status.EndTime.IsZero() {
+				result <- types.Progress{
+					ReplayComplete: true,
+				}
 			}
 		}
 
@@ -448,6 +450,12 @@ func (e *Emitter) streamEvents(ctx context.Context, run v1.Run, opts WatchOption
 		} else {
 			if err := e.printRun(ctx, state, run, result, false); err != nil {
 				return err
+			}
+		}
+
+		if opts.History && !run.Status.EndTime.IsZero() {
+			result <- types.Progress{
+				ReplayComplete: true,
 			}
 		}
 

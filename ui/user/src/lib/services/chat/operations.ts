@@ -172,7 +172,6 @@ export function newMessageEventSource(
 	opts?: {
 		task?: {
 			id: string;
-			follow?: boolean;
 		};
 		runID?: string;
 	}
@@ -182,7 +181,7 @@ export function newMessageEventSource(
 		if (opts.runID) {
 			url = `/assistants/${assistant}/tasks/${opts.task.id}/runs/${opts.runID}/events`;
 		}
-		return new EventSource(baseURL + `${url}${opts.task.follow ? '?follow=true' : ''}`);
+		return new EventSource(baseURL + `${url}`);
 	}
 	return new EventSource(baseURL + `/assistants/${assistant}/events`);
 }
