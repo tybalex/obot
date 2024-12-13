@@ -85,6 +85,18 @@ func (a *WorkflowHandler) Update(req api.Context) error {
 		return err
 	}
 
+	if wf.Spec.Manifest.Model != manifest.Model && manifest.Model != "" {
+		// Get the model to ensure it is active
+		var model v1.Model
+		if err := req.Get(&model, manifest.Model); err != nil {
+			return err
+		}
+
+		if !model.Spec.Manifest.Active {
+			return types.NewErrBadRequest("workflow cannot use inactive model %q", manifest.Model)
+		}
+	}
+
 	wf.Spec.Manifest = manifest
 	if err := req.Update(&wf); err != nil {
 		return err
@@ -122,6 +134,18 @@ func (a *WorkflowHandler) Create(req api.Context) error {
 	var manifest types.WorkflowManifest
 	if err := req.Read(&manifest); err != nil {
 		return err
+	}
+
+	if manifest.Model != "" {
+		// Get the model to ensure it is active
+		var model v1.Model
+		if err := req.Get(&model, manifest.Model); err != nil {
+			return err
+		}
+
+		if !model.Spec.Manifest.Active {
+			return types.NewErrBadRequest("workflow cannot use inactive model %q", manifest.Model)
+		}
 	}
 
 	manifest = workflow.PopulateIDs(manifest)

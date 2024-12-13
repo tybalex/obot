@@ -48,6 +48,18 @@ func (a *AgentHandler) Update(req api.Context) error {
 		return err
 	}
 
+	if agent.Spec.Manifest.Model != manifest.Model && manifest.Model != "" {
+		// Get the model to ensure it is active
+		var model v1.Model
+		if err := req.Get(&model, manifest.Model); err != nil {
+			return err
+		}
+
+		if !model.Spec.Manifest.Active {
+			return types.NewErrBadRequest("agent cannot use inactive model %q", manifest.Model)
+		}
+	}
+
 	agent.Spec.Manifest = manifest
 	if err := req.Update(&agent); err != nil {
 		return err
@@ -81,6 +93,19 @@ func (a *AgentHandler) Create(req api.Context) error {
 	if err := req.Read(&manifest); err != nil {
 		return err
 	}
+
+	if manifest.Model != "" {
+		// Get the model to ensure it is active
+		var model v1.Model
+		if err := req.Get(&model, manifest.Model); err != nil {
+			return err
+		}
+
+		if !model.Spec.Manifest.Active {
+			return types.NewErrBadRequest("agent cannot use inactive model %q", manifest.Model)
+		}
+	}
+
 	agent := &v1.Agent{
 		ObjectMeta: metav1.ObjectMeta{
 			GenerateName: system.AgentPrefix,

@@ -126,6 +126,7 @@ func (d *Dispatcher) getModelProviderForModel(ctx context.Context, namespace, mo
 		return nil, err
 	}
 
+	var respModel *v1.Model
 	switch m := m.(type) {
 	case *v1.DefaultModelAlias:
 		if m.Spec.Manifest.Model == "" {
@@ -135,9 +136,17 @@ func (d *Dispatcher) getModelProviderForModel(ctx context.Context, namespace, mo
 		if err := alias.Get(ctx, d.client, &model, namespace, m.Spec.Manifest.Model); err != nil {
 			return nil, err
 		}
-		return &model, nil
+		respModel = &model
 	case *v1.Model:
-		return m, nil
+		respModel = m
+	}
+
+	if respModel != nil {
+		if !respModel.Spec.Manifest.Active {
+			return nil, fmt.Errorf("model %q is not active", respModel.Spec.Manifest.Name)
+		}
+
+		return respModel, nil
 	}
 
 	return nil, fmt.Errorf("model %q not found", model)
