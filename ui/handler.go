@@ -28,14 +28,20 @@ func Handler(devPort int, client kclient.Client) http.Handler {
 	rp := httputil.ReverseProxy{
 		Director: func(r *http.Request) {
 			r.URL.Scheme = "http"
-			if strings.HasPrefix(r.URL.Path, "/admin") || r.URL.Path == "/" {
+			if strings.HasPrefix(r.URL.Path, "/admin") {
 				r.URL.Host = fmt.Sprintf("localhost:%d", devPort)
 			} else {
 				r.URL.Host = fmt.Sprintf("localhost:%d", devPort+1)
 			}
 		},
 	}
-	return &rp
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Upgrade") == "" && r.URL.Path == "/" {
+			http.Redirect(w, r, "/admin/", http.StatusFound)
+		} else {
+			rp.ServeHTTP(w, r)
+		}
+	})
 }
 
 type uiServer struct {
@@ -54,7 +60,7 @@ func (s *uiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	adminPath := path.Join("admin/build/client", strings.TrimPrefix(r.URL.Path, "/admin"))
 
 	if r.URL.Path == "/" {
-		http.ServeFileFS(w, r, embedded, "admin/build/client/index.html")
+		http.Redirect(w, r, "/admin/", http.StatusFound)
 	} else if _, err := fs.Stat(embedded, userPath); err == nil {
 		http.ServeFileFS(w, r, embedded, userPath)
 	} else if _, err := fs.Stat(embedded, adminPath); err == nil {

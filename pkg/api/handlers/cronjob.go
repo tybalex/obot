@@ -8,6 +8,7 @@ import (
 	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/otto8-ai/otto8/pkg/alias"
 	"github.com/otto8-ai/otto8/pkg/api"
+	"github.com/otto8-ai/otto8/pkg/controller/handlers/cronjob"
 	"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/otto8-ai/otto8/pkg/system"
 	"github.com/robfig/cron/v3"
@@ -133,7 +134,7 @@ func (a *CronJobHandler) Execute(req api.Context) error {
 
 func convertCronJob(cronJob v1.CronJob) types.CronJob {
 	var nextRunAt *time.Time
-	if sched, err := cron.ParseStandard(cronJob.Spec.Schedule); err == nil {
+	if sched, err := cron.ParseStandard(cronjob.GetSchedule(cronJob)); err == nil {
 		nextRunAt = new(time.Time)
 		*nextRunAt = sched.Next(time.Now())
 	}

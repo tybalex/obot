@@ -22,7 +22,7 @@
 	let showBubble = msg.sent;
 	let renderMarkdown = !msg.sent && !msg.oauthURL && !msg.tool;
 	let toolTT = popover({
-		placement: 'right-end'
+		placement: 'bottom-start',
 	});
 
 	$effect(() => {
@@ -63,7 +63,7 @@
 	<div class="mb-1 flex items-center space-x-2">
 		{#if msg.sourceName}
 			<span class="text-sm font-semibold"
-				>{msg.sourceName === 'Otto' ? $currentAssistant.name : msg.sourceName}</span
+				>{msg.sourceName === 'Assistant' ? $currentAssistant.name : msg.sourceName}</span
 			>
 		{/if}
 		{#if msg.time}

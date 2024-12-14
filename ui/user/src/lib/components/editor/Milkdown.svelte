@@ -44,7 +44,7 @@
 	});
 	let ttVisible = $state(false);
 	let ttImprove = $state(false);
-	const tooltip = tooltipFactory('otto-tooltip');
+	const tooltip = tooltipFactory('assistant-tooltip');
 	let input: ReturnType<typeof Input> | undefined = $state();
 	let lastSetValue = '';
 	let focused = $state(false);

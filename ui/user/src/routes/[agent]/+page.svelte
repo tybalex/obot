@@ -20,10 +20,8 @@
 </script>
 
 <svelte:head>
-	{#if title && title !== 'otto'}
-		<title>otto8 - {title}</title>
-	{:else}
-		<title>otto8</title>
+	{#if title}
+		<title>{title}</title>
 	{/if}
 </svelte:head>
 
@@ -38,7 +36,7 @@
 	</div>
 
 	{#if $editorVisible}
-		<div class="pt-16 transition-all {$editorMaxSize ? 'w-full' : 'w-1/2'} h-screen">
+		<div class="pt-20 transition-all {$editorMaxSize ? 'w-full' : 'w-1/2'} h-screen">
 			<Editor />
 		</div>
 	{/if}

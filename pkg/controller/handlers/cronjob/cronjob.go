@@ -21,6 +21,22 @@ func New() *Handler {
 	return &Handler{}
 }
 
+func GetSchedule(cronJob v1.CronJob) string {
+	if cronJob.Spec.TaskSchedule != nil {
+		switch cronJob.Spec.TaskSchedule.Interval {
+		case "hourly":
+			return fmt.Sprintf("%d * * * *", cronJob.Spec.TaskSchedule.Minute)
+		case "daily":
+			return fmt.Sprintf("%d %d * * *", cronJob.Spec.TaskSchedule.Minute, cronJob.Spec.TaskSchedule.Hour)
+		case "weekly":
+			return fmt.Sprintf("%d %d * * %d", cronJob.Spec.TaskSchedule.Minute, cronJob.Spec.TaskSchedule.Hour, cronJob.Spec.TaskSchedule.Weekday)
+		case "monthly":
+			return fmt.Sprintf("%d %d %d * *", cronJob.Spec.TaskSchedule.Minute, cronJob.Spec.TaskSchedule.Hour, cronJob.Spec.TaskSchedule.Day)
+		}
+	}
+	return cronJob.Spec.Schedule
+}
+
 func (h *Handler) Run(req router.Request, resp router.Response) error {
 	cj := req.Object.(*v1.CronJob)
 	lastRun := cj.Status.LastRunStartedAt
@@ -28,7 +44,7 @@ func (h *Handler) Run(req router.Request, resp router.Response) error {
 		lastRun = &cj.CreationTimestamp
 	}
 
-	sched, err := cron.ParseStandard(cj.Spec.Schedule)
+	sched, err := cron.ParseStandard(GetSchedule(*cj))
 	if err != nil {
 		return fmt.Errorf("failed to parse schedule: %w", err)
 	}

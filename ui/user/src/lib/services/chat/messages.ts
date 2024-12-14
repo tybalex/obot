@@ -1,13 +1,13 @@
 import items from '$lib/stores/editor.svelte';
 import type { Explain, InputMessage, Message, Messages, Progress } from './types';
 
-const ottoAIIcon = 'Otto';
+const assistantIcon = 'Assistant';
 const profileIcon = 'Profile';
 
 function toMessageFromInput(s: string): string {
 	try {
 		const input = JSON.parse(s) as InputMessage;
-		if (input.type === 'otto-prompt') {
+		if (input.type === 'assistant-prompt') {
 			return input.prompt;
 		}
 	} catch {
@@ -249,8 +249,8 @@ function newOAuthMessage(progress: Progress): Message {
 	return {
 		runID: progress.runID || '',
 		time: new Date(progress.time),
-		icon: progress.prompt?.metadata?.icon || ottoAIIcon,
-		sourceName: progress.prompt?.name || 'Otto',
+		icon: progress.prompt?.metadata?.icon || assistantIcon,
+		sourceName: progress.prompt?.name || 'Assistant',
 		sourceDescription: progress.prompt?.description,
 		oauthURL: progress.prompt?.metadata?.authURL || '',
 		message: progress.prompt?.message ? [progress.prompt?.message] : []
@@ -261,8 +261,8 @@ function newWaitingOnModelMessage(progress: Progress): Message {
 	return {
 		runID: progress.runID || '',
 		time: new Date(progress.time),
-		icon: ottoAIIcon,
-		sourceName: 'Otto',
+		icon: assistantIcon,
+		sourceName: 'Assistant',
 		message: ['Thinking really hard...']
 	};
 }
@@ -271,8 +271,8 @@ function newContentMessage(progress: Progress): Message {
 	const result: Message = {
 		time: new Date(progress.time),
 		runID: progress.runID || '',
-		icon: ottoAIIcon,
-		sourceName: 'Otto',
+		icon: assistantIcon,
+		sourceName: 'Assistant',
 		message: [progress.toolInput?.input ?? progress.content],
 		contentID: progress.contentID
 	};
