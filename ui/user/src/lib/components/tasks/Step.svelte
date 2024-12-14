@@ -33,7 +33,7 @@
 
 	let step = $derived(task.steps[index]);
 	let messages = $derived(stepMessages?.get(step.id)?.messages ?? []);
-	let lastSeenValue = $state('');
+	let lastSeenValue: string | undefined = $state();
 	let currentValue = $state(task.steps[index].step);
 	let dirty = $derived(task.steps[index].step !== currentValue);
 	let stale: boolean = $derived(dirty || parentStale || !parentMatches());
@@ -45,7 +45,7 @@
 		if (editMode) {
 			if (lastSeenValue !== step.step) {
 				currentValue = step.step;
-				lastSeenValue = currentValue ?? '';
+				lastSeenValue = step.step;
 			}
 		} else {
 			if (currentValue !== step.step) {
