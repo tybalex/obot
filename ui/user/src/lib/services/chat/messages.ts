@@ -68,6 +68,24 @@ function reformatInputMessage(msg: Message) {
 	}
 }
 
+function getFilenameAndContent(content: string) {
+	let testContent = content;
+	while (testContent) {
+		try {
+			if (!testContent.endsWith('"}')) {
+				return JSON.parse(testContent + '"}');
+			}
+			return JSON.parse(testContent);
+		} catch {
+			testContent = testContent.slice(0, -1);
+		}
+	}
+	return {
+		filename: '',
+		content: ''
+	}
+}
+
 function reformatWriteMessage(msg: Message, last: boolean) {
 	msg.icon = 'Pencil';
 	msg.done = !last || msg.toolCall !== undefined;
@@ -77,7 +95,7 @@ function reformatWriteMessage(msg: Message, last: boolean) {
 		content += '"}';
 	}
 	try {
-		const obj = JSON.parse(content);
+		const obj = getFilenameAndContent(content);
 		if (obj.filename) {
 			msg.file = {
 				filename: obj.filename,
