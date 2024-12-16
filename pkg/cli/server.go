@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/otto8-ai/otto8/pkg/server"
-	"github.com/otto8-ai/otto8/pkg/services"
+	"github.com/acorn-io/acorn/pkg/server"
+	"github.com/acorn-io/acorn/pkg/services"
 	"github.com/spf13/cobra"
 )
 

@@ -3,9 +3,9 @@ package router
 import (
 	"net/http"
 
-	"github.com/otto8-ai/otto8/pkg/api/handlers"
-	"github.com/otto8-ai/otto8/pkg/services"
-	"github.com/otto8-ai/otto8/ui"
+	"github.com/acorn-io/acorn/pkg/api/handlers"
+	"github.com/acorn-io/acorn/pkg/services"
+	"github.com/acorn-io/acorn/ui"
 )
 
 func Router(services *services.Services) (http.Handler, error) {

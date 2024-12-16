@@ -55,11 +55,11 @@ export type ModelProviderFormValues = z.infer<typeof formSchema>;
 
 const translateUserFriendlyLabel = (label: string) => {
     const fieldsToStrip = [
-        "OTTO8_OPENAI_MODEL_PROVIDER",
-        "OTTO8_AZURE_OPENAI_MODEL_PROVIDER",
-        "OTTO8_ANTHROPIC_MODEL_PROVIDER",
-        "OTTO8_OLLAMA_MODEL_PROVIDER",
-        "OTTO8_VOYAGE_MODEL_PROVIDER",
+        "ACORN_OPENAI_MODEL_PROVIDER",
+        "ACORN_AZURE_OPENAI_MODEL_PROVIDER",
+        "ACORN_ANTHROPIC_MODEL_PROVIDER",
+        "ACORN_OLLAMA_MODEL_PROVIDER",
+        "ACORN_VOYAGE_MODEL_PROVIDER",
     ];
 
     return fieldsToStrip

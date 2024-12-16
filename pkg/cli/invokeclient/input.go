@@ -3,9 +3,9 @@ package invokeclient
 import (
 	"context"
 
-	"github.com/otto8-ai/otto8/apiclient"
-	"github.com/otto8-ai/otto8/apiclient/types"
-	"github.com/otto8-ai/otto8/pkg/cli/textio"
+	"github.com/acorn-io/acorn/apiclient"
+	"github.com/acorn-io/acorn/apiclient/types"
+	"github.com/acorn-io/acorn/pkg/cli/textio"
 )
 
 type QuietInputter struct {

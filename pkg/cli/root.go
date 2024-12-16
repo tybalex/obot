@@ -3,12 +3,12 @@ package cli
 import (
 	"os"
 
+	"github.com/acorn-io/acorn/apiclient"
+	"github.com/acorn-io/acorn/logger"
+	"github.com/acorn-io/acorn/pkg/cli/internal"
 	"github.com/fatih/color"
 	"github.com/gptscript-ai/cmd"
 	"github.com/gptscript-ai/gptscript/pkg/env"
-	"github.com/otto8-ai/otto8/apiclient"
-	"github.com/otto8-ai/otto8/logger"
-	"github.com/otto8-ai/otto8/pkg/cli/internal"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -37,8 +37,8 @@ func (a *Otto8) PersistentPre(cmd *cobra.Command, args []string) error {
 func New() *cobra.Command {
 	root := &Otto8{
 		Client: &apiclient.Client{
-			BaseURL: env.VarOrDefault("OTTO8_BASE_URL", "http://localhost:8080/api"),
-			Token:   os.Getenv("OTTO8_TOKEN"),
+			BaseURL: env.VarOrDefault("ACORN_BASE_URL", "http://localhost:8080/api"),
+			Token:   os.Getenv("ACORN_TOKEN"),
 		},
 	}
 	return cmd.Command(root,

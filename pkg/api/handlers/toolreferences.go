@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/acorn-io/acorn/apiclient/types"
+	"github.com/acorn-io/acorn/pkg/api"
+	v1 "github.com/acorn-io/acorn/pkg/storage/apis/otto.otto8.ai/v1"
+	"github.com/acorn-io/nah/pkg/name"
 	"github.com/gptscript-ai/go-gptscript"
-	"github.com/otto8-ai/nah/pkg/name"
-	"github.com/otto8-ai/otto8/apiclient/types"
-	"github.com/otto8-ai/otto8/pkg/api"
-	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )

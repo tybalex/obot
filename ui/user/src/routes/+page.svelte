@@ -43,7 +43,7 @@
 		<a href="https://docs.otto8.ai" class="icon-button" rel="external">
 			<Book />
 		</a>
-		<a href="https://github.com/otto8-ai/otto8" class="icon-button text-white hover:text-blue-50">
+		<a href="https://github.com/acorn-io/acorn" class="icon-button text-white hover:text-blue-50">
 			{#if $darkMode}
 				<img src="/images/github-mark/github-mark-white.svg" alt="GitHub" class="h-8" />
 			{:else}

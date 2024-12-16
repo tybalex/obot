@@ -3,8 +3,8 @@ package cli
 import (
 	"fmt"
 
+	"github.com/acorn-io/acorn/apiclient/types"
 	"github.com/dustin/go-humanize"
-	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/spf13/cobra"
 )
 

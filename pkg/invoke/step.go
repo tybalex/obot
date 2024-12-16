@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/otto8-ai/nah/pkg/router"
-	"github.com/otto8-ai/otto8/apiclient/types"
-	"github.com/otto8-ai/otto8/pkg/render"
-	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
+	"github.com/acorn-io/acorn/apiclient/types"
+	"github.com/acorn-io/acorn/pkg/render"
+	v1 "github.com/acorn-io/acorn/pkg/storage/apis/otto.otto8.ai/v1"
+	"github.com/acorn-io/nah/pkg/router"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 

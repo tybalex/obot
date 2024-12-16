@@ -3,8 +3,8 @@ package server
 import (
 	_ "embed"
 
-	"github.com/otto8-ai/otto8/pkg/api"
-	"github.com/otto8-ai/otto8/pkg/api/server"
+	"github.com/acorn-io/acorn/pkg/api"
+	"github.com/acorn-io/acorn/pkg/api/server"
 )
 
 func (s *Server) AddRoutes(mux *server.Server) {

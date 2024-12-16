@@ -5,9 +5,9 @@ import (
 	"iter"
 	"strings"
 
+	"github.com/acorn-io/acorn/apiclient"
+	"github.com/acorn-io/acorn/apiclient/types"
 	"github.com/dustin/go-humanize"
-	"github.com/otto8-ai/otto8/apiclient"
-	"github.com/otto8-ai/otto8/apiclient/types"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )

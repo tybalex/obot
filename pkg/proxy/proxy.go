@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/acorn-io/acorn/pkg/mvl"
 	oauth2proxy "github.com/oauth2-proxy/oauth2-proxy/v7"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/apis/options"
 	"github.com/oauth2-proxy/oauth2-proxy/v7/pkg/validation"
-	"github.com/otto8-ai/otto8/pkg/mvl"
 	"k8s.io/apiserver/pkg/authentication/authenticator"
 	"k8s.io/apiserver/pkg/authentication/user"
 )

@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/otto8-ai/namegenerator"
-	"github.com/otto8-ai/otto8/pkg/cli/edit"
-	"github.com/otto8-ai/otto8/pkg/cli/templates"
+	"github.com/acorn-io/acorn/pkg/cli/edit"
+	"github.com/acorn-io/acorn/pkg/cli/templates"
+	"github.com/acorn-io/namegenerator"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"

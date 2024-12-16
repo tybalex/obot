@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/otto8-ai/otto8/apiclient/types"
-	"github.com/otto8-ai/otto8/pkg/system"
+	"github.com/acorn-io/acorn/apiclient/types"
+	"github.com/acorn-io/acorn/pkg/system"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 )

@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/otto8-ai/otto8/pkg/cli/invokeclient"
-	"github.com/otto8-ai/otto8/pkg/system"
+	"github.com/acorn-io/acorn/pkg/cli/invokeclient"
+	"github.com/acorn-io/acorn/pkg/system"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )

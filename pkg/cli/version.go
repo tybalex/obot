@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 
-	"github.com/otto8-ai/otto8/pkg/version"
+	"github.com/acorn-io/acorn/pkg/version"
 	"github.com/spf13/cobra"
 )
 

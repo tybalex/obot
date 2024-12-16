@@ -1,11 +1,11 @@
-module github.com/otto8-ai/otto8/apiclient
+module github.com/acorn-io/acorn/apiclient
 
 go 1.23.1
 
 require (
 	github.com/getkin/kin-openapi v0.124.0
 	github.com/gptscript-ai/go-gptscript v0.9.4
-	github.com/otto8-ai/otto8/logger v0.0.0-20241210141510-f6d8aba1961a
+	github.com/acorn-io/acorn/logger v0.0.0-20241210141510-f6d8aba1961a
 )
 
 require (

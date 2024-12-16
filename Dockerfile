@@ -49,19 +49,19 @@ RUN mkdir /run/sshd && /usr/sbin/sshd
 COPY encryption.yaml /
 COPY --chmod=0755 run.sh /bin/run.sh
 
-COPY --link --from=tools /app/otto8-tools /otto8-tools
+COPY --link --from=tools /app/acorn-tools /acorn-tools
 COPY --from=bin /app/bin/otto8 /bin/
 
 EXPOSE 22
 # libreoffice executables
-ENV PATH=/otto8-tools/venv/bin:$PATH:/usr/lib/libreoffice/program
+ENV PATH=/acorn-tools/venv/bin:$PATH:/usr/lib/libreoffice/program
 ENV HOME=/data
 ENV XDG_CACHE_HOME=/data/cache
-ENV GPTSCRIPT_SYSTEM_TOOLS_DIR=/otto8-tools/
-ENV OTTO8_SERVER_WORKSPACE_TOOL=/otto8-tools/workspace-provider
-ENV OTTO8_SERVER_DATASETS_TOOL=/otto8-tools/datasets
-ENV OTTO8_SERVER_TOOL_REGISTRY=/otto8-tools
-ENV OTTO8_SERVER_ENCRYPTION_CONFIG_FILE=/encryption.yaml
+ENV GPTSCRIPT_SYSTEM_TOOLS_DIR=/acorn-tools/
+ENV ACORN_SERVER_WORKSPACE_TOOL=/acorn-tools/workspace-provider
+ENV ACORN_SERVER_DATASETS_TOOL=/acorn-tools/datasets
+ENV ACORN_SERVER_TOOL_REGISTRY=/acorn-tools
+ENV ACORN_SERVER_ENCRYPTION_CONFIG_FILE=/encryption.yaml
 ENV GOMEMLIMIT=1GiB
 ENV BAAAH_THREADINESS=20
 ENV TERM=vt100

@@ -12,7 +12,7 @@ import (
 
 var (
 	envs = []string{
-		"OTTO8_EDITOR",
+		"ACORN_EDITOR",
 		"EDITOR",
 	}
 )

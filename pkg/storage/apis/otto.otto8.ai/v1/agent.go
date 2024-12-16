@@ -3,8 +3,8 @@ package v1
 import (
 	"context"
 
-	"github.com/otto8-ai/nah/pkg/fields"
-	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/acorn-io/acorn/apiclient/types"
+	"github.com/acorn-io/nah/pkg/fields"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )

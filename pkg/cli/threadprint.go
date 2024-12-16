@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"github.com/otto8-ai/otto8/apiclient"
-	"github.com/otto8-ai/otto8/pkg/cli/events"
+	"github.com/acorn-io/acorn/apiclient"
+	"github.com/acorn-io/acorn/pkg/cli/events"
 	"github.com/spf13/cobra"
 )
 

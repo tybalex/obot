@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/otto8-ai/otto8/apiclient"
-	"github.com/otto8-ai/otto8/pkg/system"
+	"github.com/acorn-io/acorn/apiclient"
+	"github.com/acorn-io/acorn/pkg/system"
 	"github.com/spf13/cobra"
 )
 

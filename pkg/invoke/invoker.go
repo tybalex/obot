@@ -12,19 +12,19 @@ import (
 	"sync"
 	"time"
 
+	"github.com/acorn-io/acorn/apiclient/types"
+	"github.com/acorn-io/acorn/logger"
+	"github.com/acorn-io/acorn/pkg/events"
+	"github.com/acorn-io/acorn/pkg/gz"
+	"github.com/acorn-io/acorn/pkg/hash"
+	"github.com/acorn-io/acorn/pkg/jwt"
+	"github.com/acorn-io/acorn/pkg/render"
+	v1 "github.com/acorn-io/acorn/pkg/storage/apis/otto.otto8.ai/v1"
+	"github.com/acorn-io/acorn/pkg/system"
+	"github.com/acorn-io/acorn/pkg/wait"
+	"github.com/acorn-io/nah/pkg/router"
+	"github.com/acorn-io/nah/pkg/uncached"
 	"github.com/gptscript-ai/go-gptscript"
-	"github.com/otto8-ai/nah/pkg/router"
-	"github.com/otto8-ai/nah/pkg/uncached"
-	"github.com/otto8-ai/otto8/apiclient/types"
-	"github.com/otto8-ai/otto8/logger"
-	"github.com/otto8-ai/otto8/pkg/events"
-	"github.com/otto8-ai/otto8/pkg/gz"
-	"github.com/otto8-ai/otto8/pkg/hash"
-	"github.com/otto8-ai/otto8/pkg/jwt"
-	"github.com/otto8-ai/otto8/pkg/render"
-	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
-	"github.com/otto8-ai/otto8/pkg/system"
-	"github.com/otto8-ai/otto8/pkg/wait"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
@@ -482,19 +482,19 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.WithWatch, thread *v1.Th
 				fmt.Sprintf("GPTSCRIPT_MODEL_PROVIDER_PROXY_URL=%s/api/llm-proxy", i.serverURL),
 				"GPTSCRIPT_MODEL_PROVIDER_PROXY_TOKEN="+token,
 				"GPTSCRIPT_MODEL_PROVIDER_TOKEN="+token,
-				"OTTO8_SERVER_URL="+i.serverURL,
-				"OTTO8_TOKEN="+token,
-				"OTTO8_RUN_ID="+run.Name,
-				"OTTO8_THREAD_ID="+thread.Name,
-				"OTTO8_WORKFLOW_ID="+run.Spec.WorkflowName,
-				"OTTO8_WORKFLOW_STEP_ID="+run.Spec.WorkflowStepID,
-				"OTTO8_AGENT_ID="+run.Spec.AgentName,
-				"OTTO8_DEFAULT_LLM_MODEL="+string(types.DefaultModelAliasTypeLLM),
-				"OTTO8_DEFAULT_LLM_MINI_MODEL="+string(types.DefaultModelAliasTypeLLMMini),
-				"OTTO8_DEFAULT_TEXT_EMBEDDING_MODEL="+string(types.DefaultModelAliasTypeTextEmbedding),
-				"OTTO8_DEFAULT_IMAGE_GENERATION_MODEL="+string(types.DefaultModelAliasTypeImageGeneration),
-				"OTTO8_DEFAULT_VISION_MODEL="+string(types.DefaultModelAliasTypeVision),
-				"GPTSCRIPT_HTTP_ENV=OTTO8_TOKEN,OTTO8_RUN_ID,OTTO8_THREAD_ID,OTTO8_WORKFLOW_ID,OTTO8_WORKFLOW_STEP_ID,OTTO8_AGENT_ID",
+				"ACORN_SERVER_URL="+i.serverURL,
+				"ACORN_TOKEN="+token,
+				"ACORN_RUN_ID="+run.Name,
+				"ACORN_THREAD_ID="+thread.Name,
+				"ACORN_WORKFLOW_ID="+run.Spec.WorkflowName,
+				"ACORN_WORKFLOW_STEP_ID="+run.Spec.WorkflowStepID,
+				"ACORN_AGENT_ID="+run.Spec.AgentName,
+				"ACORN_DEFAULT_LLM_MODEL="+string(types.DefaultModelAliasTypeLLM),
+				"ACORN_DEFAULT_LLM_MINI_MODEL="+string(types.DefaultModelAliasTypeLLMMini),
+				"ACORN_DEFAULT_TEXT_EMBEDDING_MODEL="+string(types.DefaultModelAliasTypeTextEmbedding),
+				"ACORN_DEFAULT_IMAGE_GENERATION_MODEL="+string(types.DefaultModelAliasTypeImageGeneration),
+				"ACORN_DEFAULT_VISION_MODEL="+string(types.DefaultModelAliasTypeVision),
+				"GPTSCRIPT_HTTP_ENV=ACORN_TOKEN,ACORN_RUN_ID,ACORN_THREAD_ID,ACORN_WORKFLOW_ID,ACORN_WORKFLOW_STEP_ID,ACORN_AGENT_ID",
 			),
 			DefaultModel:         run.Spec.DefaultModel,
 			DefaultModelProvider: modelProvider,

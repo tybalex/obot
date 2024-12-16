@@ -6,13 +6,13 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/acorn-io/acorn/apiclient/types"
+	"github.com/acorn-io/acorn/pkg/api"
+	"github.com/acorn-io/acorn/pkg/api/authn"
+	"github.com/acorn-io/acorn/pkg/api/authz"
+	"github.com/acorn-io/acorn/pkg/proxy"
+	"github.com/acorn-io/acorn/pkg/storage"
 	"github.com/gptscript-ai/go-gptscript"
-	"github.com/otto8-ai/otto8/apiclient/types"
-	"github.com/otto8-ai/otto8/pkg/api"
-	"github.com/otto8-ai/otto8/pkg/api/authn"
-	"github.com/otto8-ai/otto8/pkg/api/authz"
-	"github.com/otto8-ai/otto8/pkg/proxy"
-	"github.com/otto8-ai/otto8/pkg/storage"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 

@@ -1,8 +1,8 @@
 package workflow
 
 import (
-	"github.com/otto8-ai/nah/pkg/router"
-	v1 "github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
+	v1 "github.com/acorn-io/acorn/pkg/storage/apis/otto.otto8.ai/v1"
+	"github.com/acorn-io/nah/pkg/router"
 	"k8s.io/apimachinery/pkg/api/equality"
 )
 

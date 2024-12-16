@@ -1,8 +1,8 @@
 package scheme
 
 import (
-	"github.com/otto8-ai/nah/pkg/restconfig"
-	"github.com/otto8-ai/otto8/pkg/storage/apis/otto.otto8.ai/v1"
+	"github.com/acorn-io/acorn/pkg/storage/apis/otto.otto8.ai/v1"
+	"github.com/acorn-io/nah/pkg/restconfig"
 	coordinationv1 "k8s.io/api/coordination/v1"
 	corev1 "k8s.io/api/core/v1"
 )

@@ -10,16 +10,16 @@ Otto8 is an open source AI agent platform. Key features include:
 ### Getting Started
 Launch Otto8 via docker:
 ```bash
-docker run -d -p 8080:8080 -e "OPENAI_API_KEY=<OPEN AI KEY>" ghcr.io/otto8-ai/otto8:latest
+docker run -d -p 8080:8080 -e "OPENAI_API_KEY=<OPEN AI KEY>" ghcr.io/acorn-io/acorn:latest
 ```
 Then visit http://localhost:8080.
 
 The `otto8` CLI can be installed via brew on MacOS or Linux:
 ```bash
-brew tap otto8-ai/tap
+brew tap acorn-io/tap
 brew install otto8
 ```
-or by downloading the binary for your platform from our [latest release](https://github.com/otto8-ai/otto8/releases/latest).
+or by downloading the binary for your platform from our [latest release](https://github.com/acorn-io/acorn/releases/latest).
 
 ### Next Steps
 

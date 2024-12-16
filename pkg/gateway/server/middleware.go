@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"runtime/debug"
 
-	"github.com/otto8-ai/otto8/pkg/api"
-	"github.com/otto8-ai/otto8/pkg/gateway/context"
-	"github.com/otto8-ai/otto8/pkg/gateway/log"
+	"github.com/acorn-io/acorn/pkg/api"
+	"github.com/acorn-io/acorn/pkg/gateway/context"
+	"github.com/acorn-io/acorn/pkg/gateway/log"
 )
 
 func apply(h api.HandlerFunc, m ...api.Middleware) api.HandlerFunc {

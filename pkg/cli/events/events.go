@@ -3,8 +3,8 @@ package events
 import (
 	"context"
 
-	"github.com/otto8-ai/otto8/apiclient"
-	"github.com/otto8-ai/otto8/apiclient/types"
+	"github.com/acorn-io/acorn/apiclient"
+	"github.com/acorn-io/acorn/apiclient/types"
 )
 
 type Printer interface {
