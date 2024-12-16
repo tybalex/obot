@@ -7,6 +7,7 @@
 	import Task from '$lib/components/tasks/Task.svelte';
 	import Controls from '$lib/components/editor/Controls.svelte';
 	import { currentAssistant } from '$lib/stores';
+	import Image from '$lib/components/editor/Image.svelte';
 
 	function onFileChanged(name: string, contents: string) {
 		for (const item of EditorService.items) {
@@ -76,6 +77,8 @@
 						file.name = task.name || file.name;
 					}}
 				/>
+			{:else if file.name.toLowerCase().endsWith('.png')}
+				<Image mime="image/png" {file} />
 			{:else}
 				<Codemirror {file} {onFileChanged} {onInvoke} />
 			{/if}

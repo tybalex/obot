@@ -4,6 +4,7 @@ export interface EditorItem {
 	id: string;
 	name: string;
 	contents: string;
+	blob?: Blob;
 	buffer: string;
 	modified?: boolean;
 	selected?: boolean;

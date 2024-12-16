@@ -46,10 +46,10 @@ export async function deleteFile(assistant: string, filename: string) {
 	return doDelete(`/assistants/${assistant}/files/${filename}`);
 }
 
-export async function getFile(assistant: string, filename: string): Promise<string> {
+export async function getFile(assistant: string, filename: string): Promise<Blob> {
 	return (await doGet(`/assistants/${assistant}/file/${filename}`, {
-		text: true
-	})) as string;
+		blob: true
+	})) as Blob;
 }
 
 export async function uploadKnowledge(assistant: string, file: File): Promise<KnowledgeFile> {

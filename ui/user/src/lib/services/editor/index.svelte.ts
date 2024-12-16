@@ -89,11 +89,13 @@ async function loadTask(assistant: string, taskID: string) {
 
 async function loadFile(assistant: string, file: string) {
 	try {
-		const contents = await ChatService.getFile(assistant, file);
+		const blob = await ChatService.getFile(assistant, file);
+		const contents = await blob.text()
 		const targetFile = {
 			id: file,
 			name: file,
 			contents,
+			blob: blob,
 			buffer: '',
 			modified: false,
 			selected: true
