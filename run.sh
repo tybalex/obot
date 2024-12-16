@@ -39,4 +39,4 @@ if [ -z "$ACORN_SERVER_DSN" ]; then
   export ACORN_SERVER_DSN="postgresql://acorn:acorn@localhost:5432/acorn"
 fi
 
-exec tini -- otto8 server
+exec tini -- acorn server
