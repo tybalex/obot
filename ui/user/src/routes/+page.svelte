@@ -60,7 +60,7 @@
 			{/if}
 		</div>
 		<h1 class="text-7xl text-blue-50">
-			Friendly. <span class="text-black dark:text-white">Open Source.</span> Assistant.
+			<span class="text-black dark:text-white">Friendly. Open Source. Assistant.</span>
 		</h1>
 
 		<div class="mt-32 flex items-center gap-4">
@@ -79,13 +79,6 @@
 					alt="Google"
 				/>
 			</a>
-			<h3 class="text-lg">or</h3>
-			<pre><code
-					class="rounded-full bg-gray-100 dark:bg-gray-900"
-					style="padding: 16px 32px 16px 32px"
-					data-language="shell">docker run -p 80:8080 -e OPENAI_API_KEY otto8/otto8</code
-				></pre>
 		</div>
-		<h2 class="text-2xl">Talk to me here or run me yourself.</h2>
 	</div>
 </div>
