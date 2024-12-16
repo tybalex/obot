@@ -12,7 +12,7 @@ import (
 )
 
 type Edit struct {
-	root   *Otto8
+	root   *Acorn
 	Prompt bool `usage:"Edit just the prompt for the agent" short:"p"`
 }
 

@@ -6,7 +6,7 @@ BIN_DIR=${BIN_DIR:-./bin}
 cd $(dirname $0)/..
 
 if [ ! -e acorn-tools ]; then
-    git clone --depth=1 https://github.com/otto8-ai/tools acorn-tools
+    git clone --depth=1 https://github.com/acorn-io/tools acorn-tools
 fi
 
 ./acorn-tools/scripts/build.sh

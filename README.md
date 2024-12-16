@@ -1,6 +1,6 @@
-# otto8
+# Acorn
 
-Otto8 is an open source AI agent platform. Key features include:
+Acorn is an open source AI agent platform. Key features include:
 - Ability to build agents to support a variety of usecases including copilots, assistants, and autonomous agentic workflows.
 - Integration with leading LLM providers
 - Built-in RAG for your data
@@ -8,16 +8,16 @@ Otto8 is an open source AI agent platform. Key features include:
 - OAuth 2.0 authentication
 
 ### Getting Started
-Launch Otto8 via docker:
+Launch Acorn via docker:
 ```bash
 docker run -d -p 8080:8080 -e "OPENAI_API_KEY=<OPEN AI KEY>" ghcr.io/acorn-io/acorn:latest
 ```
 Then visit http://localhost:8080.
 
-The `otto8` CLI can be installed via brew on MacOS or Linux:
+The `acorn` CLI can be installed via brew on MacOS or Linux:
 ```bash
 brew tap acorn-io/tap
-brew install otto8
+brew install acorn
 ```
 or by downloading the binary for your platform from our [latest release](https://github.com/acorn-io/acorn/releases/latest).
 

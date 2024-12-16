@@ -10,7 +10,7 @@ replace (
 
 require (
 	github.com/acorn-io/acorn/apiclient v0.0.0-00010101000000-000000000000
-	github.com/acorn-io/acorn/logger v0.0.0-20241210141510-f6d8aba1961a
+	github.com/acorn-io/acorn/logger v0.0.0-20241216130324-9a09554e0785
 	github.com/acorn-io/kinm v0.0.0-20241216114326-54409c6274c9
 	github.com/acorn-io/nah v0.0.0-20241216115213-e6506200369b
 	github.com/acorn-io/namegenerator v0.0.0-20220915160418-9e3d5a0ffe78

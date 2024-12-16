@@ -32,9 +32,9 @@ RUN git clone --branch v0.8.0 https://github.com/pgvector/pgvector.git && \
     rm -rf pgvector
 
 FROM cgr.dev/chainguard/postgres:latest-dev AS final
-ENV POSTGRES_USER=otto8
-ENV POSTGRES_PASSWORD=otto8
-ENV POSTGRES_DB=otto8
+ENV POSTGRES_USER=acorn
+ENV POSTGRES_PASSWORD=acorn
+ENV POSTGRES_DB=acorn
 ENV PGDATA=/data/postgresql
 
 COPY --from=build-pgvector /usr/lib/postgresql17/vector.so /usr/lib/postgresql17/
@@ -50,7 +50,7 @@ COPY encryption.yaml /
 COPY --chmod=0755 run.sh /bin/run.sh
 
 COPY --link --from=tools /app/acorn-tools /acorn-tools
-COPY --from=bin /app/bin/otto8 /bin/
+COPY --from=bin /app/bin/acorn /bin/
 
 EXPOSE 22
 # libreoffice executables

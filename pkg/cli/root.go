@@ -13,12 +13,12 @@ import (
 	"golang.org/x/term"
 )
 
-type Otto8 struct {
+type Acorn struct {
 	Debug  bool `usage:"Enable debug logging"`
 	Client *apiclient.Client
 }
 
-func (a *Otto8) PersistentPre(cmd *cobra.Command, args []string) error {
+func (a *Acorn) PersistentPre(cmd *cobra.Command, args []string) error {
 	if os.Getenv("NO_COLOR") != "" || !term.IsTerminal(int(os.Stdout.Fd())) {
 		color.NoColor = true
 	}
@@ -35,7 +35,7 @@ func (a *Otto8) PersistentPre(cmd *cobra.Command, args []string) error {
 }
 
 func New() *cobra.Command {
-	root := &Otto8{
+	root := &Acorn{
 		Client: &apiclient.Client{
 			BaseURL: env.VarOrDefault("ACORN_BASE_URL", "http://localhost:8080/api"),
 			Token:   os.Getenv("ACORN_TOKEN"),
@@ -63,6 +63,6 @@ func New() *cobra.Command {
 	)
 }
 
-func (a *Otto8) Run(cmd *cobra.Command, args []string) error {
+func (a *Acorn) Run(cmd *cobra.Command, args []string) error {
 	return cmd.Help()
 }

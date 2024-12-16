@@ -13,7 +13,7 @@ import (
 )
 
 type Runs struct {
-	root   *Otto8
+	root   *Acorn
 	Wide   bool   `usage:"Print more information" short:"w"`
 	Quiet  bool   `usage:"Only print IDs of runs" short:"q"`
 	Output string `usage:"Output format (table, json, yaml)" short:"o" default:"table"`

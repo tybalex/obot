@@ -8,7 +8,7 @@ import (
 )
 
 type ToolRegister struct {
-	root  *Otto8
+	root  *Acorn
 	Quiet bool `usage:"Only print IDs of created tool references:" short:"q"`
 }
 

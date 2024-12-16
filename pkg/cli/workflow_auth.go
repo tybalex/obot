@@ -6,7 +6,7 @@ import (
 )
 
 type WorkflowAuth struct {
-	root *Otto8
+	root *Acorn
 }
 
 func (l *WorkflowAuth) Customize(cmd *cobra.Command) {

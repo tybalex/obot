@@ -9,7 +9,7 @@ import (
 )
 
 type Tools struct {
-	root   *Otto8
+	root   *Acorn
 	Quiet  bool   `usage:"Only print IDs of tools" short:"q"`
 	Output string `usage:"Output format (table, json, yaml)" short:"o" default:"table"`
 }

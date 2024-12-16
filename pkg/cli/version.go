@@ -8,7 +8,7 @@ import (
 )
 
 type Version struct {
-	root *Otto8
+	root *Acorn
 }
 
 func (l *Version) Run(cmd *cobra.Command, args []string) error {

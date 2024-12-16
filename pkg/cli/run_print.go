@@ -6,7 +6,7 @@ import (
 )
 
 type RunPrint struct {
-	root    *Otto8
+	root    *Acorn
 	Quiet   bool `usage:"Only print the response content of the runs" short:"q"`
 	Verbose bool `usage:"Print more information" short:"v"`
 }

@@ -7,7 +7,7 @@ import (
 )
 
 type ThreadPrint struct {
-	root    *Otto8
+	root    *Acorn
 	Quiet   bool `usage:"Only print response content of threads" short:"q"`
 	Follow  bool `usage:"Follow the thread and print new events" short:"f"`
 	Verbose bool `usage:"Print more information" short:"v"`

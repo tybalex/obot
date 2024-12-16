@@ -54,14 +54,14 @@ type Config struct {
 	DevMode                    bool   `usage:"Enable development mode" default:"false" name:"dev-mode" env:"ACORN_DEV_MODE"`
 	DevUIPort                  int    `usage:"The port on localhost running the dev instance of the UI" default:"5173"`
 	AllowedOrigin              string `usage:"Allowed origin for CORS"`
-	ToolRegistry               string `usage:"The tool reference for the tool registry" default:"github.com/otto8-ai/tools"`
+	ToolRegistry               string `usage:"The tool reference for the tool registry" default:"github.com/acorn-io/tools"`
 	WorkspaceProviderType      string `usage:"The type of workspace provider to use for non-knowledge workspaces" default:"directory" env:"ACORN_WORKSPACE_PROVIDER_TYPE"`
 	WorkspaceTool              string `usage:"The tool reference for the workspace provider" default:"github.com/gptscript-ai/workspace-provider"`
 	DatasetsTool               string `usage:"The tool reference for the dataset provider" default:"github.com/gptscript-ai/datasets"`
 	HelperModel                string `usage:"The model used to generate names and descriptions" default:"gpt-4o-mini"`
 	AWSKMSKeyARN               string `usage:"The ARN of the AWS KMS key to use for encrypting credential storage" env:"ACORN_AWS_KMS_KEY_ARN" name:"aws-kms-key-arn"`
 	EncryptionConfigFile       string `usage:"The path to the encryption configuration file" default:"./encryption.yaml"`
-	KnowledgeSetIngestionLimit int    `usage:"The maximum number of files to ingest into a knowledge set" default:"1000" env:"OTTO_KNOWLEDGESET_INGESTION_LIMIT" name:"knowledge-set-ingestion-limit"`
+	KnowledgeSetIngestionLimit int    `usage:"The maximum number of files to ingest into a knowledge set" default:"1000" env:"ACORN_KNOWLEDGESET_INGESTION_LIMIT" name:"knowledge-set-ingestion-limit"`
 	EmailServerName            string `usage:"The name of the email server to display for email receivers (default: ui-hostname value)"`
 
 	AuthConfig
@@ -92,7 +92,7 @@ type Services struct {
 
 const (
 	defaultDatasetsTool  = "github.com/gptscript-ai/datasets"
-	defaultToolsRegistry = "github.com/otto8-ai/tools"
+	defaultToolsRegistry = "github.com/acorn-io/tools"
 )
 
 func newGPTScript(ctx context.Context, workspaceTool, datasetsTool, toolsRegistry string) (*gptscript.GPTScript, error) {

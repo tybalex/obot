@@ -63,7 +63,7 @@ func New(serverURL string, authProviderID uint, cfg Config) (*Proxy, error) {
 	oauthProxyOpts.Server.BindAddress = ""
 	oauthProxyOpts.MetricsServer.BindAddress = ""
 	oauthProxyOpts.Cookie.Refresh = time.Hour
-	oauthProxyOpts.Cookie.Name = "otto_access_token"
+	oauthProxyOpts.Cookie.Name = "acorn_access_token"
 	oauthProxyOpts.Cookie.Secret = cfg.AuthCookieSecret
 	oauthProxyOpts.Cookie.Secure = strings.HasPrefix(serverURL, "https://")
 	oauthProxyOpts.UpstreamServers = options.UpstreamConfig{
