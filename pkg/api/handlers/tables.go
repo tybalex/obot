@@ -23,10 +23,10 @@ func NewTableHandler(gptScript *gptscript.GPTScript) *TableHandler {
 
 func (t *TableHandler) tables(req api.Context, workspaceID string) (string, error) {
 	var toolRef v1.ToolReference
-	if err := req.Get(&toolRef, "database-tables"); err != nil {
+	if err := req.Get(&toolRef, "database"); err != nil {
 		return "", err
 	}
-	run, err := t.gptScript.Run(req.Context(), toolRef.Status.Reference, gptscript.Options{
+	run, err := t.gptScript.Run(req.Context(), "Tables from "+toolRef.Status.Reference, gptscript.Options{
 		Workspace: workspaceID,
 	})
 	if err != nil {
@@ -38,7 +38,7 @@ func (t *TableHandler) tables(req api.Context, workspaceID string) (string, erro
 
 func (t *TableHandler) rows(req api.Context, workspaceID, tableName string) (string, error) {
 	var toolRef v1.ToolReference
-	if err := req.Get(&toolRef, "database-query"); err != nil {
+	if err := req.Get(&toolRef, "database"); err != nil {
 		return "", err
 	}
 	input, err := json.Marshal(map[string]string{
@@ -47,7 +47,7 @@ func (t *TableHandler) rows(req api.Context, workspaceID, tableName string) (str
 	if err != nil {
 		return "", err
 	}
-	run, err := t.gptScript.Run(req.Context(), toolRef.Status.Reference, gptscript.Options{
+	run, err := t.gptScript.Run(req.Context(), "Query from "+toolRef.Status.Reference, gptscript.Options{
 		Input:     string(input),
 		Workspace: workspaceID,
 	})
