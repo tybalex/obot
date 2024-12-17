@@ -25,7 +25,7 @@ require (
 	github.com/obot-platform/nah v0.0.0-20241217120500-e9169e4a999f
 	github.com/obot-platform/namegenerator v0.0.0-20241217121223-fc58bdb7dca2
 	github.com/obot-platform/obot/apiclient v0.0.0-00010101000000-000000000000
-	github.com/obot-platform/obot/logger v0.0.0-20241216130324-9a09554e0785
+	github.com/obot-platform/obot/logger v0.0.0-20241217130503-4004a5c69f32
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pterm/pterm v0.12.79
 	github.com/robfig/cron/v3 v3.0.1
@@ -64,7 +64,6 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/a8m/envsubst v1.4.2 // indirect
-	github.com/acorn-io/acorn/logger v0.0.0-20241216130324-9a09554e0785 // indirect
 	github.com/alecthomas/chroma/v2 v2.14.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect
