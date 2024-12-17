@@ -97,6 +97,7 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	// Agent files
 	mux.HandleFunc("GET /api/agents/{id}/files", agents.ListFiles)
+	mux.HandleFunc("GET /api/agents/{id}/file/{file...}", agents.GetFile)
 	mux.HandleFunc("POST /api/agents/{id}/files/{file}", agents.UploadFile)
 	mux.HandleFunc("DELETE /api/agents/{id}/files/{file}", agents.DeleteFile)
 
@@ -151,6 +152,7 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	// Workflow files
 	mux.HandleFunc("GET /api/workflows/{id}/files", agents.ListFiles)
+	mux.HandleFunc("GET /api/workflows/{id}/file/{file...}", agents.GetFile)
 	mux.HandleFunc("POST /api/workflows/{id}/files/{file}", agents.UploadFile)
 	mux.HandleFunc("DELETE /api/workflows/{id}/files/{file}", agents.DeleteFile)
 
