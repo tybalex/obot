@@ -591,6 +591,13 @@ func schema_obot_platform_obot_apiclient_types_Assistant(ref common.ReferenceCal
 							Format:  "",
 						},
 					},
+					"default": {
+						SchemaProps: spec.SchemaProps{
+							Default: false,
+							Type:    []string{"boolean"},
+							Format:  "",
+						},
+					},
 					"description": {
 						SchemaProps: spec.SchemaProps{
 							Default: "",
@@ -612,7 +619,7 @@ func schema_obot_platform_obot_apiclient_types_Assistant(ref common.ReferenceCal
 						},
 					},
 				},
-				Required: []string{"Metadata", "name", "description", "icons", "entityID"},
+				Required: []string{"Metadata", "name", "default", "description", "icons", "entityID"},
 			},
 		},
 		Dependencies: []string{
