@@ -31,7 +31,7 @@ export function Chat({ className }: ChatProps) {
     const showStartButtonPane = mode === "workflow" && !readOnly;
 
     return (
-        <div className={`flex flex-col h-full ${className}`}>
+        <div className={`flex flex-col h-full pb-5 ${className}`}>
             {showMessagePane && (
                 <div className="flex-grow overflow-hidden">
                     <MessagePane
@@ -55,9 +55,7 @@ export function Chat({ className }: ChatProps) {
                             setRunTriggered(true);
                             invoke(params && JSON.stringify(params));
                         }}
-                        className={cn({
-                            "w-full": threadId,
-                        })}
+                        className={cn({ "w-full": threadId })}
                         popoverContentProps={{
                             className: cn({ "translate-y-[-50%]": !threadId }),
                         }}

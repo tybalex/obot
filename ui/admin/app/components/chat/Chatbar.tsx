@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { cn } from "~/lib/utils";
 
+import { ChatActions } from "~/components/chat/ChatActions";
 import { useChat } from "~/components/chat/ChatContext";
 import { LoadingSpinner } from "~/components/ui/LoadingSpinner";
 import { Button } from "~/components/ui/button";
@@ -30,11 +31,12 @@ export function Chatbar({ className }: ChatbarProps) {
     return (
         <form
             onSubmit={handleSubmit}
-            className={cn("flex items-end gap-2 pb-10", className)}
+            className={cn("flex items-end gap-2", className)}
         >
             <div className="relative flex-grow">
                 <AutosizeTextarea
-                    className="resize-none rounded-xl h-[2.5rem] line-height-[1.25rem] min-h-[2.5rem] bg-background"
+                    className="rounded-3xl p-2"
+                    variant="flat"
                     value={input}
                     onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
@@ -46,17 +48,27 @@ export function Chatbar({ className }: ChatbarProps) {
                     minHeight={0}
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Type your message..."
+                    bottomContent={
+                        <div className="flex flex-row-reverse items-center justify-between">
+                            <Button
+                                size="icon-sm"
+                                className="m-2"
+                                color="primary"
+                                type="submit"
+                                disabled={!input || isRunning || isInvoking}
+                            >
+                                {isInvoking ? (
+                                    <LoadingSpinner />
+                                ) : (
+                                    <ArrowUpIcon />
+                                )}
+                            </Button>
+
+                            <ChatActions className="p-2" />
+                        </div>
+                    }
                 />
             </div>
-
-            <Button
-                size="icon"
-                className="rounded-full"
-                type="submit"
-                disabled={!input || isRunning || isInvoking}
-            >
-                {isInvoking ? <LoadingSpinner /> : <ArrowUpIcon />}
-            </Button>
         </form>
     );
 }
