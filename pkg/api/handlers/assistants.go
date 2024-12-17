@@ -238,11 +238,7 @@ func (a *AssistantHandler) Events(req api.Context) error {
 }
 
 func (a *AssistantHandler) Files(req api.Context) error {
-	var (
-		id = req.PathValue("id")
-	)
-
-	thread, err := getUserThread(req, id)
+	thread, err := getThreadForScope(req)
 	if err != nil {
 		return err
 	}
@@ -258,17 +254,13 @@ func (a *AssistantHandler) Files(req api.Context) error {
 }
 
 func (a *AssistantHandler) GetFile(req api.Context) error {
-	var (
-		id = req.PathValue("id")
-	)
-
-	thread, err := getUserThread(req, id)
+	thread, err := getThreadForScope(req)
 	if err != nil {
 		return err
 	}
 
 	if thread.Status.WorkspaceID == "" {
-		return types.NewErrNotFound("no workspace found for assistant %s", id)
+		return types.NewErrNotFound("no workspace found")
 	}
 
 	return getFileInWorkspace(req.Context(), req, a.gptScript, thread.Status.WorkspaceID, "files/")

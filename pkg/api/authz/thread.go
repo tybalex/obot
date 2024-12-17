@@ -17,7 +17,7 @@ func authorizeThread(req *http.Request, user user.Info) bool {
 	if req.Method == "GET" && strings.HasPrefix(req.URL.Path, "/api/threads/"+thread+"/") {
 		return true
 	}
-	if req.Method == "POST" && req.URL.Path == "/api/invoke/"+agent+"/"+"threads/"+thread {
+	if req.Method == "POST" && strings.HasPrefix(req.URL.Path, "/api/threads/"+thread+"/tasks/") {
 		return true
 	}
 

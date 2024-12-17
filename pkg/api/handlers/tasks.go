@@ -506,15 +506,13 @@ func (t *TaskHandler) updateCron(req api.Context, workflow *v1.Workflow, task ty
 }
 
 func (t *TaskHandler) getAssistantThreadAndManifestFromRequest(req api.Context) (*v1.Agent, *v1.Thread, types.WorkflowManifest, types.TaskManifest, error) {
-	assistantID := req.PathValue("assistant_id")
-
-	assistant, err := getAssistant(req, assistantID)
+	thread, err := getThreadForScope(req)
 	if err != nil {
 		return nil, nil, types.WorkflowManifest{}, types.TaskManifest{}, err
 	}
 
-	thread, err := getUserThread(req, assistantID)
-	if err != nil {
+	var agent v1.Agent
+	if err := req.Get(&agent, thread.Spec.AgentName); err != nil {
 		return nil, nil, types.WorkflowManifest{}, types.TaskManifest{}, err
 	}
 
@@ -523,7 +521,7 @@ func (t *TaskHandler) getAssistantThreadAndManifestFromRequest(req api.Context) 
 		return nil, nil, types.WorkflowManifest{}, types.TaskManifest{}, err
 	}
 
-	return assistant, thread, toWorkflowManifest(assistant, thread, manifest), manifest, nil
+	return &agent, thread, toWorkflowManifest(&agent, thread, manifest), manifest, nil
 }
 
 func (t *TaskHandler) Create(req api.Context) error {
@@ -659,15 +657,13 @@ func (t *TaskHandler) Get(req api.Context) error {
 }
 
 func (t *TaskHandler) getTask(req api.Context) (*v1.Workflow, *v1.Thread, error) {
-	assistantID := req.PathValue("assistant_id")
-
-	var workflow v1.Workflow
-	if err := req.Get(&workflow, req.PathValue("id")); err != nil {
+	thread, err := getThreadForScope(req)
+	if err != nil {
 		return nil, nil, err
 	}
 
-	thread, err := getUserThread(req, assistantID)
-	if err != nil {
+	var workflow v1.Workflow
+	if err := req.Get(&workflow, req.PathValue("id")); err != nil {
 		return nil, nil, err
 	}
 
@@ -678,10 +674,48 @@ func (t *TaskHandler) getTask(req api.Context) (*v1.Workflow, *v1.Thread, error)
 	return &workflow, thread, nil
 }
 
-func (t *TaskHandler) List(req api.Context) error {
+func getThreadForScope(req api.Context) (*v1.Thread, error) {
 	assistantID := req.PathValue("assistant_id")
 
-	thread, err := getUserThread(req, assistantID)
+	if assistantID != "" {
+		thread, err := getUserThread(req, assistantID)
+		if err != nil {
+			return nil, err
+		}
+
+		taskID := req.PathValue("task_id")
+		runID := req.PathValue("run_id")
+		if taskID != "" && runID != "" {
+			if runID == "editor" {
+				runID = editorWFE(req, taskID)
+			}
+			var wfe v1.WorkflowExecution
+			if err := req.Get(&wfe, runID); err != nil {
+				return nil, err
+			}
+			if wfe.Spec.ThreadName != thread.Name {
+				return nil, types.NewErrHttp(http.StatusForbidden, "task run does not belong to the thread")
+			}
+			if wfe.Spec.WorkflowName != taskID {
+				return nil, types.NewErrNotFound("task run not found")
+			}
+			return thread, req.Get(thread, wfe.Status.ThreadName)
+		}
+
+		return thread, nil
+	}
+
+	threadID := req.PathValue("thread_id")
+
+	var thread v1.Thread
+	if err := req.Get(&thread, threadID); err != nil {
+		return nil, err
+	}
+	return &thread, nil
+}
+
+func (t *TaskHandler) List(req api.Context) error {
+	thread, err := getThreadForScope(req)
 	if err != nil {
 		return err
 	}
