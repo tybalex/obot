@@ -463,7 +463,7 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.WithWatch, thread *v1.Th
 	}
 
 	var userID, userName, userEmail string
-	if thread.Spec.UserUID != "" {
+	if thread.Spec.UserUID != "" && thread.Spec.UserUID != "nobody" {
 		u, err := i.gatewayClient.UserByID(ctx, thread.Spec.UserUID)
 		if err != nil {
 			return fmt.Errorf("failed to get user: %w", err)
