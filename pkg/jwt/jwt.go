@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/acorn-io/acorn/pkg/api/authz"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/obot-platform/obot/pkg/api/authz"
 	"k8s.io/apiserver/pkg/authentication/authenticator"
 	"k8s.io/apiserver/pkg/authentication/user"
 )
@@ -40,12 +40,12 @@ func (t *TokenService) AuthenticateRequest(req *http.Request) (*authenticator.Re
 				authz.AuthenticatedGroup,
 			},
 			Extra: map[string][]string{
-				"acorn:runID":     {tokenContext.RunID},
-				"acorn:threadID":  {tokenContext.ThreadID},
-				"acorn:agentID":   {tokenContext.AgentID},
-				"acorn:userID":    {tokenContext.UserID},
-				"acorn:userName":  {tokenContext.UserName},
-				"acorn:userEmail": {tokenContext.UserEmail},
+				"obot:runID":     {tokenContext.RunID},
+				"obot:threadID":  {tokenContext.ThreadID},
+				"obot:agentID":   {tokenContext.AgentID},
+				"obot:userID":    {tokenContext.UserID},
+				"obot:userName":  {tokenContext.UserName},
+				"obot:userEmail": {tokenContext.UserEmail},
 			},
 		},
 	}, true, nil

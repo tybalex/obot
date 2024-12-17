@@ -3,9 +3,9 @@ package router
 import (
 	"net/http"
 
-	"github.com/acorn-io/acorn/pkg/api/handlers"
-	"github.com/acorn-io/acorn/pkg/services"
-	"github.com/acorn-io/acorn/ui"
+	"github.com/obot-platform/obot/pkg/api/handlers"
+	"github.com/obot-platform/obot/pkg/services"
+	"github.com/obot-platform/obot/ui"
 )
 
 func Router(services *services.Services) (http.Handler, error) {

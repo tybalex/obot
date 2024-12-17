@@ -12,8 +12,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/acorn-io/acorn/apiclient/types"
 	"github.com/acorn-io/acorn/logger"
+	"github.com/obot-platform/obot/apiclient/types"
 )
 
 var log = logger.Package()

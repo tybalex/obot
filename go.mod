@@ -1,19 +1,14 @@
-module github.com/acorn-io/acorn
+module github.com/obot-platform/obot
 
 go 1.23.2
 
 replace (
-	github.com/acorn-io/acorn/apiclient => ./apiclient
-	github.com/acorn-io/acorn/logger => ./logger
-	github.com/oauth2-proxy/oauth2-proxy/v7 => github.com/acorn-io/oauth2-proxy/v7 v7.0.0-20241008204315-265dabe17f43
+	github.com/oauth2-proxy/oauth2-proxy/v7 => github.com/obot-platform/oauth2-proxy/v7 v7.0.0-20241008204315-265dabe17f43
+	github.com/obot-platform/obot/apiclient => ./apiclient
+	github.com/obot-platform/obot/logger => ./logger
 )
 
 require (
-	github.com/acorn-io/acorn/apiclient v0.0.0-00010101000000-000000000000
-	github.com/acorn-io/acorn/logger v0.0.0-20241216130324-9a09554e0785
-	github.com/acorn-io/kinm v0.0.0-20241216114326-54409c6274c9
-	github.com/acorn-io/nah v0.0.0-20241216115213-e6506200369b
-	github.com/acorn-io/namegenerator v0.0.0-20220915160418-9e3d5a0ffe78
 	github.com/adrg/xdg v0.5.3
 	github.com/dustin/go-humanize v1.0.1
 	github.com/fatih/color v1.18.0
@@ -26,6 +21,11 @@ require (
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de
 	github.com/mhale/smtpd v0.8.3
 	github.com/oauth2-proxy/oauth2-proxy/v7 v7.0.0-00010101000000-000000000000
+	github.com/obot-platform/kinm v0.0.0-20241217120617-52c566a38b04
+	github.com/obot-platform/nah v0.0.0-20241217120500-e9169e4a999f
+	github.com/obot-platform/namegenerator v0.0.0-20241217121223-fc58bdb7dca2
+	github.com/obot-platform/obot/apiclient v0.0.0-00010101000000-000000000000
+	github.com/obot-platform/obot/logger v0.0.0-20241216130324-9a09554e0785
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pterm/pterm v0.12.79
 	github.com/robfig/cron/v3 v3.0.1
@@ -64,6 +64,7 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/ProtonMail/go-crypto v1.0.0 // indirect
 	github.com/a8m/envsubst v1.4.2 // indirect
+	github.com/acorn-io/acorn/logger v0.0.0-20241216130324-9a09554e0785 // indirect
 	github.com/alecthomas/chroma/v2 v2.14.0 // indirect
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.0 // indirect

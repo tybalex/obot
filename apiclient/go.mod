@@ -1,4 +1,4 @@
-module github.com/acorn-io/acorn/apiclient
+module github.com/obot-platform/obot/apiclient
 
 go 1.23.1
 

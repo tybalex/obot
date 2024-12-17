@@ -9,8 +9,8 @@ import (
 )
 
 func authorizeThread(req *http.Request, user user.Info) bool {
-	thread := types.FirstSet(user.GetExtra()["acorn:threadID"]...)
-	agent := types.FirstSet(user.GetExtra()["acorn:agentID"]...)
+	thread := types.FirstSet(user.GetExtra()["obot:threadID"]...)
+	agent := types.FirstSet(user.GetExtra()["obot:agentID"]...)
 	if thread == "" || agent == "" {
 		return false
 	}
