@@ -85,7 +85,7 @@ func (i *InvokeHandler) Invoke(req api.Context) error {
 			ThreadName:   threadID,
 			Synchronous:  synchronous,
 			CreateThread: true,
-			UserUID:      req.User.GetName(),
+			UserUID:      req.User.GetUID(),
 		})
 		if err != nil {
 			return err
