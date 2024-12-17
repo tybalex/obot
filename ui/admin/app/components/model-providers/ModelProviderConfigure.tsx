@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import useSWR from "swr";
 
 import { ModelProvider } from "~/lib/model/modelProviders";
+import { NotFoundError } from "~/lib/service/api/apiErrors";
 import { ModelProviderApiService } from "~/lib/service/api/modelProviderApiService";
 
 import { ModelProviderForm } from "~/components/model-providers/ModelProviderForm";
@@ -127,7 +128,15 @@ export function ModelProviderConfigureContent({
         ModelProviderApiService.revealModelProviderById.key(modelProvider.id),
         ({ modelProviderId }) =>
             ModelProviderApiService.revealModelProviderById(modelProviderId),
-        { keepPreviousData: true }
+        {
+            keepPreviousData: true,
+            // 404: no credential found = no need to retry
+            shouldRetryOnError: (error) =>
+                error instanceof NotFoundError &&
+                error.message.toLowerCase().includes("no credential found")
+                    ? false
+                    : true,
+        }
     );
 
     const requiredParameters = modelProvider.requiredConfigurationParameters;
