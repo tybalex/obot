@@ -41,9 +41,7 @@
 		{#if collapsedIcon(selected)}
 			<img src={collapsedIcon(selected)} alt="assistant icon" class="ml-3 h-8" />
 		{:else if selected?.name}
-			<div class="flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 dark:bg-gray">
-				{selected?.name ? selected?.name[0].toUpperCase() : '?'}
-			</div>
+			<AssistantIcon id={selected.id} class="w-8 h-8" />
 			<span class="font-semibold dark:text-gray-100">{selected?.name ?? ''}</span>
 		{/if}
 	</a>

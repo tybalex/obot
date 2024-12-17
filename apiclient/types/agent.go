@@ -29,6 +29,7 @@ type AgentManifest struct {
 	Name                 string            `json:"name"`
 	Icons                *AgentIcons       `json:"icons"`
 	Description          string            `json:"description"`
+	Default              bool              `json:"default"`
 	Temperature          *float32          `json:"temperature"`
 	Cache                *bool             `json:"cache"`
 	Alias                string            `json:"alias"`

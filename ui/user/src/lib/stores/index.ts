@@ -1,5 +1,6 @@
 export { default as darkMode } from './darkmode';
 export { default as preferredTheme } from './preferredtheme';
+export { default as loadedAssistants } from './loadedassistants';
 export { default as theme } from './theme';
 export { default as profile } from './profile';
 export { default as errors } from './errors';

@@ -397,6 +397,13 @@ func schema_obot_platform_obot_apiclient_types_AgentManifest(ref common.Referenc
 							Format:  "",
 						},
 					},
+					"default": {
+						SchemaProps: spec.SchemaProps{
+							Default: false,
+							Type:    []string{"boolean"},
+							Format:  "",
+						},
+					},
 					"temperature": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"number"},
@@ -557,7 +564,7 @@ func schema_obot_platform_obot_apiclient_types_AgentManifest(ref common.Referenc
 						},
 					},
 				},
-				Required: []string{"name", "icons", "description", "temperature", "cache", "alias", "prompt", "knowledgeDescription", "agents", "workflows", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools", "params", "model", "env"},
+				Required: []string{"name", "icons", "description", "default", "temperature", "cache", "alias", "prompt", "knowledgeDescription", "agents", "workflows", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools", "params", "model", "env"},
 			},
 		},
 		Dependencies: []string{
@@ -4141,6 +4148,13 @@ func schema_obot_platform_obot_apiclient_types_WorkflowManifest(ref common.Refer
 							Format:  "",
 						},
 					},
+					"default": {
+						SchemaProps: spec.SchemaProps{
+							Default: false,
+							Type:    []string{"boolean"},
+							Format:  "",
+						},
+					},
 					"temperature": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"number"},
@@ -4321,7 +4335,7 @@ func schema_obot_platform_obot_apiclient_types_WorkflowManifest(ref common.Refer
 						},
 					},
 				},
-				Required: []string{"name", "icons", "description", "temperature", "cache", "alias", "prompt", "knowledgeDescription", "agents", "workflows", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools", "params", "model", "env", "steps", "output"},
+				Required: []string{"name", "icons", "description", "default", "temperature", "cache", "alias", "prompt", "knowledgeDescription", "agents", "workflows", "tools", "availableThreadTools", "defaultThreadTools", "oauthApps", "maxThreadTools", "params", "model", "env", "steps", "output"},
 			},
 		},
 		Dependencies: []string{

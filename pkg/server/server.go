@@ -25,6 +25,9 @@ func Run(ctx context.Context, c services.Config) error {
 		if err != nil {
 			log.Fatalf("Failed to start controller: %v", err)
 		}
+		if err = ctrl.PreStart(ctx); err != nil {
+			log.Fatalf("Failed to start controller: %v", err)
+		}
 		if err = ctrl.Start(ctx); err != nil {
 			log.Fatalf("Failed to start controller: %v", err)
 		}

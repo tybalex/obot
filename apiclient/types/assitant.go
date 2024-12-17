@@ -3,6 +3,7 @@ package types
 type Assistant struct {
 	Metadata
 	Name        string     `json:"name"`
+	Default     bool       `json:"default"`
 	Description string     `json:"description"`
 	Icons       AgentIcons `json:"icons"`
 	EntityID    string     `json:"entityID"`

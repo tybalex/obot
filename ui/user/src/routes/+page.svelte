@@ -7,6 +7,7 @@
 	import DarkModeToggle from '$lib/components/navbar/DarkModeToggle.svelte';
 	import { darkMode } from '$lib/stores';
 	import { Book } from '$lib/icons';
+	import { loadedAssistants } from '$lib/stores';
 
 	onMount(() => {
 		highlight.highlightAll();
@@ -15,12 +16,14 @@
 	let div: HTMLElement;
 
 	$effect(() => {
-		let id = $assistants.find((assistant) => assistant.id === 'otto')?.id;
+		let id = $assistants.find((assistant) => assistant.default)?.id;
 		if (!id) {
 			id = $assistants.find((assistant) => assistant.id !== '')?.id;
 		}
 		if (id) {
 			goto(`/${id}`);
+		} else if ($loadedAssistants) {
+			window.location.href = '/admin/'
 		}
 	});
 

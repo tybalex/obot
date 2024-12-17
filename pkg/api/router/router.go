@@ -36,6 +36,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	// Agents
 	mux.HandleFunc("GET /api/agents", agents.List)
 	mux.HandleFunc("GET /api/agents/{id}", agents.ByID)
+	mux.HandleFunc("PUT /api/agents/{id}/setdefault", agents.SetDefault)
 	mux.HandleFunc("GET /api/agents/{id}/script", agents.Script)
 	mux.HandleFunc("GET /api/agents/{id}/script.gpt", agents.Script)
 	mux.HandleFunc("GET /api/agents/{id}/script/tool.gpt", agents.Script)

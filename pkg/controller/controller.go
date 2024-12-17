@@ -33,10 +33,14 @@ func New(services *services.Services) (*Controller, error) {
 	return c, nil
 }
 
-func (c *Controller) PostStart(ctx context.Context) error {
+func (c *Controller) PreStart(ctx context.Context) error {
 	if err := data.Data(ctx, c.services.StorageClient); err != nil {
 		return fmt.Errorf("failed to apply data: %w", err)
 	}
+	return nil
+}
+
+func (c *Controller) PostStart(ctx context.Context) error {
 	go c.toolRefHandler.PollRegistry(ctx, c.services.Router.Backend())
 	return c.toolRefHandler.EnsureOpenAIEnvCredentialAndDefaults(ctx, c.services.Router.Backend())
 }

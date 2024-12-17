@@ -167,6 +167,7 @@ export interface AssistantIcons {
 
 export interface Assistant {
 	id: string;
+	default?: boolean;
 	name?: string;
 	description?: string;
 	current: boolean;

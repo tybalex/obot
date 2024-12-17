@@ -45,5 +45,5 @@ func Data(ctx context.Context, c kclient.Client) error {
 		}
 	}
 
-	return nil
+	return addAgent(ctx, c)
 }

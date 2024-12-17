@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -151,6 +152,53 @@ func convertAgent(agent v1.Agent, textEmbeddingModel, baseURL string) (*types.Ag
 		AuthStatus:         agent.Status.AuthStatus,
 		TextEmbeddingModel: textEmbeddingModel,
 	}, nil
+}
+
+func (a *AgentHandler) SetDefault(req api.Context) error {
+	var newDefault v1.Agent
+	if err := alias.Get(req.Context(), req.Storage, &newDefault, req.Namespace(), req.PathValue("id")); err != nil {
+		return err
+	}
+
+	var agents v1.AgentList
+	if err := req.List(&agents); err != nil {
+		return err
+	}
+
+	var knowledgeSet v1.KnowledgeSet
+	if len(newDefault.Status.KnowledgeSetNames) > 0 {
+		if err := req.Get(&knowledgeSet, newDefault.Status.KnowledgeSetNames[0]); err != nil {
+			return fmt.Errorf("failed to get agent knowledge set: %w", err)
+		}
+	}
+
+	if !newDefault.Spec.Manifest.Default {
+		newDefault.Spec.Manifest.Default = true
+		if err := req.Update(&newDefault); err != nil {
+			return err
+		}
+	}
+
+	var errs []error
+	for _, agent := range agents.Items {
+		if newDefault.Name != agent.Name && agent.Spec.Manifest.Default {
+			agent.Spec.Manifest.Default = false
+			if err := req.Update(&agent); err != nil {
+				errs = append(errs, err)
+			}
+		}
+	}
+
+	if len(errs) > 0 {
+		return errors.Join(errs...)
+	}
+
+	resp, err := convertAgent(newDefault, knowledgeSet.Status.TextEmbeddingModel, req.APIBaseURL)
+	if err != nil {
+		return err
+	}
+
+	return req.WriteCreated(resp)
 }
 
 func (a *AgentHandler) ByID(req api.Context) error {
