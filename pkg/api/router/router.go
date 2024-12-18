@@ -58,7 +58,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("PUT /api/assistants/{id}/tools/{tool}", assistants.AddTool)
 	// Assistant files
 	mux.HandleFunc("GET /api/assistants/{assistant_id}/files", assistants.Files)
-	mux.HandleFunc("GET /api/assistants/{id}/file/{file...}", assistants.GetFile)
+	mux.HandleFunc("GET /api/assistants/{assistant_id}/file/{file...}", assistants.GetFile)
 	mux.HandleFunc("POST /api/assistants/{id}/files/{file...}", assistants.UploadFile)
 	mux.HandleFunc("DELETE /api/assistants/{id}/files/{file...}", assistants.DeleteFile)
 	// Assistant knowledge files

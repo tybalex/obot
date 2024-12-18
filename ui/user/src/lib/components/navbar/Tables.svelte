@@ -2,7 +2,7 @@
 	import { currentAssistant } from '$lib/stores';
 	import { ChatService, EditorService, type TableList } from '$lib/services';
 	import Menu from '$lib/components/navbar/Menu.svelte';
-	import { Database, Table } from 'lucide-svelte';
+	import { Table } from 'lucide-svelte';
 
 	async function loadTables() {
 		tables = await ChatService.listTables($currentAssistant.id);
@@ -21,7 +21,7 @@
 	onLoad={loadTables}
 >
 	{#snippet icon()}
-		<Database class="h-5 w-5" />
+		<Table class="h-5 w-5" />
 	{/snippet}
 	{#snippet body()}
 		{#if tables.tables.length === 0}
