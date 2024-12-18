@@ -61,18 +61,24 @@ func getWorkspace(ctx context.Context, c kclient.WithWatch, thread *v1.Thread) (
 func CreateWorkspaces(req router.Request, _ router.Response) error {
 	thread := req.Object.(*v1.Thread)
 
-	if thread.Status.WorkspaceID != "" && thread.Status.WorkspaceName != "" {
-		return nil
-	}
-
 	ws, err := getWorkspace(req.Ctx, req.Client, thread)
 	if err != nil {
 		return err
 	}
 
-	thread.Status.WorkspaceID = ws.Status.WorkspaceID
-	thread.Status.WorkspaceName = ws.Name
-	return req.Client.Status().Update(req.Ctx, thread)
+	var update bool
+	if thread.Status.WorkspaceID != ws.Status.WorkspaceID {
+		update = true
+		thread.Status.WorkspaceID = ws.Status.WorkspaceID
+	}
+	if thread.Status.WorkspaceName != ws.Name {
+		update = true
+		thread.Status.WorkspaceName = ws.Name
+	}
+	if update {
+		return req.Client.Status().Update(req.Ctx, thread)
+	}
+	return nil
 }
 
 func CreateKnowledgeSet(req router.Request, _ router.Response) error {
