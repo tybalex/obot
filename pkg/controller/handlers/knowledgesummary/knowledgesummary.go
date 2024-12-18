@@ -3,6 +3,7 @@ package knowledgesummary
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sort"
 
@@ -47,7 +48,9 @@ func (k *Handler) getFiles(req router.Request, thread *v1.Thread) ([]v1.Knowledg
 func toHash(files []v1.KnowledgeFile) string {
 	digest := sha256.New()
 	for _, file := range files {
-		digest.Write([]byte(file.Status.Checksum))
+		digest.Write([]byte(file.Name))
+		digest.Write([]byte{'\x00'})
+		digest.Write([]byte(file.Status.State))
 		digest.Write([]byte{'\x00'})
 	}
 	return fmt.Sprintf("%x", digest.Sum(nil))
@@ -78,7 +81,9 @@ func (k *Handler) toAllContent(req router.Request, allFiles []v1.KnowledgeFile) 
 		data, err := k.gptScript.ReadFileInWorkspace(req.Ctx, filename, gptscript.ReadFileInWorkspaceOptions{
 			WorkspaceID: workspace.Status.WorkspaceID,
 		})
-		if err != nil {
+		if fErr := (*gptscript.NotFoundInWorkspaceError)(nil); errors.As(err, &fErr) {
+			// ignore
+		} else if err != nil {
 			return nil, err
 		}
 
