@@ -251,7 +251,9 @@ func (a *AssistantHandler) Events(req api.Context) error {
 
 func (a *AssistantHandler) Files(req api.Context) error {
 	thread, err := getThreadForScope(req)
-	if err != nil {
+	if apierrors.IsNotFound(err) {
+		return req.Write(types.FileList{Items: []types.File{}})
+	} else if err != nil {
 		return err
 	}
 
