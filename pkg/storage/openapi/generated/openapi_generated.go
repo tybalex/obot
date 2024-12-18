@@ -7172,6 +7172,12 @@ func schema_storage_apis_ottootto8ai_v1_ThreadStatus(ref common.ReferenceCallbac
 							Format: "",
 						},
 					},
+					"workspaceName": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"previousThreadName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
