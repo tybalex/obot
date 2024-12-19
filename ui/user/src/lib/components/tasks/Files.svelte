@@ -4,7 +4,7 @@
 	import { ChatService, EditorService, type Files } from '$lib/services';
 	import { Download, RotateCw } from 'lucide-svelte';
 	import { onDestroy } from 'svelte';
-	import Modal from '$lib/components/Modal.svelte';
+	import Confirm from '$lib/components/Confirm.svelte';
 
 	interface Props {
 		taskID: string;
@@ -115,7 +115,7 @@
 	</div>
 {/if}
 
-<Modal
+<Confirm
 	show={fileToDelete !== undefined}
 	msg={`Are you sure you want to delete ${fileToDelete}?`}
 	onsuccess={deleteFile}

@@ -2,7 +2,7 @@
 	import { FileText, Trash, Upload } from '$lib/icons';
 	import { files, currentAssistant } from '$lib/stores';
 	import { ChatService, EditorService, type Files } from '$lib/services';
-	import Modal from '$lib/components/Modal.svelte';
+	import Confirm from '$lib/components/Confirm.svelte';
 	import Menu from '$lib/components/navbar/Menu.svelte';
 	import { Download, Image } from 'lucide-svelte';
 	import { isImage } from '$lib/image';
@@ -112,7 +112,7 @@
 	{/snippet}
 </Menu>
 
-<Modal
+<Confirm
 	show={fileToDelete !== undefined}
 	msg={`Are you sure you want to delete ${fileToDelete}?`}
 	onsuccess={deleteFile}

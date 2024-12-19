@@ -13,7 +13,7 @@
 	let show = $derived(navBar || EditorService.items.length <= 1);
 	let downloadable = $derived.by(() => {
 		const selected = EditorService.items.find((item) => item.selected);
-		return selected && !selected.table;
+		return selected && !selected.table && !selected.task;
 	});
 </script>
 
