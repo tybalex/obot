@@ -2,6 +2,7 @@ import {
     OAuthAppSpec,
     OAuthProvider,
 } from "~/lib/model/oauthApps/oauth-helpers";
+import { AtlassianOAuthApp } from "~/lib/model/oauthApps/providers/atlassian";
 import { GitHubOAuthApp } from "~/lib/model/oauthApps/providers/github";
 import { GoogleOAuthApp } from "~/lib/model/oauthApps/providers/google";
 import { Microsoft365OAuthApp } from "~/lib/model/oauthApps/providers/microsoft365";
@@ -11,6 +12,7 @@ import { SlackOAuthApp } from "~/lib/model/oauthApps/providers/slack";
 import { EntityMeta } from "~/lib/model/primitives";
 
 export const OAuthAppSpecMap = {
+    [OAuthProvider.Atlassian]: AtlassianOAuthApp,
     [OAuthProvider.GitHub]: GitHubOAuthApp,
     [OAuthProvider.Google]: GoogleOAuthApp,
     [OAuthProvider.Microsoft365]: Microsoft365OAuthApp,
