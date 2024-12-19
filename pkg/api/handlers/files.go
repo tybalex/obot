@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -186,7 +185,7 @@ func uploadFileToWorkspace(ctx context.Context, req api.Context, gClient *gptscr
 		return 0, fmt.Errorf("file path parameter is required")
 	}
 
-	contents, err := io.ReadAll(req.Request.Body)
+	contents, err := req.Body()
 	if err != nil {
 		return 0, fmt.Errorf("failed to read request body: %w", err)
 	}
