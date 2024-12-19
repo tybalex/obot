@@ -68,7 +68,7 @@
 									<FileText class="h-5 w-5" />
 								{/if}
 								<span class="ms-3"
-									>{file.name.length > 30 ? file.name.slice(0, 30) + '...' : file.name}</span
+									>{file.name.length > 25 ? file.name.slice(0, 25) + '...' : file.name}</span
 								>
 							</button>
 							<button

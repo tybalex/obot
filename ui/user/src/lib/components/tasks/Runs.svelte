@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Info, Play, X } from 'lucide-svelte';
+	import { Info, OctagonX, Play, X } from 'lucide-svelte';
 	import { ChatService, type Task, type TaskRun } from '$lib/services';
 	import { onDestroy } from 'svelte';
 	import { currentAssistant } from '$lib/stores';
@@ -76,6 +76,16 @@
 			});
 			runs = (await ChatService.listTaskRuns($currentAssistant.id, id)).items;
 			await select(newRun.id);
+		}
+	}
+
+	async function abort(runId: string) {
+		if ($currentAssistant.id && id) {
+			await ChatService.abort($currentAssistant.id, {
+				taskID: id,
+				runID: runId
+			});
+			runs = (await ChatService.listTaskRuns($currentAssistant.id, id)).items;
 		}
 	}
 
@@ -156,7 +166,9 @@
 							class="group-hover:bg-gray-100 dark:group-hover:bg-gray-800"
 							class:bg-blue={selected === run.id}
 						>
-							{#if run.startTime && run.endTime}
+							{#if run.error}
+								{run.error.includes('aborted') ? 'Aborted' : run.error}
+							{:else if run.startTime && run.endTime}
 								{Math.round(
 									(new Date(run.endTime).getTime() - new Date(run.startTime).getTime()) / 1000
 								)}s
@@ -171,6 +183,12 @@
 							class:bg-blue={selected === run.id}
 						>
 							<div class="flex items-center gap-2 text-gray" class:text-white={selected === run.id}>
+								{#if !run.error && run.startTime && !run.endTime}
+									<button class="flex items-center gap-1" onclick={() => abort(run.id)}>
+										<OctagonX class="h-4 w-4" />
+										Stop
+									</button>
+								{/if}
 								<Info class="h-4 w-4" />
 								<button onclick={() => (toDelete = run.id)}>
 									<Trash class="h-5 w-5" />

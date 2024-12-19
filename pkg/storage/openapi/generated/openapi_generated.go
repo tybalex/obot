@@ -3137,6 +3137,12 @@ func schema_obot_platform_obot_apiclient_types_TaskRun(ref common.ReferenceCallb
 							Ref: ref("github.com/obot-platform/obot/apiclient/types.Time"),
 						},
 					},
+					"error": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 				Required: []string{"Metadata"},
 			},
@@ -7869,6 +7875,12 @@ func schema_storage_apis_ottootto8ai_v1_WorkflowExecutionSpec(ref common.Referen
 							Format: "",
 						},
 					},
+					"threadCredentialScope": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 				},
 			},
 		},
@@ -7993,6 +8005,12 @@ func schema_storage_apis_ottootto8ai_v1_WorkflowSpec(ref common.ReferenceCallbac
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
 							Ref:     ref("github.com/obot-platform/obot/apiclient/types.WorkflowManifest"),
+						},
+					},
+					"credentialContextID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
 						},
 					},
 					"knowledgeSetNames": {
