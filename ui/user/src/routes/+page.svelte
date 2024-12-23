@@ -37,7 +37,7 @@
 
 <div
 	bind:this={div}
-	class="relative hidden h-screen w-full items-center text-black dark:text-white"
+	class="relative hidden h-dvh w-full items-center text-black dark:text-white"
 >
 	<div
 		class="absolute right-0 top-0 flex items-center gap-4 p-4 pr-6 text-white hover:text-blue-50"

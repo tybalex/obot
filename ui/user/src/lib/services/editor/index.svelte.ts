@@ -151,6 +151,13 @@ async function loadFile(
 			modified: false,
 			selected: true
 		};
+		for (let i = 0; i < items.length; i++) {
+			if (items[i].id === targetFile.id) {
+				items[i] = targetFile;
+				select(targetFile.id);
+				return;
+			}
+		}
 		items.push(targetFile);
 		select(targetFile.id);
 	} catch {

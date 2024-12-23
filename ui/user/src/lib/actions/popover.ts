@@ -20,6 +20,7 @@ interface Popover extends Readable<boolean> {
 interface PopoverOptions extends Partial<ComputePositionConfig> {
 	hover?: boolean;
 	assign?: (x: number, y: number) => void;
+	offset?: number;
 }
 
 let id = 0;
@@ -28,6 +29,7 @@ export default function popover(opts?: PopoverOptions): Popover {
 	let ref: HTMLElement;
 	let tooltip: HTMLElement;
 	const open = writable(false);
+	const offsetSize = opts?.offset ?? 8;
 
 	function build(): ActionReturn | void {
 		if (!ref || !tooltip) return;
@@ -45,9 +47,9 @@ export default function popover(opts?: PopoverOptions): Popover {
 				middleware: [
 					flip(),
 					shift({
-						padding: 8
+						padding: offsetSize
 					}),
-					offset(8)
+					offset(offsetSize)
 				],
 				...opts
 			}).then(({ x, y }) => {

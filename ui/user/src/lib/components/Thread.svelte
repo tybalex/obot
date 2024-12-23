@@ -15,6 +15,7 @@
 	let { assistant = '' }: Props = $props();
 	let messages: Messages = $state({ messages: [], inProgress: false });
 	let thread: Thread | undefined = $state<Thread>();
+	let messagesDiv = $state<HTMLDivElement>();
 
 	$effect(() => {
 		if (!assistant || thread) {
@@ -45,7 +46,8 @@
 
 <div>
 	<div
-		class="flex h-screen w-full justify-center overflow-auto transition-all scrollbar-none"
+		bind:this={messagesDiv}
+		class="flex h-dvh w-full justify-center overflow-auto transition-all scrollbar-none"
 		use:autoscroll
 	>
 		<div class="flex w-full max-w-[900px] flex-col px-8 pt-24 transition-all">
@@ -66,7 +68,10 @@
 			onAbort={async () => {
 				await thread?.abort();
 			}}
-			onSubmit={async (i) => await thread?.invoke(i)}
+			onSubmit={async (i) => {
+				messagesDiv?.scrollTo({ top: messagesDiv?.scrollHeight });
+				await thread?.invoke(i)
+			}}
 		/>
 	</div>
 </div>

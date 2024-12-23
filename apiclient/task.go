@@ -124,9 +124,9 @@ type TaskRunOptions struct {
 func (c *Client) RunTask(ctx context.Context, taskID string, input string, opts TaskRunOptions) (*types.TaskRun, error) {
 	var url string
 	if opts.ThreadID != "" {
-		url = fmt.Sprintf("/threads/%s/tasks/%s/runs", opts.ThreadID, taskID)
+		url = fmt.Sprintf("/threads/%s/tasks/%s/run", opts.ThreadID, taskID)
 	} else {
-		url = fmt.Sprintf("/assistants/%s/tasks/%s/runs", opts.AssistantID, taskID)
+		url = fmt.Sprintf("/assistants/%s/tasks/%s/run", opts.AssistantID, taskID)
 	}
 
 	_, resp, err := c.postJSON(ctx, url, input)

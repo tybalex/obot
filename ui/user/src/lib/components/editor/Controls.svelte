@@ -21,7 +21,7 @@
 	<div class="flex">
 		{#if $editorMaxSize}
 			<button
-				class="icon-button"
+				class="icon-button hidden md:block"
 				onclick={() => {
 					editorMaxSize.set(false);
 				}}
@@ -30,7 +30,7 @@
 			</button>
 		{:else}
 			<button
-				class="icon-button"
+				class="icon-button hidden md:block"
 				onclick={() => {
 					editorMaxSize.set(true);
 				}}

@@ -11,6 +11,7 @@
 	const editorMaxSize = EditorService.maxSize;
 
 	let title = $derived($currentAssistant.name ?? '');
+	let splitWindow = $derived(editorVisible && !$editorMaxSize);
 
 	$effect(() => {
 		if ($profile.unauthorized) {
@@ -36,7 +37,7 @@
 	</div>
 
 	{#if $editorVisible}
-		<div class="pt-20 transition-all {$editorMaxSize ? 'w-full' : 'w-1/2'} h-screen">
+		<div class="pt-20 transition-all w-full {splitWindow ? 'md:w-3/5' : ''}" >
 			<Editor />
 		</div>
 	{/if}

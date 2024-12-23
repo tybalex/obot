@@ -95,7 +95,6 @@
 {#snippet files()}
 	{#if msg.file?.filename}
 		<div
-			onclick={fileLoad}
 			role="none"
 			class="m-5 flex cursor-pointer flex-col
 		 divide-y divide-gray-300

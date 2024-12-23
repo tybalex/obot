@@ -15,7 +15,8 @@
 	let { onLoad, icon, body, title, description, show }: Props = $props();
 	let loading = $state(false);
 	const { ref, tooltip, toggle, open } = popover({
-		placement: 'bottom'
+		placement: 'bottom',
+		offset: 0
 	});
 
 	$effect(() => {
@@ -61,25 +62,26 @@
 	{@render icon()}
 </button>
 
-<div
-	use:tooltip
-	class="flex w-96 flex-col divide-y
-	divide-gray-200
-	rounded-3xl
-	 bg-gray-50 p-6 shadow dark:divide-gray-700 dark:bg-gray-950"
->
-	<div class="mb-4">
-		<div class="flex justify-between">
-			{title}
-			{#if onLoad}
-				<button onclick={load}>
-					<RotateCw class="h-4 w-4 {loading ? 'animate-spin' : ''}" />
-				</button>
+<div use:tooltip class="w-screen md:w-96 px-2" >
+	<div
+		class="flex w-full flex-col divide-y
+		divide-gray-200
+		rounded-3xl
+		 bg-gray-50 p-6 shadow dark:divide-gray-700 dark:bg-gray-950"
+	>
+		<div class="mb-4">
+			<div class="flex justify-between">
+				{title}
+				{#if onLoad}
+					<button onclick={load}>
+						<RotateCw class="h-4 w-4 {loading ? 'animate-spin' : ''}" />
+					</button>
+				{/if}
+			</div>
+			{#if description}
+				<p class="mt-1 text-xs font-normal text-gray-700 dark:text-gray-300">{description}</p>
 			{/if}
 		</div>
-		{#if description}
-			<p class="mt-1 text-xs font-normal text-gray-700 dark:text-gray-300">{description}</p>
-		{/if}
+		{@render body()}
 	</div>
-	{@render body()}
 </div>

@@ -2,7 +2,7 @@ import { tick } from 'svelte';
 
 export function autoscroll(node: HTMLElement) {
 	const observer = new MutationObserver(() => {
-		if (node.dataset.scroll !== 'false') {
+		if (node.dataset.autoscroll !== 'false') {
 			tick().then(() => {
 				node.scrollTop = node.scrollHeight;
 			});
@@ -17,11 +17,11 @@ export function autoscroll(node: HTMLElement) {
 		const scrollHeight = node.scrollHeight;
 		const clientHeight = node.clientHeight;
 
-		// Check if the user has scrolled to the bottom
-		if (scrollTop + clientHeight >= scrollHeight) {
-			node.dataset.scroll = 'true';
+		// Check if the user has scrolled to withing 40px of the bottom
+		if (scrollHeight - (scrollTop + clientHeight) <= 40) {
+			node.dataset.autoscroll = 'true';
 		} else {
-			node.dataset.scroll = 'false';
+			node.dataset.autoscroll = 'false';
 		}
 	});
 }
