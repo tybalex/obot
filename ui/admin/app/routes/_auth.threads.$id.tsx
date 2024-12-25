@@ -100,7 +100,6 @@ export default function ChatAgent() {
                         id={entity.id}
                         mode="agent"
                         threadId={thread.id}
-                        readOnly={!isAgent}
                     >
                         <Chat />
                     </ChatProvider>
