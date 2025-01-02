@@ -46,7 +46,6 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("PUT /api/agents/{id}", agents.Update)
 	mux.HandleFunc("DELETE /api/agents/{id}", agents.Delete)
 	mux.HandleFunc("POST /api/agents/{id}/oauth-credentials/{ref}/login", agents.EnsureCredentialForKnowledgeSource)
-	mux.HandleFunc("POST /api/agents/{id}/auth", agents.EnsureCredentialForKnowledgeSource)
 
 	// Assistants
 	mux.HandleFunc("GET /api/assistants", assistants.List)
