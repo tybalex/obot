@@ -59,6 +59,9 @@ func (a *WorkflowHandler) Authenticate(req api.Context) error {
 	}
 
 	resp, err := runAuthForAgent(req.Context(), req.Storage, a.invoker, agent, tools)
+	if err != nil {
+		return err
+	}
 	defer func() {
 		resp.Close()
 		if kickErr := kickWorkflow(req.Context(), req.Storage, &workflow); kickErr != nil && err == nil {

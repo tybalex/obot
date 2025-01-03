@@ -53,11 +53,14 @@ func (a *AgentHandler) Authenticate(req api.Context) (err error) {
 		return types.NewErrBadRequest("no tools provided for authentication")
 	}
 
-	if err := req.Get(&agent, id); err != nil {
+	if err = req.Get(&agent, id); err != nil {
 		return err
 	}
 
 	resp, err := runAuthForAgent(req.Context(), req.Storage, a.invoker, agent.DeepCopy(), tools)
+	if err != nil {
+		return err
+	}
 	defer func() {
 		resp.Close()
 		if kickErr := kickAgent(req.Context(), req.Storage, &agent); kickErr != nil && err == nil {
