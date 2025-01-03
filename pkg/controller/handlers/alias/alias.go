@@ -39,7 +39,6 @@ func AssignAlias(req router.Request, resp router.Response) (err error) {
 	if aliasable.GetAliasName() == "" {
 		if aliasable.IsAssigned() || aliasable.GetGeneration() != aliasable.GetObservedGeneration() {
 			aliasable.SetAssigned(false)
-			aliasable.SetObservedGeneration(aliasable.GetGeneration())
 			return req.Client.Status().Update(req.Ctx, req.Object)
 		}
 

@@ -13,6 +13,7 @@ var (
 	_ fields.Fields = (*OAuthApp)(nil)
 	_ fields.Fields = (*OAuthAppLogin)(nil)
 	_ Aliasable     = (*OAuthApp)(nil)
+	_ Generationed  = (*OAuthApp)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

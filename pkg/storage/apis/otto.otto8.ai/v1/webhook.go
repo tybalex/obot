@@ -12,6 +12,7 @@ import (
 var (
 	_ Aliasable     = (*Webhook)(nil)
 	_ fields.Fields = (*Webhook)(nil)
+	_ Generationed  = (*Webhook)(nil)
 )
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
