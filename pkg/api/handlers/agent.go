@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -15,9 +16,11 @@ import (
 	"github.com/obot-platform/obot/pkg/invoke"
 	"github.com/obot-platform/obot/pkg/render"
 	v1 "github.com/obot-platform/obot/pkg/storage/apis/otto.otto8.ai/v1"
+	"github.com/obot-platform/obot/pkg/storage/selectors"
 	"github.com/obot-platform/obot/pkg/system"
 	"github.com/obot-platform/obot/pkg/wait"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -842,6 +845,71 @@ func (a *AgentHandler) Script(req api.Context) error {
 	}
 
 	return req.Write(script)
+}
+
+func (a *AgentHandler) WatchKnowledgeFile(req api.Context) error {
+	knowledgeSetNames, agentName, err := a.getKnowledgeSetsAndName(req, req.PathValue("agent_id"))
+	if err != nil {
+		return err
+	}
+
+	if len(knowledgeSetNames) == 0 {
+		return req.Write(types.KnowledgeFileList{Items: []types.KnowledgeFile{}})
+	}
+
+	knowledgeSourceName := req.PathValue("knowledge_source_id")
+	var knowledgeSource *v1.KnowledgeSource
+	if knowledgeSourceName != "" {
+		knowledgeSource = &v1.KnowledgeSource{}
+		if err := req.Get(knowledgeSource, knowledgeSourceName); err != nil {
+			return err
+		}
+		if knowledgeSource.Spec.KnowledgeSetName != knowledgeSetNames[0] {
+			return types.NewErrBadRequest("knowledgeSource %q does not belong to agent %q", knowledgeSource.Name, agentName)
+		}
+	}
+
+	w, err := req.Storage.Watch(req.Context(), &v1.KnowledgeFileList{}, kclient.InNamespace(req.Namespace()),
+		&kclient.ListOptions{
+			FieldSelector: fields.SelectorFromSet(selectors.RemoveEmpty(map[string]string{
+				"spec.knowledgeSetName":    knowledgeSetNames[0],
+				"spec.knowledgeSourceName": knowledgeSourceName,
+			})),
+		})
+	if err != nil {
+		return err
+	}
+	defer func() {
+		w.Stop()
+		//nolint:revive
+		for range w.ResultChan() {
+		}
+	}()
+
+	req.ResponseWriter.Header().Set("Content-Type", "text/event-stream")
+	defer func() {
+		_ = req.WriteDataEvent(api.EventClose{})
+	}()
+
+	for event := range w.ResultChan() {
+		if knowledgeFile, ok := event.Object.(*v1.KnowledgeFile); ok {
+			payload := map[string]any{
+				"eventType":     event.Type,
+				"knowledgeFile": convertKnowledgeFile(agentName, "", *knowledgeFile),
+			}
+			data, err := json.Marshal(payload)
+			if err != nil {
+				return err
+			}
+			sseEvent := fmt.Sprintf("data: %s\n\n", data)
+			if _, err := req.ResponseWriter.Write([]byte(sseEvent)); err != nil {
+				return err
+			}
+			req.Flush()
+		}
+	}
+
+	return nil
 }
 
 func MetadataFrom(obj kclient.Object, linkKV ...string) types.Metadata {
