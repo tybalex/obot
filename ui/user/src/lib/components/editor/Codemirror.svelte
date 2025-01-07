@@ -48,6 +48,7 @@
 	import type { EditorItem } from '$lib/stores/editor.svelte';
 	import type { InvokeInput } from '$lib/services';
 	import { tick } from 'svelte';
+	import { twMerge } from 'tailwind-merge';
 
 	const cursorTooltipField = StateField.define<readonly Tooltip[]>({
 		create: createTooltips,
@@ -61,9 +62,10 @@
 		file: EditorItem;
 		onInvoke?: (invoke: InvokeInput) => void | Promise<void>;
 		onFileChanged?: (name: string, contents: string) => void;
+		class?: string;
 	}
 
-	let { file, onInvoke, onFileChanged }: Props = $props();
+	let { file, onInvoke, onFileChanged, class: klass = '' }: Props = $props();
 	let lastSetValue = '';
 	let focused = $state(false);
 	let ttState: EditorState | undefined = $state();
@@ -241,6 +243,10 @@
 	}
 
 	function createTooltips(state: EditorState): readonly Tooltip[] {
+		if (!onInvoke) {
+			return [];
+		}
+
 		if (
 			state.selection.ranges.length == 1 &&
 			state.selection.ranges[0].from != state.selection.ranges[0].to
@@ -266,7 +272,7 @@
 	use:editor
 	onfocusin={() => (focused = true)}
 	onfocusout={() => (focused = false)}
-	class="mx-2 mt-4 border-l-2 border-gray-100 dark:border-gray-900"
+	class={twMerge('mx-2 mt-4 border-l-2 border-gray-100 dark:border-gray-900', klass)}
 ></div>
 
 <div class="absolute flex">

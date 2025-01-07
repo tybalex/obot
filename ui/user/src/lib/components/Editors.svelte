@@ -8,10 +8,11 @@
 	import Controls from '$lib/components/editor/Controls.svelte';
 	import { currentAssistant } from '$lib/stores';
 	import Image from '$lib/components/editor/Image.svelte';
-	import { CheckSquare, Table as TableIcon, Image as ImageIcon } from 'lucide-svelte';
+	import { CheckSquare, Table as TableIcon, Image as ImageIcon, Wrench } from 'lucide-svelte';
 	import { isImage } from '$lib/image';
 	import Terminal from '$lib/components/Terminal.svelte';
 	import { term } from '$lib/stores';
+	import Tool from '$lib/components/tool/Tool.svelte';
 
 	const editorVisible = EditorService.visible;
 
@@ -33,7 +34,7 @@
 
 <div class="flex h-full flex-col">
 	{#if $editorVisible}
-		{#if EditorService.items.length > 1 || (!EditorService.items[0].task && !EditorService.items[0].table)}
+		{#if EditorService.items.length > 1 || (!EditorService.items[0].task && !EditorService.items[0].table && !EditorService.items[0].generic)}
 			<div class="flex rounded-3xl border-gray-100 pt-2">
 				<ul class="flex flex-1 flex-wrap text-center text-sm">
 					{#each EditorService.items as item}
@@ -53,6 +54,8 @@
 										<CheckSquare class="h-5 w-5" />
 									{:else if isImage(item.name)}
 										<ImageIcon class="h-5 w-5" />
+									{:else if item.id.startsWith('tl1')}
+										<Wrench class="h-5 w-5" />
 									{:else}
 										<FileText class="h-5 w-5" />
 									{/if}
@@ -94,6 +97,8 @@
 					/>
 				{:else if isImage(file.name)}
 					<Image {file} />
+				{:else if file.id.startsWith('tl1')}
+					<Tool id={file.id} />
 				{:else}
 					<Codemirror {file} {onFileChanged} {onInvoke} />
 				{/if}

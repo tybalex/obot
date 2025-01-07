@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"regexp"
 	"slices"
@@ -308,6 +309,51 @@ func (a *AssistantHandler) DeleteFile(req api.Context) error {
 	}
 
 	return deleteFileFromWorkspaceID(req.Context(), req, a.gptScript, thread.Status.WorkspaceID, "files/")
+}
+
+func (a *AssistantHandler) SetEnv(req api.Context) error {
+	var (
+		id = req.PathValue("id")
+	)
+
+	thread, err := getUserThread(req, id)
+	if err != nil {
+		return err
+	}
+
+	var envs map[string]string
+	if err := req.Read(&envs); err != nil {
+		return err
+	}
+
+	if err := setEnvMap(req, a.gptScript, thread.Name, thread.Name, envs); err != nil {
+		return err
+	}
+
+	thread.Spec.Env = slices.Collect(maps.Keys(envs))
+	if err := req.Update(thread); err != nil {
+		return err
+	}
+
+	return req.Write(envs)
+}
+
+func (a *AssistantHandler) GetEnv(req api.Context) error {
+	var (
+		id = req.PathValue("id")
+	)
+
+	thread, err := getUserThread(req, id)
+	if err != nil {
+		return err
+	}
+
+	data, err := getEnvMap(req, a.gptScript, thread.Name, thread.Name)
+	if err != nil {
+		return err
+	}
+
+	return req.Write(data)
 }
 
 func (a *AssistantHandler) Knowledge(req api.Context) error {

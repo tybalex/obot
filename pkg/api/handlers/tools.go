@@ -2,13 +2,15 @@ package handlers
 
 import (
 	"errors"
+	"maps"
 	"regexp"
 	"slices"
-	"strings"
 
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/obot-platform/obot/apiclient/types"
 	"github.com/obot-platform/obot/pkg/api"
+	"github.com/obot-platform/obot/pkg/invoke"
+	"github.com/obot-platform/obot/pkg/render"
 	v1 "github.com/obot-platform/obot/pkg/storage/apis/otto.otto8.ai/v1"
 	"github.com/obot-platform/obot/pkg/system"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -16,13 +18,32 @@ import (
 
 type ToolHandler struct {
 	gptScript *gptscript.GPTScript
+	invoke    *invoke.Invoker
 }
 
-func NewToolHandler(gptScript *gptscript.GPTScript) *ToolHandler {
-	return &ToolHandler{gptScript: gptScript}
+func NewToolHandler(gptScript *gptscript.GPTScript, invoke *invoke.Invoker) *ToolHandler {
+	return &ToolHandler{
+		gptScript: gptScript,
+		invoke:    invoke,
+	}
 }
 
 var invalidEnv = regexp.MustCompile("^(OBOT|GPTSCRIPT)")
+
+func setEnvMap(req api.Context, gptScript *gptscript.GPTScript, threadName, toolName string, env map[string]string) error {
+	for k := range env {
+		if invalidEnv.MatchString(k) {
+			return types.NewErrBadRequest("invalid env key %s", k)
+		}
+	}
+
+	return gptScript.CreateCredential(req.Context(), gptscript.Credential{
+		Context:  threadName,
+		ToolName: toolName,
+		Type:     gptscript.CredentialTypeTool,
+		Env:      env,
+	})
+}
 
 func (t *ToolHandler) SetEnv(req api.Context) error {
 	toolID := req.PathValue("tool_id")
@@ -46,29 +67,11 @@ func (t *ToolHandler) SetEnv(req api.Context) error {
 		return types.NewErrNotFound("tool %s not found", toolID)
 	}
 
-	for k := range env {
-		if invalidEnv.MatchString(k) {
-			return types.NewErrBadRequest("invalid env key %s", k)
-		}
-	}
-
-	err = t.gptScript.CreateCredential(req.Context(), gptscript.Credential{
-		Context:  thread.Name,
-		ToolName: tool.Name,
-		Type:     gptscript.CredentialTypeTool,
-		Env:      env,
-	})
-	if err != nil {
+	if err := setEnvMap(req, t.gptScript, thread.Name, tool.Name, env); err != nil {
 		return err
 	}
 
-	var envs []string
-	for k, v := range env {
-		if strings.TrimSpace(v) != "" {
-			envs = append(envs, k)
-		}
-	}
-	tool.Spec.Envs = envs
+	tool.Spec.Envs = slices.Collect(maps.Keys(env))
 	if err := req.Update(&tool); err != nil {
 		return err
 	}
@@ -93,14 +96,23 @@ func (t *ToolHandler) GetEnv(req api.Context) error {
 		return types.NewErrNotFound("tool %s not found", toolID)
 	}
 
-	cred, err := t.gptScript.RevealCredential(req.Context(), []string{thread.Name}, tool.Name)
-	if errors.As(err, &gptscript.ErrNotFound{}) {
-		return req.Write(map[string]string{})
-	} else if err != nil {
+	data, err := getEnvMap(req, t.gptScript, thread.Name, tool.Name)
+	if err != nil {
 		return err
 	}
 
-	return req.Write(cred.Env)
+	return req.Write(data)
+}
+
+func getEnvMap(req api.Context, gptScript *gptscript.GPTScript, threadName, toolName string) (map[string]string, error) {
+	cred, err := gptScript.RevealCredential(req.Context(), []string{threadName}, toolName)
+	if errors.As(err, &gptscript.ErrNotFound{}) {
+		return map[string]string{}, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	return cred.Env, nil
 }
 
 func (t *ToolHandler) Get(req api.Context) error {
@@ -121,6 +133,67 @@ func (t *ToolHandler) Get(req api.Context) error {
 	}
 
 	return req.Write(convertTool(tool, slices.Contains(thread.Spec.Manifest.Tools, tool.Name)))
+}
+
+type TestInput struct {
+	Input map[string]string    `json:"input"`
+	Tool  *types.AssistantTool `json:"tool"`
+	Env   map[string]string    `json:"env,omitempty"`
+}
+
+func (t *ToolHandler) Test(req api.Context) error {
+	toolID := req.PathValue("tool_id")
+
+	thread, err := getThreadForScope(req)
+	if err != nil {
+		return err
+	}
+
+	var tool v1.Tool
+	if err := req.Get(&tool, toolID); err != nil {
+		return err
+	}
+
+	if tool.Spec.ThreadName != thread.Name {
+		return types.NewErrNotFound("tool %s not found", toolID)
+	}
+
+	env, err := getEnvMap(req, t.gptScript, thread.Name, tool.Name)
+	if err != nil {
+		return err
+	}
+
+	var envList []string
+	for k, v := range env {
+		envList = append(envList, k+"="+v)
+	}
+
+	var input TestInput
+	if err := req.Read(&input); err != nil {
+		return err
+	}
+
+	for k, v := range input.Env {
+		envList = append(envList, k+"="+v)
+	}
+
+	if input.Tool != nil {
+		tool.Spec.Manifest = input.Tool.ToolManifest
+	}
+
+	tools, err := render.CustomTool(req.Context(), req.Storage, tool)
+	if err != nil {
+		return err
+	}
+
+	result, err := t.invoke.EphemeralThreadTask(req.Context(), thread, tools, input.Input, invoke.SystemTaskOptions{
+		Env: envList,
+	})
+	if err != nil {
+		return err
+	}
+
+	return req.Write(map[string]string{"output": result})
 }
 
 func (t *ToolHandler) Create(req api.Context) error {

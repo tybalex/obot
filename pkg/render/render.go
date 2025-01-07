@@ -12,6 +12,7 @@ import (
 	"github.com/obot-platform/obot/apiclient/types"
 	"github.com/obot-platform/obot/pkg/gz"
 	v1 "github.com/obot-platform/obot/pkg/storage/apis/otto.otto8.ai/v1"
+	"github.com/obot-platform/obot/pkg/system"
 	apierror "k8s.io/apimachinery/pkg/api/errors"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -81,8 +82,20 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, oauthServerU
 			if err != nil {
 				return nil, nil, err
 			}
-			mainTool.Tools = append(mainTool.Tools, name)
+			if name != "" {
+				mainTool.Tools = append(mainTool.Tools, name)
+			}
 			otherTools = append(otherTools, tools...)
+		}
+
+		credTool, err := ResolveToolReference(ctx, db, types.ToolReferenceTypeSystem, opts.Thread.Namespace, system.ExistingCredTool)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		mainTool.Credentials = append(mainTool.Credentials, credTool+" as "+opts.Thread.Name)
+		if len(opts.Thread.Spec.Env) > 0 {
+			extraEnv = append(extraEnv, fmt.Sprintf("OBOT_THREAD_ENVS=%s", strings.Join(opts.Thread.Spec.Env, ",")))
 		}
 	}
 
@@ -94,7 +107,9 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, oauthServerU
 		if err != nil {
 			return nil, nil, err
 		}
-		mainTool.Tools = append(mainTool.Tools, name)
+		if name != "" {
+			mainTool.Tools = append(mainTool.Tools, name)
+		}
 		otherTools = append(otherTools, tools...)
 	}
 

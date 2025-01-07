@@ -125,7 +125,7 @@
 <div
 	role="none"
 	onkeydown={(e) => e.stopPropagation()}
-	class="relative flex h-full flex-col rounded-s-3xl p-5"
+	class="relative flex flex-col rounded-s-3xl p-5"
 >
 	<input
 		class="bg-white text-xl font-semibold outline-none dark:bg-black dark:text-gray-50"

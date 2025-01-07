@@ -183,6 +183,7 @@ export interface AssistantTool {
 	enabled?: boolean;
 	builtin?: boolean;
 	toolType?: string;
+	image?: string;
 	instructions?: string;
 	context?: string;
 	params?: Record<string, string>;

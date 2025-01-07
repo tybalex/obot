@@ -13,7 +13,7 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	agents := handlers.NewAgentHandler(services.GPTClient, services.Invoker, services.ServerURL)
 	assistants := handlers.NewAssistantHandler(services.Invoker, services.Events, services.GPTClient)
-	tools := handlers.NewToolHandler(services.GPTClient)
+	tools := handlers.NewToolHandler(services.GPTClient, services.Invoker)
 	tasks := handlers.NewTaskHandler(services.Invoker, services.Events)
 	workflows := handlers.NewWorkflowHandler(services.GPTClient, services.ServerURL, services.Invoker)
 	invoker := handlers.NewInvokeHandler(services.Invoker)
@@ -72,6 +72,9 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("GET /api/assistants/{id}/knowledge", assistants.Knowledge)
 	mux.HandleFunc("POST /api/assistants/{id}/knowledge/{file}", assistants.UploadKnowledge)
 	mux.HandleFunc("DELETE /api/assistants/{id}/knowledge/{file...}", assistants.DeleteKnowledge)
+	// Env
+	mux.HandleFunc("GET /api/assistants/{id}/env", assistants.GetEnv)
+	mux.HandleFunc("PUT /api/assistants/{id}/env", assistants.SetEnv)
 
 	if services.SupportDocker {
 		shell, err := handlers.NewShellHandler(services.Invoker)
@@ -83,6 +86,7 @@ func Router(services *services.Services) (http.Handler, error) {
 		// Tools
 		mux.HandleFunc("POST /api/assistants/{assistant_id}/tools", tools.Create)
 		mux.HandleFunc("PUT /api/assistants/{assistant_id}/tools/{tool_id}/env", tools.SetEnv)
+		mux.HandleFunc("POST /api/assistants/{assistant_id}/tools/{tool_id}/test", tools.Test)
 	}
 	mux.HandleFunc("GET /api/assistants/{assistant_id}/tools/{tool_id}", tools.Get)
 	mux.HandleFunc("GET /api/assistants/{assistant_id}/tools/{tool_id}/env", tools.GetEnv)

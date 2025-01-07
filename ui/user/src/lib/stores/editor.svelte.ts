@@ -8,6 +8,7 @@ export interface EditorItem {
 	buffer: string;
 	modified?: boolean;
 	selected?: boolean;
+	generic?: boolean;
 	task?: Task;
 	table?: string;
 	taskID?: string;

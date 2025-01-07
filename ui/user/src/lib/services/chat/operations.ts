@@ -232,16 +232,39 @@ export async function listTools(assistant: string): Promise<AssistantToolList> {
 
 export async function createTool(
 	assistant: string,
-	tool: AssistantTool,
+	tool?: AssistantTool,
 	opts?: {
 		env?: Record<string, string>;
 	}
 ): Promise<AssistantTool> {
-	const result = (await doPost(`/assistants/${assistant}/tools`, tool)) as AssistantTool;
+	const result = (await doPost(`/assistants/${assistant}/tools`, tool ?? {})) as AssistantTool;
 	if (opts?.env) {
 		await saveToolEnv(assistant, result.id, opts.env);
 	}
 	return result;
+}
+
+export async function testTool(
+	assistant: string,
+	tool: AssistantTool,
+	input: object,
+	opts?: {
+		env?: Record<string, string>;
+	}
+): Promise<{ output: string }> {
+	return (await doPost(
+		`/assistants/${assistant}/tools/${tool.id}/test`,
+		{
+			input,
+			tool,
+			env: opts?.env
+		},
+		{
+			dontLogErrors: true
+		}
+	)) as {
+		output: string;
+	};
 }
 
 export async function updateTool(

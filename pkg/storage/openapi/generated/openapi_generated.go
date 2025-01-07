@@ -3615,6 +3615,12 @@ func schema_obot_platform_obot_apiclient_types_ToolManifest(ref common.Reference
 							Format: "",
 						},
 					},
+					"image": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"context": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},

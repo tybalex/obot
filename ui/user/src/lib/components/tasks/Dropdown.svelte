@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { ChevronDown } from '$lib/icons';
 	import { popover } from '$lib/actions';
+	import { twMerge } from 'tailwind-merge';
 
 	interface Props {
+		class?: string;
 		values: Record<string, string>;
 		selected?: string;
 		disabled?: boolean;
@@ -12,7 +14,7 @@
 	const { ref, tooltip, toggle } = popover({
 		placement: 'bottom-start'
 	});
-	let { values, selected, disabled = false, onSelected }: Props = $props();
+	let { values, selected, disabled = false, onSelected, class: kclass = '' }: Props = $props();
 
 	async function select(value: string) {
 		await onSelected?.(value);
@@ -30,7 +32,10 @@
 		onclick={() => {
 			toggle();
 		}}
-		class="flex items-center gap-2 rounded-3xl p-3 px-4 capitalize hover:bg-gray-70 dark:hover:bg-gray-900"
+		class={twMerge(
+			'flex items-center gap-2 rounded-3xl p-3 px-4 capitalize hover:bg-gray-70 dark:hover:bg-gray-900',
+			kclass
+		)}
 	>
 		{selected ? values[selected] : values[''] || ''}
 		<ChevronDown />

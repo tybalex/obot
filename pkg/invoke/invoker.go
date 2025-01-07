@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"maps"
-	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -251,7 +250,7 @@ func CreateThreadForAgent(ctx context.Context, c kclient.WithWatch, agent *v1.Ag
 	return &thread, c.Create(ctx, &thread)
 }
 
-func (i *Invoker) updateThreadFields(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, thread *v1.Thread, extraEnv []string, opt Options) error {
+func (i *Invoker) updateThreadFields(ctx context.Context, c kclient.WithWatch, agent *v1.Agent, thread *v1.Thread, opt Options) error {
 	var updated bool
 	if opt.AgentAlias != "" && thread.Spec.AgentAlias != opt.AgentAlias {
 		thread.Spec.AgentAlias = opt.AgentAlias
@@ -259,10 +258,6 @@ func (i *Invoker) updateThreadFields(ctx context.Context, c kclient.WithWatch, a
 	}
 	if thread.Spec.AgentName != agent.Name {
 		thread.Spec.AgentName = agent.Name
-		updated = true
-	}
-	if !slices.Equal(thread.Spec.Env, extraEnv) {
-		thread.Spec.Env = extraEnv
 		updated = true
 	}
 	if updated {
@@ -302,7 +297,7 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agen
 		return nil, err
 	}
 
-	if err := i.updateThreadFields(ctx, c, agent, thread, extraEnv, opt); err != nil {
+	if err := i.updateThreadFields(ctx, c, agent, thread, opt); err != nil {
 		return nil, err
 	}
 
@@ -599,7 +594,7 @@ func (i *Invoker) Resume(ctx context.Context, c kclient.WithWatch, thread *v1.Th
 func (i *Invoker) saveState(ctx context.Context, c kclient.Client, prevThreadName string, thread *v1.Thread, run *v1.Run, runResp *gptscript.Run, retErr error) error {
 	if isEphemeral(run) {
 		// Ephemeral run, don't save state
-		return nil
+		return retErr
 	}
 
 	var err error
@@ -886,7 +881,7 @@ func (i *Invoker) stream(ctx context.Context, c kclient.WithWatch, prevThreadNam
 		timeout = run.Spec.Timeout.Duration
 	}
 	go timeoutAfter(runCtx, cancelRun, timeout)
-	if run.Name != "" {
+	if !isEphemeral(run) {
 		// Don't watch thread abort for ephemeral runs
 		go watchThreadAbort(runCtx, c, thread, cancelRun)
 	}

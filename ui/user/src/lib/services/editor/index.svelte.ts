@@ -62,6 +62,11 @@ async function load(
 		visible.set(true);
 		return;
 	}
+	if (id.startsWith('tl1')) {
+		await genericLoad(id);
+		visible.set(true);
+		return;
+	}
 	if (id.startsWith('w1')) {
 		await loadTask(assistant, id);
 		visible.set(true);
@@ -86,6 +91,18 @@ async function loadTable(id: string) {
 		modified: false,
 		selected: true,
 		table: tableName
+	};
+	items.push(targetFile);
+	select(id);
+}
+
+async function genericLoad(id: string) {
+	const targetFile: EditorItem = {
+		id: id,
+		name: id,
+		generic: true,
+		contents: '',
+		buffer: ''
 	};
 	items.push(targetFile);
 	select(id);

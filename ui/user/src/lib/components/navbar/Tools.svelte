@@ -2,28 +2,39 @@
 	import { Plus, Wrench } from '$lib/icons';
 	import { tools, version } from '$lib/stores';
 	import { currentAssistant } from '$lib/stores';
-	import { ChatService } from '$lib/services';
+	import { ChatService, EditorService } from '$lib/services';
 	import Menu from '$lib/components/navbar/Menu.svelte';
-	import Tool from '$lib/components/navbar/Tool.svelte';
-	import { tick } from 'svelte';
 	import { PenBox } from 'lucide-svelte';
 
 	let menu = $state<ReturnType<typeof Menu>>();
-	let inputDialog = $state<HTMLDialogElement>();
-	let toolDialogID = $state<string>('');
 
 	async function addTool() {
+		const tool = await ChatService.createTool($currentAssistant.id, {
+			id: '',
+			params: {
+				msg: 'A message to be echoed'
+			},
+			toolType: 'javascript',
+			instructions: `
+
+// Arguments to the tool are available as env vars in CAPITAL_CASE form
+// Output for the tool is just the content on stdout (or console.log)
+
+console.log(\`Your message \${process.env.MSG}\`);
+
+`
+		});
+		await EditorService.load($currentAssistant.id, tool.id);
 		menu?.open.set(false);
-		toolDialogID = '';
-		await tick();
-		inputDialog?.showModal();
 	}
 
 	async function editTool(id: string) {
+		await EditorService.load($currentAssistant.id, id);
 		menu?.open.set(false);
-		toolDialogID = id;
-		await tick();
-		inputDialog?.showModal();
+	}
+
+	async function onLoad() {
+		tools.set(await ChatService.listTools($currentAssistant.id));
 	}
 
 	async function updateTool(enabled: boolean, tool: string | undefined) {
@@ -38,7 +49,7 @@
 	}
 </script>
 
-<Menu bind:this={menu} title="Tools" description="Enable or disable available tools">
+<Menu bind:this={menu} title="Tools" description="Enable or disable available tools" {onLoad}>
 	{#snippet icon()}
 		<Wrench class="h-5 w-5" />
 	{/snippet}
@@ -100,19 +111,3 @@
 		{/if}
 	{/snippet}
 </Menu>
-
-<dialog
-	bind:this={inputDialog}
-	class="relative rounded-3xl border-white bg-white p-5 text-black dark:bg-black dark:text-gray-50 md:min-w-[500px]"
->
-	{#key toolDialogID}
-		<Tool
-			id={toolDialogID}
-			onCancel={async () => {
-				inputDialog?.close();
-				toolDialogID = '';
-				tools.set(await ChatService.listTools($currentAssistant.id));
-			}}
-		/>
-	{/key}
-</dialog>
