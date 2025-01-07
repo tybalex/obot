@@ -1102,7 +1102,7 @@ func schema_obot_platform_obot_apiclient_types_EmailReceiverManifest(ref common.
 							Format:  "",
 						},
 					},
-					"user": {
+					"alias": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",
@@ -5325,7 +5325,7 @@ func schema_storage_apis_ottootto8ai_v1_EmailReceiverSpec(ref common.ReferenceCa
 							Format:  "",
 						},
 					},
-					"user": {
+					"alias": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
 							Format: "",

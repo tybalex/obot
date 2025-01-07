@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/obot-platform/obot/apiclient/types"
 	"github.com/obot-platform/obot/pkg/alias"
 	"github.com/obot-platform/obot/pkg/api"
@@ -90,8 +92,12 @@ func convertEmailReceiver(emailReceiver v1.EmailReceiver, hostname string) *type
 		EmailReceiverManifest: manifest,
 		AddressAssigned:       aliasAssigned,
 	}
-	if hostname != "" && er.AddressAssigned != nil && *er.AddressAssigned {
-		er.EmailAddress = emailReceiver.Spec.User + "@" + hostname
+	if hostname != "" {
+		name := emailReceiver.Name
+		if er.AddressAssigned != nil && *er.AddressAssigned {
+			name = er.Alias
+		}
+		er.EmailAddress = fmt.Sprintf("%s@%s", name, hostname)
 	}
 	return er
 }

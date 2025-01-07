@@ -10,7 +10,7 @@ type EmailReceiver struct {
 type EmailReceiverManifest struct {
 	Name           string   `json:"name"`
 	Description    string   `json:"description"`
-	User           string   `json:"user,omitempty"`
+	Alias          string   `json:"alias,omitempty"`
 	Workflow       string   `json:"workflow"`
 	AllowedSenders []string `json:"allowedSenders,omitempty"`
 }

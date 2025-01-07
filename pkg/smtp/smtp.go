@@ -88,13 +88,13 @@ func (s *Server) handler(_ net.Addr, from string, to []string, data []byte) erro
 			continue
 		}
 
-		ns, name, ok := strings.Cut(name, ".")
-		if !ok {
-			log.Infof("Skipping mail for %s: no namespace found", toAddr.Address)
+		name, ns, _ := strings.Cut(name, "+")
+		if ns == "" {
+			ns = system.DefaultNamespace
 		}
 
 		var emailReceiver v1.EmailReceiver
-		if err := alias.Get(s.ctx, s.c, &emailReceiver, ns, name); apierror.IsNotFound(err) {
+		if err = alias.Get(s.ctx, s.c, &emailReceiver, ns, name); apierror.IsNotFound(err) {
 			log.Infof("Skipping mail for %s: no receiver found", toAddr.Address)
 			continue
 		} else if err != nil {
@@ -106,15 +106,7 @@ func (s *Server) handler(_ net.Addr, from string, to []string, data []byte) erro
 			continue
 		}
 
-		if len(emailReceiver.Spec.AllowedSenders) > 0 {
-			for _, allowedSender := range emailReceiver.Spec.AllowedSenders {
-				if allowedSender == fromAddress.Address {
-					break
-				}
-			}
-		}
-
-		if err := s.dispatchEmail(emailReceiver, body, message); err != nil {
+		if err = s.dispatchEmail(emailReceiver, body, message, from, to); err != nil {
 			return fmt.Errorf("dispatch email: %w", err)
 		}
 	}
@@ -158,6 +150,18 @@ func getBody(message *mail.Message) (string, error) {
 				html = string(d)
 			}
 		}
+	} else if strings.HasPrefix(mediaType, "text/plain") || strings.HasPrefix(mediaType, "text/html") {
+		d, err := io.ReadAll(message.Body)
+		if err != nil {
+			return "", err
+		}
+		if message.Header.Get("Content-Transfer-Encoding") == "base64" {
+			d, err = base64.StdEncoding.DecodeString(string(d))
+			if err != nil {
+				return "", err
+			}
+		}
+		html = string(d)
 	}
 
 	if html != "" {
@@ -167,7 +171,7 @@ func getBody(message *mail.Message) (string, error) {
 	return "", fmt.Errorf("failed to find text/plain body: %s", mediaType)
 }
 
-func (s *Server) dispatchEmail(email v1.EmailReceiver, body string, message *mail.Message) error {
+func (s *Server) dispatchEmail(email v1.EmailReceiver, body string, message *mail.Message, from, to string) error {
 	var input struct {
 		Type    string `json:"type"`
 		From    string `json:"from"`
@@ -177,8 +181,8 @@ func (s *Server) dispatchEmail(email v1.EmailReceiver, body string, message *mai
 	}
 
 	input.Type = "email"
-	input.From = message.Header.Get("From")
-	input.To = message.Header.Get("To")
+	input.From = from
+	input.To = to
 	input.Subject = message.Header.Get("Subject")
 	input.Body = body
 
@@ -188,7 +192,7 @@ func (s *Server) dispatchEmail(email v1.EmailReceiver, body string, message *mai
 	}
 
 	var workflow v1.Workflow
-	if err := alias.Get(s.ctx, s.c, &workflow, email.Namespace, email.Spec.Workflow); err != nil {
+	if err = alias.Get(s.ctx, s.c, &workflow, email.Namespace, email.Spec.Workflow); err != nil {
 		return err
 	}
 

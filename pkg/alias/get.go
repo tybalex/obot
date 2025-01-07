@@ -16,7 +16,7 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func Get(ctx context.Context, c kclient.Client, obj v1.Aliasable, namespace string, name string) error {
+func Get(ctx context.Context, c kclient.Client, obj v1.Aliasable, namespace, name string) error {
 	var errLookup error
 	if namespace == "" {
 		gvk, err := c.GroupVersionKindFor(obj.(kclient.Object))

@@ -410,7 +410,7 @@ func (t *TaskHandler) updateEmail(req api.Context, workflow *v1.Workflow, task t
 			},
 			Spec: v1.EmailReceiverSpec{
 				EmailReceiverManifest: types.EmailReceiverManifest{
-					User:     workflow.Spec.Manifest.Alias,
+					Alias:    workflow.Spec.Manifest.Alias,
 					Workflow: workflow.Name,
 				},
 				ThreadName: workflow.Spec.ThreadName,

@@ -42,7 +42,7 @@ func (in *EmailReceiver) FieldNames() []string {
 }
 
 func (in *EmailReceiver) GetAliasName() string {
-	return in.Spec.EmailReceiverManifest.User
+	return in.Spec.EmailReceiverManifest.Alias
 }
 
 func (in *EmailReceiver) SetAssigned(assigned bool) {
@@ -64,7 +64,7 @@ func (in *EmailReceiver) SetObservedGeneration(gen int64) {
 func (*EmailReceiver) GetColumns() [][]string {
 	return [][]string{
 		{"Name", "Name"},
-		{"User", "Spec.User"},
+		{"Alias", "Spec.Alias"},
 		{"Workflow", "Spec.Workflow"},
 		{"Created", "{{ago .CreationTimestamp}}"},
 		{"Description", "Spec.Description"},
