@@ -13,6 +13,7 @@ import (
 	"github.com/gptscript-ai/gptscript/pkg/cache"
 	gptscriptai "github.com/gptscript-ai/gptscript/pkg/gptscript"
 	"github.com/gptscript-ai/gptscript/pkg/loader"
+	"github.com/gptscript-ai/gptscript/pkg/runner"
 	"github.com/gptscript-ai/gptscript/pkg/sdkserver"
 	baaah "github.com/obot-platform/nah"
 	"github.com/obot-platform/nah/pkg/leader"
@@ -115,10 +116,17 @@ func newGPTScript(ctx context.Context, workspaceTool, datasetsTool, toolsRegistr
 		})
 	}
 
+	credOverrides := strings.Split(os.Getenv("GPTSCRIPT_CREDENTIAL_OVERRIDE"), ",")
+	if len(credOverrides) == 1 && strings.TrimSpace(credOverrides[0]) == "" {
+		credOverrides = nil
+	}
 	url, err := sdkserver.EmbeddedStart(ctx, sdkserver.Options{
 		Options: gptscriptai.Options{
 			Cache: cache.Options{
 				CacheDir: os.Getenv("GPTSCRIPT_CACHE_DIR"),
+			},
+			Runner: runner.Options{
+				CredentialOverrides: credOverrides,
 			},
 			SystemToolsDir: os.Getenv("GPTSCRIPT_SYSTEM_TOOLS_DIR"),
 		},
