@@ -12,7 +12,8 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux := services.APIServer
 
 	agents := handlers.NewAgentHandler(services.GPTClient, services.Invoker, services.ServerURL)
-	assistants := handlers.NewAssistantHandler(services.Invoker, services.Events, services.GPTClient)
+	auths := handlers.NewAuthorizationHandler(services.GatewayClient)
+	assistants := handlers.NewAssistantHandler(services.Invoker, services.Events, services.GPTClient, services.Router.Backend())
 	tools := handlers.NewToolHandler(services.GPTClient, services.Invoker)
 	tasks := handlers.NewTaskHandler(services.Invoker, services.Events)
 	workflows := handlers.NewWorkflowHandler(services.GPTClient, services.ServerURL, services.Invoker)
@@ -50,6 +51,11 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("PUT /api/agents/{id}", agents.Update)
 	mux.HandleFunc("DELETE /api/agents/{id}", agents.Delete)
 	mux.HandleFunc("POST /api/agents/{id}/oauth-credentials/{ref}/login", agents.EnsureCredentialForKnowledgeSource)
+
+	// Agent Authorizations
+	mux.HandleFunc("GET /api/agents/{id}/authorizations", auths.ListAgentAuthorizations)
+	mux.HandleFunc("POST /api/agents/{id}/authorizations/add", auths.AddAgentAuthorization)
+	mux.HandleFunc("POST /api/agents/{id}/authorizations/remove", auths.RemoveAgentAuthorization)
 
 	// Assistants
 	mux.HandleFunc("GET /api/assistants", assistants.List)

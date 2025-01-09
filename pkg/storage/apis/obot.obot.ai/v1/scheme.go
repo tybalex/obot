@@ -21,6 +21,8 @@ func AddToScheme(scheme *runtime.Scheme) error {
 
 func AddToSchemeWithGV(scheme *runtime.Scheme, schemeGroupVersion schema.GroupVersion) error {
 	if err := fields.AddKnownTypesWithFieldConversion(scheme, schemeGroupVersion,
+		&AgentAuthorization{},
+		&AgentAuthorizationList{},
 		&Alias{},
 		&AliasList{},
 		&Agent{},

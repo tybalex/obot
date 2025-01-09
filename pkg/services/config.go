@@ -91,6 +91,7 @@ type Services struct {
 	Started                    chan struct{}
 	ProxyServer                *proxy.Proxy
 	GatewayServer              *gserver.Server
+	GatewayClient              *client.Client
 	ModelProviderDispatcher    *dispatcher.Dispatcher
 	KnowledgeSetIngestionLimit int
 	SupportDocker              bool
@@ -232,7 +233,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		tokenServer             = &jwt.TokenService{}
 		events                  = events.NewEmitter(storageClient)
 		gatewayClient           = client.New(gatewayDB, config.AuthAdminEmails)
-		invoker                 = invoke.NewInvoker(storageClient, c, client.New(gatewayDB, config.AuthAdminEmails), config.NoReplyEmailAddress, config.Hostname, config.HTTPListenPort, tokenServer, events)
+		invoker                 = invoke.NewInvoker(storageClient, c, gatewayClient, config.NoReplyEmailAddress, config.Hostname, config.HTTPListenPort, tokenServer, events)
 		modelProviderDispatcher = dispatcher.New(invoker, storageClient, c)
 
 		proxyServer *proxy.Proxy
@@ -298,11 +299,12 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		Router:                r,
 		GPTClient:             c,
 		APIServer: server.NewServer(storageClient, c, authn.NewAuthenticator(authenticators),
-			authz.NewAuthorizer(storageClient), proxyServer, config.Hostname),
+			authz.NewAuthorizer(r.Backend()), proxyServer, config.Hostname),
 		TokenServer:                tokenServer,
 		Invoker:                    invoker,
 		AIHelper:                   aihelper.New(c, config.HelperModel),
 		GatewayServer:              gatewayServer,
+		GatewayClient:              gatewayClient,
 		ProxyServer:                proxyServer,
 		KnowledgeSetIngestionLimit: config.KnowledgeSetIngestionLimit,
 		EmailServerName:            config.EmailServerName,

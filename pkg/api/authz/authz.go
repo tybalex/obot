@@ -48,7 +48,7 @@ var staticRules = map[string][]string{
 	},
 	AuthenticatedGroup: {
 		"/api/oauth/redirect/{service}",
-		"/api/assistants/{path...}",
+		"/api/assistants",
 		"GET /api/me",
 		"PATCH /api/users/{id}",
 		"POST /api/llm-proxy/",
@@ -84,7 +84,11 @@ func (a *Authorizer) Authorize(req *http.Request, user user.Info) bool {
 		return true
 	}
 
-	return a.authorizeThreadFileDownload(req, user)
+	if a.authorizeThreadFileDownload(req, user) {
+		return true
+	}
+
+	return a.authorizeAssistant(req, user)
 }
 
 type rule struct {

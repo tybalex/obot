@@ -165,6 +165,9 @@ func (c *Controller) setupRoutes() error {
 	running.HandlerFunc(workflowStep.RunWhile)
 	steps.HandlerFunc(workflowStep.RunSubflow)
 
+	// AgentAuthorizations
+	root.Type(&v1.AgentAuthorization{}).HandlerFunc(cleanup.Cleanup)
+
 	c.toolRefHandler = toolRef
 	return nil
 }

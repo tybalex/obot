@@ -14,6 +14,7 @@ import (
 
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/obot-platform/nah/pkg/name"
+	"github.com/obot-platform/nah/pkg/router"
 	"github.com/obot-platform/obot/apiclient/types"
 	"github.com/obot-platform/obot/pkg/alias"
 	"github.com/obot-platform/obot/pkg/api"
@@ -26,22 +27,24 @@ import (
 )
 
 type AssistantHandler struct {
-	invoker   *invoke.Invoker
-	events    *events.Emitter
-	gptScript *gptscript.GPTScript
+	invoker      *invoke.Invoker
+	events       *events.Emitter
+	gptScript    *gptscript.GPTScript
+	cachedClient kclient.Client
 }
 
-func NewAssistantHandler(invoker *invoke.Invoker, events *events.Emitter, gptScript *gptscript.GPTScript) *AssistantHandler {
+func NewAssistantHandler(invoker *invoke.Invoker, events *events.Emitter, gptScript *gptscript.GPTScript, cachedClient kclient.Client) *AssistantHandler {
 	return &AssistantHandler{
-		invoker:   invoker,
-		events:    events,
-		gptScript: gptScript,
+		invoker:      invoker,
+		events:       events,
+		gptScript:    gptScript,
+		cachedClient: cachedClient,
 	}
 }
 
 func getAssistant(req api.Context, id string) (*v1.Agent, error) {
 	var agent v1.Agent
-	if err := alias.Get(req.Context(), req.Storage, &agent, "", id); err != nil {
+	if err := alias.Get(req.Context(), req.Storage, &agent, req.Namespace(), id); err != nil {
 		return nil, err
 	}
 	return &agent, nil
@@ -106,6 +109,44 @@ func (a *AssistantHandler) Invoke(req api.Context) error {
 	})
 }
 
+func (a *AssistantHandler) list(req api.Context) (result types.AssistantList, _ error) {
+	var (
+		keys = make([]string, 0, 3)
+		user = req.User
+	)
+
+	keys = append(keys, "*", user.GetUID())
+	if attr := user.GetExtra()["email"]; len(attr) > 0 {
+		keys = append(keys, attr...)
+	}
+
+	seen := map[string]struct{}{}
+	for _, key := range keys {
+		var access v1.AgentAuthorizationList
+		err := a.cachedClient.List(req.Context(), &access, kclient.InNamespace(req.Namespace()), kclient.MatchingFields{
+			"spec.userID": key,
+		})
+		if err != nil {
+			return result, err
+		}
+		for _, auth := range access.Items {
+			if _, ok := seen[auth.Spec.AgentID]; ok {
+				continue
+			}
+			var agent v1.Agent
+			if err := a.cachedClient.Get(req.Context(), router.Key(req.Namespace(), auth.Spec.AgentID), &agent); apierrors.IsNotFound(err) {
+				continue
+			} else if err != nil {
+				return result, err
+			}
+			result.Items = append(result.Items, convertAssistant(agent))
+			seen[auth.Spec.AgentID] = struct{}{}
+		}
+	}
+
+	return result, nil
+}
+
 func (a *AssistantHandler) List(req api.Context) error {
 	var refs v1.AliasList
 	if err := req.Storage.List(req.Context(), &refs); err != nil {
@@ -127,6 +168,13 @@ func (a *AssistantHandler) List(req api.Context) error {
 		}
 	}
 
+	// TODO: Remove above once UI is updated for new API
+	newList, err := a.list(req)
+	if err != nil {
+		return err
+	}
+
+	assistants.Items = append(assistants.Items, newList.Items...)
 	return req.Write(assistants)
 }
 
