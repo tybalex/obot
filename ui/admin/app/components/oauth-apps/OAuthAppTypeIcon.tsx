@@ -1,5 +1,6 @@
 import { NotionLogoIcon } from "@radix-ui/react-icons";
 import { KeyIcon } from "lucide-react";
+import { BiLogoZoom } from "react-icons/bi";
 import {
 	FaAtlassian,
 	FaGithub,
@@ -13,14 +14,15 @@ import { OAuthProvider } from "~/lib/model/oauthApps/oauth-helpers";
 import { cn } from "~/lib/utils";
 
 const IconMap = {
-	[OAuthProvider.Atlassian]: FaAtlassian,
-	[OAuthProvider.GitHub]: FaGithub,
-	[OAuthProvider.Slack]: FaSlack,
-	[OAuthProvider.Salesforce]: FaSalesforce,
-	[OAuthProvider.Google]: FaGoogle,
-	[OAuthProvider.Microsoft365]: FaMicrosoft,
-	[OAuthProvider.Notion]: NotionLogoIcon,
-	[OAuthProvider.Custom]: KeyIcon,
+    [OAuthProvider.Atlassian]: FaAtlassian,
+    [OAuthProvider.GitHub]: FaGithub,
+    [OAuthProvider.Slack]: FaSlack,
+    [OAuthProvider.Salesforce]: FaSalesforce,
+    [OAuthProvider.Google]: FaGoogle,
+    [OAuthProvider.Microsoft365]: FaMicrosoft,
+    [OAuthProvider.Notion]: NotionLogoIcon,
+    [OAuthProvider.Zoom]: BiLogoZoom,
+    [OAuthProvider.Custom]: KeyIcon,
 };
 
 export function OAuthAppTypeIcon({
