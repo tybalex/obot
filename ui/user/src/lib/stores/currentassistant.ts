@@ -25,7 +25,7 @@ function assignSelected(currentAssistants: Assistant[], selectedName: string): A
 		assistants.set(currentAssistants);
 	}
 	const res = currentAssistants.find((value) => value.current);
-	if (!res) {
+	if (!res && selectedName) {
 		ChatService.getAssistant(selectedName).then((assistant) => {
 			if (assistant) {
 				assistant.current = true;
@@ -34,7 +34,7 @@ function assignSelected(currentAssistants: Assistant[], selectedName: string): A
 		});
 		return def;
 	}
-	return res;
+	return res ?? def;
 }
 
 function init() {
