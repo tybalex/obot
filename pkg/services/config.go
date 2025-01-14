@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -259,7 +260,8 @@ func New(ctx context.Context, config Config) (*Services, error) {
 			return nil, err
 		}
 	} else {
-		if err := c.DeleteCredential(ctx, system.DefaultNamespace, system.KnowledgeCredID); err != nil && !strings.HasSuffix(err.Error(), "credential not found") {
+		var notFound gptscript.ErrNotFound
+		if err := c.DeleteCredential(ctx, system.DefaultNamespace, system.KnowledgeCredID); err != nil && !errors.As(err, &notFound) {
 			return nil, err
 		}
 	}
