@@ -6,6 +6,7 @@ import { cn, timeSince } from "~/lib/utils";
 import { ConfirmationDialog } from "~/components/composed/ConfirmationDialog";
 import { Truncate } from "~/components/composed/typography";
 import { ToolIcon } from "~/components/tools/ToolIcon";
+import { ToolCardActions } from "~/components/tools/toolGrid/ToolCardActions";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import {
@@ -33,15 +34,15 @@ export function ToolCard({ tool, onDelete }: ToolCardProps) {
 				"border-2 border-error": tool.error,
 			})}
 		>
-			<CardHeader className="pb-2">
-				<h4 className="flex flex-wrap items-center gap-x-2 truncate">
+			<CardHeader className="flex flex-row justify-between space-y-0 pb-2">
+				<h4 className="flex flex-wrap items-center gap-x-2">
 					<div className="flex flex-nowrap gap-x-2">
 						<ToolIcon
 							className="h-5 w-5 min-w-5"
 							name={tool.name}
 							icon={tool.metadata?.icon}
 						/>
-						{tool.name}
+						<Truncate>{tool.name}</Truncate>
 					</div>
 					{tool.error && (
 						<Tooltip>
@@ -59,6 +60,8 @@ export function ToolCard({ tool, onDelete }: ToolCardProps) {
 						<Badge className="pointer-events-none">Bundle</Badge>
 					)}
 				</h4>
+
+				<ToolCardActions tool={tool} />
 			</CardHeader>
 			<CardContent className="flex-grow">
 				{!tool.builtin && (
