@@ -84,7 +84,7 @@ export function ToolCatalog({
 	if (isLoading) return <LoadingSpinner />;
 
 	const results = search.length
-		? filterToolCatalogBySearch(sortedValidCategories)
+		? filterToolCatalogBySearch(sortedValidCategories, search)
 		: sortedValidCategories;
 	return (
 		<Command
@@ -128,44 +128,6 @@ export function ToolCatalog({
 			</CommandList>
 		</Command>
 	);
-
-	function filterToolCatalogBySearch(toolCategories: [string, ToolCategory][]) {
-		return toolCategories.reduce<[string, ToolCategory][]>(
-			(acc, [category, categoryData]) => {
-				const matchesSearch = (str: string) =>
-					str.toLowerCase().includes(search.toLowerCase());
-
-				// Check if category name matches
-				if (matchesSearch(category)) {
-					acc.push([category, categoryData]);
-					return acc;
-				}
-
-				// Check if bundle tool matches
-				if (
-					categoryData.bundleTool &&
-					matchesSearch(categoryData.bundleTool.name)
-				) {
-					acc.push([category, categoryData]);
-					return acc;
-				}
-
-				// Filter tools and only include category if it has matching tools
-				const filteredTools = categoryData.tools.filter(
-					(tool) =>
-						matchesSearch(tool.name ?? "") ||
-						matchesSearch(tool.description ?? "")
-				);
-
-				if (filteredTools.length > 0) {
-					acc.push([category, { ...categoryData, tools: filteredTools }]);
-				}
-
-				return acc;
-			},
-			[]
-		);
-	}
 }
 
 export function ToolCatalogDialog(props: ToolCatalogProps) {
@@ -183,5 +145,46 @@ export function ToolCatalogDialog(props: ToolCatalogProps) {
 				</Button>
 			</DialogTrigger>
 		</Dialog>
+	);
+}
+
+export function filterToolCatalogBySearch(
+	toolCategories: [string, ToolCategory][],
+	query: string
+) {
+	return toolCategories.reduce<[string, ToolCategory][]>(
+		(acc, [category, categoryData]) => {
+			const matchesSearch = (str: string) =>
+				str.toLowerCase().includes(query.toLowerCase());
+
+			// Check if category name matches
+			if (matchesSearch(category)) {
+				acc.push([category, categoryData]);
+				return acc;
+			}
+
+			// Check if bundle tool matches
+			if (
+				categoryData.bundleTool &&
+				matchesSearch(categoryData.bundleTool.name)
+			) {
+				acc.push([category, categoryData]);
+				return acc;
+			}
+
+			// Filter tools and only include category if it has matching tools
+			const filteredTools = categoryData.tools.filter(
+				(tool) =>
+					matchesSearch(tool.name ?? "") ||
+					matchesSearch(tool.description ?? "")
+			);
+
+			if (filteredTools.length > 0) {
+				acc.push([category, { ...categoryData, tools: filteredTools }]);
+			}
+
+			return acc;
+		},
+		[]
 	);
 }

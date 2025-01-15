@@ -1,93 +1,68 @@
-import { useCallback, useEffect, useState } from "react";
-
 import {
 	CustomToolsToolCategory,
-	ToolCategoryMap,
-	ToolReference,
+	ToolCategory,
 } from "~/lib/model/toolReferences";
 
-import { CategoryHeader } from "~/components/tools/toolGrid/CategoryHeader";
-import { CategoryTools } from "~/components/tools/toolGrid/CategoryTools";
-import { useDebounce } from "~/hooks/useDebounce";
+import { BundleToolList } from "~/components/tools/toolGrid/BundleToolList";
+import { ToolCard } from "~/components/tools/toolGrid/ToolCard";
 
-interface ToolGridProps {
-	toolCategories: ToolCategoryMap;
-	filter: string;
-	onDelete: (id: string) => void;
-}
+export function ToolGrid({
+	toolCategories,
+}: {
+	toolCategories: [string, ToolCategory][];
+}) {
+	const sortedCustomTools =
+		toolCategories
+			.find(([category]) => category === CustomToolsToolCategory)?.[1]
+			.tools?.sort((a, b) => {
+				// sort by created date descending
+				return new Date(b.created).getTime() - new Date(a.created).getTime();
+			}) ?? [];
 
-export function ToolGrid({ toolCategories, filter, onDelete }: ToolGridProps) {
-	const [filteredResults, setFilteredResults] =
-		useState<ToolCategoryMap>(toolCategories);
+	const sortedBuiltinTools = toolCategories
+		.filter(([category]) => category !== CustomToolsToolCategory)
+		.sort((a, b) => {
+			return a[0].localeCompare(b[0]);
+		});
 
-	const filterCategories = useCallback(
-		(searchTerm: string) => {
-			const result: ToolCategoryMap = {};
-			for (const [category, { tools, bundleTool }] of Object.entries(
-				toolCategories
-			)) {
-				const sortedTools = tools.sort((a, b) => a.name.localeCompare(b.name));
-				const toolsWithBundle = bundleTool
-					? [bundleTool, ...sortedTools]
-					: sortedTools;
-				const filteredTools = toolsWithBundle.filter((tool) =>
-					[tool.name, tool.metadata?.category, tool.description]
-						.filter((x) => !!x)
-						.join("|")
-						.toLowerCase()
-						.includes(searchTerm.toLowerCase())
-				);
-				if (filteredTools.length > 0) {
-					result[category] = {
-						tools: filteredTools,
-						bundleTool: bundleTool,
-					};
-				}
-			}
-			setFilteredResults(result);
-		},
-		[toolCategories]
-	);
-
-	const debouncedFilter = useDebounce(filterCategories, 150);
-
-	useEffect(() => {
-		debouncedFilter(filter);
-	}, [filter, debouncedFilter]);
-
-	if (!Object.entries(filteredResults).length) {
-		return <p>No tools found...</p>;
-	}
-
-	const customToolsCategory = filteredResults[CustomToolsToolCategory];
 	return (
-		<div className="space-y-8 pb-16">
-			{customToolsCategory &&
-				renderToolCategory(CustomToolsToolCategory, customToolsCategory.tools)}
-			{Object.entries(filteredResults).map(
-				([category, { tools, bundleTool }]) => {
-					if (category === CustomToolsToolCategory) return null;
-					return renderToolCategory(category, tools, bundleTool?.description);
-				}
+		<div className="flex flex-col gap-8">
+			{sortedCustomTools.length > 0 && (
+				<div className="flex flex-col gap-4">
+					<h3>Custom Tools</h3>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+						{sortedCustomTools.map((tool) => (
+							<ToolCard key={tool.id} tool={tool} />
+						))}
+					</div>
+				</div>
+			)}
+
+			{sortedBuiltinTools.length > 0 && (
+				<div className="flex flex-col gap-4">
+					<h3>Built-in Tools</h3>
+					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+						{sortedBuiltinTools.map(([, { tools, bundleTool }]) => {
+							if (bundleTool) {
+								return (
+									<ToolCard
+										key={bundleTool.id}
+										HeaderRightContent={
+											tools.length > 0 ? (
+												<BundleToolList tools={tools} bundle={bundleTool} />
+											) : null
+										}
+										tool={bundleTool}
+									/>
+								);
+							}
+							return tools.map((tool) => (
+								<ToolCard key={tool.id} tool={tool} />
+							));
+						})}
+					</div>
+				</div>
 			)}
 		</div>
 	);
-
-	function renderToolCategory(
-		category: string,
-		tools: ToolReference[],
-		description = ""
-	) {
-		if (!tools.length) return null;
-		return (
-			<div key={category} className="space-y-4">
-				<CategoryHeader
-					category={category}
-					description={description}
-					tools={tools}
-				/>
-				<CategoryTools tools={tools} onDelete={onDelete} />
-			</div>
-		);
-	}
 }
