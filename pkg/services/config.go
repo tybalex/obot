@@ -70,6 +70,10 @@ type Config struct {
 	Docker                     bool     `usage:"Enable Docker support" default:"false" env:"OBOT_DOCKER"`
 	EnvKeys                    []string `usage:"The environment keys to pass through to the GPTScript server" env:"OBOT_ENV_KEYS"`
 
+	// Sendgrid webhook
+	SendgridWebhookUsername string `usage:"The username for the sendgrid webhook to authenticate with"`
+	SendgridWebhookPassword string `usage:"The password for the sendgrid webhook to authenticate with"`
+
 	AuthConfig
 	GatewayConfig
 	services.Config
@@ -95,6 +99,10 @@ type Services struct {
 	ModelProviderDispatcher    *dispatcher.Dispatcher
 	KnowledgeSetIngestionLimit int
 	SupportDocker              bool
+
+	// Use basic auth for sendgrid webhook, if being set
+	SendgridWebhookUsername string
+	SendgridWebhookPassword string
 }
 
 const (
@@ -362,6 +370,8 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		EmailServerName:            config.EmailServerName,
 		ModelProviderDispatcher:    modelProviderDispatcher,
 		SupportDocker:              config.Docker,
+		SendgridWebhookUsername:    config.SendgridWebhookUsername,
+		SendgridWebhookPassword:    config.SendgridWebhookPassword,
 	}, nil
 }
 

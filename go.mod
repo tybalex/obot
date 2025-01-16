@@ -32,6 +32,7 @@ require (
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c
 	github.com/pterm/pterm v0.12.79
 	github.com/rs/cors v1.11.1
+	github.com/sendgrid/sendgrid-go v3.16.0+incompatible
 	github.com/spf13/cobra v1.8.1
 	golang.org/x/crypto v0.31.0
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
