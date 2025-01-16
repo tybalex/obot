@@ -36,7 +36,22 @@ export type ToolCategory = {
 };
 export const UncategorizedToolCategory = "Uncategorized";
 export const CustomToolsToolCategory = "Custom Tools";
+export const CapabilitiesToolCategory = "Capability";
+
 export type ToolCategoryMap = Record<string, ToolCategory>;
+
+export const CapabilityTool = {
+	Knowledge: "knowledge",
+	WorkspaceFiles: "workspace-files",
+	Database: "database",
+	Tasks: "tasks",
+} as const;
+export type CapabilityTool =
+	(typeof CapabilityTool)[keyof typeof CapabilityTool];
+
+export function isCapabilityTool(toolReference: ToolReference) {
+	return toolReference.metadata?.category === CapabilitiesToolCategory;
+}
 
 export function convertToolReferencesToCategoryMap(
 	toolReferences: ToolReference[]
@@ -46,6 +61,11 @@ export function convertToolReferencesToCategoryMap(
 	for (const toolReference of toolReferences) {
 		if (toolReference.deleted) {
 			// skip tools if marked with deleted
+			continue;
+		}
+
+		// skip capabilities
+		if (isCapabilityTool(toolReference)) {
 			continue;
 		}
 

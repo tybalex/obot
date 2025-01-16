@@ -1,4 +1,10 @@
-import { Library, List, PuzzleIcon, WrenchIcon } from "lucide-react";
+import {
+	BlocksIcon,
+	Library,
+	List,
+	PuzzleIcon,
+	WrenchIcon,
+} from "lucide-react";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
 import { $path } from "safe-routes";
@@ -8,6 +14,7 @@ import { Workflow as WorkflowType } from "~/lib/model/workflows";
 import { cn } from "~/lib/utils";
 
 import { AgentForm } from "~/components/agent";
+import { AgentCapabilityForm } from "~/components/agent/shared/AgentCapabilityForm";
 import { EnvironmentVariableSection } from "~/components/agent/shared/EnvironmentVariableSection";
 import { ToolAuthenticationStatus } from "~/components/agent/shared/ToolAuthenticationStatus";
 import { AgentKnowledgePanel } from "~/components/knowledge";
@@ -45,6 +52,8 @@ function WorkflowContent({ className }: WorkflowProps) {
 
 	const [workflowUpdates, setWorkflowUpdates] = useState(workflow);
 
+	const debouncedUpdateWorkflow = useDebounce(updateWorkflow, 1000);
+
 	const partialSetWorkflow = useCallback(
 		(changes: Partial<typeof workflow>) => {
 			const updatedWorkflow = {
@@ -53,14 +62,12 @@ function WorkflowContent({ className }: WorkflowProps) {
 				...changes,
 			};
 
-			updateWorkflow(updatedWorkflow);
+			debouncedUpdateWorkflow(updatedWorkflow);
 
 			setWorkflowUpdates(updatedWorkflow);
 		},
-		[updateWorkflow, workflow, workflowUpdates]
+		[debouncedUpdateWorkflow, workflow, workflowUpdates]
 	);
-
-	const debouncedSetWorkflowInfo = useDebounce(partialSetWorkflow, 1000);
 
 	return (
 		<div className="flex h-full flex-col">
@@ -72,9 +79,23 @@ function WorkflowContent({ className }: WorkflowProps) {
 					/>
 				</div>
 				<div className="m-4 px-4 pb-4">
-					<AgentForm
-						agent={workflowUpdates}
-						onChange={debouncedSetWorkflowInfo}
+					<AgentForm agent={workflowUpdates} onChange={partialSetWorkflow} />
+				</div>
+
+				<div className="m-4 flex flex-col gap-4 p-4">
+					<h4 className="flex items-center gap-2">
+						<BlocksIcon className="h-5 w-5" />
+						Capabilities
+					</h4>
+
+					<CardDescription>
+						Capabilities define core functions that enable the workflow to
+						perform specialized tasks.
+					</CardDescription>
+
+					<AgentCapabilityForm
+						entity={workflowUpdates}
+						onChange={partialSetWorkflow}
 					/>
 				</div>
 
@@ -113,7 +134,7 @@ function WorkflowContent({ className }: WorkflowProps) {
 					<ParamsForm
 						workflow={workflow}
 						onChange={(values) =>
-							debouncedSetWorkflowInfo({
+							partialSetWorkflow({
 								params: values.params,
 							})
 						}
@@ -128,9 +149,7 @@ function WorkflowContent({ className }: WorkflowProps) {
 
 					<StepsForm
 						workflow={workflowUpdates}
-						onChange={(values) =>
-							debouncedSetWorkflowInfo({ steps: values.steps })
-						}
+						onChange={(values) => partialSetWorkflow({ steps: values.steps })}
 					/>
 				</div>
 
@@ -148,11 +167,11 @@ function WorkflowContent({ className }: WorkflowProps) {
 					<AgentKnowledgePanel
 						agent={workflowUpdates}
 						agentId={workflow.id}
-						updateAgent={debouncedSetWorkflowInfo}
+						updateAgent={partialSetWorkflow}
 						addTool={(tool) => {
 							if (workflow.tools?.includes(tool)) return;
 
-							debouncedSetWorkflowInfo({
+							partialSetWorkflow({
 								tools: [...(workflow.tools || []), tool],
 							});
 						}}
