@@ -11,7 +11,6 @@ import { Message as MessageType } from "~/lib/model/messages";
 import { PromptApiService } from "~/lib/service/api/PromptApi";
 import { cn } from "~/lib/utils";
 
-import { useChat } from "~/components/chat/ChatContext";
 import { MessageDebug } from "~/components/chat/MessageDebug";
 import { ToolCallInfo } from "~/components/chat/ToolCallInfo";
 import { ControlledInput } from "~/components/form/controlledInputs";
@@ -28,6 +27,7 @@ import {
 } from "~/components/ui/dialog";
 import { Form } from "~/components/ui/form";
 import { Link } from "~/components/ui/link";
+import { useAnimatedText } from "~/hooks/messages/useAnimatedText";
 import { useAsync } from "~/hooks/useAsync";
 
 interface MessageProps {
@@ -45,14 +45,12 @@ const urlTransformAllowFiles = (u: string) => {
 
 const OpenMarkdownLinkRegex = new RegExp(/\[([^\]]+)\]\(https?:\/\/[^)]*$/);
 
-export const Message = React.memo(({ message }: MessageProps) => {
+export const Message = React.memo(({ message, isRunning }: MessageProps) => {
 	const isUser = message.sender === "user";
 
 	// note(ryanhopperlowe) we only support one tool call per message for now
 	// leaving it in case that changes in the future
 	const [toolCall = null] = message.tools || [];
-
-	const { isRunning } = useChat();
 
 	const parsedMessage = useMemo(() => {
 		if (OpenMarkdownLinkRegex.test(message.text)) {
@@ -63,6 +61,8 @@ export const Message = React.memo(({ message }: MessageProps) => {
 		}
 		return message.text;
 	}, [message.text]);
+
+	const animatedText = useAnimatedText(parsedMessage, isUser);
 
 	return (
 		<div className="mb-4 w-full">
@@ -106,7 +106,7 @@ export const Message = React.memo(({ message }: MessageProps) => {
 								urlTransform={urlTransformAllowFiles}
 								components={CustomMarkdownComponents}
 							>
-								{parsedMessage || "Waiting for more information..."}
+								{animatedText || "Waiting for more information..."}
 							</Markdown>
 						)}
 
