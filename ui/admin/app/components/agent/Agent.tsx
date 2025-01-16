@@ -10,6 +10,7 @@ import { cn } from "~/lib/utils";
 import { AgentAlias } from "~/components/agent/AgentAlias";
 import { useAgent } from "~/components/agent/AgentContext";
 import { AgentForm } from "~/components/agent/AgentForm";
+import { AgentIntroForm } from "~/components/agent/AgentIntroForm";
 import { PastThreads } from "~/components/agent/PastThreads";
 import { ToolForm } from "~/components/agent/ToolForm";
 import { AgentCapabilityForm } from "~/components/agent/shared/AgentCapabilityForm";
@@ -120,6 +121,10 @@ export function Agent({ className, currentThreadId, onRefresh }: AgentProps) {
 						entity={agentUpdates}
 						onChange={partialSetAgent}
 					/>
+				</div>
+
+				<div className="m-4 p-4">
+					<AgentIntroForm agent={agentUpdates} onChange={partialSetAgent} />
 				</div>
 
 				<div className="m-4 space-y-4 p-4">
