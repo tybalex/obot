@@ -48,6 +48,7 @@ for REPO in "${TOOL_REPOS[@]}"; do
     	# Checkout the commit, if one was set.
     	if [[ -n "${HASH}" ]]; then
     		pushd ./"${REPO_NAME}"
+    		git fetch
     		git checkout "${HASH}"
     		popd
     	fi
