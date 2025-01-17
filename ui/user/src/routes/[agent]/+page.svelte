@@ -37,7 +37,7 @@
 	</div>
 
 	{#if $editorVisible || term.open}
-		<div class="h-dvh w-full pt-20 transition-all {splitWindow ? 'lg:w-3/4' : ''}">
+		<div class="h-dvh w-full pt-20 transition-all {splitWindow ? 'lg:w-3/5' : ''}">
 			<div class="mx-auto h-full max-w-[1300px]">
 				<Editor />
 			</div>
