@@ -86,7 +86,7 @@ spec:
                   name: {{ include "obot.config.secretName" . }}
                   key: obotServerAuthAdminEmails
             {{- end }}
-            - {{- if .Values.config.obotBootstrapToken }}
+            {{- if .Values.config.obotBootstrapToken }}
             - name: "OBOT_BOOTSTRAP_TOKEN"
               valueFrom:
                 secretKeyRef:
