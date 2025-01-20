@@ -90,7 +90,7 @@ spec:
             - name: "OBOT_BOOTSTRAP_TOKEN"
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "obot.config.obotBootstrapToken" . }}
+                  name: {{ include "obot.config.secretName" . }}
                   key: obotBootstrapToken
             {{- end }}
             {{- if .Values.config.obotServerDSN }}
