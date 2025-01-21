@@ -2347,7 +2347,15 @@ func schema_obot_platform_obot_apiclient_types_ModelStatus(ref common.ReferenceC
 							Format: "",
 						},
 					},
+					"modelProviderName": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
 				},
+				Required: []string{"modelProviderName"},
 			},
 		},
 	}
