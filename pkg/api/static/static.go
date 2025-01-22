@@ -11,7 +11,20 @@ func Wrap(next http.Handler, dir string) (http.Handler, error) {
 	mux := http.NewServeMux()
 	mux.Handle("/", next)
 
-	fs := http.FileServer(http.Dir(dir))
+	target := http.FileServer(http.Dir(dir))
+	fs := http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if len(req.URL.Path) > 1 {
+			if strings.HasSuffix(req.URL.Path, "/") {
+				req.URL.Path = req.URL.Path[:len(req.URL.Path)-1] + ".html"
+			} else {
+				parts := strings.Split(req.URL.Path, "/")
+				if !strings.Contains(parts[len(parts)-1], ".") {
+					req.URL.Path += ".html"
+				}
+			}
+		}
+		target.ServeHTTP(rw, req)
+	})
 
 	entries, err := os.ReadDir(dir)
 	if err != nil {
@@ -32,6 +45,8 @@ func Wrap(next http.Handler, dir string) (http.Handler, error) {
 
 		if entry.Name() == "index.html" {
 			mux.Handle("GET /{$}", fs)
+		} else if trimmed, ok := strings.CutSuffix(entry.Name(), ".html"); ok {
+			mux.Handle("GET /"+trimmed, fs)
 		}
 	}
 

@@ -34,31 +34,30 @@
 w-full
 via-80%"
 >
-	<div class="bg-white px-3 py-3 dark:bg-black lg:px-5 lg:pl-3">
+	<div class="p-3">
 		<div class="flex items-center justify-between">
 			<Logo />
-			<div class="flex items-center gap-1 pr-2">
-				{#if hasTool('tasks')}
-					<Tasks />
-				{/if}
-				{#if hasTool('database')}
-					<Tables />
-				{/if}
-				{#if hasTool('knowledge')}
-					<KnowledgeFile />
-				{/if}
-				{#if hasTool('workspace-files')}
-					<Files />
-				{/if}
-				{#if hasTool('shell')}
-					<Term />
-				{/if}
-				{#if hasOptionalTools()}
-					<Tools />
-				{/if}
-				<DarkModeToggle />
-				<Profile />
-			</div>
+			<div class="grow"></div>
+			{#if hasTool('tasks')}
+				<Tasks />
+			{/if}
+			{#if hasTool('database')}
+				<Tables />
+			{/if}
+			{#if hasTool('knowledge')}
+				<KnowledgeFile />
+			{/if}
+			{#if hasTool('workspace-files')}
+				<Files />
+			{/if}
+			{#if hasTool('shell')}
+				<Term />
+			{/if}
+			{#if hasOptionalTools()}
+				<Tools />
+			{/if}
+			<DarkModeToggle />
+			<Profile />
 		</div>
 	</div>
 </nav>
