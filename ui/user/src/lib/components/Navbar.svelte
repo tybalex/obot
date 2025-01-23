@@ -34,7 +34,7 @@
 w-full
 via-80%"
 >
-	<div class="p-3">
+	<div class="bg-white dark:bg-black p-3">
 		<div class="flex items-center justify-between">
 			<Logo />
 			<div class="grow"></div>
