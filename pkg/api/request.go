@@ -61,6 +61,12 @@ func (r *Context) WriteEvents(events <-chan types.Progress) error {
 		lastFlush time.Time
 		toWrite   []types.Progress
 	)
+	if sendEvents {
+		if _, err := r.ResponseWriter.Write([]byte("event: start\ndata: {}\n\n")); err != nil {
+			return err
+		}
+		r.Flush()
+	}
 	for event := range events {
 		if sendEvents {
 			if err := r.WriteDataEvent(event); err != nil {

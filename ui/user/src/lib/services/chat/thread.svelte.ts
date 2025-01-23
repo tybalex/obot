@@ -26,6 +26,7 @@ export class Thread {
 		const reconnect = (): EventSource => {
 			console.log('Message EventSource initializing');
 			this.replayComplete = false;
+			let opened = false;
 			const es = newMessageEventSource(assistant, {
 				task: opts?.task,
 				runID: opts?.runID
@@ -35,16 +36,27 @@ export class Thread {
 			};
 			es.onopen = () => {
 				console.log('Message EventSource opened');
+				opened = true;
 			};
-			es.addEventListener('close', () => {
-				console.log('Message EventSource closed by server');
+			es.addEventListener('reconnect', () => {
+				console.log('Message EventSource reconnecting');
 				opts?.onClose?.();
 				es.close();
 				this.#es = reconnect();
 			});
+			es.addEventListener('close', () => {
+				console.log('Message EventSource closed by server');
+				es.dispatchEvent(new Event('reconnect'));
+			});
 			es.onerror = (e: Event) => {
 				if (e.eventPhase === EventSource.CLOSED) {
 					console.log('Message EventSource closed');
+					if (opened) {
+						opened = false;
+					} else {
+						console.log('Message EventSource failed to open');
+						es.dispatchEvent(new Event('reconnect'));
+					}
 				}
 			};
 			return es;
