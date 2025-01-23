@@ -12,7 +12,7 @@ Obot can be configured to receive email and trigger workflows. Currently, it onl
 
 You need to configure Obot with an email server name where it is going to receive emails. The email server name should match the domain you have configured in SendGrid. For example, if you want to receive emails from `john@yourcompany.com`, you need to configure Obot with `yourcompany.com`.
 
-You can configure the email server name by setting the `OBOT_EMAIL_SERVER_NAME` environment variable.
+You can configure the email server name by setting the `OBOT_SERVER_EMAIL_SERVER_NAME` environment variable.
 
 #### Configuring SendGrid Inbound Parse API
 
@@ -20,9 +20,9 @@ To configure SendGrid to forward emails to Obot, follow these steps:
 
 1. Log in to your SendGrid account.
 2. Navigate to the Inbound Parse settings.
-3. Add a new Inbound Parse Webhook.
-4. Set the domain to the email server name you configured in Obot.
-5. Set the webhook URL to `https://{obot_server_url}/api/sendgrid`. Replace `{obot_server_url}` with the actual URL of your Obot server.
+3. Click on `Add Host & Url`.
+4. For receiving domain, Set the domain to the email server name you configured in Obot. For example, `yourcompany.com`.
+5. Set the Destination URL to `https://{obot_server_url}/api/sendgrid`. Replace `{obot_server_url}` with the actual URL of your Obot server.
 
 To see more details, follow the detailed instructions provided by SendGrid [here](https://www.twilio.com/docs/sendgrid/for-developers/parsing-email/setting-up-the-inbound-parse-webhook).
 
@@ -31,7 +31,7 @@ By default, SendGrid inbound webhook does not provide a way to verify the signat
 
 To do this,
 
-1. Set `OBOT_SENDGRID_WEBHOOK_USERNAME` and `OBOT_SENDGRID_WEBHOOK_PASSWORD` environment variables when you start Obot.
+1. Set `OBOT_SERVER_SENDGRID_WEBHOOK_USERNAME` and `OBOT_SERVER_SENDGRID_WEBHOOK_PASSWORD` environment variables when you start Obot.
 2. Configure SendGrid webhook URL with basic auth `https://{username}:{password}@{obot_server_url}/api/sendgrid`.
    :::
 
