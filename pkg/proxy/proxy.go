@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -96,7 +97,10 @@ func (pm *Manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Determine which auth provider to use.
-	var provider string
+	var (
+		provider   string
+		fromCookie bool
+	)
 	if param := r.URL.Query().Get(ObotAuthProviderQueryParam); param != "" {
 		// If the provider is set in the query params, use that.
 		provider = param
@@ -110,6 +114,7 @@ func (pm *Manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		var contents CookieContents
 		if err = json.Unmarshal([]byte(cookieValue), &contents); err == nil {
+			fromCookie = true
 			provider = contents.AuthProvider
 
 			// Update the cookie to just be the token, which is what the auth provider expects.
@@ -127,12 +132,11 @@ func (pm *Manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// If no provider is set, just use the alphabetically first provider.
 	if provider == "" {
-		providers, err := pm.dispatcher.ListConfiguredAuthProviders(r.Context(), "default")
+		configuredProviders, err := pm.dispatcher.ListConfiguredAuthProviders(r.Context(), "default")
 		if err != nil {
 			http.Error(w, fmt.Sprintf("failed to list configured auth providers: %v", err), http.StatusInternalServerError)
 			return
-		}
-		if len(providers) == 0 {
+		} else if len(configuredProviders) == 0 {
 			// There aren't any auth providers configured. Return an error, unless the user is signing out, in which case, just redirect.
 			if r.URL.Path == "/oauth2/sign_out" {
 				http.Redirect(w, r, rdParam, http.StatusFound)
@@ -142,10 +146,57 @@ func (pm *Manager) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "no auth providers configured", http.StatusBadRequest)
 			return
 		}
-		sort.Slice(providers, func(i, j int) bool {
-			return providers[i] < providers[j]
+
+		sort.Slice(configuredProviders, func(i, j int) bool {
+			return configuredProviders[i] < configuredProviders[j]
 		})
-		provider = "default/" + providers[0]
+		provider = "default/" + configuredProviders[0]
+	} else {
+		namespace, name, _ := strings.Cut(provider, "/")
+		if namespace == "" {
+			http.Error(w, "invalid auth provider:"+provider, http.StatusBadRequest)
+			return
+		}
+
+		// Check if the provider is configured.
+		configuredProviders, err := pm.dispatcher.ListConfiguredAuthProviders(r.Context(), namespace)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("failed to list configured auth providers: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		if !slices.Contains(configuredProviders, name) {
+			// The requested auth provider isn't configured. Return an error, unless the user is signing out, in which case, just redirect.
+			if r.URL.Path == "/oauth2/sign_out" {
+				// Clear the cookie if it's there too.
+				http.SetCookie(w, &http.Cookie{
+					Name:   ObotAccessTokenCookie,
+					Value:  "",
+					Path:   "/",
+					MaxAge: -1,
+				})
+
+				http.Redirect(w, r, rdParam, http.StatusFound)
+				return
+			}
+
+			if fromCookie {
+				// Delete the cookie since it is bad.
+				http.SetCookie(w, &http.Cookie{
+					Name:   ObotAccessTokenCookie,
+					Value:  "",
+					Path:   "/",
+					MaxAge: -1,
+				})
+
+				// Just refresh the page and try again.
+				http.Redirect(w, r, r.URL.String(), http.StatusFound)
+				return
+			}
+
+			http.Error(w, "auth provider not configured: "+provider, http.StatusBadRequest)
+			return
+		}
 	}
 
 	// If the legacy auth provider cookie exists, delete it.
