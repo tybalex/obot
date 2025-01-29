@@ -161,6 +161,14 @@ export const ApiRoutes = {
 			buildUrl(`/agents/${agentId}/authorizations/add`),
 		removeAuthorization: (agentId: string) =>
 			buildUrl(`/agents/${agentId}/authorizations/remove`),
+		getWorkspaceFiles: (agentId: string) =>
+			buildUrl(`/agents/${agentId}/files`),
+		getWorkspaceFile: (agentId: string, fileName: string) =>
+			buildUrl(`/agents/${agentId}/files/${fileName}`),
+		removeWorkspaceFile: (agentId: string, fileName: string) =>
+			buildUrl(`/agents/${agentId}/files/${fileName}`),
+		uploadWorkspaceFile: (agentId: string, fileName: string) =>
+			buildUrl(`/agents/${agentId}/files/${fileName}`),
 	},
 	workflows: {
 		base: () => buildUrl("/workflows"),
@@ -352,4 +360,16 @@ export const revalidateWhere = async (filterCb: (url: string) => boolean) => {
 			return false;
 		}
 	});
+};
+
+export const createRevalidate = <
+	TParams extends unknown[],
+	TReturn extends { path: string },
+>(
+	fn: (...params: TParams) => TReturn
+) => {
+	return (...params: TParams) => {
+		const re = new RegExp(fn(...params).path);
+		return revalidateWhere((url) => re.test(url));
+	};
 };
