@@ -1,9 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ReactNode, useEffect, useMemo } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
+import useSWR from "swr";
 import { z } from "zod";
 
 import { Agent } from "~/lib/model/agents";
+import { ToolReferenceService } from "~/lib/service/api/toolreferenceService";
 import { noop } from "~/lib/utils";
 
 import { ToolEntry } from "~/components/agent/ToolEntry";
@@ -37,6 +39,7 @@ const formSchema = z.object({
 			] as const),
 		})
 	),
+	oauthApps: z.array(z.string()),
 });
 
 export type ToolFormValues = z.infer<typeof formSchema>;
@@ -68,6 +71,7 @@ export function ToolForm({
 					variant: ToolVariant.AVAILABLE,
 				})),
 			],
+			oauthApps: agent.oauthApps ?? [],
 		};
 	}, [agent]);
 
@@ -77,18 +81,33 @@ export function ToolForm({
 	});
 	const { control, handleSubmit, getValues, reset, watch } = form;
 
+	const { data: toolList } = useSWR(
+		ToolReferenceService.getToolReferences.key("tool"),
+		() => ToolReferenceService.getToolReferences("tool"),
+		{ fallbackData: [] }
+	);
+
+	const oauthToolMap = useMemo(
+		() => new Map(toolList.map((tool) => [tool.id, tool.metadata?.oauth])),
+		[toolList]
+	);
+
 	useEffect(() => {
-		const unchanged = compareArrays(
+		const unchangedTools = compareArrays(
 			defaultValues.tools.map((x) => x.tool),
 			getValues("tools").map((x) => x.tool)
 		);
+		const unchangedOauths = compareArrays(
+			defaultValues.oauthApps,
+			getValues("oauthApps")
+		);
 
-		if (unchanged) return;
+		if (unchangedTools && unchangedOauths) return;
 
 		reset(defaultValues);
 	}, [defaultValues, reset, getValues]);
 
-	const toolFields = useFieldArray({
+	const toolFields = useFieldArray<ToolFormValues>({
 		control,
 		name: "tools",
 	});
@@ -103,12 +122,21 @@ export function ToolForm({
 		}).unsubscribe;
 	}, [watch, onChange]);
 
-	const removeTools = (tools: string[]) => {
-		const indexes = tools
-			.map((tool) => toolFields.fields.findIndex((t) => t.tool === tool))
-			.filter((index) => index !== -1);
+	const removeTool = (toolId: string, oauthToRemove?: string) => {
+		const updatedTools = toolFields.fields.filter((tool) => tool.id !== toolId);
+		const index = toolFields.fields.findIndex((tool) => tool.id === toolId);
+		toolFields.remove(index);
 
-		toolFields.remove(indexes);
+		const stillHasOauth = updatedTools.some(
+			(tool) => oauthToolMap.get(tool.id) === oauthToRemove
+		);
+
+		if (!stillHasOauth) {
+			const updatedOauths = form
+				.getValues("oauthApps")
+				?.filter((oauth) => oauth !== oauthToRemove);
+			form.setValue("oauthApps", updatedOauths);
+		}
 	};
 
 	const updateVariant = (tool: string, variant: ToolVariant) =>
@@ -117,7 +145,11 @@ export function ToolForm({
 			{ tool, variant }
 		);
 
-	const updateTools = (tools: string[], variant: ToolVariant) => {
+	const updateTools = (
+		tools: string[],
+		variant: ToolVariant,
+		oauths: string[]
+	) => {
 		const removedToolIndexes = toolFields.fields
 			.filter((field) => !tools.includes(field.tool))
 			.map((item) => toolFields.fields.indexOf(item));
@@ -131,6 +163,8 @@ export function ToolForm({
 		for (const tool of addedTools) {
 			toolFields.append({ tool, variant });
 		}
+
+		form.setValue("oauthApps", oauths);
 	};
 
 	const getCapabilities = useCapabilityTools();
@@ -155,7 +189,7 @@ export function ToolForm({
 							>
 								<ToolEntry
 									tool={field.tool}
-									onDelete={() => removeTools([field.tool])}
+									onDelete={removeTool}
 									actions={
 										<>
 											<Select
@@ -203,7 +237,10 @@ export function ToolForm({
 				<div className="flex justify-end">
 					<ToolCatalogDialog
 						tools={toolFields.fields.map((field) => field.tool)}
-						onUpdateTools={(tools) => updateTools(tools, ToolVariant.FIXED)}
+						onUpdateTools={(tools, oauths) => {
+							updateTools(tools, ToolVariant.FIXED, oauths);
+						}}
+						oauths={form.watch("oauthApps")}
 					/>
 				</div>
 			</form>

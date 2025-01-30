@@ -1,4 +1,4 @@
-import { OAuthAppDetail } from "~/lib/model/oauthApps";
+import { OAuthApp } from "~/lib/model/oauthApps";
 
 import { CustomOAuthAppForm } from "~/components/oauth-apps/CustomOAuthAppForm";
 import {
@@ -10,14 +10,14 @@ import {
 
 export function CustomOauthAppDetail({
 	open,
-	spec,
+	app,
 	onOpenChange,
-	type,
+	alias,
 }: {
 	open: boolean;
-	spec?: OAuthAppDetail;
+	app?: OAuthApp;
 	onOpenChange: (open: boolean) => void;
-	type?: string;
+	alias?: string;
 }) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -26,8 +26,8 @@ export function CustomOauthAppDetail({
 					<DialogTitle>Configure Custom OAuth</DialogTitle>
 				</DialogHeader>
 				<CustomOAuthAppForm
-					defaultData={spec?.appOverride}
-					integration={type}
+					defaultData={app}
+					alias={alias}
 					onComplete={() => {
 						onOpenChange(false);
 					}}

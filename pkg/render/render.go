@@ -74,11 +74,11 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, oauthServerU
 	}
 
 	if opts.Thread != nil {
-		for _, tool := range opts.Thread.Spec.Manifest.Tools {
-			if !added && tool == knowledgeToolName {
+		for _, t := range opts.Thread.Spec.Manifest.Tools {
+			if !added && t == knowledgeToolName {
 				continue
 			}
-			name, tools, err := Tool(ctx, db, agent.Namespace, tool)
+			name, tools, err := tool(ctx, db, agent.Namespace, t)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -107,17 +107,18 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, oauthServerU
 		}
 	}
 
-	for _, tool := range agent.Spec.Manifest.Tools {
-		if !added && tool == knowledgeToolName {
+	for _, t := range agent.Spec.Manifest.Tools {
+		if !added && t == knowledgeToolName {
 			continue
 		}
-		name, tools, err := Tool(ctx, db, agent.Namespace, tool)
+		name, tools, err := tool(ctx, db, agent.Namespace, t)
 		if err != nil {
 			return nil, nil, err
 		}
 		if name != "" {
 			mainTool.Tools = append(mainTool.Tools, name)
 		}
+
 		otherTools = append(otherTools, tools...)
 	}
 
@@ -161,10 +162,10 @@ func OAuthAppEnv(ctx context.Context, db kclient.Client, oauthAppNames []string,
 	activeIntegrations := map[string]v1.OAuthApp{}
 	for _, name := range slices.Sorted(maps.Keys(apps)) {
 		app := apps[name]
-		if app.Spec.Manifest.Global == nil || !*app.Spec.Manifest.Global || app.Spec.Manifest.ClientID == "" || app.Spec.Manifest.ClientSecret == "" || app.Spec.Manifest.Integration == "" {
+		if !app.Spec.Manifest.Global || app.Spec.Manifest.ClientID == "" || app.Spec.Manifest.ClientSecret == "" || app.Spec.Manifest.Alias == "" {
 			continue
 		}
-		activeIntegrations[app.Spec.Manifest.Integration] = app
+		activeIntegrations[app.Spec.Manifest.Alias] = app
 	}
 
 	for _, appRef := range oauthAppNames {
@@ -172,19 +173,19 @@ func OAuthAppEnv(ctx context.Context, db kclient.Client, oauthAppNames []string,
 		if !ok {
 			return nil, fmt.Errorf("oauth app %s not found", appRef)
 		}
-		if app.Spec.Manifest.Integration == "" {
+		if app.Spec.Manifest.Alias == "" {
 			return nil, fmt.Errorf("oauth app %s has no integration name", app.Name)
 		}
 		if app.Spec.Manifest.ClientID == "" || app.Spec.Manifest.ClientSecret == "" {
 			return nil, fmt.Errorf("oauth app %s has no client id or secret", app.Name)
 		}
 
-		activeIntegrations[app.Spec.Manifest.Integration] = app
+		activeIntegrations[app.Spec.Manifest.Alias] = app
 	}
 
 	for _, integration := range slices.Sorted(maps.Keys(activeIntegrations)) {
 		app := activeIntegrations[integration]
-		integrationEnv := strings.ReplaceAll(strings.ToUpper(app.Spec.Manifest.Integration), "-", "_")
+		integrationEnv := strings.ReplaceAll(strings.ToUpper(app.Spec.Manifest.Alias), "-", "_")
 
 		extraEnv = append(extraEnv,
 			fmt.Sprintf("GPTSCRIPT_OAUTH_%s_AUTH_URL=%s", integrationEnv, app.AuthorizeURL(serverURL)),
@@ -351,8 +352,8 @@ func oauthAppsByName(ctx context.Context, c kclient.Client, namespace string) (m
 	}
 
 	for _, app := range apps.Items {
-		if app.Spec.Manifest.Integration != "" {
-			result[app.Spec.Manifest.Integration] = app
+		if app.Spec.Manifest.Alias != "" {
+			result[app.Spec.Manifest.Alias] = app
 		}
 	}
 

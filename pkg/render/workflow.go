@@ -29,6 +29,11 @@ func IsExternalTool(tool string) bool {
 }
 
 func ResolveToolReference(ctx context.Context, c kclient.Client, toolRefType types.ToolReferenceType, ns, name string) (string, error) {
+	name, err := resolveToolReferenceWithMetadata(ctx, c, toolRefType, ns, name)
+	return name, err
+}
+
+func resolveToolReferenceWithMetadata(ctx context.Context, c kclient.Client, toolRefType types.ToolReferenceType, ns, name string) (string, error) {
 	if IsExternalTool(name) {
 		return name, nil
 	}
@@ -39,6 +44,7 @@ func ResolveToolReference(ctx context.Context, c kclient.Client, toolRefType typ
 	} else if err != nil {
 		return "", err
 	}
+
 	if toolRefType != "" && tool.Spec.Type != toolRefType {
 		return name, fmt.Errorf("tool reference %s is not of type %s", name, toolRefType)
 	}

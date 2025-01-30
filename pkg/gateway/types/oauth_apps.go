@@ -47,10 +47,10 @@ type OAuthAppTypeConfig struct {
 
 func ValidateAndSetDefaultsOAuthAppManifest(r *types.OAuthAppManifest, create bool) error {
 	var errs []error
-	if r.Integration == "" {
-		errs = append(errs, fmt.Errorf("missing integration"))
-	} else if !alphaNumericRegexp.MatchString(r.Integration) {
-		errs = append(errs, fmt.Errorf("integration name can only contain alphanumeric characters and hyphens: %s", r.Integration))
+	if r.Alias == "" {
+		errs = append(errs, fmt.Errorf("missing alias"))
+	} else if !alphaNumericRegexp.MatchString(r.Alias) {
+		errs = append(errs, fmt.Errorf("alias name can only contain alphanumeric characters and hyphens: %s", r.Alias))
 	}
 
 	switch r.Type {
@@ -58,8 +58,12 @@ func ValidateAndSetDefaultsOAuthAppManifest(r *types.OAuthAppManifest, create bo
 		r.AuthURL = AtlassianAuthorizeURL
 		r.TokenURL = AtlassianTokenURL
 	case types.OAuthAppTypeMicrosoft365:
-		r.AuthURL = fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/authorize", r.TenantID)
-		r.TokenURL = fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", r.TenantID)
+		tenantID := r.TenantID
+		if tenantID == "" {
+			tenantID = "common"
+		}
+		r.AuthURL = fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/authorize", tenantID)
+		r.TokenURL = fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantID)
 	case types.OAuthAppTypeSlack:
 		r.AuthURL = SlackAuthorizeURL
 		r.TokenURL = SlackTokenURL
@@ -163,8 +167,8 @@ func MergeOAuthAppManifests(r, other types.OAuthAppManifest) types.OAuthAppManif
 	if other.Name != "" {
 		retVal.Name = other.Name
 	}
-	if other.Integration != "" {
-		retVal.Integration = other.Integration
+	if other.Alias != "" {
+		retVal.Alias = other.Alias
 	}
 	if other.AppID != "" {
 		retVal.AppID = other.AppID
@@ -172,7 +176,7 @@ func MergeOAuthAppManifests(r, other types.OAuthAppManifest) types.OAuthAppManif
 	if other.OptionalScope != "" {
 		retVal.OptionalScope = other.OptionalScope
 	}
-	if other.Global != nil {
+	if other.Global {
 		retVal.Global = other.Global
 	}
 
