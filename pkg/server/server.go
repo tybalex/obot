@@ -9,6 +9,7 @@ import (
 
 	"github.com/obot-platform/obot/logger"
 	"github.com/obot-platform/obot/pkg/api/router"
+	"github.com/obot-platform/obot/pkg/api/static"
 	"github.com/obot-platform/obot/pkg/controller"
 	"github.com/obot-platform/obot/pkg/services"
 	"github.com/rs/cors"
@@ -40,6 +41,13 @@ func Run(ctx context.Context, c services.Config) error {
 	handler, err := router.Router(svcs)
 	if err != nil {
 		return err
+	}
+
+	if c.StaticDir != "" {
+		handler, err = static.Wrap(handler, c.StaticDir)
+		if err != nil {
+			return err
+		}
 	}
 
 	if c.DevMode && c.AllowedOrigin == "" {

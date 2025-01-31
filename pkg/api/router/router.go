@@ -35,11 +35,6 @@ func Router(services *services.Services) (http.Handler, error) {
 	tables := handlers.NewTableHandler(services.GPTClient)
 	projects := handlers.NewProjectsHandler(services.Router.Backend())
 
-	ui, err := ui.Handler(services.DevUIPort, services.StorageClient, services.StaticDir)
-	if err != nil {
-		return nil, err
-	}
-
 	sendgridWebhookHandler := sendgrid.NewInboundWebhookHandler(services.StorageClient, services.EmailServerName, services.SendgridWebhookUsername, services.SendgridWebhookPassword)
 
 	// Version
@@ -357,11 +352,10 @@ func Router(services *services.Services) (http.Handler, error) {
 	// Auth Provider tools
 	mux.HandleFunc("/oauth2/", services.ProxyManager.HandlerFunc)
 
-	// UI
-	mux.HTTPHandle("/", ui)
-
 	// Gateway APIs
 	services.GatewayServer.AddRoutes(services.APIServer)
+
+	services.APIServer.HTTPHandle("/", ui.Handler(services.DevUIPort, services.StorageClient))
 
 	return services.APIServer, nil
 }

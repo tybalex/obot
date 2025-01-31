@@ -102,7 +102,6 @@ type Services struct {
 	SupportDocker              bool
 	AuthEnabled                bool
 	AgentsDir                  string
-	StaticDir                  string
 
 	// Use basic auth for sendgrid webhook, if being set
 	SendgridWebhookUsername string
@@ -399,7 +398,6 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		ProviderDispatcher:         providerDispatcher,
 		Bootstrapper:               bootstrapper,
 		AgentsDir:                  config.AgentsDir,
-		StaticDir:                  config.StaticDir,
 	}, nil
 }
 

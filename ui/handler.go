@@ -11,7 +11,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/obot-platform/obot/pkg/api/static"
 	v1 "github.com/obot-platform/obot/pkg/storage/apis/obot.obot.ai/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -19,7 +18,7 @@ import (
 //go:embed all:admin/*build all:user/*build
 var embedded embed.FS
 
-func Handler(devPort int, client kclient.Client, additionalStaticDir string) (http.Handler, error) {
+func Handler(devPort int, client kclient.Client) http.Handler {
 	server := &uiServer{
 		client: client,
 		lock:   new(sync.RWMutex),
@@ -38,19 +37,7 @@ func Handler(devPort int, client kclient.Client, additionalStaticDir string) (ht
 		}
 	}
 
-	var handler http.Handler = server
-
-	if additionalStaticDir != "" {
-		var err error
-		handler, err = static.Wrap(handler, additionalStaticDir)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	handler = oauthMiddleware(handler)
-
-	return handler, nil
+	return server
 }
 
 type uiServer struct {
@@ -61,6 +48,14 @@ type uiServer struct {
 }
 
 func (s *uiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if isOAuthCallbackResponse(r) {
+		fmt.Println("redirecting to /oauth2/callback")
+		redirectURL := r.URL
+		redirectURL.Path = "/oauth2/callback"
+		http.Redirect(w, r, redirectURL.String(), http.StatusFound)
+		return
+	}
+
 	if s.rp != nil {
 		s.rp.ServeHTTP(w, r)
 		return
@@ -120,16 +115,4 @@ func isOAuthCallbackResponse(r *http.Request) bool {
 		(r.URL.Query().Get("code") != "" ||
 			r.URL.Query().Get("error") != "" ||
 			r.URL.Query().Get("state") != "")
-}
-
-func oauthMiddleware(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if isOAuthCallbackResponse(r) {
-			redirectURL := r.URL
-			redirectURL.Path = "/oauth2/callback"
-			http.Redirect(w, r, redirectURL.String(), http.StatusFound)
-			return
-		}
-		h.ServeHTTP(w, r)
-	})
 }
