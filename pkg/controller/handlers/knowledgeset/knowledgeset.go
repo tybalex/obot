@@ -155,6 +155,10 @@ func (h *Handler) CreateWorkspace(req router.Request, _ router.Response) error {
 		return err
 	}
 
+	if ks.Status.WorkspaceName == "" {
+		return nil
+	}
+
 	return h.createThread(req.Ctx, req.Client, ks)
 }
 
