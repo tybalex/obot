@@ -45,7 +45,7 @@ export function Agent({ className, currentThreadId, onRefresh }: AgentProps) {
 	useEffect(() => {
 		setAgentUpdates((prev) => {
 			return {
-				...agent,
+				...prev,
 				aliasAssigned:
 					agent.aliasAssigned !== undefined
 						? agent.aliasAssigned
@@ -61,8 +61,6 @@ export function Agent({ className, currentThreadId, onRefresh }: AgentProps) {
 			const updatedAgent = { ...agent, ...agentUpdates, ...changes };
 
 			debouncedUpdateAgent(updatedAgent);
-
-			setAgentUpdates(updatedAgent);
 
 			if (changes.alias) {
 				const updatedAgentWithAliasUndefined = {
