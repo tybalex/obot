@@ -62,8 +62,10 @@ func (s *Server) wrap(f api.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		if setCookie := firstValue(user.GetExtra(), "set-cookie"); setCookie != "" {
-			rw.Header().Set("Set-Cookie", setCookie)
+		if user.GetExtra()["set-cookies"] != nil {
+			for _, setCookie := range user.GetExtra()["set-cookies"] {
+				rw.Header().Add("Set-Cookie", setCookie)
+			}
 		}
 
 		if !s.authorizer.Authorize(req, user) {
@@ -93,12 +95,4 @@ func (s *Server) wrap(f api.HandlerFunc) http.HandlerFunc {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 		}
 	}
-}
-
-func firstValue(m map[string][]string, key string) string {
-	values := m[key]
-	if len(values) == 0 {
-		return ""
-	}
-	return values[0]
 }
