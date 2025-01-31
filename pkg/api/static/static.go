@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/obot-platform/obot/pkg/oauth"
 )
 
 func Wrap(next http.Handler, dir string) (http.Handler, error) {
@@ -50,5 +52,10 @@ func Wrap(next http.Handler, dir string) (http.Handler, error) {
 		}
 	}
 
-	return mux, nil
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if oauth.HandleOAuthRedirect(rw, req) {
+			return
+		}
+		mux.ServeHTTP(rw, req)
+	}), nil
 }

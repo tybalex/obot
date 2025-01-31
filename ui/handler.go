@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/obot-platform/obot/pkg/oauth"
 	v1 "github.com/obot-platform/obot/pkg/storage/apis/obot.obot.ai/v1"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -48,11 +49,7 @@ type uiServer struct {
 }
 
 func (s *uiServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if isOAuthCallbackResponse(r) {
-		fmt.Println("redirecting to /oauth2/callback")
-		redirectURL := r.URL
-		redirectURL.Path = "/oauth2/callback"
-		http.Redirect(w, r, redirectURL.String(), http.StatusFound)
+	if oauth.HandleOAuthRedirect(w, r) {
 		return
 	}
 
@@ -108,11 +105,4 @@ func (s *uiServer) hasModelProviderConfigured(ctx context.Context) bool {
 
 	s.configured = len(models.Items) > 0
 	return s.configured
-}
-
-func isOAuthCallbackResponse(r *http.Request) bool {
-	return r.URL.Path == "/" &&
-		(r.URL.Query().Get("code") != "" ||
-			r.URL.Query().Get("error") != "" ||
-			r.URL.Query().Get("state") != "")
 }
