@@ -75,9 +75,7 @@ export function useThreadFiles(
 export function useThreadAgents(threadId?: Nullish<string>) {
 	const { data: thread } = useThread(threadId);
 
-	return useSWR(AgentService.getAgentById.key(thread?.agentID), ({ agentId }) =>
-		AgentService.getAgentById(agentId)
-	);
+	return useSWR(...AgentService.getAgentById.swr({ agentId: thread?.agentID }));
 }
 
 export function useThreadCredentials(threadId: Nullish<string>) {
