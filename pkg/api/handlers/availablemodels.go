@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/obot-platform/obot/pkg/api/handlers/providers"
+
 	openai "github.com/gptscript-ai/chat-completion-client"
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/obot-platform/obot/apiclient/types"
@@ -59,7 +61,11 @@ func (a *AvailableModelsHandler) List(req api.Context) error {
 
 	var oModels openai.ModelsList
 	for _, modelProvider := range modelProviderReferences.Items {
-		convertedModelProvider := convertModelProviderToolRef(modelProvider, credMap[string(modelProvider.UID)+modelProvider.Name])
+		convertedModelProvider, err := providers.ConvertModelProviderToolRef(modelProvider, credMap[string(modelProvider.UID)+modelProvider.Name])
+		if err != nil {
+			log.Warnf("failed to convert model provider %q: %v", modelProvider.Name, err)
+			continue
+		}
 		if !convertedModelProvider.Configured || modelProvider.Name == system.ModelProviderTool {
 			continue
 		}
@@ -91,9 +97,14 @@ func (a *AvailableModelsHandler) ListForModelProvider(req api.Context) error {
 		return types.NewErrBadRequest("%s is not a model provider", modelProviderReference.Name)
 	}
 
+	modelProvider, err := providers.ConvertModelProviderToolRef(modelProviderReference, nil)
+	if err != nil {
+		return err
+	}
+
 	var credEnvVars map[string]string
 	if modelProviderReference.Status.Tool != nil {
-		if envVars := modelProviderReference.Status.Tool.Metadata["envVars"]; envVars != "" {
+		if len(modelProvider.RequiredConfigurationParameters) > 0 {
 			cred, err := a.gptscript.RevealCredential(req.Context(), []string{string(modelProviderReference.UID), system.GenericModelProviderCredentialContext}, modelProviderReference.Name)
 			if err != nil && !errors.As(err, &gptscript.ErrNotFound{}) {
 				return fmt.Errorf("failed to reveal credential for model provider %q: %w", modelProviderReference.Name, err)
@@ -103,7 +114,11 @@ func (a *AvailableModelsHandler) ListForModelProvider(req api.Context) error {
 		}
 	}
 
-	if modelProvider := convertModelProviderToolRef(modelProviderReference, credEnvVars); !modelProvider.Configured {
+	modelProvider, err = providers.ConvertModelProviderToolRef(modelProviderReference, credEnvVars)
+	if err != nil {
+		return err
+	}
+	if !modelProvider.Configured {
 		return types.NewErrBadRequest("model provider %s is not configured, missing configuration parameters: %s", modelProviderReference.Name, strings.Join(modelProvider.MissingConfigurationParameters, ", "))
 	}
 

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/obot-platform/obot/pkg/api/handlers/providers"
+
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/obot-platform/obot/apiclient/types"
 	"github.com/obot-platform/obot/pkg/api"
@@ -46,9 +48,14 @@ func (mp *ModelProviderHandler) ByID(req api.Context) error {
 		)
 	}
 
+	mps, err := providers.ConvertModelProviderToolRef(ref, nil)
+	if err != nil {
+		return err
+	}
+
 	var credEnvVars map[string]string
 	if ref.Status.Tool != nil {
-		if envVars := ref.Status.Tool.Metadata["envVars"]; envVars != "" {
+		if len(mps.RequiredConfigurationParameters) > 0 {
 			cred, err := mp.gptscript.RevealCredential(req.Context(), []string{string(ref.UID), system.GenericModelProviderCredentialContext}, ref.Name)
 			if err != nil && !errors.As(err, &gptscript.ErrNotFound{}) {
 				return fmt.Errorf("failed to reveal credential for model provider %q: %w", ref.Name, err)
@@ -58,7 +65,12 @@ func (mp *ModelProviderHandler) ByID(req api.Context) error {
 		}
 	}
 
-	return req.Write(convertToolReferenceToModelProvider(ref, credEnvVars))
+	modelProvider, err := convertToolReferenceToModelProvider(ref, credEnvVars)
+	if err != nil {
+		return err
+	}
+
+	return req.Write(modelProvider)
 }
 
 func (mp *ModelProviderHandler) List(req api.Context) error {
@@ -96,7 +108,12 @@ func (mp *ModelProviderHandler) List(req api.Context) error {
 		if !ok {
 			env = credMap[system.GenericModelProviderCredentialContext+ref.Name]
 		}
-		resp = append(resp, convertToolReferenceToModelProvider(ref, env))
+		modelProvider, err := convertToolReferenceToModelProvider(ref, env)
+		if err != nil {
+			log.Errorf("failed to convert model provider %q: %v", ref.Name, err)
+			continue
+		}
+		resp = append(resp, modelProvider)
 	}
 
 	return req.Write(types.ModelProviderList{Items: resp})
@@ -292,9 +309,14 @@ func (mp *ModelProviderHandler) RefreshModels(req api.Context) error {
 		return types.NewErrBadRequest("%q is not a model provider", ref.Name)
 	}
 
+	mps, err := providers.ConvertModelProviderToolRef(ref, nil)
+	if err != nil {
+		return err
+	}
+
 	var credEnvVars map[string]string
 	if ref.Status.Tool != nil {
-		if envVars := ref.Status.Tool.Metadata["envVars"]; envVars != "" {
+		if len(mps.RequiredConfigurationParameters) > 0 {
 			cred, err := mp.gptscript.RevealCredential(req.Context(), []string{string(ref.UID), system.GenericModelProviderCredentialContext}, ref.Name)
 			if err != nil && !errors.As(err, &gptscript.ErrNotFound{}) {
 				return fmt.Errorf("failed to reveal credential for model provider %q: %w", ref.Name, err)
@@ -304,7 +326,10 @@ func (mp *ModelProviderHandler) RefreshModels(req api.Context) error {
 		}
 	}
 
-	modelProvider := convertToolReferenceToModelProvider(ref, credEnvVars)
+	modelProvider, err := convertToolReferenceToModelProvider(ref, credEnvVars)
+	if err != nil {
+		return err
+	}
 	if !modelProvider.Configured {
 		return types.NewErrBadRequest("model provider %s is not configured, missing configuration parameters: %s", modelProvider.ModelProviderManifest.Name, strings.Join(modelProvider.MissingConfigurationParameters, ", "))
 	}
@@ -325,62 +350,26 @@ func (mp *ModelProviderHandler) RefreshModels(req api.Context) error {
 	return req.Write(modelProvider)
 }
 
-func convertToolReferenceToModelProvider(ref v1.ToolReference, credEnvVars map[string]string) types.ModelProvider {
+func convertToolReferenceToModelProvider(ref v1.ToolReference, credEnvVars map[string]string) (types.ModelProvider, error) {
 	name := ref.Name
 	if ref.Status.Tool != nil {
 		name = ref.Status.Tool.Name
 	}
 
+	mps, err := providers.ConvertModelProviderToolRef(ref, credEnvVars)
+	if err != nil {
+		return types.ModelProvider{}, err
+	}
 	mp := types.ModelProvider{
 		Metadata: MetadataFrom(&ref),
 		ModelProviderManifest: types.ModelProviderManifest{
 			Name:          name,
 			ToolReference: ref.Spec.Reference,
 		},
-		ModelProviderStatus: *convertModelProviderToolRef(ref, credEnvVars),
+		ModelProviderStatus: *mps,
 	}
 
 	mp.Type = "modelprovider"
 
-	return mp
-}
-
-func convertModelProviderToolRef(toolRef v1.ToolReference, cred map[string]string) *types.ModelProviderStatus {
-	var (
-		requiredEnvVars, missingEnvVars, optionalEnvVars []string
-		icon                                             string
-	)
-	if toolRef.Status.Tool != nil {
-		if toolRef.Status.Tool.Metadata["envVars"] != "" {
-			requiredEnvVars = strings.Split(toolRef.Status.Tool.Metadata["envVars"], ",")
-		}
-
-		for _, envVar := range requiredEnvVars {
-			if _, ok := cred[envVar]; !ok {
-				missingEnvVars = append(missingEnvVars, envVar)
-			}
-		}
-
-		icon = toolRef.Status.Tool.Metadata["icon"]
-
-		if optionalEnvVarMetadata := toolRef.Status.Tool.Metadata["optionalEnvVars"]; optionalEnvVarMetadata != "" {
-			optionalEnvVars = strings.Split(optionalEnvVarMetadata, ",")
-		}
-	}
-
-	var modelsPopulated *bool
-	configured := toolRef.Status.Tool != nil && len(missingEnvVars) == 0
-	if configured {
-		modelsPopulated = new(bool)
-		*modelsPopulated = toolRef.Status.ObservedGeneration == toolRef.Generation
-	}
-
-	return &types.ModelProviderStatus{
-		Icon:                            icon,
-		Configured:                      configured,
-		ModelsBackPopulated:             modelsPopulated,
-		RequiredConfigurationParameters: requiredEnvVars,
-		MissingConfigurationParameters:  missingEnvVars,
-		OptionalConfigurationParameters: optionalEnvVars,
-	}
+	return mp, nil
 }
