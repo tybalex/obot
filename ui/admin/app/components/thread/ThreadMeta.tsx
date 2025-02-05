@@ -12,24 +12,27 @@ import {
 	TrashIcon,
 } from "lucide-react";
 import { $path } from "safe-routes";
+import useSWR from "swr";
 
 import { Agent } from "~/lib/model/agents";
 import { runStateToBadgeColor } from "~/lib/model/runs";
 import { Thread } from "~/lib/model/threads";
 import { Workflow } from "~/lib/model/workflows";
 import { ThreadsService } from "~/lib/service/api/threadsService";
-import { PaginationInfo } from "~/lib/service/pagination";
+import { WorkspaceTableApiService } from "~/lib/service/api/workspaceTableApiService";
+import { PaginationInfo } from "~/lib/service/queryService";
 import { cn, noop } from "~/lib/utils";
 
 import {
 	useThreadCredentials,
 	useThreadFiles,
 	useThreadKnowledge,
-	useThreadTables,
 } from "~/components/chat/shared/thread-helpers";
 import { ConfirmationDialog } from "~/components/composed/ConfirmationDialog";
 import { PaginationActions } from "~/components/composed/PaginationActions";
 import { Truncate } from "~/components/composed/typography";
+import { TableNamespace } from "~/components/model/tables";
+import { ThreadTableDialog } from "~/components/thread/ThreadTableDialog";
 import {
 	Accordion,
 	AccordionContent,
@@ -71,8 +74,8 @@ export function ThreadMeta({ entity, thread, className }: ThreadMetaProps) {
 
 	const getFiles = useThreadFiles(
 		thread.id,
-		fileStore.paginationParams,
-		fileStore.search
+		fileStore.params.pagination,
+		fileStore.params.search
 	);
 	const { items: files } = getFiles.data ?? {};
 
@@ -87,10 +90,13 @@ export function ThreadMeta({ entity, thread, className }: ThreadMetaProps) {
 	const { dialogProps, interceptAsync } = useConfirmationDialog();
 
 	const tableStore = usePagination({ pageSize });
-	const getTables = useThreadTables(
-		thread.id,
-		tableStore.paginationParams,
-		tableStore.search
+	const getTables = useSWR(
+		...WorkspaceTableApiService.getTables.swr({
+			namespace: TableNamespace.Threads,
+			entityId: thread.id,
+			filters: { search: tableStore.search },
+			query: { pagination: tableStore.params.pagination },
+		})
 	);
 	const { items: tables } = getTables.data ?? {};
 
@@ -273,8 +279,16 @@ export function ThreadMeta({ entity, thread, className }: ThreadMetaProps) {
 						pagination={tableStore}
 						setPage={tableStore.setPage}
 						renderItem={(table) => (
-							<li key={table.name}>
+							<li
+								key={table.name}
+								className="flex items-center justify-between"
+							>
 								<p>{table.name}</p>
+
+								<ThreadTableDialog
+									threadId={thread.id}
+									tableName={table.name}
+								/>
 							</li>
 						)}
 						renderSkeleton={(index) => (
@@ -373,7 +387,7 @@ function ThreadMetaAccordionItem<T>(props: ThreadMetaAccordionItemProps<T>) {
 				{props.pagination && (
 					<PaginationActions
 						{...props.pagination}
-						onPageChange={props.setPage ?? noop}
+						setPage={props.setPage ?? noop}
 					/>
 				)}
 			</AccordionContent>
