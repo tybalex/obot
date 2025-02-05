@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
@@ -171,6 +172,10 @@ func (ap *AuthProviderHandler) Configure(req api.Context) error {
 		}
 	}
 
+	defer func() {
+		go ap.dispatcher.UpdateConfiguredAuthProviders(context.Background())
+	}()
+
 	if err := ap.gptscript.CreateCredential(req.Context(), gptscript.Credential{
 		Context:  string(ref.UID),
 		ToolName: ref.Name,
@@ -212,6 +217,10 @@ func (ap *AuthProviderHandler) Deconfigure(req api.Context) error {
 	} else if err = ap.gptscript.DeleteCredential(req.Context(), cred.Context, ref.Name); err != nil {
 		return fmt.Errorf("failed to remove existing credential: %w", err)
 	}
+
+	defer func() {
+		go ap.dispatcher.UpdateConfiguredAuthProviders(context.Background())
+	}()
 
 	// Stop the auth provider so that the credential is completely removed from the system.
 	ap.dispatcher.StopAuthProvider(ref.Namespace, ref.Name)
