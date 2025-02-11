@@ -1,4 +1,3 @@
-import { Slot } from "@radix-ui/react-slot";
 import { type VariantProps, cva } from "class-variance-authority";
 import { Loader2 } from "lucide-react";
 import * as React from "react";
@@ -6,7 +5,7 @@ import * as React from "react";
 import { cn } from "~/lib/utils";
 
 const buttonVariants = cva(
-	"inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors hover:shadow-inner focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+	"relative inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors hover:shadow-inner focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
 	{
 		variants: {
 			variant: {
@@ -55,7 +54,6 @@ const buttonVariants = cva(
 
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
 	VariantProps<typeof buttonVariants> & {
-		asChild?: boolean;
 		loading?: boolean;
 		startContent?: React.ReactNode;
 		endContent?: React.ReactNode;
@@ -71,7 +69,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 			variant,
 			size,
 			shape,
-			asChild = false,
 			loading = false,
 			startContent,
 			endContent,
@@ -81,36 +78,28 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 		},
 		ref
 	) => {
-		const Comp = asChild ? Slot : "button";
-
 		return (
-			<Comp
+			<button
 				className={cn(buttonVariants({ variant, size, shape, className }))}
 				ref={ref}
 				{...props}
 			>
-				{getContent()}
-			</Comp>
-		);
-
-		function getContent() {
-			if ((size === "icon" || size === "icon-sm") && loading)
-				return <Loader2 className="animate-spin" />;
-
-			return loading ? (
-				<div className="flex items-center gap-2">
-					<Loader2 className="mr-2 animate-spin" />
-					{children}
-					{endContent}
-				</div>
-			) : (
-				<div className={cn("flex items-center gap-2", classNames?.content)}>
+				<div
+					className={cn("flex items-center gap-2", classNames?.content, {
+						invisible: loading,
+					})}
+				>
 					{startContent}
 					{children}
 					{endContent}
 				</div>
-			);
-		}
+				{loading && (
+					<div className="absolute inset-0 flex items-center justify-center">
+						<Loader2 className="animate-spin" />
+					</div>
+				)}
+			</button>
+		);
 	}
 );
 Button.displayName = "Button";
