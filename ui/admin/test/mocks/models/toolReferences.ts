@@ -16,6 +16,7 @@ export const mockedDatabaseToolReference: ToolReference = {
 	resolved: true,
 	builtin: true,
 	description: "Tools for interacting with a database",
+	bundle: false,
 };
 
 export const mockedKnowledgeToolReference: ToolReference = {
@@ -39,6 +40,7 @@ export const mockedKnowledgeToolReference: ToolReference = {
 	params: {
 		Query: "A search query that will be evaluated against the knowledge set",
 	},
+	bundle: false,
 };
 
 export const mockedTasksToolReference: ToolReference = {
@@ -57,6 +59,7 @@ export const mockedTasksToolReference: ToolReference = {
 	resolved: true,
 	builtin: true,
 	description: "Manage and execute tasks",
+	bundle: false,
 };
 
 export const mockedWorkspaceFilesToolReference: ToolReference = {
@@ -76,6 +79,7 @@ export const mockedWorkspaceFilesToolReference: ToolReference = {
 	builtin: true,
 	description:
 		"Adds the capability for users to read and write workspace files",
+	bundle: false,
 };
 
 export const mockedImageToolBundle: ToolReference[] = [
@@ -85,7 +89,6 @@ export const mockedImageToolBundle: ToolReference[] = [
 		revision: "1",
 		metadata: {
 			bundle: "true",
-			category: "Images",
 			icon: "https://www.mock.com/assets/images_icon.svg",
 		},
 		type: "toolreference",
@@ -97,13 +100,13 @@ export const mockedImageToolBundle: ToolReference[] = [
 		builtin: true,
 		description: "Tools for analyzing and generating images",
 		credentials: ["github.com/gptscript-ai/credentials/model-provider"],
+		bundle: true,
 	},
 	{
 		id: "images-analyze-images",
 		created: "2025-01-29T11:10:12-05:00",
 		revision: "1",
 		metadata: {
-			category: "Images",
 			icon: "https://www.mock.com/assets/images_icon.svg",
 			noUserAuth: "sys.model.provider.credential",
 		},
@@ -123,6 +126,7 @@ export const mockedImageToolBundle: ToolReference[] = [
 			prompt:
 				'(optional) A prompt to analyze the images with (defaults "Provide a brief description of each image")',
 		},
+		bundle: false,
 	},
 ];
 
@@ -133,7 +137,6 @@ export const mockedBrowserToolBundle: ToolReference[] = [
 		revision: "1",
 		metadata: {
 			bundle: "true",
-			category: "Browser",
 			icon: "https://www.mock.com/assets/browser_icon.svg",
 			noUserAuth: "sys.model.provider.credential",
 		},
@@ -146,13 +149,13 @@ export const mockedBrowserToolBundle: ToolReference[] = [
 		builtin: true,
 		description: "Tools to navigate websites using a browser.",
 		credentials: ["github.com/gptscript-ai/credentials/model-provider"],
+		bundle: true,
 	},
 	{
 		id: "browser-download-file-from-url",
 		created: "2025-01-29T11:10:12-05:00",
 		revision: "1",
 		metadata: {
-			category: "Browser",
 			icon: "https://www.mock.com/assets/browser_icon.svg",
 		},
 		type: "toolreference",
@@ -170,6 +173,8 @@ export const mockedBrowserToolBundle: ToolReference[] = [
 				"(required) The name of the workspace file to save the content to.",
 			url: "(required) The URL of the file to download.",
 		},
+		bundle: false,
+		bundleToolName: "browser-bundle",
 	},
 ];
 
@@ -180,7 +185,6 @@ export const mockedBundleWithOauthReference: ToolReference[] = [
 		revision: "1",
 		metadata: {
 			bundle: "true",
-			category: "Gmail",
 			icon: "gmail_icon_small.png",
 			oauth: "google",
 		},
@@ -193,13 +197,13 @@ export const mockedBundleWithOauthReference: ToolReference[] = [
 		builtin: true,
 		description: "Tools for interacting with a user's Gmail account",
 		credentials: ["github.com/obot-platform/tools/google/credential"],
+		bundle: true,
 	},
 	{
 		id: "google-gmail-list-drafts",
 		created: "2025-02-05T13:54:26-05:00",
 		revision: "1",
 		metadata: {
-			category: "Gmail",
 			icon: "gmail_icon_small.png",
 			oauth: "google",
 		},
@@ -218,6 +222,8 @@ export const mockedBundleWithOauthReference: ToolReference[] = [
 			max_results:
 				"Maximum number of drafts to list (Optional: Default will list 100 drafts)",
 		},
+		bundle: false,
+		bundleToolName: "google-gmail-bundle",
 	},
 ];
 
