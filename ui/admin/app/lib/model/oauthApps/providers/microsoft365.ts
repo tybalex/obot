@@ -133,8 +133,8 @@ If you already set your web redirect URI in step 1, you can skip to Step 3.\n
 	{
 		type: "markdown",
 		text: `
-#### For Multi-Tenant Applications Only!\n\n
-If you do not have a multi-tenant application, you can skip this step.\n
+#### For Single-Tenant Applications Only!\n\n
+If you do not have a single-tenant application, you can skip this step.\n
 - From the **Overview** page in your application registration, copy the **Directory (tenant) ID**.\n
 - Paste the **Directory (tenant) ID** into the **Tenant ID** field below.\n
         `,
