@@ -7,9 +7,12 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
+import { ListFilterIcon } from "lucide-react";
+import { useNavigate } from "react-router";
 
 import { cn } from "~/lib/utils";
 
+import { ComboBox } from "~/components/composed/ComboBox";
 import {
 	Table,
 	TableBody,
@@ -29,6 +32,7 @@ interface DataTableProps<TData, TValue> {
 		cell?: string;
 	};
 	onRowClick?: (row: TData) => void;
+	onCtrlClick?: (row: TData) => void;
 	disableClickPropagation?: (cell: Cell<TData, TValue>) => boolean;
 }
 
@@ -40,6 +44,7 @@ export function DataTable<TData, TValue>({
 	classNames,
 	disableClickPropagation,
 	onRowClick,
+	onCtrlClick,
 }: DataTableProps<TData, TValue>) {
 	const table = useReactTable({
 		data,
@@ -102,8 +107,11 @@ export function DataTable<TData, TValue>({
 				className={cn("py-4", classNames?.cell, {
 					"cursor-pointer": !!onRowClick,
 				})}
-				onClick={() => {
-					if (!disableClickPropagation?.(cell)) {
+				onClick={(e) => {
+					if (disableClickPropagation?.(cell)) return;
+					if (e.ctrlKey || e.metaKey) {
+						onCtrlClick?.(cell.row.original);
+					} else {
 						onRowClick?.(cell.row.original);
 					}
 				}}
@@ -113,3 +121,46 @@ export function DataTable<TData, TValue>({
 		);
 	}
 }
+
+export const useRowNavigate = <TData extends object | string>(
+	getPath: (row: TData) => string
+) => {
+	const navigate = useNavigate();
+
+	const handleAction = (row: TData, ctrl: boolean) => {
+		const path = getPath(row);
+		if (ctrl) {
+			window.open(`/admin${path}`, "_blank");
+		} else {
+			navigate(path);
+		}
+	};
+
+	return {
+		internal: (row: TData) => handleAction(row, false),
+		external: (row: TData) => handleAction(row, true),
+	};
+};
+
+export const DataTableFilter = ({
+	field,
+	values,
+	onSelect,
+}: {
+	field: string;
+	onSelect: (value: string) => void;
+	values: { id: string; name: string }[];
+}) => {
+	return (
+		<ComboBox
+			buttonProps={{
+				className: "px-0 w-full",
+				variant: "text",
+				endContent: <ListFilterIcon />,
+			}}
+			placeholder={field}
+			onChange={(option) => onSelect(option?.id ?? "")}
+			options={values}
+		/>
+	);
+};

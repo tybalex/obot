@@ -11,7 +11,6 @@ import { $path } from "safe-routes";
 import { preload } from "swr";
 
 import { KnowledgeFileNamespace } from "~/lib/model/knowledge";
-import { AgentService } from "~/lib/service/api/agentService";
 import { KnowledgeFileService } from "~/lib/service/api/knowledgeFileApiService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
 import { WorkflowService } from "~/lib/service/api/workflowService";
@@ -39,7 +38,7 @@ export const clientLoader = async ({
 	request,
 }: ClientLoaderFunctionArgs) => {
 	const routeInfo = RouteService.getRouteInfo(
-		"/threads/:id",
+		"/task-runs/:id",
 		new URL(request.url),
 		params
 	);
@@ -55,10 +54,7 @@ export const clientLoader = async ({
 	);
 	if (!thread) throw redirect("/threads");
 
-	const [agent, workflow] = await Promise.all([
-		thread.agentID
-			? preload(...AgentService.getAgentById.swr({ agentId: thread.agentID }))
-			: null,
+	const [workflow] = await Promise.all([
 		thread.workflowID
 			? preload(WorkflowService.getWorkflowById.key(thread.workflowID), () =>
 					WorkflowService.getWorkflowById(thread.workflowID)
@@ -80,19 +76,13 @@ export const clientLoader = async ({
 		),
 	]);
 
-	return { thread, agent, workflow };
+	if (!workflow) throw redirect("/tasks");
+
+	return { thread, workflow };
 };
 
-export default function ChatAgent() {
-	const { thread, agent, workflow } = useLoaderData<typeof clientLoader>();
-
-	const getEntity = () => {
-		if (agent) return ["agent", agent] as const;
-		if (workflow) return ["workflow", workflow] as const;
-		throw new Error("Trying to view a thread with an unsupported parent.");
-	};
-
-	const [type, entity] = getEntity();
+export default function TaskRuns() {
+	const { thread, workflow } = useLoaderData<typeof clientLoader>();
 
 	const navigate = useNavigate();
 	return (
@@ -114,16 +104,10 @@ export default function ChatAgent() {
 			<ResizablePanelGroup direction="horizontal" className="flex-auto">
 				<ResizablePanel defaultSize={70} minSize={25}>
 					<ChatProvider
-						id={entity.id}
+						id={workflow.id}
 						mode="agent"
-						readOnly={type !== "agent"}
+						readOnly
 						threadId={thread.id}
-						introductionMessage={entity.introductionMessage}
-						starterMessages={entity.starterMessages}
-						{...(type === "agent" && {
-							icons: entity.icons,
-							name: entity.name,
-						})}
 					>
 						<Chat />
 					</ChatProvider>
@@ -134,7 +118,7 @@ export default function ChatAgent() {
 						<ThreadMeta
 							className="rounded-none border-none"
 							thread={thread}
-							entity={entity}
+							entity={workflow}
 						/>
 					</ScrollArea>
 				</ResizablePanel>
@@ -143,15 +127,15 @@ export default function ChatAgent() {
 	);
 }
 
-const ThreadBreadcrumb = () => useMatch("/threads/:id")?.params.id;
+const ThreadBreadcrumb = () => useMatch("/task-runs/:id")?.params.id;
 
 export const handle: RouteHandle = {
 	breadcrumb: () => [
-		{ content: "Threads", href: $path("/threads") },
+		{ content: "Task Runs", href: $path("/task-runs") },
 		{ content: <ThreadBreadcrumb /> },
 	],
 };
 
 export const meta: MetaFunction<typeof clientLoader> = ({ data }) => {
-	return [{ title: `Thread • ${data?.thread.id}` }];
+	return [{ title: `Task Run • ${data?.thread.id}` }];
 };
