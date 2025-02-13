@@ -102,19 +102,19 @@ describe(Agent, () => {
 		const modifiedValue = faker.word.words({ count: { min: 2, max: 5 } });
 
 		if (!as) {
-			await userEvent.type(screen.getByDisplayValue(searchFor), modifiedValue);
+			await userEvent.click(screen.getByDisplayValue(searchFor));
+			await userEvent.paste(modifiedValue);
 		} else if (as === "placeholder") {
-			await userEvent.type(
-				screen.getByPlaceholderText(searchFor),
-				modifiedValue
-			);
+			await userEvent.click(screen.getByPlaceholderText(searchFor));
+			await userEvent.paste(modifiedValue);
 		} else if (as === "textbox") {
 			const heading = screen.getByRole("heading", { name: searchFor });
 			const textbox = within(heading.parentElement!).queryAllByRole("textbox")[
 				index ?? 0
 			];
 
-			await userEvent.type(textbox, modifiedValue, { delay: null });
+			await userEvent.click(textbox);
+			await userEvent.paste(modifiedValue);
 		}
 
 		await waitFor(
@@ -126,6 +126,7 @@ describe(Agent, () => {
 				),
 			{ timeout: 1000 }
 		);
+		expect(putSpy).toHaveBeenCalledTimes(1);
 	});
 
 	it("Updating icon triggers save", async () => {
@@ -154,7 +155,7 @@ describe(Agent, () => {
 		const iconSrc = iconSelections[0].getAttribute("src");
 		await userEvent.click(iconSelections[0]);
 
-		await waitFor(() => expect(putSpy).toHaveBeenCalled(), { timeout: 20 });
+		await waitFor(() => expect(putSpy).toHaveBeenCalled());
 
 		expect(putSpy).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -203,7 +204,7 @@ describe(Agent, () => {
 		).getAllByRole("button")[1];
 		await userEvent.click(imageDeleteButton);
 
-		await waitFor(() => expect(putSpy).toHaveBeenCalled(), { timeout: 20 });
+		await waitFor(() => expect(putSpy).toHaveBeenCalled());
 
 		expect(putSpy).toHaveBeenCalledWith(
 			expect.objectContaining({
