@@ -16,10 +16,12 @@ import { UserService } from "~/lib/service/api/userService";
 import { RouteHandle } from "~/lib/service/routeHandles";
 import { RouteQueryParams, RouteService } from "~/lib/service/routeService";
 import { timeSince } from "~/lib/utils";
+import { filterByCreatedRange } from "~/lib/utils/filter";
 
 import {
 	DataTable,
 	DataTableFilter,
+	DataTableTimeFilter,
 	useRowNavigate,
 } from "~/components/composed/DataTable";
 import { Filters } from "~/components/composed/Filters";
@@ -61,7 +63,8 @@ export default function TaskRuns() {
 			? value
 			: $path("/chat-threads/:id", { id: value.id })
 	);
-	const { agentId, userId } = useLoaderData<typeof clientLoader>();
+	const { agentId, userId, createdStart, createdEnd } =
+		useLoaderData<typeof clientLoader>();
 
 	const getThreads = useSWR(...ThreadsService.getThreads.swr({}));
 	const getAgents = useSWR(...AgentService.getAgents.swr({}));
@@ -86,8 +89,16 @@ export default function TaskRuns() {
 			);
 		}
 
+		if (createdStart) {
+			filteredThreads = filterByCreatedRange(
+				filteredThreads,
+				createdStart,
+				createdEnd
+			);
+		}
+
 		return filteredThreads;
-	}, [getThreads.data, agentId, userId]);
+	}, [getThreads.data, agentId, userId, createdStart, createdEnd]);
 
 	const agentMap = useMemo(
 		() => new Map(getAgents.data?.map((agent) => [agent.id, agent])),
@@ -160,6 +171,8 @@ export default function TaskRuns() {
 								$path("/chat-threads", {
 									agentId: value,
 									...(userId && { userId }),
+									...(createdStart && { createdStart }),
+									...(createdEnd && { createdEnd }),
 								})
 							);
 						}}
@@ -183,6 +196,8 @@ export default function TaskRuns() {
 								$path("/chat-threads", {
 									userId: value,
 									...(agentId && { agentId }),
+									...(createdStart && { createdStart }),
+									...(createdEnd && { createdEnd }),
 								})
 							);
 						}}
@@ -191,7 +206,26 @@ export default function TaskRuns() {
 			}),
 			columnHelper.accessor("created", {
 				id: "created",
-				header: "Created",
+				header: ({ column }) => (
+					<DataTableTimeFilter
+						key={column.id}
+						field="Created"
+						dateRange={{
+							from: createdStart ? new Date(createdStart) : undefined,
+							to: createdEnd ? new Date(createdEnd) : undefined,
+						}}
+						onSelect={(range) => {
+							navigate.internal(
+								$path("/chat-threads", {
+									createdStart: range.from?.toDateString(),
+									createdEnd: range.to?.toDateString(),
+									...(agentId && { agentId }),
+									...(userId && { userId }),
+								})
+							);
+						}}
+					/>
+				),
 				cell: (info) => (
 					<p>{timeSince(new Date(info.row.original.created))} ago</p>
 				),

@@ -8,11 +8,20 @@ import {
 	useReactTable,
 } from "@tanstack/react-table";
 import { ListFilterIcon } from "lucide-react";
+import { useState } from "react";
+import { DateRange } from "react-day-picker";
 import { useNavigate } from "react-router";
 
 import { cn } from "~/lib/utils";
 
 import { ComboBox } from "~/components/composed/ComboBox";
+import { Button } from "~/components/ui/button";
+import { Calendar } from "~/components/ui/calendar";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "~/components/ui/popover";
 import {
 	Table,
 	TableBody,
@@ -47,6 +56,9 @@ export function DataTable<TData, TValue>({
 	onCtrlClick,
 }: DataTableProps<TData, TValue>) {
 	const table = useReactTable({
+		enableColumnResizing: true,
+		columnResizeMode: "onChange",
+		columnResizeDirection: "ltr",
 		data,
 		columns,
 		state: { sorting: sort },
@@ -61,13 +73,33 @@ export function DataTable<TData, TValue>({
 					<TableRow key={headerGroup.id} className="p-4">
 						{headerGroup.headers.map((header) => {
 							return (
-								<TableHead key={header.id}>
-									{header.isPlaceholder
-										? null
-										: flexRender(
-												header.column.columnDef.header,
-												header.getContext()
-											)}
+								<TableHead
+									key={header.id}
+									style={{ width: header.getSize() }}
+									className="space-between group relative px-0"
+								>
+									<div className="flex h-full w-full items-center justify-between">
+										{header.isPlaceholder ? null : (
+											<div className="w-full px-2">
+												{flexRender(
+													header.column.columnDef.header,
+													header.getContext()
+												)}
+											</div>
+										)}
+										{header.column.getCanResize() && (
+											<button
+												onMouseDown={header.getResizeHandler()}
+												onTouchStart={header.getResizeHandler()}
+												className={cn(
+													"mx-2 h-full w-1 cursor-col-resize self-end group-hover:bg-muted-foreground/30",
+													{
+														isResizing: header.column.getIsResizing(),
+													}
+												)}
+											></button>
+										)}
+									</div>
 								</TableHead>
 							);
 						})}
@@ -115,6 +147,7 @@ export function DataTable<TData, TValue>({
 						onRowClick?.(cell.row.original);
 					}
 				}}
+				style={{ width: cell.column.getSize() }}
 			>
 				{flexRender(cell.column.columnDef.cell, cell.getContext())}
 			</TableCell>
@@ -165,5 +198,46 @@ export const DataTableFilter = ({
 				command: "min-w-64",
 			}}
 		/>
+	);
+};
+
+export const DataTableTimeFilter = ({
+	dateRange,
+	field,
+	onSelect,
+}: {
+	dateRange: DateRange;
+	field: string;
+	onSelect: (range: DateRange) => void;
+}) => {
+	const [range, setRange] = useState<DateRange | undefined>(dateRange);
+	return (
+		<Popover>
+			<PopoverTrigger asChild>
+				<Button
+					variant="text"
+					endContent={<ListFilterIcon />}
+					className="w-full p-0"
+					classNames={{
+						content: "w-full justify-between",
+					}}
+				>
+					{field}
+				</Button>
+			</PopoverTrigger>
+			<PopoverContent>
+				<Calendar
+					mode="range"
+					selected={range}
+					onSelect={(range) => {
+						setRange(range);
+						if (range?.from && range?.to) {
+							onSelect(range);
+						}
+					}}
+					initialFocus
+				/>
+			</PopoverContent>
+		</Popover>
 	);
 };

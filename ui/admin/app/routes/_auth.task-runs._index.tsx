@@ -18,10 +18,12 @@ import { WorkflowService } from "~/lib/service/api/workflowService";
 import { RouteHandle } from "~/lib/service/routeHandles";
 import { RouteQueryParams, RouteService } from "~/lib/service/routeService";
 import { timeSince } from "~/lib/utils";
+import { filterByCreatedRange } from "~/lib/utils/filter";
 
 import {
 	DataTable,
 	DataTableFilter,
+	DataTableTimeFilter,
 	useRowNavigate,
 } from "~/components/composed/DataTable";
 import { Filters } from "~/components/composed/Filters";
@@ -63,7 +65,8 @@ export default function TaskRuns() {
 			? value
 			: $path("/task-runs/:id", { id: value.id })
 	);
-	const { taskId, userId } = useLoaderData<typeof clientLoader>();
+	const { taskId, userId, createdStart, createdEnd } =
+		useLoaderData<typeof clientLoader>();
 
 	const getThreads = useSWR(...ThreadsService.getThreads.swr({}));
 
@@ -135,8 +138,16 @@ export default function TaskRuns() {
 			filteredThreads = threads.filter((thread) => thread.userID === userId);
 		}
 
+		if (createdStart) {
+			filteredThreads = filterByCreatedRange(
+				filteredThreads,
+				createdStart,
+				createdEnd
+			);
+		}
+
 		return filteredThreads;
-	}, [threads, taskId, userId]);
+	}, [threads, taskId, userId, createdStart, createdEnd]);
 
 	const namesCount = useMemo(() => {
 		return (
@@ -232,7 +243,26 @@ export default function TaskRuns() {
 			}),
 			columnHelper.accessor("created", {
 				id: "created",
-				header: "Created",
+				header: ({ column }) => (
+					<DataTableTimeFilter
+						key={column.id}
+						field="Created"
+						dateRange={{
+							from: createdStart ? new Date(createdStart) : undefined,
+							to: createdEnd ? new Date(createdEnd) : undefined,
+						}}
+						onSelect={(range) => {
+							navigate.internal(
+								$path("/task-runs", {
+									createdStart: range.from?.toDateString(),
+									createdEnd: range.to?.toDateString(),
+									...(taskId && { taskId }),
+									...(userId && { userId }),
+								})
+							);
+						}}
+					/>
+				),
 				cell: (info) => (
 					<p>{timeSince(new Date(info.row.original.created))} ago</p>
 				),

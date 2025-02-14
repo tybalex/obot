@@ -17,6 +17,8 @@ const QuerySchemas = {
 		userId: z.string().nullish(),
 		taskId: z.string().nullish(),
 		from: z.enum(["tasks", "agents", "users"]).nullish().catch(null),
+		createdStart: z.string().nullish(),
+		createdEnd: z.string().nullish(),
 	}),
 	taskSchema: z.object({
 		threadId: z.string().nullish(),
@@ -25,6 +27,8 @@ const QuerySchemas = {
 		agentId: z.string().nullish(),
 		userId: z.string().nullish(),
 		taskId: z.string().nullish(),
+		createdStart: z.string().nullish(),
+		createdEnd: z.string().nullish(),
 	}),
 	usersSchema: z.object({ userId: z.string().optional() }),
 } as const;
