@@ -26,7 +26,7 @@ import {
 export async function clientLoader() {
 	await Promise.all([
 		preload(...AgentService.getAgents.swr({})),
-		preload(ThreadsService.getThreads.key(), ThreadsService.getThreads),
+		preload(...ThreadsService.getThreads.swr({})),
 	]);
 	return null;
 }
@@ -41,9 +41,7 @@ export default function Agents() {
 	const navigate = useRowNavigate((agent: Agent) =>
 		$path("/agents/:id", { id: agent.id })
 	);
-	const getThreads = useSWR(ThreadsService.getThreads.key(), () =>
-		ThreadsService.getThreads()
-	);
+	const getThreads = useSWR(...ThreadsService.getThreads.swr({}));
 
 	const threadCounts = useMemo(() => {
 		if (!getThreads.data) return {};

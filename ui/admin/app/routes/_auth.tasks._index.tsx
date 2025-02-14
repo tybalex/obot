@@ -40,7 +40,7 @@ export async function clientLoader({
 }: ClientLoaderFunctionArgs) {
 	await Promise.all([
 		preload(WorkflowService.getWorkflows.key(), WorkflowService.getWorkflows),
-		preload(ThreadsService.getThreads.key(), ThreadsService.getThreads),
+		preload(...ThreadsService.getThreads.swr({})),
 		preload(...AgentService.getAgents.swr({})),
 	]);
 
@@ -63,10 +63,7 @@ export default function Tasks() {
 	const getAgents = useSWR(...AgentService.getAgents.swr({}));
 	const getUsers = useSWR(...UserService.getUsers.swr({}));
 
-	const getThreads = useSWR(
-		ThreadsService.getThreads.key(),
-		ThreadsService.getThreads
-	);
+	const getThreads = useSWR(...ThreadsService.getThreads.swr({}));
 	const getWorkflows = useSWR(
 		WorkflowService.getWorkflows.key(),
 		WorkflowService.getWorkflows

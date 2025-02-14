@@ -49,9 +49,7 @@ export const clientLoader = async ({
 		throw redirect("/threads");
 	}
 
-	const thread = await preload(ThreadsService.getThreadById.key(id), () =>
-		ThreadsService.getThreadById(id)
-	);
+	const thread = await preload(...ThreadsService.getThreadById.swr({ id }));
 	if (!thread) throw redirect("/threads");
 
 	const [workflow] = await Promise.all([
@@ -60,9 +58,6 @@ export const clientLoader = async ({
 					WorkflowService.getWorkflowById(thread.workflowID)
 				)
 			: null,
-		preload(ThreadsService.getFiles.key(thread.id), () =>
-			ThreadsService.getFiles(thread.id)
-		),
 		preload(
 			KnowledgeFileService.getKnowledgeFiles.key(
 				KnowledgeFileNamespace.Threads,

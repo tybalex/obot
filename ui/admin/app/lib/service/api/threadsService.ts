@@ -5,35 +5,31 @@ import { EntityList } from "~/lib/model/primitives";
 import { Thread, UpdateThread } from "~/lib/model/threads";
 import { Workflow } from "~/lib/model/workflows";
 import { WorkspaceFile } from "~/lib/model/workspace";
-import { ApiRoutes, revalidateWhere } from "~/lib/routers/apiRoutes";
+import { ApiRoutes } from "~/lib/routers/apiRoutes";
 import { request } from "~/lib/service/api/primitives";
 import { createFetcher } from "~/lib/service/api/service-primitives";
-import { PaginationParams, QueryService } from "~/lib/service/queryService";
+import { QueryService } from "~/lib/service/queryService";
 import { downloadUrl } from "~/lib/utils/downloadFile";
 
-const getThreads = async () => {
-	const res = await request<{ items: Thread[] }>({
-		url: ApiRoutes.threads.base().url,
-		errorMessage: "Failed to fetch threads",
-	});
+const handleGetThreads = createFetcher(
+	z.object({}),
+	async (_, { signal }) => {
+		const { url } = ApiRoutes.threads.base();
+		const { data } = await request<EntityList<Thread>>({ url, signal });
+		return data.items ?? [];
+	},
+	() => ApiRoutes.threads.base().path
+);
 
-	return res.data.items ?? ([] as Thread[]);
-};
-getThreads.key = () => ({ url: ApiRoutes.threads.base().path }) as const;
-
-const getThreadById = async (threadId: string) => {
-	const res = await request<Thread>({
-		url: ApiRoutes.threads.getById(threadId).url,
-		errorMessage: "Failed to fetch thread",
-	});
-
-	return res.data;
-};
-getThreadById.key = (threadId?: Nullish<string>) => {
-	if (!threadId) return null;
-
-	return { url: ApiRoutes.threads.getById(threadId).path, threadId };
-};
+const handleGetById = createFetcher(
+	z.object({ id: z.string() }),
+	async ({ id }, { signal }) => {
+		const { url } = ApiRoutes.threads.getById(id);
+		const { data } = await request<Thread>({ url, signal });
+		return data;
+	},
+	() => ApiRoutes.threads.getById(":threadId").path
+);
 
 const updateThreadById = async (threadId: string, thread: UpdateThread) => {
 	const { data } = await request<Thread>({
@@ -46,7 +42,19 @@ const updateThreadById = async (threadId: string, thread: UpdateThread) => {
 	return data;
 };
 
-const getThreadsByAgent = async (agentId: string) => {
+const handleGetByAgent = createFetcher(
+	z.object({ agentId: z.string() }),
+	async ({ agentId }, { signal }) => {
+		const { data } = await request<EntityList<Thread>>({
+			url: ApiRoutes.threads.getByAgent(agentId).url,
+			signal,
+			errorMessage: "Failed to fetch threads by agent id",
+		});
+		return data.items ?? [];
+	},
+	() => ApiRoutes.threads.getByAgent(":agentId").path
+);
+const handleGetByAgent1 = async (agentId: string) => {
 	const res = await request<{ items: Thread[] }>({
 		url: ApiRoutes.threads.getByAgent(agentId).url,
 		errorMessage: "Failed to fetch threads by agent",
@@ -54,26 +62,25 @@ const getThreadsByAgent = async (agentId: string) => {
 
 	return res.data.items ?? ([] as Thread[]);
 };
-getThreadsByAgent.key = (agentId?: Nullish<string>) => {
+handleGetByAgent1.key = (agentId?: Nullish<string>) => {
 	if (!agentId) return null;
 
 	return { url: ApiRoutes.threads.getByAgent(agentId).path, agentId };
 };
 
-const getThreadEvents = async (threadId: string) => {
-	const res = await request<{ items: ChatEvent[] }>({
-		url: ApiRoutes.threads.events(threadId).url,
-		headers: { Accept: "application/json" },
-		errorMessage: "Failed to fetch thread events",
-	});
-
-	return res.data.items ?? ([] as ChatEvent[]);
-};
-getThreadEvents.key = (threadId?: Nullish<string>) => {
-	if (!threadId) return null;
-
-	return { url: ApiRoutes.threads.events(threadId).path, threadId };
-};
+const handleGetThreadEvents = createFetcher(
+	z.object({ threadId: z.string() }),
+	async ({ threadId }, { signal }) => {
+		const { data } = await request<EntityList<ChatEvent>>({
+			url: ApiRoutes.threads.events(threadId).url,
+			headers: { Accept: "application/json" },
+			errorMessage: "Failed to fetch thread events",
+			signal,
+		});
+		return data.items ?? [];
+	},
+	() => ApiRoutes.threads.events(":threadId").path
+);
 
 const getThreadEventSource = (threadId: string) => {
 	return new EventSource(
@@ -84,20 +91,8 @@ const getThreadEventSource = (threadId: string) => {
 		}).url
 	);
 };
-getThreadEventSource.key = (threadId?: Nullish<string>) => {
-	if (!threadId) return null;
 
-	return {
-		url: ApiRoutes.threads.events(threadId, {
-			waitForThread: true,
-			follow: true,
-		}).path,
-		threadId,
-		modifier: "EventSource",
-	};
-};
-
-const getWorkflowsForThread = createFetcher(
+const handleGetWorkflows = createFetcher(
 	z.object({ threadId: z.string() }),
 	async ({ threadId }, { signal }) => {
 		const { url } = ApiRoutes.threads.getWorkflowsForThread(threadId);
@@ -116,40 +111,29 @@ const deleteThread = async (threadId: string) => {
 	});
 };
 
-const getFiles = async (
-	threadId: string,
-	pagination?: PaginationParams,
-	search?: string
-) => {
-	const { data } = await request<EntityList<WorkspaceFile>>({
-		url: ApiRoutes.threads.getFiles(threadId).url,
-		errorMessage: "Failed to fetch files",
-	});
+const handleGetFiles = createFetcher(
+	QueryService.queryable.extend({
+		threadId: z.string(),
+		filters: z.object({ search: z.string().optional() }).optional(),
+	}),
+	async ({ threadId, query, filters }, { signal }) => {
+		const { data } = await request<EntityList<WorkspaceFile>>({
+			url: ApiRoutes.threads.getFiles(threadId).url,
+			errorMessage: "Failed to fetch files for thread",
+			signal,
+		});
 
-	const items = data.items ?? [];
+		const { search } = filters ?? {};
 
-	const filteredItems = search
-		? items.filter((item) =>
-				item.name.toLowerCase().includes(search?.toLowerCase() ?? "")
-			)
-		: items;
+		if (search)
+			data.items = data.items?.filter((i) =>
+				i.name.toLowerCase().includes(search?.toLowerCase())
+			);
 
-	return QueryService.paginate(filteredItems, pagination);
-};
-getFiles.key = (
-	threadId?: Nullish<string>,
-	pagination?: PaginationParams,
-	search?: string
-) => {
-	if (!threadId) return null;
-
-	return {
-		url: ApiRoutes.threads.getFiles(threadId).path,
-		threadId,
-		pagination,
-		search,
-	};
-};
+		return QueryService.paginate(data.items ?? [], query.pagination);
+	},
+	() => ApiRoutes.threads.getFiles(":threadId").path
+);
 
 const downloadFile = (threadId: string, filePath: string) => {
 	downloadUrl(ApiRoutes.threads.downloadFile(threadId, filePath).url, filePath);
@@ -163,20 +147,16 @@ const abortThread = async (threadId: string) => {
 	});
 };
 
-const revalidateThreads = () =>
-	revalidateWhere((url) => url.includes(ApiRoutes.threads.base().path));
-
 export const ThreadsService = {
-	getThreads,
-	getThreadById,
-	getThreadsByAgent,
-	getThreadEvents,
+	getThreads: handleGetThreads,
+	getThreadById: handleGetById,
+	getThreadsByAgent: handleGetByAgent,
+	getThreadEvents: handleGetThreadEvents,
+	getWorkflowsForThread: handleGetWorkflows,
+	getFiles: handleGetFiles,
 	getThreadEventSource,
-	getWorkflowsForThread,
 	updateThreadById,
 	deleteThread,
-	revalidateThreads,
-	getFiles,
 	downloadFile,
 	abortThread,
 };

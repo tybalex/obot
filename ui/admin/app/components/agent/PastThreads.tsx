@@ -43,9 +43,7 @@ export const PastThreads: React.FC<PastThreadsProps> = ({
 		error,
 		isLoading,
 		mutate,
-	} = useSWR(ThreadsService.getThreadsByAgent.key(agentId), () =>
-		ThreadsService.getThreadsByAgent(agentId)
-	);
+	} = useSWR(...ThreadsService.getThreadsByAgent.swr({ agentId }));
 
 	const handleOpenChange = (newOpen: boolean) => {
 		setOpen(newOpen);

@@ -52,6 +52,7 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from "~/components/ui/tooltip";
+import { useAuthStatus } from "~/hooks/auth/useAuthStatus";
 import { useConfirmationDialog } from "~/hooks/component-helpers/useConfirmationDialog";
 import { usePagination } from "~/hooks/pagination/usePagination";
 
@@ -72,6 +73,8 @@ export function ThreadMeta({ entity, thread, className }: ThreadMetaProps) {
 	const assistantLink = isAgent
 		? $path("/agents/:id", { id: entity.id }, { from })
 		: $path("/tasks/:id", { id: entity.id });
+
+	const { authEnabled } = useAuthStatus();
 
 	const fileStore = usePagination({ pageSize });
 
@@ -137,13 +140,17 @@ export function ThreadMeta({ entity, thread, className }: ThreadMetaProps) {
 									</div>
 								</td>
 							</tr>
-							{thread.userID && (
+							{thread.userID && authEnabled && (
 								<tr className="border-foreground/25">
 									<td className="py-2 pr-4 font-medium">User</td>
 									<td className="text-right">
-										<Link to={$path("/users", { userId: thread.userID })}>
-											{user?.username ?? thread.userID}
-										</Link>
+										{user?.email || user?.username ? (
+											<Link to={$path("/users", { userId: thread.userID })}>
+												{user?.email ?? user.username}
+											</Link>
+										) : (
+											"N/A"
+										)}
 									</td>
 								</tr>
 							)}

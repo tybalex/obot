@@ -43,7 +43,7 @@ export async function clientLoader({ request }: ClientLoaderFunctionArgs) {
 	const users = await preload(...UserService.getUsers.swr({ filters: query }));
 
 	if (users.length > 0) {
-		await preload(ThreadsService.getThreads.key(), ThreadsService.getThreads);
+		await preload(...ThreadsService.getThreads.swr({}));
 	}
 
 	return { filters: query };
@@ -54,8 +54,7 @@ export default function Users() {
 	const { data: users = [] } = useSWR(...UserService.getUsers.swr({ filters }));
 
 	const { data: threads } = useSWR(
-		() => users.length > 0 && ThreadsService.getThreads.key(),
-		() => ThreadsService.getThreads()
+		...ThreadsService.getThreads.swr({}, { enabled: !!users.length })
 	);
 
 	const userThreadMap = useMemo(() => {

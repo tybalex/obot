@@ -24,6 +24,7 @@ import {
 } from "~/components/composed/DataTable";
 import { Filters } from "~/components/composed/Filters";
 import { SearchInput } from "~/components/composed/SearchInput";
+import { DeleteThread } from "~/components/thread/DeleteThread";
 import { Link } from "~/components/ui/link";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import {
@@ -40,7 +41,7 @@ export async function clientLoader({
 }: ClientLoaderFunctionArgs) {
 	await Promise.all([
 		preload(...AgentService.getAgents.swr({})),
-		preload(ThreadsService.getThreads.key(), ThreadsService.getThreads),
+		preload(...ThreadsService.getThreads.swr({})),
 		preload(...UserService.getUsers.swr({})),
 	]);
 
@@ -62,11 +63,7 @@ export default function TaskRuns() {
 	);
 	const { agentId, userId } = useLoaderData<typeof clientLoader>();
 
-	const getThreads = useSWR(
-		ThreadsService.getThreads.key(),
-		ThreadsService.getThreads
-	);
-
+	const getThreads = useSWR(...ThreadsService.getThreads.swr({}));
 	const getAgents = useSWR(...AgentService.getAgents.swr({}));
 	const getUsers = useSWR(...UserService.getUsers.swr({}));
 
@@ -222,6 +219,8 @@ export default function TaskRuns() {
 								<p>Inspect Thread</p>
 							</TooltipContent>
 						</Tooltip>
+
+						<DeleteThread id={row.original.id} />
 					</div>
 				),
 			}),

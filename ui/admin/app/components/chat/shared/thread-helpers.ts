@@ -14,10 +14,8 @@ import { PaginationParams } from "~/lib/service/queryService";
 import { TableNamespace } from "~/components/model/tables";
 import { useAsync } from "~/hooks/useAsync";
 
-function useThread(threadId?: Nullish<string>) {
-	return useSWR(ThreadsService.getThreadById.key(threadId), ({ threadId }) =>
-		ThreadsService.getThreadById(threadId)
-	);
+function useThread(id?: Nullish<string>) {
+	return useSWR(...ThreadsService.getThreadById.swr({ id }));
 }
 
 export function useOptimisticThread(threadId?: Nullish<string>) {
@@ -66,9 +64,11 @@ export function useThreadFiles(
 	search?: string
 ) {
 	const { data, ...rest } = useSWR(
-		ThreadsService.getFiles.key(threadId, pagination, search),
-		({ threadId, pagination, search }) =>
-			ThreadsService.getFiles(threadId, pagination, search)
+		...ThreadsService.getFiles.swr({
+			threadId,
+			query: { pagination },
+			filters: { search },
+		})
 	);
 
 	return { data, ...rest };
@@ -141,8 +141,7 @@ export const useThreadTasks = (agentThreadId?: string) => {
 	);
 
 	const getThreads = useSWR(
-		agentThreadId ? ThreadsService.getThreads.key() : null,
-		() => ThreadsService.getThreads()
+		...ThreadsService.getThreads.swr({}, { enabled: !!agentThreadId })
 	);
 
 	const runCounts = getThreads.data?.reduce<Record<string, number>>(
