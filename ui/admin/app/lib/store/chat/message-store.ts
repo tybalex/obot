@@ -1,8 +1,14 @@
 import { createStore } from "zustand";
 
-import { ChatEvent } from "~/lib/model/chatEvents";
+import {
+	ChatEvent,
+	GoogleSearchOutput,
+	KnowledgeToolOutput,
+	ToolCall,
+} from "~/lib/model/chatEvents";
 import { Message, promptMessage, toolCallMessage } from "~/lib/model/messages";
 import { ThreadsService } from "~/lib/service/api/threadsService";
+import { handleTry } from "~/lib/utils/handleTry";
 
 type EventInitConfig = {
 	onEvent: (event: ChatEvent) => void;
@@ -20,6 +26,9 @@ export type MessageStore = {
 
 export const createMessageStore = () => {
 	return createStore<MessageStore>()((set, get) => {
+		// pseudo private instance variable
+		let parsedSources: { url?: string; content: string }[] = [];
+
 		return {
 			messages: [],
 			cleanupFns: [],
@@ -169,31 +178,60 @@ export const createMessageStore = () => {
 						runId: runID,
 						contentID,
 						time,
+						knowledgeSources: parsedSources.length ? parsedSources : undefined,
 					});
+
+					// reset the knowledge output for the next message
+					parsedSources = [];
 					return { messages: copy };
 				}
 
 				return { messages: copy };
 			});
 		}
+
+		function handleToolCallEvent(messages: Message[], event: ChatEvent) {
+			if (!event.toolCall) return messages;
+
+			const { toolCall } = event;
+
+			const sources = pullSources(toolCall);
+
+			if (sources) parsedSources.push(...sources);
+
+			// if the toolCall is an output event
+			if (toolCall.output) {
+				const index = messages.findLastIndex(
+					(m) => m.tools && !m.tools[0].output
+				);
+				if (index !== -1) {
+					// update the previous pending toolcall message (without output)
+					messages[index].tools = [toolCall];
+					return messages;
+				}
+			}
+
+			// otherwise add a new toolcall message
+			messages.push(toolCallMessage(toolCall));
+			return messages;
+		}
 	});
 };
 
-const handleToolCallEvent = (messages: Message[], event: ChatEvent) => {
-	if (!event.toolCall) return messages;
+function pullSources(toolCall: ToolCall) {
+	if (!toolCall.output) return;
 
-	const { toolCall } = event;
-	if (toolCall.output) {
-		// const index = findIndexLastPendingToolCall(messages);
-		const index = messages.findLastIndex((m) => m.tools && !m.tools[0].output);
-		if (index !== -1) {
-			// update the found pending toolcall message (without output)
-			messages[index].tools = [toolCall];
-			return messages;
-		}
+	const [err, output] = handleTry(() => JSON.parse(toolCall.output));
+
+	if (err) return [];
+
+	if (toolCall.name === "Knowledge") {
+		const o = output as KnowledgeToolOutput;
+		return o;
 	}
 
-	// otherwise add a new toolcall message
-	messages.push(toolCallMessage(toolCall));
-	return messages;
-};
+	if (toolCall.name === "Search") {
+		const o = output as GoogleSearchOutput;
+		return o.results;
+	}
+}
