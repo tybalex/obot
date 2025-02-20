@@ -333,6 +333,7 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agen
 	} else if agent.Name != "" {
 		credContextIDs = append(credContextIDs, agent.Name)
 	}
+	credContextIDs = append(credContextIDs, agent.Spec.AdditionalCredentialContexts...)
 	credContextIDs = append(credContextIDs, agent.Namespace)
 
 	tools, extraEnv, err := render.Agent(ctx, c, agent, i.serverURL, render.AgentOptions{
