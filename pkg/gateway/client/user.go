@@ -125,8 +125,8 @@ func (c *Client) UpdateProfileIconIfNeeded(ctx context.Context, user *types.User
 		return err
 	}
 
-	if time.Until(identity.IconLastChecked) > -7*24*time.Hour {
-		// Icon was checked less than 7 days ago.
+	if user.IconURL == identity.IconURL && time.Until(identity.IconLastChecked) > -7*24*time.Hour {
+		// Icon was checked less than 7 days ago and the user is still using the same auth provider.
 		return nil
 	}
 
