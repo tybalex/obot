@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Tween } from 'svelte/motion';
 	import type { Message } from '$lib/services';
 	import Loading from '$lib/icons/Loading.svelte';
 	import highlight from 'highlight.js';
@@ -33,6 +34,22 @@
 
 	let promptCredentials = $state<Record<string, string>>({});
 	let credentialsSubmitted = $state(false);
+
+	const shouldAnimate = !msg.done && !msg.toolCall && !msg.promptId && !msg.sent;
+	let cursor = new Tween(0);
+	let prevContent = $state('');
+	let animatedText = $derived(shouldAnimate ? content.slice(0, cursor.current) : content);
+
+	$effect(() => {
+		if (!shouldAnimate) return;
+
+		if (!content.startsWith(prevContent)) {
+			cursor.set(0, { duration: 0 });
+		}
+		prevContent = content;
+
+		cursor.set(content.length, { duration: 500 });
+	});
 
 	$effect(() => {
 		if (msg.toolCall && msg.sourceName === 'Shell') {
@@ -242,7 +259,7 @@
 		{/each}
 		{@render explain()}
 	{:else}
-		{@html toHTMLFromMarkdown(content)}
+		{@html toHTMLFromMarkdown(animatedText)}
 	{/if}
 {/snippet}
 
