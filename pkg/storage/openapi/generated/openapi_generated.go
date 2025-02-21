@@ -3702,6 +3702,12 @@ func schema_obot_platform_obot_apiclient_types_Task(ref common.ReferenceCallback
 							Ref:     ref("github.com/obot-platform/obot/apiclient/types.TaskManifest"),
 						},
 					},
+					"threadID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"alias": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -7801,6 +7807,13 @@ func schema_storage_apis_obotobotai_v1_Ref(ref common.ReferenceCallback) common.
 							Format:  "",
 						},
 					},
+					"Alias": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
 					"Kind": {
 						SchemaProps: spec.SchemaProps{
 							Default: "",
@@ -7809,7 +7822,7 @@ func schema_storage_apis_obotobotai_v1_Ref(ref common.ReferenceCallback) common.
 						},
 					},
 				},
-				Required: []string{"ObjType", "Namespace", "Name", "Kind"},
+				Required: []string{"ObjType", "Namespace", "Name", "Alias", "Kind"},
 			},
 		},
 		Dependencies: []string{

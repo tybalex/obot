@@ -26,7 +26,7 @@ const formSchema = z.object({
 			collapsed: z.string(),
 			collapsedDark: z.string(),
 		})
-		.nullable(),
+		.nullish(),
 });
 
 export type AgentInfoFormValues = z.infer<typeof formSchema>;
@@ -87,7 +87,7 @@ export function AgentForm({
 					<div className="flex items-center justify-start gap-2">
 						<AgentIcon
 							name={agent.name}
-							icons={agent.icons}
+							icons={agent.icons ?? null}
 							onChange={(icons) => form.setValue("icons", icons)}
 						/>
 						<div className="flex flex-1 flex-col gap-2">

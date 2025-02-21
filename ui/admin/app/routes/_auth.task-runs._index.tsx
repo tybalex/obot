@@ -3,7 +3,6 @@ import { ColumnDef, createColumnHelper } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import {
 	ClientLoaderFunctionArgs,
-	Link,
 	MetaFunction,
 	useLoaderData,
 } from "react-router";
@@ -12,9 +11,9 @@ import useSWR, { preload } from "swr";
 
 import { Thread } from "~/lib/model/threads";
 import { AgentService } from "~/lib/service/api/agentService";
+import { TaskService } from "~/lib/service/api/taskService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
 import { UserService } from "~/lib/service/api/userService";
-import { WorkflowService } from "~/lib/service/api/workflowService";
 import { RouteHandle } from "~/lib/service/routeHandles";
 import { RouteQueryParams, RouteService } from "~/lib/service/routeService";
 import { timeSince } from "~/lib/utils";
@@ -28,7 +27,7 @@ import {
 } from "~/components/composed/DataTable";
 import { Filters } from "~/components/composed/Filters";
 import { SearchInput } from "~/components/composed/SearchInput";
-import { Button } from "~/components/ui/button";
+import { Link } from "~/components/ui/link";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import {
 	Tooltip,
@@ -44,7 +43,7 @@ export async function clientLoader({
 }: ClientLoaderFunctionArgs) {
 	await Promise.all([
 		preload(...AgentService.getAgents.swr({})),
-		preload(WorkflowService.getWorkflows.key(), WorkflowService.getWorkflows),
+		preload(...TaskService.getTasks.swr({})),
 		preload(...ThreadsService.getThreads.swr({})),
 		preload(...UserService.getUsers.swr({})),
 	]);
@@ -69,12 +68,7 @@ export default function TaskRuns() {
 		useLoaderData<typeof clientLoader>();
 
 	const getThreads = useSWR(...ThreadsService.getThreads.swr({}));
-
-	const getWorkflows = useSWR(
-		WorkflowService.getWorkflows.key(),
-		WorkflowService.getWorkflows
-	);
-
+	const getTasks = useSWR(...TaskService.getTasks.swr({}));
 	const getAgents = useSWR(...AgentService.getAgents.swr({}));
 	const getUsers = useSWR(...UserService.getUsers.swr({}));
 
@@ -90,10 +84,9 @@ export default function TaskRuns() {
 		);
 	}, [getAgents.data, getThreads.data]);
 
-	const workflowMap = useMemo(
-		() =>
-			new Map(getWorkflows.data?.map((workflow) => [workflow.id, workflow])),
-		[getWorkflows.data]
+	const taskMap = useMemo(
+		() => new Map(getTasks.data?.map((task) => [task.id, task])),
+		[getTasks.data]
 	);
 	const userMap = useMemo(
 		() => new Map(getUsers.data?.map((user) => [user.id, user])),
@@ -113,17 +106,17 @@ export default function TaskRuns() {
 			getThreads.data
 				?.filter((thread) => thread.workflowID && !thread.deleted)
 				.map((thread) => {
-					const workflow = workflowMap.get(thread.workflowID!);
-					const workflowThread = threadMap.get(workflow?.threadID ?? "");
+					const task = taskMap.get(thread.workflowID!);
+					const taskThread = threadMap.get(task?.threadID ?? "");
 					return {
 						...thread,
-						parentName: workflow?.name ?? "Unnamed",
-						userName: userMap.get(workflowThread?.userID ?? "")?.email ?? "-",
-						userID: workflowThread?.userID ?? "",
+						parentName: task?.name ?? "Unnamed",
+						userName: userMap.get(taskThread?.userID ?? "")?.email ?? "-",
+						userID: taskThread?.userID ?? "",
 					};
 				}) ?? []
 		);
-	}, [getThreads.data, userMap, workflowMap, threadMap]);
+	}, [getThreads.data, userMap, taskMap, threadMap]);
 
 	const data = useMemo(() => {
 		let filteredThreads = threads;
@@ -151,12 +144,12 @@ export default function TaskRuns() {
 
 	const namesCount = useMemo(() => {
 		return (
-			getWorkflows.data?.reduce<Record<string, number>>((acc, workflow) => {
-				acc[workflow.name] = (acc[workflow.name] || 0) + 1;
+			getTasks.data?.reduce<Record<string, number>>((acc, task) => {
+				acc[task.name] = (acc[task.name] || 0) + 1;
 				return acc;
 			}, {}) ?? {}
 		);
-	}, [getWorkflows.data]);
+	}, [getTasks.data]);
 
 	const itemsToDisplay = search
 		? data.filter(
@@ -176,7 +169,7 @@ export default function TaskRuns() {
 				/>
 			</div>
 
-			<Filters userMap={userMap} workflowMap={workflowMap} url="/task-runs" />
+			<Filters userMap={userMap} taskMap={taskMap} url="/task-runs" />
 
 			<DataTable
 				columns={getColumns()}
@@ -198,12 +191,12 @@ export default function TaskRuns() {
 						key={column.id}
 						field="Task"
 						values={
-							getWorkflows.data?.map((workflow) => ({
-								id: workflow.id,
-								name: workflow.name,
+							getTasks.data?.map((task) => ({
+								id: task.id,
+								name: task.name,
 								sublabel:
-									namesCount?.[workflow.name] > 1
-										? agentThreadMap.get(workflow.threadID ?? "")
+									namesCount?.[task.name] > 1
+										? agentThreadMap.get(task.threadID ?? "")
 										: "",
 							})) ?? []
 						}
@@ -216,6 +209,19 @@ export default function TaskRuns() {
 							);
 						}}
 					/>
+				),
+				cell: (info) => (
+					<div className="flex items-center gap-2">
+						<Link
+							onClick={(event) => event.stopPropagation()}
+							to={$path("/tasks/:id", {
+								id: info.row.original.workflowID!,
+							})}
+							className="px-0"
+						>
+							<p>{info.getValue()}</p>
+						</Link>
+					</div>
 				),
 			}),
 			columnHelper.accessor((thread) => thread.userName, {
@@ -274,15 +280,15 @@ export default function TaskRuns() {
 					<div className="flex justify-end gap-2">
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<Button variant="ghost" size="icon">
-									<Link
-										to={$path("/task-runs/:id", {
-											id: row.original.id,
-										})}
-									>
-										<ReaderIcon width={21} height={21} />
-									</Link>
-								</Button>
+								<Link
+									as="button"
+									to={$path("/task-runs/:id", {
+										id: row.original.id,
+									})}
+									variant="ghost"
+								>
+									<ReaderIcon width={21} height={21} />
+								</Link>
 							</TooltipTrigger>
 
 							<TooltipContent>
