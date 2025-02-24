@@ -17,7 +17,7 @@
 	}
 </script>
 
-<Menu title={profile.current.email || 'Anonymous'} onLoad={load}>
+<Menu title={profile.current.getDisplayName?.() || 'Anonymous'} onLoad={load}>
 	{#snippet icon()}
 		<ProfileIcon />
 	{/snippet}
