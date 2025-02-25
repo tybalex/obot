@@ -12,6 +12,7 @@ export const OAuthProvider = {
 	Salesforce: "salesforce",
 	Notion: "notion",
 	Zoom: "zoom",
+	Discord: "discord",
 	LinkedIn: "linkedin",
 	Custom: "custom",
 } as const;

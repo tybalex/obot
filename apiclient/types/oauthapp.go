@@ -11,6 +11,7 @@ const (
 	OAuthAppTypeSalesforce   OAuthAppType = "salesforce"
 	OAuthAppTypeZoom         OAuthAppType = "zoom"
 	OAuthAppTypeLinkedIn     OAuthAppType = "linkedin"
+	OAuthAppTypeDiscord      OAuthAppType = "discord"
 	OAuthAppTypeCustom       OAuthAppType = "custom"
 )
 

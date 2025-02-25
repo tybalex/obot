@@ -12,6 +12,7 @@ import { NotionOAuthApp } from "~/lib/model/oauthApps/providers/notion";
 import { SalesforceOAuthApp } from "~/lib/model/oauthApps/providers/salesforce";
 import { SlackOAuthApp } from "~/lib/model/oauthApps/providers/slack";
 import { ZoomOAuthApp } from "~/lib/model/oauthApps/providers/zoom";
+import { DiscordOAuthApp } from "~/lib/model/oauthApps/providers/discord";
 import { EntityMeta } from "~/lib/model/primitives";
 
 export const OAuthAppSpecMap = {
@@ -25,6 +26,7 @@ export const OAuthAppSpecMap = {
 	[OAuthProvider.Notion]: NotionOAuthApp,
 	[OAuthProvider.Zoom]: ZoomOAuthApp,
 	[OAuthProvider.LinkedIn]: LinkedInOAuthApp,
+	[OAuthProvider.Discord]: DiscordOAuthApp,
 	// Custom OAuth apps are intentionally omitted from the map.
 	// They are handled separately
 } as const;

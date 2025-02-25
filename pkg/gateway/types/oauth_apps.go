@@ -34,6 +34,9 @@ const (
 
 	LinkedInAuthorizeURL = "https://www.linkedin.com/oauth/v2/authorization"
 	LinkedInTokenURL     = "https://www.linkedin.com/oauth/v2/accessToken"
+
+	DiscordAuthorizeURL = "https://discord.com/oauth2/authorize"
+	DiscordTokenURL     = "https://discord.com/api/oauth2/token"
 )
 
 var (
@@ -82,6 +85,9 @@ func ValidateAndSetDefaultsOAuthAppManifest(r *types.OAuthAppManifest, create bo
 	case types.OAuthAppTypeZoom:
 		r.AuthURL = ZoomAuthorizeURL
 		r.TokenURL = ZoomTokenURL
+	case types.OAuthAppTypeDiscord:
+		r.AuthURL = DiscordAuthorizeURL
+		r.TokenURL = DiscordTokenURL
 	case types.OAuthAppTypeLinkedIn:
 		r.AuthURL = LinkedInAuthorizeURL
 		r.TokenURL = LinkedInTokenURL
