@@ -12,8 +12,11 @@
 	import Terminal from '$lib/components/terminal/Terminal.svelte';
 	import { term } from '$lib/stores';
 	import Tool from '$lib/components/tool/Tool.svelte';
+	import Pdf from './editor/Pdf.svelte';
 
 	let editorVisible = $derived(EditorService.isVisible());
+
+	let height = $state<number>();
 
 	function onFileChanged(name: string, contents: string) {
 		for (const item of EditorService.items) {
@@ -79,9 +82,11 @@
 		{/if}
 
 		{#each EditorService.items as file}
-			<div class:hidden={!file.selected} class="flex-1 overflow-auto">
+			<div class:hidden={!file.selected} class="flex-1 overflow-auto" bind:clientHeight={height}>
 				{#if file.name.toLowerCase().endsWith('.md')}
 					<Milkdown {file} {onFileChanged} {onInvoke} />
+				{:else if file.name.toLowerCase().endsWith('.pdf')}
+					<Pdf {file} {height} />
 				{:else if file.table}
 					<Table tableName={file.table} />
 				{:else if file.task}

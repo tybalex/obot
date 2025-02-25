@@ -1,0 +1,27 @@
+<script lang="ts">
+	import type { EditorItem } from '$lib/stores/editor.svelte';
+
+	type Props = {
+		file: EditorItem;
+		height?: number | string;
+	};
+
+	const { file, height = '100%' }: Props = $props();
+
+	let blobUrl = $state<string>();
+
+	$effect(() => {
+		if (!file.blob) return;
+
+		const url = URL.createObjectURL(new Blob([file.blob], { type: 'application/pdf' }));
+		blobUrl = url;
+
+		return () => URL.revokeObjectURL(url);
+	});
+</script>
+
+<div>
+	{#if blobUrl}
+		<embed src={blobUrl} width="100%" {height} />
+	{/if}
+</div>
