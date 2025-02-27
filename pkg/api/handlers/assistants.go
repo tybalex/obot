@@ -363,6 +363,14 @@ func (a *AssistantHandler) Knowledge(req api.Context) error {
 	return listKnowledgeFiles(req, "", thread.Name, thread.Status.KnowledgeSetNames[0], nil)
 }
 
+func (a *AssistantHandler) GetKnowledgeFile(req api.Context) error {
+	thread, err := getThreadForScope(req)
+	if err != nil {
+		return err
+	}
+	return getKnowledgeFile(req, a.gptScript, thread, nil, req.PathValue("file"))
+}
+
 func (a *AssistantHandler) UploadKnowledge(req api.Context) error {
 	thread, err := getThreadForScope(req)
 	if err != nil {

@@ -92,6 +92,7 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("DELETE /api/assistants/{assistant_id}/projects/{project_id}/files/{file...}", assistants.DeleteFile)
 	// Assistant knowledge files
 	mux.HandleFunc("GET /api/assistants/{assistant_id}/projects/{project_id}/knowledge", assistants.Knowledge)
+	mux.HandleFunc("GET /api/assistants/{assistant_id}/projects/{project_id}/knowledge/{file}", assistants.GetKnowledgeFile)
 	mux.HandleFunc("POST /api/assistants/{assistant_id}/projects/{project_id}/knowledge/{file}", assistants.UploadKnowledge)
 	mux.HandleFunc("DELETE /api/assistants/{assistant_id}/projects/{project_id}/knowledge/{file...}", assistants.DeleteKnowledge)
 	// Env
@@ -198,6 +199,7 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	// Agent knowledge files
 	mux.HandleFunc("GET /api/agents/{agent_id}/knowledge-files", agents.ListKnowledgeFiles)
+	mux.HandleFunc("GET /api/agents/{agent_id}/knowledge-files/{file}", agents.GetKnowledgeFile)
 	mux.HandleFunc("POST /api/agents/{id}/knowledge-files/{file...}", agents.UploadKnowledgeFile)
 	mux.HandleFunc("DELETE /api/agents/{id}/knowledge-files/{file...}", agents.DeleteKnowledgeFile)
 	mux.HandleFunc("POST /api/agents/{agent_id}/knowledge-files/{file_id}/ingest", agents.ReIngestKnowledgeFile)
@@ -239,6 +241,7 @@ func Router(services *services.Services) (http.Handler, error) {
 
 	// Thread knowledge files
 	mux.HandleFunc("GET /api/threads/{id}/knowledge-files", threads.Knowledge)
+	mux.HandleFunc("GET /api/threads/{id}/knowledge-files/{file}", threads.GetKnowledgeFile)
 	mux.HandleFunc("POST /api/threads/{id}/knowledge-files/{file}", threads.UploadKnowledge)
 	mux.HandleFunc("DELETE /api/threads/{id}/knowledge-files/{file...}", threads.DeleteKnowledge)
 
