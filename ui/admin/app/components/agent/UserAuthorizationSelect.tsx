@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 
 import { AgentAuthorization } from "~/lib/model/agents";
-import { User } from "~/lib/model/users";
+import { Role, User } from "~/lib/model/users";
 import { AgentService } from "~/lib/service/api/agentService";
 
 import { ComboBox } from "~/components/composed/ComboBox";
@@ -175,7 +175,10 @@ const collateUsersOptions = (
 	authorizations: AgentAuthorization[]
 ) => {
 	return new Map(
-		[...authorizations, ...users].map((item) => {
+		[
+			...authorizations,
+			...users.filter((user) => user.role !== Role.Admin),
+		].map((item) => {
 			if ("userID" in item) {
 				return [
 					item.user?.email ?? item.userID,
