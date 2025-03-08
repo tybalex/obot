@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { $path, Routes } from "safe-routes";
 
 import { Agent } from "~/lib/model/agents";
+import { Project } from "~/lib/model/project";
 import { Task } from "~/lib/model/tasks";
 import { User } from "~/lib/model/users";
 import { RouteService } from "~/lib/service/routeService";
@@ -14,6 +15,8 @@ type QueryParams = {
 	agentId?: string;
 	userId?: string;
 	taskId?: string;
+	obotId?: string;
+	parentObotId?: string;
 	createdStart?: string;
 	createdEnd?: string;
 };
@@ -22,11 +25,13 @@ export function Filters({
 	agentMap,
 	userMap,
 	taskMap,
+	projectMap,
 	url,
 }: {
 	agentMap?: Map<string, Agent>;
 	userMap?: Map<string, User>;
 	taskMap?: Map<string, Task>;
+	projectMap?: Map<string, Project>;
 	url: keyof Routes;
 }) {
 	const [searchParams] = useSearchParams();
@@ -85,8 +90,25 @@ export function Filters({
 					value: `${new Date(filters.createdStart).toLocaleDateString()} ${filters.createdEnd ? `- ${new Date(filters.createdEnd).toLocaleDateString()}` : ""}`,
 					onRemove: () => deleteFilters("createdStart", "createdEnd"),
 				},
+			"obotId" in filters &&
+				filters.obotId &&
+				projectMap && {
+					key: "obotId",
+					label: "Obot",
+					value: projectMap.get(filters.obotId)?.name ?? filters.obotId,
+					onRemove: () => deleteFilters("obotId"),
+				},
+			"parentObotId" in filters &&
+				filters.parentObotId &&
+				projectMap && {
+					key: "parentObotId",
+					label: "Spawned from",
+					value:
+						projectMap.get(filters.parentObotId)?.name ?? filters.parentObotId,
+					onRemove: () => deleteFilters("parentObotId"),
+				},
 		].filter((x) => !!x);
-	}, [navigate, searchParams, agentMap, userMap, taskMap, url]);
+	}, [url, searchParams, agentMap, userMap, taskMap, projectMap, navigate]);
 
 	return (
 		<div className="flex gap-2 pb-2">

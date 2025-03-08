@@ -1,4 +1,4 @@
-import { CommonAuthProviderId } from "~/lib/model/auth";
+import { CommonAuthProviderId, CommonAuthProviderIds } from "~/lib/model/auth";
 import { EntityMeta } from "~/lib/model/primitives";
 
 export type User = EntityMeta & {
@@ -31,3 +31,11 @@ export const roleFromString = (role: string) => {
 
 export const ExplicitAdminDescription =
 	"This user is explicitly set as an admin at the system level and their role cannot be changed.";
+
+export function getUserDisplayName(user?: User) {
+	if (user?.currentAuthProvider === CommonAuthProviderIds.GITHUB) {
+		return user.username;
+	}
+
+	return user?.email;
+}

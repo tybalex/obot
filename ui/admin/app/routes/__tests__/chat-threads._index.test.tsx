@@ -7,11 +7,13 @@ import {
 	within,
 } from "test";
 import { mockedAgent } from "test/mocks/models/agents";
+import { mockedProject } from "test/mocks/models/projects";
 import { mockedThreads } from "test/mocks/models/threads";
 import { mockedUsers } from "test/mocks/models/users";
 
 import { Agent } from "~/lib/model/agents";
 import { EntityList } from "~/lib/model/primitives";
+import { Project } from "~/lib/model/project";
 import { Thread } from "~/lib/model/threads";
 import { User } from "~/lib/model/users";
 import { ApiRoutes } from "~/lib/routers/apiRoutes";
@@ -48,6 +50,11 @@ describe(ChatThreads, () => {
 			http.get(ApiRoutes.users.base().url, () => {
 				return HttpResponse.json<EntityList<User>>({
 					items: mockedUsers,
+				});
+			}),
+			http.get(ApiRoutes.projects.getAll().url, () => {
+				return HttpResponse.json<EntityList<Project>>({
+					items: [mockedProject],
 				});
 			}),
 		]);

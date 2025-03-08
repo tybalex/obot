@@ -13,5 +13,10 @@ export const mockedThreads: Thread[] = [
 		state: RunState.Continue,
 		lastRunID: "r1g9hw7",
 		userID: mockedUser.id,
+		introductionMessage: "Hello, how are you?",
+		knowledgeDescription: "You have knowledge about the world.",
+		starterMessages: ["Hello, how are you?"],
+		name: "My Thread",
+		prompt: "You are a helpful assistant.",
 	},
 ];

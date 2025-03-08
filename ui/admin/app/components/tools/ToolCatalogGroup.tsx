@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 
 import {
 	ToolReference,
@@ -67,7 +67,7 @@ export function ToolCatalogGroup({
 				const configured = configuredTools.has(tool.id);
 
 				return (
-					<>
+					<Fragment key={tool.id}>
 						<ToolItem
 							key={tool.id}
 							tool={tool}
@@ -100,7 +100,7 @@ export function ToolCatalogGroup({
 									}
 								/>
 							))}
-					</>
+					</Fragment>
 				);
 			})}
 		</CommandGroup>

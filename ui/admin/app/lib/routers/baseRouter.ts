@@ -17,6 +17,6 @@ export const ApiUrl = () => {
 	return window.location.origin + "/api";
 };
 
-export const ConsumptionUrl = (route: string) => {
+export const ConsumptionUrl = (route: string = "") => {
 	return window.location.protocol + "//" + window.location.host + route;
 };

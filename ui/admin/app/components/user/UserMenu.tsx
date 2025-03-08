@@ -1,8 +1,8 @@
 import { LogOutIcon, User } from "lucide-react";
 import React from "react";
 
-import { AuthDisabledUsername, CommonAuthProviderIds } from "~/lib/model/auth";
-import { User as UserModel, roleLabel } from "~/lib/model/users";
+import { AuthDisabledUsername } from "~/lib/model/auth";
+import { getUserDisplayName, roleLabel } from "~/lib/model/users";
 import { BootstrapApiService } from "~/lib/service/api/bootstrapApiService";
 import { cn } from "~/lib/utils";
 
@@ -32,7 +32,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({
 		return null;
 	}
 
-	const displayName = getDisplayName(me);
+	const displayName = getUserDisplayName(me);
 
 	return (
 		<DropdownMenu>
@@ -80,12 +80,4 @@ export const UserMenu: React.FC<UserMenuProps> = ({
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
-
-	function getDisplayName(user?: UserModel) {
-		if (user?.currentAuthProvider === CommonAuthProviderIds.GITHUB) {
-			return user.username;
-		}
-
-		return user?.email;
-	}
 };

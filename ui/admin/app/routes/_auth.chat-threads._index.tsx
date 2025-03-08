@@ -11,6 +11,7 @@ import useSWR, { preload } from "swr";
 
 import { Thread } from "~/lib/model/threads";
 import { AgentService } from "~/lib/service/api/agentService";
+import { ProjectApiService } from "~/lib/service/api/projectApiService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
 import { UserService } from "~/lib/service/api/userService";
 import { RouteHandle } from "~/lib/service/routeHandles";
@@ -45,6 +46,7 @@ export async function clientLoader({
 		preload(...AgentService.getAgents.swr({})),
 		preload(...ThreadsService.getThreads.swr({})),
 		preload(...UserService.getUsers.swr({})),
+		preload(...ProjectApiService.getAll.swr({})),
 	]);
 
 	const { query } = RouteService.getRouteInfo(
@@ -63,12 +65,18 @@ export default function TaskRuns() {
 			? value
 			: $path("/chat-threads/:id", { id: value.id })
 	);
-	const { agentId, userId, createdStart, createdEnd } =
-		useLoaderData<typeof clientLoader>();
+	const {
+		agentId,
+		userId,
+		createdStart,
+		createdEnd,
+		obotId: obotId,
+	} = useLoaderData<typeof clientLoader>();
 
 	const getThreads = useSWR(...ThreadsService.getThreads.swr({}));
 	const getAgents = useSWR(...AgentService.getAgents.swr({}));
 	const getUsers = useSWR(...UserService.getUsers.swr({}));
+	const getProjects = useSWR(...ProjectApiService.getAll.swr({}));
 
 	const threads = useMemo(() => {
 		if (!getThreads.data) return [];
@@ -80,6 +88,12 @@ export default function TaskRuns() {
 		if (agentId) {
 			filteredThreads = filteredThreads.filter(
 				(thread) => thread.agentID === agentId
+			);
+		}
+
+		if (obotId) {
+			filteredThreads = filteredThreads.filter(
+				(thread) => thread.projectID === obotId
 			);
 		}
 
@@ -98,7 +112,7 @@ export default function TaskRuns() {
 		}
 
 		return filteredThreads;
-	}, [getThreads.data, agentId, userId, createdStart, createdEnd]);
+	}, [getThreads.data, agentId, obotId, userId, createdStart, createdEnd]);
 
 	const agentMap = useMemo(
 		() => new Map(getAgents.data?.map((agent) => [agent.id, agent])),
@@ -107,6 +121,10 @@ export default function TaskRuns() {
 	const userMap = useMemo(
 		() => new Map(getUsers.data?.map((user) => [user.id, user])),
 		[getUsers.data]
+	);
+	const projectMap = useMemo(
+		() => new Map(getProjects.data?.map((project) => [project.id, project])),
+		[getProjects.data]
 	);
 
 	const data: (Thread & { parentName: string; userName: string })[] =
@@ -139,7 +157,12 @@ export default function TaskRuns() {
 				/>
 			</div>
 
-			<Filters userMap={userMap} agentMap={agentMap} url="/chat-threads" />
+			<Filters
+				userMap={userMap}
+				agentMap={agentMap}
+				projectMap={projectMap}
+				url="/chat-threads"
+			/>
 
 			<DataTable
 				columns={getColumns()}
@@ -293,6 +316,15 @@ const getFromBreadcrumb = (search: string) => {
 			content: "Users",
 			href: $path("/users"),
 		};
+
+	if (from === "obots") {
+		return {
+			content: "Obots",
+			href: $path("/obots"),
+		};
+	}
+
+	return null;
 };
 
 export const handle: RouteHandle = {

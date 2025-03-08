@@ -1,5 +1,6 @@
 import {
 	BotIcon,
+	BotMessageSquareIcon,
 	BoxesIcon,
 	CpuIcon,
 	InfoIcon,
@@ -45,6 +46,11 @@ const items = [
 		title: "Agents",
 		url: $path("/agents"),
 		icon: BotIcon,
+	},
+	{
+		title: "Obots",
+		url: $path("/obots"),
+		icon: BotMessageSquareIcon,
 	},
 	{
 		title: "Chat Threads",

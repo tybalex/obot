@@ -494,8 +494,10 @@ func convertProject(thread *v1.Thread) types.Project {
 		ProjectManifest: types.ProjectManifest{
 			ThreadManifest: thread.Spec.Manifest,
 		},
+		ParentID:    strings.Replace(thread.Spec.ParentThreadName, system.ThreadPrefix, system.ProjectPrefix, 1),
 		AssistantID: thread.Spec.AgentName,
 		Editor:      thread.IsEditor(),
+		UserID:      thread.Spec.UserID,
 	}
 	p.Type = "project"
 	p.ID = strings.Replace(p.ID, system.ThreadPrefix, system.ProjectPrefix, 1)

@@ -202,6 +202,11 @@ export const ApiRoutes = {
 		base: () => buildUrl("/prompt"),
 		promptResponse: () => buildUrl("/prompt"),
 	},
+	projects: {
+		getAll: () => buildUrl("/projects", { all: true }),
+		deleteProject: (agentId: string, projectId: string) =>
+			buildUrl(`/assistants/${agentId}/projects/${projectId}`),
+	},
 	runs: {
 		base: () => buildUrl("/runs"),
 		getRunById: (runId: string) => buildUrl(`/runs/${runId}`),

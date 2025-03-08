@@ -2794,6 +2794,18 @@ func schema_obot_platform_obot_apiclient_types_Project(ref common.ReferenceCallb
 							Format:  "",
 						},
 					},
+					"parentID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"userID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 				Required: []string{"Metadata", "ProjectManifest", "editor"},
 			},

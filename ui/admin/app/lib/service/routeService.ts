@@ -16,7 +16,8 @@ const QuerySchemas = {
 		agentId: z.string().nullish(),
 		userId: z.string().nullish(),
 		taskId: z.string().nullish(),
-		from: z.enum(["tasks", "agents", "users"]).nullish().catch(null),
+		obotId: z.string().nullish(),
+		from: z.enum(["tasks", "agents", "users", "obots"]).nullish().catch(null),
 		createdStart: z.string().nullish(),
 		createdEnd: z.string().nullish(),
 	}),
@@ -31,6 +32,19 @@ const QuerySchemas = {
 		createdEnd: z.string().nullish(),
 	}),
 	usersSchema: z.object({ userId: z.string().optional() }),
+	obotsSchema: z.object({
+		obotId: z.string().nullish(),
+		parentObotId: z.string().nullish(),
+		userId: z.string().nullish(),
+		agentId: z.string().nullish(),
+		showChildren: z
+			.boolean()
+			.nullish()
+			.catch((val) => {
+				if (typeof val.input === "string") return val.input === "true";
+				return undefined;
+			}),
+	}),
 } as const;
 
 function parseQuery<T extends ZodType>(search: string, schema: T) {
@@ -75,6 +89,11 @@ export const RouteHelperMap = {
 		regex: exactRegex($path("/agents/:id", { id: "(.+)" })),
 		path: "/agents/:id",
 		schema: QuerySchemas.agentSchema,
+	},
+	"/obots": {
+		regex: exactRegex($path("/obots")),
+		path: "/obots",
+		schema: QuerySchemas.obotsSchema,
 	},
 	"/auth-providers": {
 		regex: exactRegex($path("/auth-providers")),
@@ -138,7 +157,7 @@ export const RouteHelperMap = {
 	},
 } satisfies Record<keyof Routes, RouteHelper>;
 
-type QueryInfo<T extends keyof Routes> = z.infer<
+export type QueryInfo<T extends keyof Routes> = z.infer<
 	(typeof RouteHelperMap)[T]["schema"]
 >;
 

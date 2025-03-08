@@ -11,6 +11,7 @@ import (
 	"github.com/obot-platform/obot/pkg/api"
 	"github.com/obot-platform/obot/pkg/events"
 	v1 "github.com/obot-platform/obot/pkg/storage/apis/obot.obot.ai/v1"
+	"github.com/obot-platform/obot/pkg/system"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -49,7 +50,7 @@ func convertThread(thread v1.Thread) types.Thread {
 		LastRunID:       thread.Status.LastRunName,
 		CurrentRunID:    thread.Status.CurrentRunName,
 		State:           state,
-		ProjectID:       thread.Spec.ParentThreadName,
+		ProjectID:       strings.Replace(thread.Spec.ParentThreadName, system.ThreadPrefix, system.ProjectPrefix, 1),
 		UserID:          thread.Spec.UserID,
 		Abort:           thread.Spec.Abort,
 		SystemTask:      thread.Spec.SystemTask,

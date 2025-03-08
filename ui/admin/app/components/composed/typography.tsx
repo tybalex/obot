@@ -53,6 +53,7 @@ export function Truncate({
 					"line-clamp-2": clamp && clampLength === 2,
 					truncate: !clamp,
 				},
+				"break-all",
 				classNames?.content
 			)}
 		>
