@@ -27,6 +27,7 @@ const QuerySchemas = {
 		threadId: z.string().nullish(),
 	}),
 	tasksSchema: z.object({
+		obotId: z.string().nullish(),
 		agentId: z.string().nullish(),
 		userId: z.string().nullish(),
 		taskId: z.string().nullish(),
@@ -35,6 +36,7 @@ const QuerySchemas = {
 	}),
 	usersSchema: z.object({ userId: z.string().optional() }),
 	obotsSchema: z.object({
+		agentId: z.string().nullish(),
 		obotId: z.string().nullish(),
 		parentObotId: z.string().nullish(),
 		userId: z.string().nullish(),

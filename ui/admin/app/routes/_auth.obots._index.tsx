@@ -21,10 +21,11 @@ import { getUserDisplayName } from "~/lib/model/users";
 import { UserRoutes } from "~/lib/routers/userRoutes";
 import { AgentService } from "~/lib/service/api/agentService";
 import { ProjectApiService } from "~/lib/service/api/projectApiService";
+import { TaskService } from "~/lib/service/api/taskService";
 import { ThreadsService } from "~/lib/service/api/threadsService";
 import { UserService } from "~/lib/service/api/userService";
 import { RouteQueryParams } from "~/lib/service/routeService";
-import { pluralize } from "~/lib/utils";
+import { pluralize, timeSince } from "~/lib/utils";
 
 import { ConfirmationDialog } from "~/components/composed/ConfirmationDialog";
 import {
@@ -56,6 +57,7 @@ export async function clientLoader() {
 		preload(...ThreadsService.getThreads.swr({})),
 		preload(...UserService.getUsers.swr({})),
 		preload(...ProjectApiService.getAllShares.swr({})),
+		preload(...TaskService.getTasks.swr({})),
 	]);
 }
 
@@ -92,6 +94,7 @@ export default function ProjectsPage() {
 			shared,
 			createdStart,
 			createdEnd,
+			agentId,
 		} = pageQuery.params ?? {};
 
 		if (createdStart) {
@@ -116,6 +119,10 @@ export default function ProjectsPage() {
 
 		if (obotId) {
 			filtered = filtered.filter((p) => p.id === obotId);
+		}
+
+		if (agentId) {
+			filtered = filtered.filter((p) => p.assistantID === agentId);
 		}
 
 		if (parentObotId) {
@@ -154,6 +161,13 @@ export default function ProjectsPage() {
 		[threads]
 	);
 
+	const { data: tasks } = useSWR(...TaskService.getTasks.swr({}), {
+		suspense: true,
+	});
+	function getTaskCount(projectId: string) {
+		return tasks.filter((t) => t.projectID === projectId).length;
+	}
+
 	const { data: users } = useSWR(...UserService.getUsers.swr({}), {
 		suspense: true,
 	});
@@ -187,7 +201,12 @@ export default function ProjectsPage() {
 					</div>
 
 					<div className="flex justify-between p-1">
-						<Filters projectMap={projectMap} userMap={userMap} url="/obots" />
+						<Filters
+							projectMap={projectMap}
+							userMap={userMap}
+							agentMap={agentMap}
+							url="/obots"
+						/>
 
 						<div className="flex items-center gap-2">
 							<Label htmlFor="show-children">Include spawned Obots</Label>
@@ -321,6 +340,7 @@ export default function ProjectsPage() {
 							field="Created On"
 							dateRange={{ from, to }}
 							onSelect={(range) => {
+								if (!range) pageQuery.remove("createdStart");
 								if (range?.from)
 									pageQuery.update("createdStart", range.from.toDateString());
 								if (range?.to)
@@ -329,9 +349,7 @@ export default function ProjectsPage() {
 						/>
 					);
 				},
-				cell: ({ getValue }) => (
-					<p>{new Date(getValue()).toLocaleDateString()}</p>
-				),
+				cell: ({ getValue }) => <p>{timeSince(new Date(getValue()))} ago</p>,
 			}),
 			columnHelper.display({
 				id: "info",
@@ -339,12 +357,13 @@ export default function ProjectsPage() {
 					const childCount = getChildCount(row.original.id);
 					const threadCount = threadCounts.get(row.original.id) ?? 0;
 					const baseAgent = agentMap.get(row.original.assistantID);
+					const taskCount = getTaskCount(row.original.id);
 
 					return (
 						<div className="flex flex-col">
 							{baseAgent && (
 								<p className="flex items-center gap-2 text-muted-foreground">
-									Base Agent:{" "}
+									<span className="min-w-fit">Base Agent: </span>
 									<Link
 										to={$path("/agents/:id", { id: row.original.assistantID })}
 									>
@@ -374,6 +393,18 @@ export default function ProjectsPage() {
 										})}
 									>
 										{childCount} spawned Obots
+									</Link>
+								)}
+							</p>
+
+							<p className="flex items-center gap-2">
+								{taskCount > 0 && (
+									<Link
+										to={$path("/tasks", {
+											obotId: row.original.id,
+										})}
+									>
+										{taskCount} {pluralize(taskCount, "task")}
 									</Link>
 								)}
 							</p>
