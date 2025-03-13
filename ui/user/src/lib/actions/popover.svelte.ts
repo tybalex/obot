@@ -1,5 +1,6 @@
 import {
 	type ComputePositionConfig,
+	type Placement,
 	autoUpdate,
 	computePosition,
 	flip,
@@ -12,6 +13,7 @@ import type { Action, ActionReturn } from 'svelte/action';
 interface Popover {
 	ref: Action;
 	tooltip: Action;
+	open: boolean;
 	toggle: (newOpenValue?: boolean) => void;
 }
 
@@ -19,6 +21,9 @@ interface PopoverOptions extends Partial<ComputePositionConfig> {
 	hover?: boolean;
 	assign?: (x: number, y: number) => void;
 	offset?: number;
+	placement?: Placement;
+	fixed?: boolean;
+	delay?: number;
 }
 
 let id = 0;
@@ -28,6 +33,7 @@ export default function popover(opts?: PopoverOptions): Popover {
 	let tooltip: HTMLElement;
 	let open = $state(false);
 	const offsetSize = opts?.offset ?? 8;
+	let hoverTimeout: number | null = null;
 
 	function build(): ActionReturn | void {
 		if (!ref || !tooltip) return;
@@ -40,8 +46,12 @@ export default function popover(opts?: PopoverOptions): Popover {
 		});
 
 		async function updatePosition() {
+			if (opts?.fixed) {
+				return;
+			}
+
 			const { x, y } = await computePosition(ref, tooltip, {
-				placement: 'bottom-end',
+				placement: opts?.placement ?? 'bottom-end',
 				middleware: [flip(), shift({ padding: offsetSize }), offset(offsetSize)],
 				...opts
 			});
@@ -79,11 +89,13 @@ export default function popover(opts?: PopoverOptions): Popover {
 			}
 		});
 
-		tooltip.classList.add('hidden');
-		tooltip.classList.add('absolute');
-		tooltip.classList.add('transition-opacity');
-		tooltip.classList.add('duration-300');
-		tooltip.classList.add('opacity-0');
+		if (opts?.fixed) {
+			tooltip.classList.add('fixed');
+		} else {
+			tooltip.classList.add('absolute');
+		}
+
+		tooltip.classList.add('hidden', 'transition-opacity', 'duration-300', 'opacity-0');
 
 		let hasZIndex = false;
 		tooltip.classList.forEach((className) => {
@@ -97,9 +109,19 @@ export default function popover(opts?: PopoverOptions): Popover {
 
 		if (opts?.hover) {
 			ref.addEventListener('mouseenter', () => {
-				open = true;
+				if (hoverTimeout) {
+					clearTimeout(hoverTimeout);
+				}
+
+				hoverTimeout = setTimeout(() => {
+					open = true;
+				}, opts.delay ?? 150);
 			});
 			ref.addEventListener('mouseleave', () => {
+				if (hoverTimeout) {
+					clearTimeout(hoverTimeout);
+				}
+
 				open = false;
 			});
 		}
@@ -129,6 +151,9 @@ export default function popover(opts?: PopoverOptions): Popover {
 	}
 
 	return {
+		get open() {
+			return open;
+		},
 		ref: (node: HTMLElement) => {
 			ref = node;
 			return build();

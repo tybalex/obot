@@ -14,6 +14,10 @@
 	@apply h-5 w-5;
 }
 
+.icon-button-small {
+	@apply icon-button-colors rounded-lg p-1 text-sm transition-all duration-200;
+}
+
 .icon-default {
 	@apply icon-default-size;
 }
@@ -64,6 +68,11 @@ body {
 
 .default-scrollbar {
 	@apply scrollbar scrollbar-track-surface1 scrollbar-thumb-surface3;
+}
+
+.default-dialog,
+dialog {
+	@apply rounded-xl border-[1px] border-surface3 bg-white text-sm text-black shadow-lg dark:bg-surface2 dark:text-white;
 }
 
 dialog::backdrop {
