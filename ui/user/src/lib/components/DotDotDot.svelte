@@ -9,9 +9,16 @@
 		class?: string;
 		placement?: Placement;
 		icon?: Snippet;
+		onClick?: () => void;
 	}
 
-	let { children, class: clazz = 'icon-button', placement = 'right-start', icon }: Props = $props();
+	let {
+		children,
+		class: clazz = 'icon-button',
+		placement = 'right-start',
+		icon,
+		onClick
+	}: Props = $props();
 	const { tooltip, ref, toggle } = popover({
 		placement
 	});
@@ -23,12 +30,13 @@
 	onclick={(e) => {
 		toggle();
 		e.preventDefault();
+		onClick?.();
 	}}
 >
 	{#if icon}
 		{@render icon()}
 	{:else}
-		<EllipsisVertical class="icon-default" />
+		<EllipsisVertical class="icon-default transition-colors duration-300" />
 	{/if}
 </button>
 <div

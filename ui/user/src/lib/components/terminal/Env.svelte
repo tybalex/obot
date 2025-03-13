@@ -44,10 +44,7 @@
 	}
 </script>
 
-<dialog
-	bind:this={dialog}
-	class="w-full max-w-3xl rounded-3xl bg-gray-50 text-black dark:bg-gray-950 dark:text-gray-50"
->
+<dialog bind:this={dialog} class="w-full max-w-3xl">
 	<Env {envs} />
 	{#if error}
 		<p class="p-5 text-sm text-red-500">{error}</p>

@@ -18,10 +18,7 @@
 	}
 </script>
 
-<dialog
-	bind:this={dialog}
-	class="colors-surface1 h-1/4 min-h-[300px] w-1/3 min-w-[300px] rounded-3xl p-5"
->
+<dialog bind:this={dialog} class="h-1/4 min-h-[300px] w-1/3 min-w-[300px] overflow-visible p-5">
 	<div class="flex h-full flex-col">
 		<button class="absolute right-0 top-0 p-3" onclick={() => dialog?.close()}>
 			<X class="icon-default" />
