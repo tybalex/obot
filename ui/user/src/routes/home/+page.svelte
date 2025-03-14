@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { darkMode } from '$lib/stores';
-	import { Copy, Trash2 } from 'lucide-svelte';
+	import { Copy, Pencil, Trash2 } from 'lucide-svelte';
 	import { Plus } from 'lucide-svelte/icons';
 	import Profile from '$lib/components/navbar/Profile.svelte';
-	import { ChatService, type ProjectShare, type ToolReference } from '$lib/services';
+	import { ChatService, EditorService, type ProjectShare, type ToolReference } from '$lib/services';
 	import { errors } from '$lib/stores';
 	import { goto } from '$app/navigation';
 	import Notifications from '$lib/components/Notifications.svelte';
@@ -12,6 +12,7 @@
 	import { type Project } from '$lib/services';
 	import Confirm from '$lib/components/Confirm.svelte';
 	import ToolPill from '$lib/components/ToolPill.svelte';
+	import { getProjectImage } from '$lib/image';
 
 	let { data }: PageProps = $props();
 	let toDelete = $state<Project>();
@@ -29,31 +30,17 @@
 	let tools = $state(new Map(data.tools.map((t) => [t.id, t])));
 
 	async function createNew() {
-		const assistants = (await ChatService.listAssistants()).items;
-		let defaultAssistant = assistants.find((a) => a.default);
-		if (!defaultAssistant && assistants.length == 1) {
-			defaultAssistant = assistants[0];
+		try {
+			const project = await EditorService.createObot();
+			await goto(`/o/${project.id}?edit`);
+		} catch (error) {
+			errors.append((error as Error).message);
 		}
-		if (!defaultAssistant) {
-			errors.append(new Error('failed to find default assistant'));
-			return;
-		}
-
-		const project = await ChatService.createProject(defaultAssistant.id);
-		await goto(`/o/${project.id}?edit`);
 	}
 
 	async function copy(project: Project) {
 		const newProject = await ChatService.copyProject(project.assistantID, project.id);
 		await goto(`/o/${newProject.id}?edit`);
-	}
-
-	function getImage(project: Project | ProjectShare) {
-		const imageUrl = darkMode.isDark
-			? project.icons?.iconDark || project.icons?.icon
-			: project.icons?.icon;
-
-		return imageUrl ?? '/agent/images/placeholder.webp'; // need placeholder image
 	}
 </script>
 
@@ -103,15 +90,21 @@
 		<DotDotDot class="card-icon-button-colors min-h-10 min-w-10 rounded-full p-2.5 text-sm">
 			<div class="default-dialog flex flex-col p-2">
 				{#if project.editor}
-					<button class="menu-button" onclick={() => (toDelete = project)}>
-						<Trash2 class="icon-default" />
-						<span>Delete</span>
+					<button class="menu-button" onclick={() => goto(`/o/${project.id}?edit`)}>
+						<Pencil class="icon-default" />
+						<span>Edit</span>
 					</button>
 				{/if}
 				<button class="menu-button" onclick={() => copy(project)}>
 					<Copy class="icon-default" />
 					<span>Copy</span>
 				</button>
+				{#if project.editor}
+					<button class="menu-button" onclick={() => (toDelete = project)}>
+						<Trash2 class="icon-default" />
+						<span>Delete</span>
+					</button>
+				{/if}
 			</div>
 		</DotDotDot>
 	{/snippet}
@@ -132,7 +125,7 @@
 			<div class="relative aspect-video">
 				<img
 					alt="obot logo"
-					src={getImage(project)}
+					src={getProjectImage(project, darkMode.isDark)}
 					class="absolute left-0 top-0 h-full w-full object-cover opacity-85"
 				/>
 				<div
@@ -169,7 +162,7 @@
 	{/snippet}
 
 	<main
-		class="colors-background flex w-full max-w-screen-2xl flex-col justify-center px-4 pb-12 md:px-12"
+		class="colors-background relative flex w-full max-w-screen-2xl flex-col justify-center px-4 pb-12 md:px-12"
 	>
 		<div class="mt-8 flex w-full flex-col gap-8">
 			{#if featured.length > 0}
@@ -195,7 +188,18 @@
 			{/if}
 
 			<div class="flex w-full flex-col gap-4">
-				<h3 class="text-2xl font-semibold">My Obots</h3>
+				<div
+					class="sticky top-0 z-50 flex items-center gap-4 bg-white py-4 after:absolute after:-left-12 after:-z-10 after:h-[72px] after:w-[100vw] after:bg-white after:content-[''] dark:bg-black after:dark:bg-black"
+				>
+					<h3 class="text-2xl font-semibold">My Obots</h3>
+					<button
+						class="button flex items-center gap-1 text-xs font-medium"
+						onclick={() => createNew()}
+					>
+						<Plus class="icon-default" />
+						<span>Create New Obot</span>
+					</button>
+				</div>
 				<div class="card-layout">
 					{#each userProjects as project}
 						{@render projectCard(project)}

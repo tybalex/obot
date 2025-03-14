@@ -13,10 +13,13 @@
 	import { columnResize } from '$lib/actions/resize';
 	import Obot from '$lib/components/Obot.svelte';
 	import { getLayout } from '$lib/context/layout.svelte';
-	import { X } from 'lucide-svelte/icons';
 	import { slide } from 'svelte/transition';
 	import Files from '$lib/components/edit/Files.svelte';
 	import Tasks from '$lib/components/edit/Tasks.svelte';
+	import Profile from './navbar/Profile.svelte';
+	import EditorToggle from './navbar/EditorToggle.svelte';
+	import Projects from './navbar/Projects.svelte';
+	import { goto } from '$app/navigation';
 
 	interface Props {
 		project: Project;
@@ -70,21 +73,43 @@
 			timer = setInterval(updateProject, 1000);
 		});
 	});
+
+	async function copy() {
+		const newProject = await ChatService.copyProject(project.assistantID, project.id);
+		await goto(`/o/${newProject.id}?edit`);
+	}
 </script>
 
 <div class="flex size-full flex-col bg-surface1">
 	{#if layout.projectEditorOpen}
 		<!-- Header -->
 		<div
-			class="z-10 flex h-16 w-full items-center gap-2 bg-surface1 p-5 shadow-md"
+			class="relative z-40 flex h-16 w-full items-center justify-between bg-surface1 p-3 shadow-md"
 			transition:slide
 		>
-			<a href="/home"><img src="/user/images/obot-icon-blue.svg" class="h-8" alt="Obot icon" /></a>
-			<h1 class="text-xl font-semibold">Obot Editor</h1>
-			<div class="grow"></div>
-			<button class="icon-button" onclick={() => (layout.projectEditorOpen = false)}>
-				<X class="icon-default" />
-			</button>
+			<div class="flex items-center gap-2">
+				<a href="/home"><img src="/user/images/obot-icon-blue.svg" class="h-8" alt="Obot icon" /></a
+				>
+				<h1 class="text-xl font-semibold">Obot Editor</h1>
+			</div>
+			<div class="ml-8 flex grow items-center gap-2">
+				<p class="text-sm text-gray">Editing:</p>
+				<div class="relative flex grow">
+					<Projects
+						{project}
+						onlyEditable={true}
+						classes={{
+							button: 'bg-white dark:bg-black hover:bg-surface2 shadow-inner px-4',
+							tooltip:
+								'h-fit default-dialog rounded-b-lg shadow-inner -translate-y-1 max-h-[80vh] overflow-y-auto default-scrollbar-thin'
+						}}
+					/>
+				</div>
+				<EditorToggle {project} />
+			</div>
+			<div class="flex items-center">
+				<Profile />
+			</div>
 		</div>
 	{/if}
 
@@ -108,15 +133,18 @@
 					<Share {project} />
 					<div class="grow"></div>
 				</div>
-				<div class="flex justify-end bg-surface1 p-2">
+				<div class="flex justify-between bg-surface1 p-2">
+					<button class="button flex items-center gap-1 text-sm" onclick={() => copy()}>
+						<span>Copy</span>
+					</button>
 					<button
-						class="button flex gap-1 text-gray"
+						class="button-destructive"
 						onclick={() => {
 							toDelete = true;
 						}}
 					>
 						<Trash2 class="icon-default" />
-						<span>Remove</span>
+						<span>Delete</span>
 					</button>
 				</div>
 			</div>

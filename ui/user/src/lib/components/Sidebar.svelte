@@ -10,7 +10,6 @@
 	import { getLayout } from '$lib/context/layout.svelte';
 	import Projects from './navbar/Projects.svelte';
 	import Logo from './navbar/Logo.svelte';
-	import Settings from './navbar/Settings.svelte';
 
 	interface Props {
 		project: Project;
@@ -32,7 +31,15 @@
 			class:w-[calc(100%-42px)]={!projectsOpen}
 		>
 			<span class="flex-shrink-0"><Logo class="ml-0" /></span>
-			<Projects {project} onOpenChange={(open) => (projectsOpen = open)} />
+			<Projects
+				{project}
+				onOpenChange={(open) => (projectsOpen = open)}
+				disabled={layout.projectEditorOpen}
+				classes={{
+					tooltip:
+						'-translate-x-14 border-t-[1px] border-surface3 bg-surface2 shadow-inner max-h-[calc(100vh-66px)] overflow-y-auto default-scrollbar-thin'
+				}}
+			/>
 		</div>
 		<button
 			class:opacity-0={projectsOpen}
@@ -51,10 +58,7 @@
 		<Tasks {project} bind:currentThreadID />
 	</div>
 
-	<div class="flex gap-1 px-3 pb-2">
-		{#if layout.sidebarOpen && !layout.projectEditorOpen}
-			<Settings />
-		{/if}
+	<div class="flex gap-1 px-3 py-2">
 		{#if hasTool(tools, 'shell')}
 			<Term />
 		{/if}
