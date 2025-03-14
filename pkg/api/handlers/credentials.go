@@ -51,3 +51,7 @@ func convertCredential(cred gptscript.Credential) types.Credential {
 		ExpiresAt: types.NewTimeFromPointer(cred.ExpiresAt),
 	}
 }
+
+func RecreateAllCredentials(req api.Context) error {
+	return req.GPTClient.RecreateAllCredentials(req.Context())
+}
