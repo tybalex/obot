@@ -37,7 +37,7 @@
 							{#if tool.icon}
 								<img
 									src={tool.icon}
-									class="size-6 rounded-md bg-white p-1"
+									class="size-6 rounded-full bg-white p-1"
 									alt="tool {tool.name} icon"
 								/>
 							{/if}

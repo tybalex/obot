@@ -188,7 +188,7 @@
 								<img
 									src={tool.metadata?.icon}
 									alt={tool.name}
-									class="size-6 rounded-lg bg-white p-1"
+									class="size-6 rounded-full bg-white p-1"
 								/>
 								{tool.name}
 							</p>
@@ -237,7 +237,7 @@
 					(val) => handleSetSubtool(toolReference, val)
 				}
 			/>
-			<img src={tool.icon} alt={tool.name} class="size-6 rounded-lg bg-white p-1" />
+			<img src={tool.icon} alt={tool.name} class="size-6 rounded-full bg-white p-1" />
 			{toolReference.name}
 		</p>
 	</label>
