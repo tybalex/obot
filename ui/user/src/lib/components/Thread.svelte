@@ -211,12 +211,12 @@
 			>
 				<div class="flex w-fit items-center gap-1">
 					<div use:fileTT.ref>
-						<p use:fileTT.tooltip class="tooltip">Files</p>
+						<p use:fileTT.tooltip class="tooltip z-10">Files</p>
 						<Files thread {project} bind:currentThreadID={id} />
 					</div>
 
 					<div use:toolsTT.ref>
-						<p use:toolsTT.tooltip class="tooltip">Tools</p>
+						<p use:toolsTT.tooltip class="tooltip z-10">Tools</p>
 						<Tools {project} {version} {tools} />
 					</div>
 				</div>
