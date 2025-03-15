@@ -11,6 +11,7 @@
 	import Projects from './navbar/Projects.svelte';
 	import Logo from './navbar/Logo.svelte';
 	import Tables from '$lib/components/sidebar/Tables.svelte';
+	import { popover } from '$lib/actions';
 
 	interface Props {
 		project: Project;
@@ -22,6 +23,8 @@
 	let credentials = $state<ReturnType<typeof Credentials>>();
 	let projectsOpen = $state(false);
 	const layout = getLayout();
+
+	let credentialsTT = popover({ hover: true, placement: 'right' });
 </script>
 
 <div class="relative flex size-full flex-col bg-surface1">
@@ -66,9 +69,13 @@
 		{#if hasTool(tools, 'shell')}
 			<Term />
 		{/if}
-		<button class="icon-button" onclick={() => credentials?.show()}>
+
+		<p use:credentialsTT.tooltip class="tooltip">Credentials</p>
+
+		<button class="icon-button" onclick={() => credentials?.show()} use:credentialsTT.ref>
 			<KeyRound class="icon-default" />
 		</button>
+
 		<Credentials bind:this={credentials} {project} {tools} />
 		{#if !project.editor}
 			<Clone {project} />

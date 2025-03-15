@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Plus } from 'lucide-svelte/icons';
-	import { ChatService, type Project, type Task } from '$lib/services';
 	import Confirm from '$lib/components/Confirm.svelte';
 	import { getLayout, openTask } from '$lib/context/layout.svelte';
+	import { ChatService, type Project, type Task } from '$lib/services';
+	import { Plus } from 'lucide-svelte/icons';
 	import { onMount } from 'svelte';
 	import TaskItem from './TaskItem.svelte';
 

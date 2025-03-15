@@ -19,6 +19,7 @@
 	import Tools from '$lib/components/navbar/Tools.svelte';
 	import type { UIEventHandler } from 'svelte/elements';
 	import AssistantIcon from '$lib/icons/AssistantIcon.svelte';
+	import { popover } from '$lib/actions';
 
 	interface Props {
 		id?: string;
@@ -55,6 +56,9 @@
 	});
 
 	let scrollControls = $state<StickToBottomControls>();
+
+	const fileTT = popover({ hover: true, placement: 'top' });
+	const toolsTT = popover({ hover: true, placement: 'top' });
 
 	onDestroy(() => {
 		thread?.close?.();
@@ -116,13 +120,13 @@
 	}
 </script>
 
-<div class="relative w-full max-w-[900px] pb-32">
+<div class="relative w-full pb-32">
 	<!-- Fade text in/out on scroll -->
 	<div
-		class="absolute inset-x-0 top-0 z-30 h-14 w-full bg-gradient-to-b from-white dark:from-black"
+		class="absolute inset-x-0 top-0 z-10 h-14 w-full bg-gradient-to-b from-white dark:from-black"
 	></div>
 	<div
-		class="absolute inset-x-0 bottom-32 z-30 h-14 w-full bg-gradient-to-t from-white dark:from-black"
+		class="absolute inset-x-0 bottom-32 z-10 h-14 w-full bg-gradient-to-t from-white dark:from-black"
 	></div>
 
 	<div
@@ -138,7 +142,7 @@
 		<div
 			in:fade|global
 			bind:this={messagesDiv}
-			class="flex h-fit w-full flex-col justify-start gap-8 p-5 transition-all"
+			class="flex h-fit w-full max-w-[900px] flex-col justify-start gap-8 p-5 transition-all"
 			class:justify-center={!thread}
 		>
 			<div class="message-content self-center">
@@ -148,7 +152,7 @@
 					{#if project.description}
 						<p class="max-w-md font-light text-gray">{project.description}</p>
 					{/if}
-					<div class="mt-4 h-[1px] w-96 max-w-sm rounded-full bg-surface1 dark:bg-surface2"></div>
+					<div class="mt-4 h-[1px] w-full max-w-sm rounded-full bg-surface1 dark:bg-surface2"></div>
 				</div>
 				{#if project?.introductionMessage}
 					<div class="pt-8">
@@ -184,30 +188,37 @@
 				<!-- Vertical Spacer -->
 			</div>
 		</div>
-		<div class="absolute inset-x-0 bottom-0 z-30 flex justify-center py-8">
-			<div class="w-full max-w-[1000px]">
-				<Input
-					readonly={messages.inProgress}
-					pending={thread?.pending}
-					onAbort={async () => {
-						await thread?.abort();
-					}}
-					onSubmit={async (i) => {
-						await ensureThread();
-						scrollSmooth = false;
-						scrollControls?.stickToBottom();
-						await thread?.invoke(i);
-					}}
-					bind:items={layout.items}
-				>
-					<div class="flex w-fit items-center gap-1">
+		<div
+			class="absolute inset-x-0 bottom-0 z-30 mx-auto flex max-w-[900px] flex-col justify-center py-8"
+		>
+			<Input
+				readonly={messages.inProgress}
+				pending={thread?.pending}
+				onAbort={async () => {
+					await thread?.abort();
+				}}
+				onSubmit={async (i) => {
+					await ensureThread();
+					scrollSmooth = false;
+					scrollControls?.stickToBottom();
+					await thread?.invoke(i);
+				}}
+				bind:items={layout.items}
+			>
+				<div class="flex w-fit items-center gap-1">
+					<div use:fileTT.ref>
+						<p use:fileTT.tooltip class="tooltip">Files</p>
 						<Files thread {project} bind:currentThreadID={id} />
+					</div>
+
+					<div use:toolsTT.ref>
+						<p use:toolsTT.tooltip class="tooltip">Tools</p>
 						<Tools {project} {version} {tools} />
 					</div>
-				</Input>
-				<div class="mt-3 text-center text-xs font-light text-gray dark:text-gray-400">
-					Obots aren't perfect. Double check their work.
 				</div>
+			</Input>
+			<div class="mt-3 text-center text-xs font-light text-gray dark:text-gray-400">
+				Obots aren't perfect. Double check their work.
 			</div>
 		</div>
 	</div>

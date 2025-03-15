@@ -1,5 +1,14 @@
 <script lang="ts">
-	import { FileText, Trash, Upload, X } from 'lucide-svelte/icons';
+	import { overflowToolTip } from '$lib/actions/overflow';
+	import Confirm from '$lib/components/Confirm.svelte';
+	import CollapsePane from '$lib/components/edit/CollapsePane.svelte';
+	import FileEditors from '$lib/components/editor/FileEditors.svelte';
+	import Error from '$lib/components/Error.svelte';
+	import Menu from '$lib/components/navbar/Menu.svelte';
+	import { getLayout } from '$lib/context/layout.svelte';
+	import Loading from '$lib/icons/Loading.svelte';
+	import { isImage } from '$lib/image';
+	import { newFileMonitor } from '$lib/save.js';
 	import {
 		ChatService,
 		EditorService,
@@ -8,19 +17,10 @@
 		type Project,
 		type Thread
 	} from '$lib/services';
-	import Confirm from '$lib/components/Confirm.svelte';
-	import { Download, Image } from 'lucide-svelte';
-	import { isImage } from '$lib/image';
-	import Error from '$lib/components/Error.svelte';
-	import Loading from '$lib/icons/Loading.svelte';
-	import CollapsePane from '$lib/components/edit/CollapsePane.svelte';
-	import { getLayout } from '$lib/context/layout.svelte';
 	import type { EditorItem } from '$lib/services/editor/index.svelte';
-	import FileEditors from '$lib/components/editor/FileEditors.svelte';
-	import { newFileMonitor } from '$lib/save.js';
+	import { Download, Image } from 'lucide-svelte';
+	import { FileText, Trash, Upload, X } from 'lucide-svelte/icons';
 	import { onMount } from 'svelte';
-	import { overflowToolTip } from '$lib/actions/overflow';
-	import Menu from '$lib/components/navbar/Menu.svelte';
 
 	interface Props {
 		project: Project;
@@ -143,7 +143,7 @@
 	{#if files.length === 0}
 		<p class="pb-3 pt-6 text-center text-sm text-gray dark:text-gray-300">No files</p>
 	{:else}
-		<ul class="max-h-[60vh] space-y-4 overflow-y-auto px-3 py-6 text-sm">
+		<ul class="max-h-[60vh] space-y-4 overflow-y-auto py-6 ps-3 text-sm">
 			{#each files as file}
 				<li class="group">
 					<div class="flex">
@@ -156,18 +156,22 @@
 							{:else}
 								<FileText class="size-5 min-w-fit" />
 							{/if}
-							<span use:overflowToolTip>{file.name}</span>
+							<span use:overflowToolTip={{ placement: 'top', tooltipClass: 'max-w-full' }}
+								>{file.name}</span
+							>
 						</button>
+
 						<button
-							class="ms-2 hidden group-hover:block"
+							class="icon-button-small invisible ms-2 group-hover:visible"
 							onclick={() => {
 								EditorService.download([], project, file.name, apiOpts);
 							}}
 						>
 							<Download class="h-5 w-5 text-gray" />
 						</button>
+
 						<button
-							class="ms-2 hidden group-hover:block"
+							class="icon-button-small invisible ms-2 group-hover:visible"
 							onclick={() => {
 								fileToDelete = file.name;
 							}}

@@ -200,7 +200,7 @@
 							{/if}
 						</label>
 
-						<p use:tt.tooltip class="w-64 rounded-xl bg-surface3 p-2 text-start">
+						<p use:tt.tooltip class="tooltip max-w-64">
 							{#if hasBundle}
 								{tool.description}
 							{:else}
@@ -242,7 +242,7 @@
 		</p>
 	</label>
 
-	<p use:tooltip class="w-64 rounded-xl bg-surface3 p-2 text-start">
+	<p use:tooltip class="tooltip max-w-64">
 		{toolReference.description}
 	</p>
 {/snippet}

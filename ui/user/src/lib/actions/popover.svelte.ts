@@ -33,7 +33,7 @@ export default function popover(opts?: PopoverOptions): Popover {
 	let ref: HTMLElement;
 	let tooltip: HTMLElement;
 	let open = $state(false);
-	const offsetSize = opts?.offset ?? 8;
+	const offsetSize = opts?.offset ?? 4;
 	let hoverTimeout: number | null = null;
 
 	function build(): ActionReturn | void {

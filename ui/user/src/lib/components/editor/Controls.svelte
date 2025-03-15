@@ -5,6 +5,7 @@
 	import { X } from 'lucide-svelte';
 	import { twMerge } from 'tailwind-merge';
 	import Files from '../edit/Files.svelte';
+	import { popover } from '$lib/actions';
 
 	interface Props {
 		navBar?: boolean;
@@ -17,12 +18,17 @@
 
 	const layout = getLayout();
 	let show = $derived(navBar || layout.items.length <= 1);
+
+	const fileTT = popover({ hover: true, placement: 'top' });
 </script>
 
 {#if show}
 	<div class={twMerge('flex items-start', className)}>
 		{#if currentThreadID}
-			<Files {project} thread {currentThreadID} primary={false} />
+			<div use:fileTT.ref>
+				<p use:fileTT.tooltip class="tooltip">Browse Files</p>
+				<Files {project} thread {currentThreadID} primary={false} />
+			</div>
 		{/if}
 
 		<button
