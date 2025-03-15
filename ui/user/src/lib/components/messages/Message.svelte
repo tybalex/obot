@@ -480,7 +480,7 @@
 		}
 
 		.message-content code {
-			@apply scrollbar-none;
+			@apply text-xs scrollbar-none md:text-md;
 		}
 
 		span[data-end-indicator] {
