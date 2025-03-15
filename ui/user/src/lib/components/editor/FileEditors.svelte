@@ -34,8 +34,21 @@
 			<Table tableName={file.table?.name} {project} {currentThreadID} {items} />
 		{:else if isImage(file.name)}
 			<Image {file} />
+		{:else if [...(file?.file?.contents ?? '')].some((char) => char.charCodeAt(0) === 0)}
+			{@render unsupportedFile()}
 		{:else}
 			<Codemirror {file} {onFileChanged} {onInvoke} {items} />
 		{/if}
 	</div>
 {/each}
+
+{#snippet unsupportedFile()}
+	<div class="flex h-full w-full flex-col items-center justify-center">
+		<img
+			src="/user/images/obot-icon-surprised-yellow.svg"
+			alt="Surprised obot"
+			class="size-[200px] opacity-50"
+		/>
+		<p class="text-lg text-gray-500">This type of file cannot be opened in the editor</p>
+	</div>
+{/snippet}
