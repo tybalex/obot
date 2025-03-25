@@ -12,14 +12,14 @@ on:
 
 jobs:
   enterprise-build:
-    if: github.event.repository.full_name == 'obot-platform/enterprise-tools' || github.event.repository.full_name == 'obot-platform/tools'
+    if: github.event.client_payload.sender == 'obot-platform/enterprise-tools' || github.event.client_payload.sender == 'obot-platform/tools'
     runs-on: depot-ubuntu-22.04
     concurrency:
       group: enterprise-build
       cancel-in-progress: true
     steps:
       - name: Print the dispatch source
-        run: echo "Dispatched by ${{ github.event.repository.full_name }}"
+        run: echo "Dispatched by ${{ github.event.client_payload.sender }}"
 
       - uses: actions/checkout@v4
         with:
@@ -49,14 +49,14 @@ jobs:
             TOOL_REGISTRY_REPOS=github.com/obot-platform/tools,github.com/obot-platform/enterprise-tools
 
   oss-build:
-    if: github.event.repository.full_name == 'obot-platform/tools'
+    if: github.event.client_payload.sender == 'obot-platform/tools'
     runs-on: depot-ubuntu-22.04
     concurrency:
       group: oss-build
       cancel-in-progress: true
     steps:
       - name: Print the dispatch source
-        run: echo "Dispatched by ${{ github.event.repository.full_name }}"
+        run: echo "Dispatched by ${{ github.event.client_payload.sender }}"
 
       - uses: actions/checkout@v4
         with:
@@ -69,7 +69,7 @@ jobs:
           username: ${{ secrets.GHCR_USERNAME }}
           password: ${{ secrets.GHCR_TOKEN }}
 
-      - name: Build and push oss-tools Docker image
+      - name: Build and push enterprise-tools Docker image
         uses: depot/build-push-action@v1
         with:
           project: bbqjs4tj1g
