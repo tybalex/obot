@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+ARG TOOLS_IMAGE=obot-platform/obot/oss-tools
 FROM cgr.dev/chainguard/wolfi-base AS base
 
 RUN apk add --no-cache go make git npm pnpm
@@ -22,7 +22,6 @@ RUN git clone --branch v0.8.0 https://github.com/pgvector/pgvector.git && \
     cd .. && \
     rm -rf pgvector
 
-ARG TOOLS_IMAGE=obot-platform/obot/oss-tools
 FROM ghcr.io/${TOOLS_IMAGE}:latest as tools
 
 FROM cgr.dev/chainguard/postgres:latest-dev AS final
