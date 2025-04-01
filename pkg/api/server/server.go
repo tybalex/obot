@@ -14,10 +14,14 @@ import (
 	gclient "github.com/obot-platform/obot/pkg/gateway/client"
 	"github.com/obot-platform/obot/pkg/proxy"
 	"github.com/obot-platform/obot/pkg/storage"
+	"go.opentelemetry.io/otel"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 )
 
-var log = logger.Package()
+var (
+	log    = logger.Package()
+	tracer = otel.Tracer("obot/api")
+)
 
 type Server struct {
 	storageClient storage.Client
@@ -46,7 +50,7 @@ func NewServer(storageClient storage.Client, gatewayClient *gclient.Client, gptC
 }
 
 func (s *Server) HandleFunc(pattern string, f api.HandlerFunc) {
-	s.mux.HandleFunc(pattern, s.wrap(f))
+	s.mux.Handle(pattern, http.HandlerFunc(s.wrap(f)))
 }
 
 func (s *Server) HTTPHandle(pattern string, f http.Handler) {
@@ -57,11 +61,17 @@ func (s *Server) HTTPHandle(pattern string, f http.Handler) {
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.mux.ServeHTTP(w, r)
+	ctx, span := tracer.Start(r.Context(), "server")
+	defer span.End()
+	s.mux.ServeHTTP(w, r.WithContext(ctx))
 }
 
 func (s *Server) wrap(f api.HandlerFunc) http.HandlerFunc {
 	return func(rw http.ResponseWriter, req *http.Request) {
+		ctx, span := tracer.Start(req.Context(), req.Pattern)
+		defer span.End()
+		req = req.WithContext(ctx)
+
 		user, err := s.authenticator.Authenticate(req)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusUnauthorized)
