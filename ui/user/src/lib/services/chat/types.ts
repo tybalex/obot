@@ -270,7 +270,7 @@ export interface Task {
 	email?: object;
 	webhook?: object;
 	onDemand?: OnDemand;
-	onSlackedMessage?: Record<string, never>;
+	onSlackMessage?: object;
 	alias?: string;
 }
 
@@ -417,4 +417,16 @@ export interface Sites {
 export interface Site {
 	site?: string;
 	description?: string;
+}
+
+export interface SlackConfig {
+	appId: string;
+	clientId: string;
+	clientSecret: string;
+	signingSecret: string;
+}
+
+export interface SlackReceiver {
+	appId: string;
+	clientId: string;
 }
