@@ -3,18 +3,11 @@
 	import type { AssistantTool, ToolReference } from '$lib/services/chat/types';
 	import CollapsePane from './CollapsePane.svelte';
 	import { responsive } from '$lib/stores';
-	import {
-		ChevronRight,
-		ChevronsLeft,
-		ChevronsRight,
-		Minus,
-		SquareMinus,
-		Wrench,
-		X
-	} from 'lucide-svelte';
+	import { ChevronRight, ChevronsLeft, ChevronsRight, Search, Wrench, X } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { twMerge } from 'tailwind-merge';
+	import SearchInput from '../Search.svelte';
 
 	interface Props {
 		onSelectTools: (tools: AssistantTool[]) => void;
@@ -30,7 +23,7 @@
 		total?: number;
 	}[];
 
-	let { onSelectTools, onSubmit, tools, maxTools, title = 'Your Tools' }: Props = $props();
+	let { onSelectTools, onSubmit, tools, maxTools, title = 'Tool Catalog' }: Props = $props();
 
 	let searchPopover = $state<HTMLDialogElement>();
 	let search = $state('');
@@ -88,7 +81,15 @@
 	});
 
 	const builtInTools = $derived.by(() => {
-		const ignore = new Set(['workspace-files', 'tasks', 'knowledge', 'database', 'time']);
+		const ignore = new Set([
+			'workspace-files',
+			'tasks',
+			'knowledge',
+			'database',
+			'time',
+			'threads',
+			'github-com-obot-platform-tools-search-tavily-websiteknowl-d2d96'
+		]);
 		const builtInToolMap = new Map<string, AssistantTool>(
 			tools.filter((t) => t.builtin && !ignore.has(t.id)).map((t) => [t.id, t])
 		);
@@ -249,8 +250,13 @@
 
 <div class="flex h-full w-full flex-col overflow-hidden md:h-[75vh]">
 	<h4
-		class="border-surface3 relative mx-4 flex items-center justify-center border-b py-4 text-lg font-semibold md:justify-start"
+		class="border-surface3 relative mx-4 flex items-center justify-center border-b py-4 text-lg font-semibold md:mb-4 md:justify-start"
 	>
+		{#if responsive.isMobile}
+			<button class="icon-button absolute top-2 left-0" onclick={() => searchPopover?.show()}>
+				<Search class="size-6" />
+			</button>
+		{/if}
 		{title}
 		<button class="icon-button absolute top-2 right-0" onclick={() => handleSubmit()}>
 			{#if responsive.isMobile}
@@ -260,29 +266,17 @@
 			{/if}
 		</button>
 	</h4>
-	<div class="flex w-full items-center justify-between">
-		<div class="flex grow rounded-t-lg p-4 md:relative" bind:this={searchContainer}>
-			{#if responsive.isMobile}
-				<button class="mock-input-btn" onclick={() => searchPopover?.show()}>
-					Search tools...
-				</button>
-			{:else}
-				{@render searchInput()}
-			{/if}
-			{@render searchDialog()}
-		</div>
-	</div>
-	<div class="flex min-h-0 w-full grow items-stretch px-4 md:gap-2">
+	<div class="flex min-h-0 w-full grow items-stretch md:gap-2 md:px-4">
 		<!-- Selected Tools Column -->
 		{#if !responsive.isMobile || (responsive.isMobile && !showAvailableTools)}
 			{@const enabledTools = getEnabledTools()}
 			<div
-				class="border-surface2 dark:border-surface1 flex flex-1 flex-col md:rounded-md md:border-2"
+				class="border-surface2 dark:border-surface3 flex flex-1 flex-col md:rounded-md md:border-2"
 				transition:fly={showAvailableTools
 					? { x: 250, duration: 300, delay: 0 }
 					: { x: 250, duration: 300, delay: 300 }}
 			>
-				<h4 class="bg-surface1 flex px-4 py-2 text-base font-semibold">Selected Tools</h4>
+				<h4 class="flex px-4 py-2 text-base font-semibold">Selected Tools</h4>
 				<div
 					class="default-scrollbar-thin h-inherit flex min-h-0 flex-1 grow flex-col overflow-y-auto"
 				>
@@ -306,7 +300,7 @@
 					? { x: 250, duration: 300, delay: 0 }
 					: { x: 250, duration: 300, delay: 300 }}
 				onclick={() => (showAvailableTools = !showAvailableTools)}
-				class="bg-surface1 h-inherit dark:border-surface2 flex min-h-0 w-8 flex-col items-center justify-center gap-2 border-l border-white px-2"
+				class="h-inherit border-surface1 dark:border-surface3 flex min-h-0 w-8 flex-col items-center justify-center gap-2 border-l bg-transparent px-2"
 			>
 				<ChevronsRight class="size-6 text-black dark:text-white" />
 			</button>
@@ -316,13 +310,13 @@
 		{#if !responsive.isMobile || (responsive.isMobile && showAvailableTools)}
 			{@const disabledTools = getDisabledTools()}
 			<div
-				class="border-surface2 dark:border-surface1 flex flex-1 md:rounded-md md:border-2"
+				class="border-surface2 dark:border-surface3 flex flex-1 md:rounded-md md:border-2"
 				transition:fly={showAvailableTools
 					? { x: 250, duration: 300, delay: 300 }
 					: { x: 250, duration: 300, delay: 0 }}
 			>
 				<div class="flex flex-1 flex-col">
-					<h4 class="bg-surface1 flex px-4 py-2 text-base font-semibold">Available Tools</h4>
+					<h4 class="flex px-4 py-2 text-base font-semibold">Available Tools</h4>
 					<div
 						class="default-scrollbar-thin h-inherit flex min-h-0 flex-1 flex-col overflow-y-auto"
 					>
@@ -340,7 +334,7 @@
 						? { x: 250, duration: 300, delay: 300 }
 						: { x: 250, duration: 300, delay: 0 }}
 					onclick={() => (showAvailableTools = !showAvailableTools)}
-					class="bg-surface1 text:border-black h-inherit dark:border-surface2 flex min-h-0 w-8 flex-col items-center justify-center gap-2 border-l border-white px-2"
+					class="text:border-black h-inherit dark:border-surface3 border-surface1 flex min-h-0 w-8 flex-col items-center justify-center gap-2 border-l px-2"
 				>
 					<ChevronsLeft class="size-6 text-black dark:text-white" />
 				</button>
@@ -348,9 +342,21 @@
 		{/if}
 	</div>
 
-	<div class="flex flex-col items-center gap-2 p-2 md:flex-row">
+	<div class="flex w-full items-center justify-between">
+		<div class="flex grow md:relative" bind:this={searchContainer}>
+			{#if !responsive.isMobile}
+				<div class="w-full p-4">
+					{@render searchInput()}
+				</div>
+			{/if}
+
+			{@render searchDialog()}
+		</div>
+	</div>
+
+	<div class="flex flex-col items-center gap-2 md:flex-row">
 		{#if maxExceeded}
-			<p class="text-left text-sm text-red-500">
+			<p class="p-2 text-left text-sm text-red-500">
 				Maximum number of tools exceeded for this Assistant. (Max: {maxTools})
 			</p>
 		{/if}
@@ -363,7 +369,7 @@
 			classes={{
 				content:
 					'default-scrollbar-thin flex min-h-0 flex-col overflow-y-auto p-0 pr-2 bg-surface1',
-				header: 'border-t-2 border-surface1 px-5',
+				header: 'border-t-2 border-surface1 dark:border-surface3 px-5',
 				root: 'min-h-0'
 			}}
 		>
@@ -406,10 +412,10 @@
 		showDropdown={bundleTools && bundleTools.length > 0}
 		classes={{
 			header: twMerge(
-				'group py-0 pl-0 pr-3 ',
+				'group py-0 pl-0 pr-3',
 				!readOnly && 'hover:bg-surface2 dark:hover:bg-surface3'
 			),
-			content: 'border-none p-0 bg-surface1 shadow-none'
+			content: 'border-none p-0 bg-transparent shadow-none'
 		}}
 	>
 		{#if bundleTools && bundleTools.length > 0}
@@ -516,7 +522,7 @@
 {#snippet searchDialog()}
 	<dialog
 		bind:this={searchPopover}
-		class="default-scrollbar-thin absolute top-0 left-0 z-10 h-full w-full rounded-sm md:top-11 md:h-[50vh] md:w-[calc(100%-1rem)] md:overflow-y-auto"
+		class="default-scrollbar-thin absolute bottom-0 left-0 z-10 h-full w-full rounded-sm md:bottom-16 md:h-fit md:max-h-[50vh] md:w-[calc(100%-1rem)] md:overflow-y-auto"
 		class:hidden={!responsive.isMobile && !search}
 	>
 		<div class="flex h-full flex-col">
@@ -545,16 +551,16 @@
 {/snippet}
 
 {#snippet searchInput()}
-	<input
-		class="bg-surface1 w-full rounded-lg p-2"
-		type="text"
-		placeholder="Search tools..."
-		bind:value={search}
-		onmousedown={() => {
+	<SearchInput
+		onChange={(val) => {
+			search = val;
+		}}
+		onMouseDown={() => {
 			if (!responsive.isMobile) {
 				searchPopover?.show();
 			}
 		}}
+		placeholder="Search tools..."
 	/>
 {/snippet}
 
@@ -569,12 +575,14 @@
 			} else {
 				toggleTool(tool.id, !val, { tool, bundleTools, total });
 			}
+
+			searchPopover?.close();
 		}}
 	>
 		{@render toolInfo(tool)}
 		{#if val}
 			<div class="mr-4 flex items-center">
-				<Minus class="size-6" />
+				<div class="remove-pill">Remove</div>
 			</div>
 		{/if}
 	</button>
@@ -586,16 +594,13 @@
 				onclick={(e) => {
 					e.stopPropagation();
 					toggleTool(subTool.id, val ? false : !subToolVal, { tool, bundleTools });
+					searchPopover?.close();
 				}}
 			>
 				{@render toolInfo(subTool)}
-				{#if val}
+				{#if val || subToolVal}
 					<div class="mr-4 flex items-center">
-						<SquareMinus class="size-5" />
-					</div>
-				{:else if subToolVal}
-					<div class="mr-4 flex items-center">
-						<Minus class="size-6" />
+						<div class="remove-pill">Remove</div>
 					</div>
 				{/if}
 			</button>
@@ -616,5 +621,14 @@
 
 	:global(.animate-bounce-x) {
 		animation: bounce-x 1s infinite ease-in-out;
+	}
+
+	.remove-pill {
+		font-size: var(--text-xs);
+		padding: 0.25rem 0.75rem;
+		border-radius: var(--radius-2xl);
+		background-color: var(--surface3);
+		color: var(--text-primary);
+		font-weight: 200;
 	}
 </style>
