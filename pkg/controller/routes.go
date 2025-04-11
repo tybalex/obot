@@ -13,6 +13,7 @@ import (
 	"github.com/obot-platform/obot/pkg/controller/handlers/knowledgesummary"
 	"github.com/obot-platform/obot/pkg/controller/handlers/oauthapp"
 	"github.com/obot-platform/obot/pkg/controller/handlers/projects"
+	"github.com/obot-platform/obot/pkg/controller/handlers/retention"
 	"github.com/obot-platform/obot/pkg/controller/handlers/runs"
 	"github.com/obot-platform/obot/pkg/controller/handlers/runstates"
 	"github.com/obot-platform/obot/pkg/controller/handlers/slackreceiver"
@@ -65,6 +66,7 @@ func (c *Controller) setupRoutes() error {
 	root.Type(&v1.RunState{}).HandlerFunc(runstates.Migrate)
 
 	// Threads
+	root.Type(&v1.Thread{}).HandlerFunc(retention.RunRetention(c.services.RetentionPolicy))
 	root.Type(&v1.Thread{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.CreateWorkspaces)
 	root.Type(&v1.Thread{}).HandlerFunc(threads.CreateSharedWorkspace)

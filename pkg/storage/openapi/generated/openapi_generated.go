@@ -9224,6 +9224,11 @@ func schema_storage_apis_obotobotai_v1_ThreadStatus(ref common.ReferenceCallback
 							Format: "",
 						},
 					},
+					"lastUsedTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
+						},
+					},
 					"workflowState": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -9290,6 +9295,8 @@ func schema_storage_apis_obotobotai_v1_ThreadStatus(ref common.ReferenceCallback
 				},
 			},
 		},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
 	}
 }
 
