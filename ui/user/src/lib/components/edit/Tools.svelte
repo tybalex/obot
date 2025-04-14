@@ -4,22 +4,29 @@
 	import { type AssistantTool } from '$lib/services';
 	import ToolCatalog from './ToolCatalog.svelte';
 	import { Plus, X } from 'lucide-svelte/icons';
-	import { tools as toolsStore } from '$lib/stores';
+	import { getProjectTools } from '$lib/context/projectTools.svelte';
+	import { IGNORED_BUILTIN_TOOLS } from '$lib/constants';
+	import { twMerge } from 'tailwind-merge';
 
 	interface Props {
 		onNewTools: (tools: AssistantTool[]) => Promise<void>;
 	}
 
 	let { onNewTools }: Props = $props();
+	const projectTools = getProjectTools();
+
 	let enabledList = $derived(
-		toolsStore.current.tools.filter((t) => !t.builtin && t.enabled && t.id && !t.toolType)
+		projectTools.tools.filter((t) => t.enabled && t.id && !t.toolType && !t.builtin)
+	);
+	let builtInList = $derived(
+		projectTools.tools.filter((t) => t.builtin && t.id && !IGNORED_BUILTIN_TOOLS.has(t.id))
 	);
 
 	async function remove(tool: AssistantTool) {
 		if (tool.toolType) {
-			toolsStore.setTools(toolsStore.current.tools.filter((t) => t.id !== tool.id));
+			projectTools.tools = projectTools.tools.filter((t) => t.id !== tool.id);
 		} else {
-			await onNewTools(toolsStore.current.tools.filter((t) => t.id !== tool.id));
+			onNewTools(projectTools.tools.filter((t) => t.id !== tool.id));
 		}
 	}
 
@@ -32,7 +39,10 @@
 			{@const tt = popover({ placement: 'top', delay: 300 })}
 
 			<div
-				class="bg-surface1 flex w-full cursor-pointer items-start justify-between gap-1 rounded-md p-2"
+				class={twMerge(
+					'bg-surface1 flex w-full cursor-pointer items-start justify-between gap-1 rounded-md p-2',
+					tool.builtin && 'bg-surface1/70 cursor-default'
+				)}
 				use:tt.ref
 			>
 				<div class="flex w-full flex-col gap-1">
@@ -49,13 +59,18 @@
 								>
 							</div>
 						</div>
-						<button class="icon-button-small" onclick={() => remove(tool)}>
-							<X class="size-5" />
-						</button>
+						{#if !tool.builtin}
+							<button class="icon-button-small" onclick={() => remove(tool)}>
+								<X class="size-5" />
+							</button>
+						{/if}
 					</div>
 				</div>
 
-				<p use:tt.tooltip={{ hover: true }} class="tooltip max-w-64">{tool.description}</p>
+				<p use:tt.tooltip={{ hover: true }} class="tooltip max-w-64">
+					{tool.description}
+					{tool.builtin ? '(Built-in)' : ''}
+				</p>
 			</div>
 		{/each}
 	</ul>
@@ -65,7 +80,7 @@
 	<p class="pb-4 text-sm text-gray-500">Tools added here are available to all threads.</p>
 	<div class="flex flex-col gap-2">
 		{@render toolList(enabledList)}
-
+		{@render toolList(builtInList)}
 		<div class="self-end">
 			<button
 				class="button flex items-center gap-1 text-sm"
@@ -82,7 +97,7 @@
 	<ToolCatalog
 		onSelectTools={onNewTools}
 		onSubmit={() => toolCatalog?.close()}
-		tools={toolsStore.current.tools}
-		maxTools={toolsStore.current.maxTools}
+		tools={projectTools.tools}
+		maxTools={projectTools.maxTools}
 	/>
 </dialog>
