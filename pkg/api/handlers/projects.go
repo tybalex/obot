@@ -194,7 +194,7 @@ func (h *ProjectsHandler) ListPendingAuthorizations(req api.Context) error {
 			return err
 		}
 		if thread.Spec.AgentName == agent.Name {
-			project := convertProject(&thread)
+			project := convertProject(&thread, nil)
 			result.Items = append(result.Items, types.ProjectAuthorization{
 				Project: &project,
 				Target:  threadAuth.Spec.UserID,
@@ -252,7 +252,7 @@ func (h *ProjectsHandler) UpdateProject(req api.Context) error {
 		}
 	}
 
-	return req.Write(convertProject(&thread))
+	return req.Write(convertProject(&thread, nil))
 }
 
 func (h *ProjectsHandler) CopyProject(req api.Context) error {
@@ -299,7 +299,7 @@ func (h *ProjectsHandler) CopyProject(req api.Context) error {
 		return err
 	}
 
-	return req.Write(convertProject(&newThread))
+	return req.Write(convertProject(&newThread, nil))
 }
 
 func (h *ProjectsHandler) GetProject(req api.Context) error {
@@ -310,7 +310,14 @@ func (h *ProjectsHandler) GetProject(req api.Context) error {
 	if err := req.Get(&thread, projectID); err != nil {
 		return err
 	}
-	return req.Write(convertProject(&thread))
+
+	var parentThread v1.Thread
+	if thread.Spec.ParentThreadName != "" {
+		if err := req.Get(&parentThread, thread.Spec.ParentThreadName); err == nil {
+			return req.Write(convertProject(&thread, &parentThread))
+		}
+	}
+	return req.Write(convertProject(&thread, nil))
 }
 
 func (h *ProjectsHandler) ListProjects(req api.Context) error {
@@ -415,7 +422,7 @@ func (h *ProjectsHandler) CreateProject(req api.Context) error {
 		return err
 	}
 
-	return req.WriteCreated(convertProject(thread))
+	return req.WriteCreated(convertProject(thread, nil))
 }
 
 func getEmail(req api.Context) (string, bool) {
@@ -452,7 +459,14 @@ func (h *ProjectsHandler) getProjects(req api.Context, agent *v1.Agent, all bool
 
 	for _, thread := range threads.Items {
 		seen[thread.Name] = true
-		result.Items = append(result.Items, convertProject(&thread))
+		var parentThread v1.Thread
+		if thread.Spec.ParentThreadName != "" {
+			if err := req.Get(&parentThread, thread.Spec.ParentThreadName); err == nil {
+				result.Items = append(result.Items, convertProject(&thread, &parentThread))
+				continue
+			}
+		}
+		result.Items = append(result.Items, convertProject(&thread, nil))
 	}
 
 	if email, ok := getEmail(req); ok {
@@ -483,7 +497,15 @@ func (h *ProjectsHandler) getProjects(req api.Context, agent *v1.Agent, all bool
 				continue
 			}
 
-			result.Items = append(result.Items, convertProject(&thread))
+			var parentThread v1.Thread
+			if thread.Spec.ParentThreadName != "" {
+				if err := req.Get(&parentThread, thread.Spec.ParentThreadName); err == nil {
+					result.Items = append(result.Items, convertProject(&thread, &parentThread))
+					seen[auth.Spec.ThreadID] = true
+					continue
+				}
+			}
+			result.Items = append(result.Items, convertProject(&thread, nil))
 			seen[auth.Spec.ThreadID] = true
 		}
 	}
@@ -491,7 +513,7 @@ func (h *ProjectsHandler) getProjects(req api.Context, agent *v1.Agent, all bool
 	return result, nil
 }
 
-func convertProject(thread *v1.Thread) types.Project {
+func convertProject(thread *v1.Thread, parentThread *v1.Thread) types.Project {
 	p := types.Project{
 		Metadata: MetadataFrom(thread),
 		ProjectManifest: types.ProjectManifest{
@@ -504,6 +526,12 @@ func convertProject(thread *v1.Thread) types.Project {
 		UserID:          thread.Spec.UserID,
 		Capabilities:    types.ProjectCapabilities(thread.Spec.Capabilities),
 	}
+
+	// Include tools from parent project
+	if parentThread != nil {
+		p.Tools = append(p.Tools, parentThread.Spec.Manifest.Tools...)
+	}
+
 	p.Type = "project"
 	p.ID = strings.Replace(p.ID, system.ThreadPrefix, system.ProjectPrefix, 1)
 	return p
