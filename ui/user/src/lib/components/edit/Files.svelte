@@ -173,6 +173,7 @@
 							class="icon-button-small invisible ms-2 group-hover:visible"
 							onclick={() => {
 								fileToDelete = file.name;
+								menu?.toggle(false);
 							}}
 						>
 							<Trash class="text-gray h-5 w-5" />
@@ -253,3 +254,9 @@
 	onsuccess={deleteFile}
 	oncancel={() => (fileToDelete = undefined)}
 />
+
+<style>
+	.group:hover .group-hover\:visible {
+		visibility: visible;
+	}
+</style>
