@@ -626,7 +626,9 @@ func (h *ProjectsHandler) ListProjectThreads(req api.Context) error {
 	selector := kclient.MatchingFields{
 		"spec.project":          "false",
 		"spec.parentThreadName": projectThread.Name,
-		"spec.userUID":          req.User.GetUID(),
+	}
+	if !req.UserIsAdmin() {
+		selector["spec.userUID"] = req.User.GetUID()
 	}
 
 	if err := req.List(&threads, selector); err != nil {
