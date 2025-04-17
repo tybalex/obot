@@ -6,14 +6,16 @@
 	import { fade } from 'svelte/transition';
 	import CredentialAuth from '$lib/components/edit/CredentialAuth.svelte';
 	import { getProjectTools } from '$lib/context/projectTools.svelte';
+	import { responsive } from '$lib/stores';
 
 	interface Props {
 		project: Project;
 		local?: boolean;
+		onClose?: () => void;
 	}
 
 	const projectTools = getProjectTools();
-	let { project, local }: Props = $props();
+	let { project, local, onClose }: Props = $props();
 	let { ref, tooltip, toggle } = popover();
 	let credentials = $state<ProjectCredential[]>();
 	let credentialsAvailable = $derived.by(() => {
@@ -30,8 +32,9 @@
 			});
 		});
 	});
-	let authDialog: ReturnType<typeof CredentialAuth>;
-	let credToAuth = $state<string>('');
+	let authDialog: ReturnType<typeof CredentialAuth> | undefined = $state();
+	let credToAuth = $state<ProjectCredential | undefined>();
+	let showAuthInline = $state(false);
 
 	export async function reload() {
 		if (local) {
@@ -53,18 +56,25 @@
 	}
 
 	async function addCred(cred: ProjectCredential) {
-		credToAuth = cred.toolID;
-		toggle();
+		if (local) {
+			showAuthInline = true;
+		}
+		credToAuth = cred;
+		toggle(false);
 		authDialog?.show();
 	}
 </script>
 
 {#snippet credentialList(creds: ProjectCredential[], remove: boolean)}
-	<div class="flex grow flex-col gap-2">
+	<div class="flex min-w-[200px] grow flex-col">
 		{#each creds ?? [] as cred}
 			{#key cred.toolID}
-				<div
-					class="bg-surface3 flex min-w-[200px] items-center justify-between gap-2 rounded-3xl px-4 py-2"
+				<button
+					class="menu-button w-full cursor-pointer items-center justify-between gap-2"
+					onclick={() => {
+						if (remove) removeCred(cred);
+						else addCred(cred);
+					}}
 				>
 					<div class="flex flex-col gap-1">
 						<div class="flex items-center gap-2">
@@ -79,15 +89,11 @@
 						</div>
 					</div>
 					{#if remove}
-						<button class="icon-button" onclick={() => removeCred(cred)}>
-							<X class="h-5 w-5" />
-						</button>
+						<X class="size-4 text-gray-500 dark:text-gray-400" />
 					{:else}
-						<button class="icon-button" onclick={() => addCred(cred)}>
-							<Plus class="h-5 w-5" />
-						</button>
+						<Plus class="size-4 text-gray-500 dark:text-gray-400" />
 					{/if}
-				</div>
+				</button>
 			{/key}
 		{/each}
 		{#if !creds || creds.length === 0}
@@ -108,6 +114,18 @@
 				<span class="text-sm">No tools require credentials.</span>
 			{/if}
 		{/if}
+
+		<div
+			use:tooltip={{
+				disablePortal: true,
+				fixed: responsive.isMobile,
+				slide: responsive.isMobile ? 'up' : undefined
+			}}
+			class="default-dialog scrollbar-thin bottom-0 left-0 hidden w-full overflow-y-auto p-2 md:bottom-auto md:left-auto md:max-h-[500px] md:w-fit"
+		>
+			{@render credentialList(credentialsAvailable ?? [], false)}
+		</div>
+
 		{#if credentialsAvailable && credentialsAvailable.length > 0}
 			<div class="self-end" in:fade>
 				<button use:ref class="button flex items-center gap-1" onclick={() => toggle()}>
@@ -116,26 +134,45 @@
 				</button>
 			</div>
 		{/if}
-		<div
-			use:tooltip={{ disablePortal: true }}
-			class="default-dialog scrollbar-thin hidden max-h-[500px] overflow-y-auto p-5"
-		>
-			{@render credentialList(credentialsAvailable ?? [], false)}
-		</div>
-		<CredentialAuth
-			bind:this={authDialog}
-			toolID={credToAuth}
-			{project}
-			onClose={() => reload()}
-			{local}
-		/>
 	</div>
 {/snippet}
 
+<CredentialAuth
+	bind:this={authDialog}
+	toolID={credToAuth?.toolID ?? ''}
+	credential={credToAuth}
+	{project}
+	onClose={() => {
+		console.log('onClose');
+		showAuthInline = false;
+		credToAuth = undefined;
+		reload();
+	}}
+	{local}
+/>
 {#if local}
-	{@render body()}
+	{#if !showAuthInline}
+		<h1
+			class="default-dialog-title flex items-center text-xl font-semibold md:justify-between"
+			class:default-dialog-mobile-title={responsive.isMobile}
+		>
+			Credentials
+			<button
+				class="icon-button translate-x-2"
+				class:mobile-header-button={responsive.isMobile}
+				onclick={() => onClose?.()}
+			>
+				<X class="icon-default" />
+			</button>
+		</h1>
+		<p class="text-sm text-gray-500">These credentials are used by all threads in this Obot.</p>
+		{@render body()}
+	{/if}
 {:else}
 	<CollapsePane header="Credentials" onOpen={() => reload()}>
+		<p class="mb-4 text-sm text-gray-500">
+			Anyone who has access to the Obot, such as shared users, will use these credentials.
+		</p>
 		{@render body()}
 	</CollapsePane>
 {/if}
