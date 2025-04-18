@@ -39,7 +39,7 @@ func (e LogEntry) bytes() ([]byte, error) {
 type Options struct {
 	AuditLogsMode             string `usage:"Enable audit logging" default:"off"`
 	AuditLogsMaxFileSize      int    `usage:"Audit log max file size in bytes, logs will be flushed when this size is exceeded" default:"1073741824"`
-	AuditLogsMaxFlushInterval int    `usage:"Audit log flush interval in seconds regardless of buffer size" default:"30"`
+	AuditLogsMaxFlushInterval int    `usage:"Audit log flush interval in seconds regardless of buffer size" default:"120"`
 	AuditLogsCompressFile     bool   `usage:"Compress audit log files" default:"true"`
 
 	store.DiskStoreOptions
@@ -52,10 +52,11 @@ type Logger interface {
 }
 
 type persistentLogger struct {
-	lock             sync.Mutex
-	persistSemaphore chan struct{}
-	store            store.Store
-	buffer           []byte
+	lock        sync.Mutex
+	kickPersist chan struct{}
+	store       store.Store
+	buffer      []byte
+	bufferSize  int
 }
 
 func New(ctx context.Context, options Options) (Logger, error) {
@@ -87,10 +88,11 @@ func New(ctx context.Context, options Options) (Logger, error) {
 	}
 
 	l := &persistentLogger{
-		lock:             sync.Mutex{},
-		persistSemaphore: make(chan struct{}, 1),
-		store:            s,
-		buffer:           make([]byte, 0, options.AuditLogsMaxFileSize*2),
+		lock:        sync.Mutex{},
+		kickPersist: make(chan struct{}),
+		store:       s,
+		bufferSize:  options.AuditLogsMaxFileSize * 2,
+		buffer:      make([]byte, 0, options.AuditLogsMaxFileSize*2),
 	}
 
 	go l.startPersistenceLoop(ctx, time.Duration(options.AuditLogsMaxFlushInterval)*time.Second)
@@ -108,8 +110,12 @@ func (l *persistentLogger) LogEntry(entry LogEntry) error {
 
 	l.buffer = append(l.buffer, b...)
 	if len(l.buffer) >= cap(l.buffer)/2 {
-		return l.persist()
+		select {
+		case l.kickPersist <- struct{}{}:
+		default:
+		}
 	}
+
 	return nil
 }
 
@@ -126,6 +132,12 @@ func (l *persistentLogger) startPersistenceLoop(ctx context.Context, flushInterv
 		select {
 		case <-ctx.Done():
 			return
+		case <-l.kickPersist:
+			ticker.Stop()
+			if err = l.persist(); err != nil {
+				log.Errorf("Failed to persist audit log: %v", err)
+			}
+			ticker.Reset(flushInterval)
 		case <-ticker.C:
 			if err = l.persist(); err != nil {
 				log.Errorf("Failed to persist audit log: %v", err)
@@ -135,27 +147,23 @@ func (l *persistentLogger) startPersistenceLoop(ctx context.Context, flushInterv
 }
 
 func (l *persistentLogger) persist() error {
-	// Allow only one persistence operation at a time.
-	// That way, if the ticker or the file size exceeds the limit, only one
-	// persistence operation will be triggered.
-	select {
-	case l.persistSemaphore <- struct{}{}:
-		defer func() { <-l.persistSemaphore }()
-	default:
-		return nil
-	}
-
 	l.lock.Lock()
-	defer l.lock.Unlock()
 	if len(l.buffer) == 0 {
+		l.lock.Unlock()
 		return nil
 	}
 
-	if err := l.store.Persist(l.buffer); err != nil {
+	buf := l.buffer
+	l.buffer = make([]byte, 0, l.bufferSize)
+	l.lock.Unlock()
+
+	if err := l.store.Persist(buf); err != nil {
+		l.lock.Lock()
+		l.buffer = append(buf, l.buffer...)
+		l.lock.Unlock()
 		return err
 	}
 
-	l.buffer = l.buffer[:0]
 	return nil
 }
 
