@@ -14,7 +14,8 @@
 
 	const projectTools = getProjectTools();
 	let { project, currentThreadID = $bindable(), thread }: Prop = $props();
-	let catalog = $state<HTMLDialogElement | undefined>();
+	let dialog = $state<HTMLDialogElement | undefined>();
+	let catalog = $state<ReturnType<typeof ToolCatalog> | undefined>();
 	let tools = $state<AssistantTool[]>([]);
 	let loading = $state(false);
 
@@ -57,7 +58,7 @@
 	}
 
 	async function handleClick() {
-		catalog?.showModal();
+		dialog?.showModal();
 		if (thread && !currentThreadID) {
 			loading = true;
 			const response = await createThread();
@@ -73,8 +74,11 @@
 </button>
 
 <dialog
-	bind:this={catalog}
-	use:clickOutside={() => catalog?.close()}
+	bind:this={dialog}
+	use:clickOutside={() => {
+		onNewTools(catalog?.getSelectedTools() ?? []);
+		dialog?.close();
+	}}
 	class="h-full max-h-[100vh] w-full max-w-[100vw] rounded-none md:h-fit md:w-[1200px] md:rounded-xl"
 >
 	{#if loading}
@@ -83,9 +87,10 @@
 		</div>
 	{:else}
 		<ToolCatalog
+			bind:this={catalog}
 			onSelectTools={onNewTools}
 			onSubmit={() => {
-				catalog?.close();
+				dialog?.close();
 			}}
 			maxTools={projectTools.maxTools}
 			title="Thread Tool Catalog"

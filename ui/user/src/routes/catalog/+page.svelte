@@ -1,26 +1,36 @@
 <script lang="ts">
-	import { darkMode } from '$lib/stores';
+	import { darkMode, errors } from '$lib/stores';
 	import Profile from '$lib/components/navbar/Profile.svelte';
-	import { type ProjectShare } from '$lib/services';
+	import { EditorService, type ProjectShare } from '$lib/services';
 	import { responsive } from '$lib/stores';
 	import Notifications from '$lib/components/Notifications.svelte';
 	import type { PageProps } from './$types';
 	import ObotCard from '$lib/components/ObotCard.svelte';
 	import { q, qIsSet } from '$lib/url';
-	import { ChevronLeft } from 'lucide-svelte';
+	import { ChevronLeft, Plus } from 'lucide-svelte';
 	import FeaturedObotCard from '$lib/components/FeaturedObotCard.svelte';
 	import { sortByFeaturedNameOrder } from '$lib/sort';
+	import { goto } from '$app/navigation';
 
 	let { data }: PageProps = $props();
 	let featured = $state<ProjectShare[]>(
 		data.shares.filter((s) => s.featured).sort(sortByFeaturedNameOrder)
 	);
 	let tools = $state(new Map(data.tools.map((t) => [t.id, t])));
+
+	async function createNew() {
+		try {
+			const project = await EditorService.createObot();
+			await goto(`/o/${project.id}`);
+		} catch (error) {
+			errors.append((error as Error).message);
+		}
+	}
 </script>
 
 <div class="flex h-full flex-col items-center">
 	<div class="flex h-16 w-full items-center p-4 md:p-5">
-		<a href="/home" class="relative flex items-end">
+		<div class="relative flex items-end">
 			{#if darkMode.isDark}
 				<img src="/user/images/obot-logo-blue-white-text.svg" class="h-12" alt="Obot logo" />
 			{:else}
@@ -33,7 +43,7 @@
 					BETA
 				</span>
 			</div>
-		</a>
+		</div>
 		<div class="grow"></div>
 		<div class="flex items-center gap-1">
 			{#if !responsive.isMobile}
@@ -70,25 +80,52 @@
 					href={from}
 					class="button-text flex w-fit items-center gap-1 pb-0 text-base font-semibold text-black md:text-lg dark:text-white"
 				>
-					<ChevronLeft class="size-5" />{from.includes('home') ? 'My Obots' : 'Go Back'}
+					<ChevronLeft class="size-5" /> Back To Chat
 				</a>
 			</div>
 		{/if}
-		{#if qIsSet('new')}
-			<div
-				class="flex w-full max-w-(--breakpoint-xl) flex-col items-center justify-center gap-2 px-4 py-4"
-			>
+		<div
+			class="flex w-full max-w-(--breakpoint-xl) flex-col items-center justify-center gap-2 px-4 py-4"
+		>
+			{#if qIsSet('new')}
 				<h2 class="text-3xl font-semibold md:text-4xl">Welcome To Obot</h2>
-				<p class="text-md mb-4 max-w-full text-center md:max-w-md">
-					Check out our featured obots below, or browse all obots to find the perfect one for you.
-					Or if you're feeling adventurous, get started and create your own obot!
-				</p>
-			</div>
-		{/if}
+			{:else}
+				<h2 class="text-3xl font-semibold md:text-4xl">Obot Catalog</h2>
+			{/if}
+			<p class="mb-4 max-w-full text-center text-base font-light md:max-w-md">
+				Check out our featured obots below, or browse all obots to find the perfect one for you. Or
+				if you're feeling adventurous, get started and create your own obot!
+			</p>
+		</div>
+		<div class="mb-8 flex w-full items-center justify-center px-4">
+			<button
+				class="bg-surface1 hover:bg-surface2 w-full rounded-xl p-4 shadow-md transition-colors duration-300 md:w-lg"
+				onclick={createNew}
+			>
+				<div class="flex w-full items-center gap-3">
+					<div class="relative flex-shrink-0">
+						<Plus
+							class="absolute top-1/2 left-1/2 z-10 size-12 -translate-x-1/2 -translate-y-1/2 text-white opacity-90 dark:opacity-75"
+						/>
+						<img
+							alt="obot create placeholder logo"
+							src="/agent/images/obot_placeholder.webp"
+							class="flex size-16 flex-shrink-0 rounded-full opacity-65 shadow-md shadow-gray-500 dark:shadow-black"
+						/>
+					</div>
+					<div class="flex -translate-y-1 flex-col gap-1 text-left">
+						<h4 class="text-lg font-semibold">Create New Obot</h4>
+						<p class="text-gray text-sm leading-4 font-light">
+							Create your Obot that fits your needs!
+						</p>
+					</div>
+				</div>
+			</button>
+		</div>
 		{#if featured.length > 0}
 			<div class="mb-4 flex w-full flex-col items-center justify-center">
 				<div class="flex w-full max-w-(--breakpoint-xl) flex-col gap-4 px-4 md:px-12">
-					<h3 class="mt-8 text-2xl font-semibold md:text-3xl">Featured</h3>
+					<h3 class="text-2xl font-semibold md:text-3xl">Featured</h3>
 					<div class="featured-card-layout gap-x-4 gap-y-6 sm:gap-y-8">
 						{#each featured.slice(0, 4) as featuredShare}
 							<FeaturedObotCard project={featuredShare} {tools} />
