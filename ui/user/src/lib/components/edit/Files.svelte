@@ -30,6 +30,7 @@
 		currentThreadID?: string;
 		primary?: boolean;
 		helperText?: string;
+		placeholder?: string;
 	}
 
 	let {
@@ -37,7 +38,8 @@
 		currentThreadID = $bindable(),
 		thread = false,
 		primary = true,
-		helperText = 'Files'
+		helperText = '',
+		placeholder = ''
 	}: Props = $props();
 
 	const knowledgeExtensions = [
@@ -150,7 +152,9 @@
 
 {#snippet body()}
 	{#if files.length === 0}
-		<p class="text-gray pt-6 pb-3 text-center text-sm font-light dark:text-gray-300">No files</p>
+		<p class="text-gray pt-6 pb-3 text-center text-sm font-light dark:text-gray-300">
+			{placeholder ? placeholder : 'No files'}
+		</p>
 	{:else}
 		<ul class="max-h-[60vh] space-y-4 overflow-y-auto py-6 ps-3 text-sm">
 			{#each files as file}
@@ -208,7 +212,7 @@
 	</div>
 {/snippet}
 
-<div use:tooltip={helperText}>
+{#snippet menuBody()}
 	{#if thread}
 		<Menu
 			{body}
@@ -230,15 +234,23 @@
 			{/snippet}
 		</Menu>
 	{:else}
-		<CollapsePane header="Files" onOpen={loadFiles}>
+		<CollapsePane header="Starter Files" onOpen={loadFiles}>
 			{@render body()}
 		</CollapsePane>
 	{/if}
-</div>
+{/snippet}
+
+{#if helperText}
+	<div use:tooltip={helperText}>
+		{@render menuBody()}
+	</div>
+{:else}
+	{@render menuBody()}
+{/if}
 
 <dialog bind:this={editorDialog} class="relative h-full w-full md:w-4/5">
 	<button
-		class="button-icon-primary absolute top-2 right-2"
+		class="button-icon-primary absolute top-2 right-2 z-10"
 		onclick={async () => {
 			await fileMonitor.save();
 			editorDialog?.close();
@@ -249,10 +261,10 @@
 	<div class="flex h-full flex-col p-5">
 		{#each items as item}
 			{#if item.selected}
-				<h2 class="ml-2 text-2xl font-semibold">{item.name}</h2>
+				<h2 class="ml-2 pr-12 text-2xl font-semibold break-words">{item.name}</h2>
 			{/if}
 		{/each}
-		<div class="overflow-y-auto rounded-lg">
+		<div class="h-full overflow-y-auto rounded-sm border-t-2">
 			<FileEditors {project} onFileChanged={fileMonitor.onFileChange} bind:items />
 		</div>
 	</div>
