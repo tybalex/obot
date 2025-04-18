@@ -45,8 +45,9 @@ type Schedule struct {
 }
 
 type TaskStep struct {
-	ID   string `json:"id,omitempty"`
-	Step string `json:"step,omitempty"`
+	ID   string   `json:"id,omitempty"`
+	Step string   `json:"step,omitempty"`
+	Loop []string `json:"loop,omitempty"`
 }
 
 type TaskRun struct {

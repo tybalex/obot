@@ -28,8 +28,9 @@ type EnvVar struct {
 }
 
 type Step struct {
-	ID   string `json:"id,omitempty"`
-	Step string `json:"step,omitempty"`
+	ID   string   `json:"id,omitempty"`
+	Step string   `json:"step,omitempty"`
+	Loop []string `json:"loop,omitempty"`
 }
 
 func (s Step) Display() string {
