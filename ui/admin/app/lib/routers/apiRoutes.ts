@@ -341,6 +341,25 @@ export const ApiRoutes = {
 		login: () => buildUrl("/bootstrap/login"),
 		logout: () => buildUrl("/bootstrap/logout"),
 	},
+	fileScannerProviders: {
+		base: () => buildUrl("/file-scanner-providers"),
+		getFileScannerProviders: () => buildUrl("/file-scanner-providers"),
+		getFileScannerProviderById: (fileScannerProviderKey: string) =>
+			buildUrl(`/file-scanner-providers/${fileScannerProviderKey}`),
+		validateFileScannerProviderById: (fileScannerProviderKey: string) =>
+			buildUrl(`/file-scanner-providers/${fileScannerProviderKey}/validate`),
+		configureFileScannerProviderById: (fileScannerProviderKey: string) =>
+			buildUrl(`/file-scanner-providers/${fileScannerProviderKey}/configure`),
+		revealFileScannerProviderById: (fileScannerProviderKey: string) =>
+			buildUrl(`/file-scanner-providers/${fileScannerProviderKey}/reveal`),
+		deconfigureFileScannerProviderById: (fileScannerProviderKey: string) =>
+			buildUrl(`/file-scanner-providers/${fileScannerProviderKey}/deconfigure`),
+	},
+	fileScannerConfig: {
+		base: () => buildUrl("/file-scanner-config"),
+		getFileScannerConfig: () => buildUrl("/file-scanner-config"),
+		updateFileScannerConfig: () => buildUrl("/file-scanner-config"),
+	},
 };
 
 /** revalidates the cache for all routes that match the filter callback
