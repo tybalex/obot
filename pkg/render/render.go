@@ -21,14 +21,18 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-const knowledgeToolName = "knowledge"
+const (
+	knowledgeToolName = "knowledge"
+	loopDataToolName  = "loop-data"
+)
 
 var DefaultAgentParams = []string{
 	"message", "Message to send",
 }
 
 type AgentOptions struct {
-	Thread *v1.Thread
+	Thread         *v1.Thread
+	WorkflowStepID string
 }
 
 func stringAppend(first string, second ...string) string {
@@ -120,6 +124,16 @@ func Agent(ctx context.Context, db kclient.Client, agent *v1.Agent, oauthServerU
 		})
 		if err != nil {
 			return nil, nil, err
+		}
+
+		if strings.HasSuffix(opts.WorkflowStepID, "{loopdata}") {
+			name, err := resolveToolReferenceWithMetadata(ctx, db, types.ToolReferenceTypeSystem, agent.Namespace, loopDataToolName)
+			if err != nil {
+				return nil, nil, err
+			}
+			if name != "" {
+				mainTool.Tools = append(mainTool.Tools, name)
+			}
 		}
 
 		for _, t := range toolNames {
