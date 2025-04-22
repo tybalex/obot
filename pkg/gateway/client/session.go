@@ -80,7 +80,15 @@ func (c *Client) deleteSessionsForUser(ctx context.Context, db *gorm.DB, storage
 	return errors.Join(errs...)
 }
 
+func (c *Client) tableExists(db *gorm.DB, tableName string) bool {
+	return db.Migrator().HasTable(tableName)
+}
+
 func (c *Client) deleteAllSessionsForUser(db *gorm.DB, emailHash, userHash, tablePrefix string) error {
+	if !c.tableExists(db, tablePrefix+"sessions") {
+		return nil
+	}
+
 	return db.Exec(
 		"DELETE FROM "+tablePrefix+"sessions WHERE \"user\" = decode(?, 'hex') AND \"email\" = decode(?, 'hex')",
 		userHash,
@@ -89,6 +97,10 @@ func (c *Client) deleteAllSessionsForUser(db *gorm.DB, emailHash, userHash, tabl
 }
 
 func (c *Client) deleteSessionsForUserExceptCurrent(db *gorm.DB, emailHash, userHash, tablePrefix, currentSessionID string) error {
+	if !c.tableExists(db, tablePrefix+"sessions") {
+		return nil
+	}
+
 	return db.Exec(
 		"DELETE FROM "+tablePrefix+"sessions WHERE key NOT LIKE ? AND \"user\" = decode(?, 'hex') AND \"email\" = decode(?, 'hex')",
 		currentSessionID+"%",
