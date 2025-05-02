@@ -241,7 +241,7 @@ export interface ToolReference {
 	type: string;
 	metadata?: {
 		icon?: string;
-		oath: string;
+		oauth?: string;
 		category?: string;
 	};
 }

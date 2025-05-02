@@ -9,7 +9,8 @@
 	import { initLayout } from '$lib/context/layout.svelte';
 	import Obot from '$lib/components/Obot.svelte';
 	import { browser } from '$app/environment';
-	import { initProjectTools } from '$lib/context/projectTools.svelte';
+	import { initProjectTools, getProjectTools } from '$lib/context/projectTools.svelte';
+	import { initHelperMode } from '$lib/context/helperMode.svelte';
 
 	let { data }: PageProps = $props();
 	let showWarning = $state(false);
@@ -30,27 +31,33 @@
 		maxTools: 5
 	});
 
+	initHelperMode();
+
+	const projectTools = getProjectTools();
+
 	async function loadProject() {
 		if (!project) return;
 		assistant = await ChatService.getAssistant(project.assistantID);
 		localStorage.setItem('lastVisitedObot', project.id);
 		const tools = await ChatService.listTools(project.assistantID, project.id);
 
-		initProjectTools({
-			tools: tools.items,
-			maxTools: assistant?.maxTools ?? 5
-		});
+		projectTools.tools = tools.items;
+		projectTools.maxTools = assistant?.maxTools ?? 5;
 	}
 
 	onMount(async () => {
 		if (profile.current.unauthorized) {
 			// Redirect to the main page to log in.
 			window.location.href = `/?rd=${window.location.pathname}`;
-		} else if (!data.projectID) {
-			showWarning = true;
-		} else {
-			project = await ChatService.getProject(data.projectID);
-			loadProject();
+		} else if (data.projectID) {
+			// If the user received projectID containing the params.id / shareID,
+			// they're receiving their obot instance project ID
+			if (data.projectID.split('-').includes(data.id) || data.isOwner) {
+				project = await ChatService.getProject(data.projectID);
+				loadProject();
+			} else {
+				showWarning = true;
+			}
 		}
 	});
 
@@ -97,7 +104,7 @@
 				</div>
 
 				<button class="button-primary mt-2 w-full" onclick={createProject}>I Understand</button>
-				<button class="button w-full" onclick={() => goto('/catalog')}>Go Back</button>
+				<button class="button w-full" onclick={() => goto('/agents')}>Go Back</button>
 			</div>
 		</div>
 	{:else if project}

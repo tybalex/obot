@@ -2,16 +2,15 @@
 	import Profile from '$lib/components/navbar/Profile.svelte';
 	import { fade } from 'svelte/transition';
 	import type { Snippet } from 'svelte';
-	import { darkMode, responsive } from '$lib/stores';
+	import { darkMode } from '$lib/stores';
 	import { Home } from 'lucide-svelte';
 
 	interface Props {
 		leftContent?: Snippet;
 		centerContent?: Snippet;
-		hideSocial?: boolean;
 	}
 
-	let { leftContent, centerContent, hideSocial }: Props = $props();
+	let { leftContent, centerContent }: Props = $props();
 </script>
 
 <nav class="flex h-16 w-full items-center bg-white px-3 dark:bg-black" in:fade|global>
@@ -43,27 +42,6 @@
 			<a class="nav-link" href="/agents" id="navbar-home-link">
 				<Home class="size-6" />
 			</a>
-			{#if !responsive.isMobile && !hideSocial}
-				<a href="https://discord.gg/9sSf4UyAMC" rel="external" target="_blank" class="nav-link">
-					{#if darkMode.isDark}
-						<img src="/user/images/discord-mark/discord-mark-white.svg" alt="Discord" class="h-6" />
-					{:else}
-						<img src="/user/images/discord-mark/discord-mark.svg" alt="Discord" class="h-6" />
-					{/if}
-				</a>
-				<a
-					href="https://github.com/obot-platform/obot"
-					rel="external"
-					target="_blank"
-					class="nav-link"
-				>
-					{#if darkMode.isDark}
-						<img src="/user/images/github-mark/github-mark-white.svg" alt="GitHub" class="h-6" />
-					{:else}
-						<img src="/user/images/github-mark/github-mark.svg" alt="GitHub" class="h-6" />
-					{/if}
-				</a>
-			{/if}
 			<Profile />
 		</div>
 	</div>

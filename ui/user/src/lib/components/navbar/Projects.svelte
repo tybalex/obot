@@ -88,7 +88,7 @@
 	<div
 		use:buttonPopover={{ disablePortal: true }}
 		class={twMerge(
-			'border-surface3 dark:bg-surface1 flex grow flex-col overflow-hidden rounded-md border bg-white',
+			'border-surface3 dark:bg-surface1 flex w-full min-w-xs flex-col overflow-hidden rounded-md border bg-white',
 			classes?.tooltip
 		)}
 		role="none"
@@ -168,7 +168,7 @@
 			if (toDelete.id === project.id && projects.length > 0) {
 				await goto(`/o/${projects[0].id}`);
 			} else if (projects.length === 0) {
-				await goto('/catalog');
+				await goto('/agents');
 			}
 			toDelete = undefined;
 		}

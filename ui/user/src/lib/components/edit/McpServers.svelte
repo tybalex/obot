@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { getProjectMCPs } from '$lib/context/projectMcps.svelte';
 	import { ChatService, type MCP, type Project, type ProjectMCP } from '$lib/services';
-	import { Trash2 } from 'lucide-svelte/icons';
+	import { Plus, Trash2 } from 'lucide-svelte/icons';
 	import McpConfig from '$lib/components/mcp/McpConfig.svelte';
 	import Confirm from '$lib/components/Confirm.svelte';
 	import McpCatalog from '$lib/components/mcp/McpCatalog.svelte';
 	import { onMount } from 'svelte';
 	import CollapsePane from '$lib/components/edit/CollapsePane.svelte';
+	import { getProjectTools } from '$lib/context/projectTools.svelte';
+	import { HELPER_TEXTS } from '$lib/context/helperMode.svelte';
 
 	interface Props {
 		project: Project;
@@ -16,9 +18,11 @@
 	let mcpToShow = $state<ProjectMCP>();
 	let toDelete = $state<ProjectMCP>();
 	let mcpConfigDialog = $state<ReturnType<typeof McpConfig>>();
+	let mcpCatalog = $state<ReturnType<typeof McpCatalog>>();
 	let mcps = $state<MCP[]>([]);
 	const projectMCPs = getProjectMCPs();
-	const selectedMcpIds = $derived(new Set(projectMCPs.items.map((mcp) => mcp.catalogID)));
+	const projectTools = getProjectTools();
+	const selectedMcpIds = $derived(projectMCPs.items.map((mcp) => mcp.catalogID));
 
 	$effect(() => {
 		if (mcpToShow) {
@@ -34,22 +38,58 @@
 		});
 	});
 
-	async function handleMcpSubmit(mcp: MCP) {
-		const projectMcp = await ChatService.configureProjectMCP(
-			project.assistantID,
-			project.id,
-			mcp.id
-		);
-		projectMCPs.items = [...projectMCPs.items, projectMcp];
+	async function handleMcpsSubmit(mcpIds: string[]) {
+		let newProjectMcps: ProjectMCP[] = [];
+
+		const updatingTools = [...projectTools.tools];
+		for (const mcpId of mcpIds) {
+			const projectMcp = await ChatService.configureProjectMCP(
+				project.assistantID,
+				project.id,
+				mcpId
+			);
+			newProjectMcps.push(projectMcp);
+
+			const matchingIndex = updatingTools.findIndex((tool) => tool.id === mcpId);
+			if (matchingIndex !== -1) {
+				updatingTools[matchingIndex].enabled = true;
+			}
+		}
+
+		projectTools.tools = updatingTools;
+		await ChatService.updateProjectTools(project.assistantID, project.id, {
+			items: updatingTools
+		});
+
+		projectMCPs.items = [...projectMCPs.items, ...newProjectMcps];
+	}
+
+	async function handleRemoveMcp() {
+		if (!project?.assistantID || !project.id || !toDelete) return;
+
+		const updatingTools = [...projectTools.tools];
+		const matchingIndex = updatingTools.findIndex((tool) => tool.id === toDelete?.catalogID);
+		if (matchingIndex !== -1) {
+			updatingTools[matchingIndex].enabled = false;
+
+			projectTools.tools = updatingTools;
+			await ChatService.updateProjectTools(project.assistantID, project.id, {
+				items: updatingTools
+			});
+		}
+
+		await ChatService.deleteProjectMCP(project.assistantID, project.id, toDelete.id);
+		projectMCPs.items = projectMCPs.items.filter((mcp) => mcp.id !== toDelete?.id);
+		toDelete = undefined;
 	}
 </script>
 
-<CollapsePane classes={{ header: 'pl-3 py-2', content: 'p-2' }} iconSize={5}>
-	{#snippet header()}
-		<span class="flex grow items-center gap-2 text-start text-sm font-extralight">
-			MCP Servers
-		</span>
-	{/snippet}
+<CollapsePane
+	classes={{ header: 'pl-3 py-2', content: 'p-2' }}
+	iconSize={5}
+	header="MCP Servers"
+	helpText={HELPER_TEXTS.mcpServers}
+>
 	<div class="flex flex-col gap-2">
 		{#if projectMCPs.items.length > 0}
 			<div class="flex flex-col">
@@ -80,10 +120,14 @@
 			</div>
 		{/if}
 		<div class="flex justify-end">
+			<button class="button flex items-center gap-1 text-xs" onclick={() => mcpCatalog?.open()}>
+				<Plus class="size-4" /> Add MCP Server
+			</button>
 			<McpCatalog
+				bind:this={mcpCatalog}
 				{mcps}
-				submitText="Add Server To Agent"
-				onSubmitMcp={handleMcpSubmit}
+				onSubmitMcps={handleMcpsSubmit}
+				subtitle="Extend your agent's capabilities by adding multiple MCP servers from our evergrowing catalog."
 				{selectedMcpIds}
 			/>
 		</div>
@@ -97,12 +141,6 @@
 <Confirm
 	msg={`Are you sure you want to delete MCP server: ${toDelete?.name}?`}
 	show={!!toDelete}
-	onsuccess={async () => {
-		if (!project?.assistantID || !project.id || !toDelete) return;
-		await ChatService.deleteProjectMCP(project.assistantID, project.id, toDelete.id);
-
-		projectMCPs.items = projectMCPs.items.filter((mcp) => mcp.id !== toDelete?.id);
-		toDelete = undefined;
-	}}
+	onsuccess={handleRemoveMcp}
 	oncancel={() => (toDelete = undefined)}
 />

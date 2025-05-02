@@ -2,7 +2,7 @@
 	import { clickOutside } from '$lib/actions/clickoutside';
 	import type { MCP, ProjectMCP } from '$lib/services';
 	import { responsive } from '$lib/stores';
-	import { ChevronRight, ChevronsRight, CircleCheckBig, X } from 'lucide-svelte';
+	import { ChevronRight, ChevronsRight, X } from 'lucide-svelte';
 
 	interface Props {
 		mcp: MCP | ProjectMCP;
@@ -12,7 +12,8 @@
 		onSubmit?: (values?: Record<string, string>) => void;
 		readonly?: boolean;
 		selected?: boolean;
-		submitText?: string;
+		selectText?: string;
+		cancelText?: string;
 	}
 	let {
 		mcp,
@@ -21,7 +22,8 @@
 		hideSubmitButton,
 		onSubmit,
 		selected,
-		submitText,
+		selectText,
+		cancelText,
 		readonly
 	}: Props = $props();
 	let dialog: HTMLDialogElement | undefined = $state();
@@ -89,16 +91,19 @@
 				{/if}
 			</div>
 			{#if selected}
-				<div class="mt-8 flex items-center gap-2 self-end">
-					<p class="text-md text-gray-500">Server already added!</p>
-					<CircleCheckBig class="size-5 text-blue-500" />
-				</div>
+				<button
+					onclick={handleSubmit}
+					class="button-secondary mt-8 flex w-full items-center justify-center gap-1 self-end md:w-fit"
+				>
+					{cancelText ?? 'Deselect Server'}
+					<ChevronsRight class="size-4" />
+				</button>
 			{:else if !hideSubmitButton}
 				<button
 					onclick={handleSubmit}
 					class="button-primary mt-8 flex w-full items-center justify-center gap-1 self-end md:w-fit"
 				>
-					{submitText ?? 'Create agent with server'}
+					{selectText ?? 'Select Server'}
 					<ChevronsRight class="size-4" />
 				</button>
 			{/if}

@@ -170,7 +170,7 @@
 
 		<p class="text-xs text-gray-500">
 			Enable this to trigger tasks from Slack messages that mention the slack bot you configured
-			with Obot.
+			with your agent.
 		</p>
 	</div>
 {:else}
@@ -194,7 +194,8 @@
 						open={showSteps}
 						classes={{
 							header: 'font-semibold px-0',
-							content: 'bg-transparent px-0 shadow-none'
+							content: 'bg-transparent px-0 shadow-none',
+							headerText: 'text-base font-normal'
 						}}
 					>
 						{@render steps()}
