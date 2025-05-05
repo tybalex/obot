@@ -1,16 +1,21 @@
 package toolreference
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 	"sync"
 	"time"
+	"unicode"
 
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/obot-platform/nah/pkg/apply"
@@ -58,6 +63,7 @@ type Handler struct {
 	dispatcher     *dispatcher.Dispatcher
 	supportDocker  bool
 	registryURLs   []string
+	mcpCatalogs    []string
 	lastChecksLock *sync.RWMutex
 	lastChecks     map[string]time.Time
 }
@@ -66,11 +72,13 @@ func New(gptClient *gptscript.GPTScript,
 	dispatcher *dispatcher.Dispatcher,
 	registryURLs []string,
 	supportDocker bool,
+	mcpCatalogs []string,
 ) *Handler {
 	return &Handler{
 		gptClient:      gptClient,
 		dispatcher:     dispatcher,
 		registryURLs:   registryURLs,
+		mcpCatalogs:    mcpCatalogs,
 		supportDocker:  supportDocker,
 		lastChecks:     make(map[string]time.Time),
 		lastChecksLock: new(sync.RWMutex),
@@ -122,18 +130,21 @@ func (h *Handler) mcpServers(ctx context.Context, registryURL string, entries ma
 				log.Errorf("Failed to decode manifest for %s: %v", filename, err)
 				continue
 			}
-
-			result = append(result, &v1.MCPServerCatalogEntry{
+			catalogEntry := &v1.MCPServerCatalogEntry{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      strings.TrimSuffix(filename, ".yaml"),
 					Namespace: system.DefaultNamespace,
 				},
-				Spec: v1.MCPServerCatalogEntrySpec{
-					Manifest: types.MCPServerCatalogEntryManifest{
-						Server: manifest,
-					},
-				},
-			})
+			}
+
+			if manifest.Command != "" {
+				catalogEntry.Spec.CommandManifest.Server = manifest
+			} else if manifest.URL != "" {
+				catalogEntry.Spec.URLManifest.Server = manifest
+			} else {
+				continue
+			}
+			result = append(result, catalogEntry)
 		}
 	}
 
@@ -210,7 +221,7 @@ func (h *Handler) readFromRegistry(ctx context.Context, c client.Client) error {
 		return errors.Join(errs...)
 	}
 
-	if len(toAdd) < 1 {
+	if len(toAdd) == 0 {
 		// Don't accidentally delete all the tool references
 		return nil
 	}
@@ -218,8 +229,203 @@ func (h *Handler) readFromRegistry(ctx context.Context, c client.Client) error {
 	return apply.New(c).WithOwnerSubContext("toolreferences").Apply(ctx, nil, toAdd...)
 }
 
-func (h *Handler) PollRegistries(ctx context.Context, c client.Client) {
-	if len(h.registryURLs) < 1 {
+func (h *Handler) readMCPCatalog(catalog string) ([]client.Object, error) {
+	var (
+		contents []byte
+		err      error
+	)
+	if strings.HasPrefix(catalog, "http://") || strings.HasPrefix(catalog, "https://") {
+		var resp *http.Response
+		resp, err = http.Get(catalog)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read catalog %s: %w", catalog, err)
+		}
+		defer resp.Body.Close()
+
+		contents, err = io.ReadAll(resp.Body)
+		if resp.StatusCode != http.StatusOK {
+			return nil, fmt.Errorf("unexpected status when reading catalog %s: %s", catalog, string(contents))
+		}
+	} else {
+		// Assume it is a local file.
+		contents, err = os.ReadFile(catalog)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to read catalog %s: %w", catalog, err)
+	}
+
+	var entries []catalogEntryInfo
+	if err = json.Unmarshal(contents, &entries); err != nil {
+		return nil, fmt.Errorf("failed to decode catalog %s: %w", catalog, err)
+	}
+
+	objs := make([]client.Object, 0, len(entries))
+
+	for _, entry := range entries {
+		entry.FullName = string(slices.DeleteFunc(bytes.ToLower([]byte(entry.FullName)), func(r byte) bool {
+			return r != '/' && !unicode.IsLetter(rune(r)) && !unicode.IsNumber(rune(r))
+		}))
+
+		var m map[string]string
+		// Best effort to parse metadata
+		_ = json.Unmarshal([]byte(entry.Metadata), &m)
+
+		catalogEntry := v1.MCPServerCatalogEntry{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name.SafeHashConcatName(strings.Split(entry.FullName, "/")...),
+				Namespace: system.DefaultNamespace,
+			},
+		}
+
+		var manifests []mcpServerConfig
+		if err = json.Unmarshal([]byte(entry.Manifest), &manifests); err != nil {
+			// It wasn't an array, see if it is a single object
+			var manifest mcpServerManifest
+			if err = json.Unmarshal([]byte(entry.Manifest), &manifest); err != nil {
+				return nil, fmt.Errorf("failed to decode manifest for %s: %w", entry.DisplayName, err)
+			}
+			manifests = append(manifests, manifest.Configs...)
+		}
+
+		var preferredFound, addEntry bool
+		for _, c := range manifests {
+			if c.Command != "" {
+				if preferredFound {
+					continue
+				}
+				switch c.Command {
+				case "docker", "npx", "uvx":
+				default:
+					log.Debugf("Ignoring MCP catalog entry %s: unsupported command %s", entry.DisplayName, c.Command)
+					continue
+				}
+
+				preferredFound = c.Preferred
+				if !preferredFound && !isCommandPreferred(catalogEntry.Spec.CommandManifest.Server.Command, c.Command) {
+					continue
+				}
+
+				addEntry = true
+				catalogEntry.Spec.CommandManifest = types.MCPServerCatalogEntryManifest{
+					URL:         entry.URL,
+					GitHubStars: entry.Stars,
+					Metadata:    m,
+					Server: types.MCPServerManifest{
+						Name:        entry.DisplayName,
+						Description: entry.Description,
+						Icon:        entry.Icon,
+						Env:         c.Env,
+						Command:     c.Command,
+						Args:        c.Args,
+						URL:         c.URL,
+						Headers:     c.HTTPHeaders,
+					},
+				}
+			} else if c.URL != "" {
+				addEntry = true
+				catalogEntry.Spec.URLManifest = types.MCPServerCatalogEntryManifest{
+					URL:         entry.URL,
+					GitHubStars: entry.Stars,
+					Metadata:    m,
+					Server: types.MCPServerManifest{
+						Name:        entry.DisplayName,
+						Description: entry.Description,
+						Icon:        entry.Icon,
+						URL:         c.URL,
+						Headers:     c.HTTPHeaders,
+					},
+				}
+			}
+		}
+
+		if addEntry {
+			objs = append(objs, &catalogEntry)
+		}
+	}
+
+	return objs, nil
+}
+
+func (h *Handler) readFromMCPCatalogs(ctx context.Context, c client.Client) error {
+	var (
+		toAdd []client.Object
+		errs  []error
+	)
+	for _, catalog := range h.mcpCatalogs {
+		entries, err := h.readMCPCatalog(catalog)
+		if err != nil {
+			errs = append(errs, fmt.Errorf("failed to read MCP catalog %s: %w", catalog, err))
+			continue
+		}
+
+		toAdd = append(toAdd, entries...)
+	}
+
+	if len(errs) > 0 {
+		// Don't accidentally delete tool entries for catalogs that failed to be read.
+		return errors.Join(errs...)
+	}
+
+	if len(toAdd) == 0 {
+		// Don't accidentally delete all the catalog entries
+		return nil
+	}
+
+	return apply.New(c).WithOwnerSubContext("mcpcatalogentries").Apply(ctx, nil, toAdd...)
+}
+
+func isCommandPreferred(existing, newer string) bool {
+	if existing == "" {
+		return true
+	}
+	if newer == "" || existing == "npx" {
+		return false
+	}
+
+	if existing == "uvx" {
+		return newer == "npx"
+	}
+
+	// This would mean that existing is docker and newer is either npx or uvx.
+	return true
+}
+
+type catalogEntryInfo struct {
+	ID              int    `json:"id"`
+	Path            string `json:"path"`
+	DisplayName     string `json:"displayName"`
+	FullName        string `json:"fullName"`
+	URL             string `json:"url"`
+	Description     string `json:"description"`
+	Stars           int    `json:"stars"`
+	ReadmeContent   string `json:"readmeContent"`
+	Language        string `json:"language"`
+	Metadata        string `json:"metadata"`
+	License         string `json:"license"`
+	Icon            string `json:"icon"`
+	Manifest        string `json:"manifest"`
+	ToolDefinitions string `json:"toolDefinitions"`
+}
+
+type mcpServerManifest struct {
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	Category    string            `json:"category"`
+	Configs     []mcpServerConfig `json:"configs"`
+}
+
+type mcpServerConfig struct {
+	Env            []types.MCPEnv    `json:"env"`
+	Command        string            `json:"command,omitempty"`
+	Args           []string          `json:"args,omitempty"`
+	HTTPHeaders    []types.MCPHeader `json:"httpHeaders,omitempty"`
+	URL            string            `json:"url,omitempty"`
+	URLDescription string            `json:"urlDescription,omitempty"`
+	Preferred      bool              `json:"preferred,omitempty"`
+}
+
+func (h *Handler) PollRegistriesAndCatalogs(ctx context.Context, c client.Client) {
+	if len(h.registryURLs) == 0 && len(h.mcpCatalogs) == 0 {
 		return
 	}
 
@@ -228,6 +434,9 @@ func (h *Handler) PollRegistries(ctx context.Context, c client.Client) {
 	for {
 		if err := h.readFromRegistry(ctx, c); err != nil {
 			log.Errorf("Failed to read from registries: %v", err)
+		}
+		if err := h.readFromMCPCatalogs(ctx, c); err != nil {
+			log.Errorf("Failed to read from MCP catalogs: %v", err)
 		}
 
 		select {
@@ -341,11 +550,11 @@ func (h *Handler) createMCPServerCatalog(req router.Request, toolRef *v1.ToolRef
 	if err := req.Client.Get(req.Ctx, router.Key(system.DefaultNamespace, toolRef.Name), &mcpCatalogEntry); client.IgnoreNotFound(err) != nil {
 		return err
 	} else if err == nil {
-		if equality.Semantic.DeepEqual(mcpCatalogEntry.Spec.Manifest.Server, serverManifest) &&
+		if equality.Semantic.DeepEqual(mcpCatalogEntry.Spec.CommandManifest.Server, serverManifest) &&
 			mcpCatalogEntry.Spec.ToolReferenceName == toolRef.Name {
 			return nil
 		}
-		mcpCatalogEntry.Spec.Manifest.Server = serverManifest
+		mcpCatalogEntry.Spec.CommandManifest.Server = serverManifest
 		mcpCatalogEntry.Spec.ToolReferenceName = toolRef.Name
 		return req.Client.Update(req.Ctx, &mcpCatalogEntry)
 	}
@@ -356,7 +565,7 @@ func (h *Handler) createMCPServerCatalog(req router.Request, toolRef *v1.ToolRef
 			Namespace: system.DefaultNamespace,
 		},
 		Spec: v1.MCPServerCatalogEntrySpec{
-			Manifest: types.MCPServerCatalogEntryManifest{
+			CommandManifest: types.MCPServerCatalogEntryManifest{
 				Server: serverManifest,
 			},
 			ToolReferenceName: toolRef.Name,

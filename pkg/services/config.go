@@ -14,7 +14,10 @@ import (
 	"github.com/adrg/xdg"
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/gptscript-ai/gptscript/pkg/cache"
+	"github.com/gptscript-ai/gptscript/pkg/engine"
 	gptscriptai "github.com/gptscript-ai/gptscript/pkg/gptscript"
+	"github.com/gptscript-ai/gptscript/pkg/loader"
+	gmcp "github.com/gptscript-ai/gptscript/pkg/mcp"
 	"github.com/gptscript-ai/gptscript/pkg/runner"
 	"github.com/gptscript-ai/gptscript/pkg/sdkserver"
 	"github.com/obot-platform/nah"
@@ -88,6 +91,7 @@ type Config struct {
 	AgentsDir                  string   `usage:"The directory to auto load agents on start (default $XDG_CONFIG_HOME/.obot/agents)"`
 	StaticDir                  string   `usage:"The directory to serve static files from"`
 	RetentionPolicyHours       int      `usage:"The retention policy for the system. Set to 0 to disable retention." default:"2160"` // default 90 days
+	MCPCatalogs                []string `usage:"Load MCP catalogs, these can be files or URLs" split:"true"`
 	// Sendgrid webhook
 	SendgridWebhookUsername string `usage:"The username for the sendgrid webhook to authenticate with"`
 	SendgridWebhookPassword string `usage:"The password for the sendgrid webhook to authenticate with"`
@@ -133,6 +137,12 @@ type Services struct {
 	// Use basic auth for sendgrid webhook, if being set
 	SendgridWebhookUsername string
 	SendgridWebhookPassword string
+
+	MCPCatalog []string
+	// Used for loading and running MCP servers with GPTScript.
+	// These are just the defaults now, but could change in the future based on needs
+	MCPLoader loader.MCPLoader
+	MCPRunner engine.MCPRunner
 }
 
 const (
@@ -180,6 +190,8 @@ func newGPTScript(ctx context.Context,
 	envPassThrough []string,
 	credStore string,
 	credStoreEnv []string,
+	mcpLoader loader.MCPLoader,
+	mcpRunner engine.MCPRunner,
 ) (*gptscript.GPTScript, error) {
 	if os.Getenv("GPTSCRIPT_URL") != "" {
 		return gptscript.NewGPTScript(gptscript.GlobalOptions{
@@ -204,6 +216,7 @@ func newGPTScript(ctx context.Context,
 			},
 			Runner: runner.Options{
 				CredentialOverrides: credOverrides,
+				MCPRunner:           mcpRunner,
 			},
 			SystemToolsDir:     os.Getenv("GPTSCRIPT_SYSTEM_TOOLS_DIR"),
 			CredentialStore:    credStore,
@@ -211,6 +224,7 @@ func newGPTScript(ctx context.Context,
 		},
 		DatasetTool:   datasetTool,
 		WorkspaceTool: workspaceTool,
+		MCPLoader:     mcpLoader,
 	})
 	if err != nil {
 		return nil, err
@@ -304,7 +318,10 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		config.UIHostname = "https://" + config.UIHostname
 	}
 
-	gptscriptClient, err := newGPTScript(ctx, config.EnvKeys, credStore, credStoreEnv)
+	mcpLoader := gmcp.DefaultLoader
+	mcpRunner := gmcp.DefaultRunner
+
+	gptscriptClient, err := newGPTScript(ctx, config.EnvKeys, credStore, credStoreEnv, mcpLoader, mcpRunner)
 	if err != nil {
 		return nil, err
 	}
@@ -516,6 +533,9 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		AuditLogger:                auditLogger,
 		PostgresDSN:                postgresDSN,
 		RetentionPolicy:            retentionPolicy,
+		MCPCatalog:                 config.MCPCatalogs,
+		MCPLoader:                  mcpLoader,
+		MCPRunner:                  mcpRunner,
 	}, nil
 }
 
