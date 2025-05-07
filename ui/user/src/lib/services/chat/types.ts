@@ -252,14 +252,13 @@ export interface ToolReferenceList {
 	items: ToolReference[];
 }
 
-export interface MCPList {
-	items: MCP[];
-}
-
-export interface MCPServer {
+export interface MCPSubField {
 	description: string;
-	icon: string;
+	file: boolean;
+	key: string;
 	name: string;
+	required: boolean;
+	sensitive: boolean;
 }
 
 export interface MCP {
@@ -269,23 +268,35 @@ export interface MCP {
 	urlManifest?: MCPManifest;
 }
 
+export interface MCPList {
+	items: MCP[];
+}
+
+export interface MCPServer {
+	description: string;
+	icon: string;
+	name: string;
+	args?: string[];
+	env?: MCPSubField[];
+	command?: string;
+	url?: string;
+	headers?: MCPSubField[];
+}
+
 export interface MCPManifest {
 	server: MCPServer;
 	githubStars: number;
 	metadata: Record<string, string>;
+	url?: string;
 }
 
 export interface ProjectMCPList {
 	items: ProjectMCP[];
 }
 
-export interface ProjectMCP {
+export interface ProjectMCP extends MCPServer {
 	id: string;
-	created: string;
-	catalogID: string;
-	description: string;
-	icon: string;
-	name: string;
+	catalogID?: string;
 }
 
 export interface Credential {

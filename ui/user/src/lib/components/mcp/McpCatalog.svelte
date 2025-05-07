@@ -2,64 +2,128 @@
 	import { clickOutside } from '$lib/actions/clickoutside';
 	import { tooltip } from '$lib/actions/tooltip.svelte';
 	import { responsive } from '$lib/stores';
-	import { ChevronLeft, ChevronRight, ChevronsRight, X } from 'lucide-svelte';
+	import { ChevronLeft, ChevronRight, X } from 'lucide-svelte';
 	import McpCard from '$lib/components/mcp/McpCard.svelte';
 	import Search from '$lib/components/Search.svelte';
-	import { type MCP } from '$lib/services';
+	import { type MCP, type MCPManifest } from '$lib/services';
 	import { twMerge } from 'tailwind-merge';
+	import McpInfoConfig from '$lib/components/mcp/McpInfoConfig.svelte';
+	import type { MCPServerInfo } from '$lib/services/chat/mcp';
+
+	const BROWSE_ALL_CATEGORY = 'Browse All';
 
 	interface Props {
 		inline?: boolean;
 		mcps: MCP[];
-		onSubmitMcp?: (mcpId: string) => void;
-		onSubmitMcps?: (mcpIds: string[]) => void;
-		selectText?: string;
+		onSetupMcp?: (mcpId: string, serverInfo: MCPServerInfo) => void;
 		submitText?: string;
-		cancelText?: string;
 		selectedMcpIds?: string[];
 		subtitle?: string;
 	}
 
+	type TransformedMcp = {
+		id: string;
+		catalogId: string;
+		categories: string[];
+		manifest: MCPManifest;
+		githubStars: number;
+		name: string;
+	};
+
 	let {
 		inline = false,
-		mcps,
-		onSubmitMcp,
-		onSubmitMcps,
-		selectText,
+		mcps: refMcps,
+		onSetupMcp,
 		submitText,
-		cancelText,
 		selectedMcpIds,
 		subtitle
 	}: Props = $props();
 	let dialog: HTMLDialogElement | undefined = $state();
+	let configDialog = $state<ReturnType<typeof McpInfoConfig>>();
+	let selectedMcpManifest = $state<MCPManifest>();
 
 	const ITEMS_PER_PAGE = 36;
 	let currentPage = $state(1);
-	const totalPages = $derived(Math.ceil(mcps.length / ITEMS_PER_PAGE));
-	const paginatedMcps = $derived(
-		mcps.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
-	);
+
+	function transformMcp(
+		mcp: MCP,
+		manifestType: 'command' | 'url',
+		manifest: MCPManifest
+	): TransformedMcp {
+		return {
+			id: `${mcp.id}-${manifestType}`,
+			catalogId: mcp.id,
+			categories: manifest.metadata?.categories?.split(',').map((cat) => cat.trim()) || [],
+			manifest,
+			githubStars: Number(manifest.githubStars) || 0,
+			name: manifest.server?.name ?? ''
+		};
+	}
 
 	let search = $state('');
-	let selectedCategory = $state('Popular');
+	let selectedCategory = $state(BROWSE_ALL_CATEGORY);
+	let selectedMcp = $state<TransformedMcp>();
 
-	const searchResults = $derived(
-		mcps.filter((mcp) =>
-			mcp.commandManifest?.server.name.toLowerCase().includes(search.toLowerCase())
-		)
+	let transformedMcps: TransformedMcp[] = $derived(
+		refMcps
+			.flatMap((mcp) => {
+				const { commandManifest, urlManifest } = mcp;
+				const results: TransformedMcp[] = [];
+
+				if (commandManifest) {
+					results.push(transformMcp(mcp, 'command', commandManifest));
+				}
+				if (urlManifest) {
+					results.push(transformMcp(mcp, 'url', urlManifest));
+				}
+				return results;
+			})
+			.sort((a, b) => b.githubStars - a.githubStars)
+	);
+
+	let filteredMcps: TransformedMcp[] = $derived(
+		selectedCategory === BROWSE_ALL_CATEGORY && !search
+			? transformedMcps
+			: transformedMcps.filter((mcp) => {
+					const searchLower = search.toLowerCase();
+					const isBrowseAll = selectedCategory === BROWSE_ALL_CATEGORY;
+
+					if (!isBrowseAll && !mcp.categories?.includes(selectedCategory)) {
+						return false;
+					}
+					return !search || mcp.name.toLowerCase().includes(searchLower);
+				})
+	);
+
+	const totalPages = $derived(Math.ceil(filteredMcps.length / ITEMS_PER_PAGE));
+
+	let paginatedMcps: TransformedMcp[] = $derived(
+		filteredMcps.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
 	);
 
 	let selected = $state<string[]>([]);
 	const preselected = $derived(new Set(selectedMcpIds ?? []));
 
+	const categories = $derived(
+		Array.from(
+			new Set(
+				transformedMcps.reduce<string[]>(
+					(acc, mcp) => {
+						if (mcp.categories?.length) {
+							acc.push(...mcp.categories);
+						}
+						return acc;
+					},
+					[BROWSE_ALL_CATEGORY]
+				)
+			)
+		)
+	);
+
 	let browseAllTitleElement: HTMLDivElement | undefined = $state<HTMLDivElement>();
 
 	export function open() {
 		dialog?.showModal();
-	}
-
-	export function getSelectedCount() {
-		return selected.length;
 	}
 
 	function nextPage() {
@@ -73,23 +137,6 @@
 			currentPage--;
 		}
 	}
-
-	const categories = [
-		'Popular',
-		'Featured',
-		'Cloud Platforms',
-		'Security & Compliance',
-		'Developer Tools',
-		'TypeScript',
-		'Python',
-		'Go',
-		'Art & Culture',
-		'Analytics & Data',
-		'E-commerce',
-		'Marketing & Social Media',
-		'Productivity',
-		'Education'
-	];
 </script>
 
 {#if inline}
@@ -119,29 +166,6 @@
 			<div class="pr-12 pb-4">
 				{@render body()}
 			</div>
-			{#if onSubmitMcps}
-				<div class="sticky bottom-0 left-0 z-40 w-full bg-white p-4 dark:bg-black">
-					<div class="space-between flex items-center justify-end gap-4">
-						<span class="text-xs text-gray-300"> Shift+click to quick add</span>
-						<button
-							class="button-primary flex items-center gap-1"
-							onclick={() => {
-								onSubmitMcps(selected);
-								selected = [];
-								dialog?.close();
-							}}
-							disabled={selected.length === 0}
-						>
-							{#if selected.length <= 1}
-								{submitText || 'Add server'}
-							{:else}
-								{submitText || `Add ${selected.length} servers`}
-							{/if}
-							<ChevronsRight class="size-4" />
-						</button>
-					</div>
-				</div>
-			{/if}
 		</div>
 	</dialog>
 {/if}
@@ -151,13 +175,13 @@
 		{#if !responsive.isMobile}
 			<div
 				class={twMerge(
-					'sticky top-0 left-0 h-[calc(100vh-9rem)] w-xs flex-shrink-0 p-4',
+					'sticky top-0 left-0 h-[calc(100vh-6rem)] w-xs flex-shrink-0',
 					inline && 'h-[50dvh]'
 				)}
 			>
-				<div class="flex flex-col gap-4">
-					<h3 class="text-2xl font-semibold">Categories</h3>
-					<ul class="flex flex-col">
+				<div class="flex h-full flex-col gap-4">
+					<h3 class="p-4 text-2xl font-semibold">Categories</h3>
+					<ul class="default-scrollbar-thin flex min-h-0 grow flex-col overflow-y-auto px-4">
 						{#each categories as category}
 							<li>
 								<button
@@ -165,6 +189,7 @@
 									class:!border-blue-500={category === selectedCategory}
 									onclick={() => {
 										selectedCategory = category;
+										currentPage = 1;
 									}}
 								>
 									{category}
@@ -181,6 +206,7 @@
 					<Search
 						onChange={(val) => {
 							search = val;
+							currentPage = 1;
 						}}
 						placeholder="Search MCP Servers..."
 					/>
@@ -188,19 +214,13 @@
 			</div>
 			<div class="flex items-center gap-4 px-4 pt-4 pb-2">
 				<h4 bind:this={browseAllTitleElement} class="text-xl font-semibold">
-					{search ? 'Search Results' : 'Browse All'}
+					{search ? 'Search Results' : selectedCategory}
 				</h4>
 			</div>
 			<div class="grid grid-cols-1 gap-4 px-4 pt-2 md:grid-cols-2 xl:grid-cols-3">
-				{#if search}
-					{#each searchResults as mcp (mcp.id)}
-						{@render mcpCard(mcp)}
-					{/each}
-				{:else}
-					{#each paginatedMcps as mcp (mcp.id)}
-						{@render mcpCard(mcp)}
-					{/each}
-				{/if}
+				{#each paginatedMcps as mcp (mcp.id)}
+					{@render mcpCard(mcp)}
+				{/each}
 			</div>
 			{#if !search && totalPages > 1}
 				<div class="mt-8 flex grow items-center justify-center gap-2">
@@ -229,25 +249,29 @@
 	</div>
 {/snippet}
 
-{#snippet mcpCard(mcp: MCP)}
-	{#each [mcp.commandManifest, mcp.urlManifest] as manifest (manifest)}
-		{#if manifest}
-			<McpCard
-				{manifest}
-				onSubmit={() => {
-					if (onSubmitMcp) {
-						onSubmitMcp(mcp.id);
-					} else if (selected.includes(mcp.id)) {
-						selected = selected.filter((id) => id !== mcp.id);
-					} else {
-						selected.push(mcp.id);
-					}
-				}}
-				{selectText}
-				{cancelText}
-				selected={selected.includes(mcp.id)}
-				disabled={preselected.has(mcp.id)}
-			/>
-		{/if}
-	{/each}
+{#snippet mcpCard(mcp: (typeof transformedMcps)[0])}
+	{#if mcp.manifest}
+		<McpCard
+			tags={mcp.categories}
+			manifest={mcp.manifest}
+			onSelect={(manifest) => {
+				selectedMcp = mcp;
+				selectedMcpManifest = manifest;
+				configDialog?.open();
+			}}
+			selected={selected.includes(mcp.id)}
+			disabled={preselected.has(mcp.id)}
+		/>
+	{/if}
 {/snippet}
+
+<McpInfoConfig
+	bind:this={configDialog}
+	manifest={selectedMcpManifest}
+	onUpdate={(mcpServerInfo) => {
+		if (selectedMcp && selectedMcpManifest) {
+			onSetupMcp?.(selectedMcp.catalogId, mcpServerInfo);
+		}
+	}}
+	{submitText}
+/>
