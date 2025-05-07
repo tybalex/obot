@@ -307,9 +307,3 @@
 	onsuccess={deleteFile}
 	oncancel={() => (fileToDelete = undefined)}
 />
-
-<style>
-	.group:hover .group-hover\:visible {
-		visibility: visible;
-	}
-</style>

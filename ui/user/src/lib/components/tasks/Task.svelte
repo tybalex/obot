@@ -17,7 +17,7 @@
 	import { tooltip } from '$lib/actions/tooltip.svelte';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { fade, slide } from 'svelte/transition';
-	import Type from './Type.svelte';
+	import TaskOptions from './TaskOptions.svelte';
 	import { twMerge } from 'tailwind-merge';
 	import ChatInput from '../messages/Input.svelte';
 	import Input from './Input.svelte';
@@ -46,7 +46,6 @@
 
 	let showChat = $state(false);
 	let showAllOutput = $state(true);
-	let showAdvancedOptions = $state(false);
 
 	let taskHeaderActionDiv: HTMLDivElement | undefined = $state<HTMLDivElement>();
 	let isTaskInfoVisible = $state(true);
@@ -340,6 +339,8 @@
 					class="flex w-full flex-col gap-4 rounded-xl bg-gray-50 p-4 shadow-inner md:max-w-[1200px] dark:bg-black"
 				>
 					<div class="flex flex-col gap-4">
+						<TaskOptions bind:task {readOnly} />
+
 						<Steps
 							bind:task
 							bind:showAllOutput
@@ -353,25 +354,10 @@
 							{readOnly}
 						/>
 					</div>
-
-					{#if showAdvancedOptions}
-						<div transition:fade>
-							<Type bind:task {readOnly} {project} />
-						</div>
-					{/if}
 				</div>
 			</div>
 
 			<div class="grow"></div>
-
-			<div class="flex w-full items-center justify-between gap-4 self-center p-4 md:max-w-[1200px]">
-				<button
-					class="button-text p-0"
-					onclick={() => (showAdvancedOptions = !showAdvancedOptions)}
-				>
-					{showAdvancedOptions ? 'Collapse Advanced Options...' : 'Show Advanced Options...'}
-				</button>
-			</div>
 
 			<div
 				class="sticky bottom-0 flex items-center justify-center bg-white px-6 opacity-0 transition-opacity dark:bg-black"
