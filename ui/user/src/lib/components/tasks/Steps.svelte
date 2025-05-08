@@ -31,6 +31,8 @@
 		error,
 		readOnly
 	}: Props = $props();
+
+	const steps = $derived(task?.steps ?? []);
 </script>
 
 <div class="dark:bg-surface1 dark:border-surface3 rounded-lg bg-white p-5 shadow-sm dark:border">
@@ -50,22 +52,22 @@
 		</button>
 	</div>
 
-	<ol class="list-decimal pt-2 opacity-100">
+	<ol class="flex list-decimal flex-col gap-2 pt-2 opacity-100">
 		{#if task.steps.length > 0}
-			{#key task.steps[0].id}
+			{#each steps as step, i (step.id)}
 				<Step
 					{run}
 					{runID}
 					bind:task
-					bind:step={task.steps[0]}
-					index={0}
+					bind:step={task.steps[i]}
+					index={i}
 					{stepMessages}
 					{pending}
 					{project}
 					showOutput={showAllOutput}
 					{readOnly}
 				/>
-			{/key}
+			{/each}
 		{/if}
 	</ol>
 

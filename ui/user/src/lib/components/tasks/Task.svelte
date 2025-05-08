@@ -269,7 +269,7 @@
 
 	<div
 		class={twMerge(
-			'default-scrollbar-thin flex w-full grow justify-center overflow-y-auto px-4 md:px-8'
+			'default-scrollbar-thin scrollbar-gutter-stable flex w-full grow justify-center overflow-y-auto px-4 md:px-8'
 		)}
 	>
 		<!-- div in div is needed for the scrollbar to work so that space outside the max-width is still scrollable -->

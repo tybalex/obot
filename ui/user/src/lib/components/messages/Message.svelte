@@ -16,6 +16,7 @@
 	import { hasTool } from '$lib/tools';
 	import { getProjectTools } from '$lib/context/projectTools.svelte';
 	import MemoriesDialog from '$lib/components/MemoriesDialog.svelte';
+	import { linear } from 'svelte/easing';
 
 	interface Props {
 		msg: Message;
@@ -26,6 +27,8 @@
 		onSendCredentialsCancel?: (id: string) => void;
 		disableMessageToEditor?: boolean;
 		clearable?: boolean;
+		expandable?: boolean;
+		expanded?: boolean;
 	}
 
 	let {
@@ -397,7 +400,10 @@
 				return null;
 			}
 		})()}
-		<div transition:slide={{ duration: 300 }} class="mb-4 flex w-full flex-col justify-start gap-4">
+		<div
+			transition:slide={{ duration: 300, easing: linear }}
+			class="mb-4 flex w-full flex-col justify-start gap-4"
+		>
 			{#if parsedInput}
 				{@render toolDetails(msg.toolCall.input, 'Input')}
 			{/if}
@@ -433,7 +439,7 @@
 		{/each}
 		{@render explain()}
 	{:else}
-		<div transition:fade={{ duration: 1000 }}>
+		<div class="message-content" transition:fade={{ duration: 1000 }}>
 			{@html toHTMLFromMarkdown(animatedText)}
 		</div>
 	{/if}

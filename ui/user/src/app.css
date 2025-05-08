@@ -191,6 +191,19 @@
 		font-family: inherit;
 		line-height: inherit;
 	}
+
+	.scrollbar-gutter-stable {
+		scrollbar-gutter: stable;
+	}
+
+	.transition-height {
+		transition-property: height, transform, translate;
+		transition-duration: var(--tw-duration, 100ms);
+		transition-timing-function: var(--tw-timing-function, linear);
+
+		will-change: height, transform, translate;
+		transform: translateZ(1);
+	}
 }
 
 @layer components {
