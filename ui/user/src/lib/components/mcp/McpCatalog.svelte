@@ -5,10 +5,11 @@
 	import { ChevronLeft, ChevronRight, X } from 'lucide-svelte';
 	import McpCard from '$lib/components/mcp/McpCard.svelte';
 	import Search from '$lib/components/Search.svelte';
-	import { type MCP, type MCPManifest } from '$lib/services';
+	import { type MCP, type MCPManifest, type Project } from '$lib/services';
 	import { twMerge } from 'tailwind-merge';
 	import McpInfoConfig from '$lib/components/mcp/McpInfoConfig.svelte';
 	import type { MCPServerInfo } from '$lib/services/chat/mcp';
+	import { getToolBundleMap } from '$lib/context/toolReferences.svelte';
 
 	const BROWSE_ALL_CATEGORY = 'Browse All';
 
@@ -19,6 +20,7 @@
 		submitText?: string;
 		selectedMcpIds?: string[];
 		subtitle?: string;
+		project?: Project;
 	}
 
 	type TransformedMcp = {
@@ -36,11 +38,15 @@
 		onSetupMcp,
 		submitText,
 		selectedMcpIds,
-		subtitle
+		subtitle,
+		project = $bindable()
 	}: Props = $props();
 	let dialog: HTMLDialogElement | undefined = $state();
 	let configDialog = $state<ReturnType<typeof McpInfoConfig>>();
 	let selectedMcpManifest = $state<MCPManifest>();
+	let searchInput = $state<ReturnType<typeof Search>>();
+
+	const toolBundleMap = getToolBundleMap();
 
 	const ITEMS_PER_PAGE = 36;
 	let currentPage = $state(1);
@@ -63,6 +69,9 @@
 	let search = $state('');
 	let selectedCategory = $state(BROWSE_ALL_CATEGORY);
 	let selectedMcp = $state<TransformedMcp>();
+	let legacyBundleId = $derived(
+		selectedMcp && toolBundleMap.get(selectedMcp.catalogId) ? selectedMcp.catalogId : undefined
+	);
 
 	let transformedMcps: TransformedMcp[] = $derived(
 		refMcps
@@ -120,9 +129,8 @@
 		)
 	);
 
-	let browseAllTitleElement: HTMLDivElement | undefined = $state<HTMLDivElement>();
-
 	export function open() {
+		searchInput?.clear();
 		dialog?.showModal();
 	}
 
@@ -204,6 +212,7 @@
 			<div class="sticky top-0 left-0 z-30 w-full">
 				<div class="flex grow bg-white p-4 dark:bg-black">
 					<Search
+						bind:this={searchInput}
 						onChange={(val) => {
 							search = val;
 							currentPage = 1;
@@ -213,7 +222,7 @@
 				</div>
 			</div>
 			<div class="flex items-center gap-4 px-4 pt-4 pb-2">
-				<h4 bind:this={browseAllTitleElement} class="text-xl font-semibold">
+				<h4 class="text-xl font-semibold">
 					{search ? 'Search Results' : selectedCategory}
 				</h4>
 			</div>
@@ -267,7 +276,9 @@
 
 <McpInfoConfig
 	bind:this={configDialog}
+	bind:project
 	manifest={selectedMcpManifest}
+	{legacyBundleId}
 	onUpdate={(mcpServerInfo) => {
 		if (selectedMcp && selectedMcpManifest) {
 			onSetupMcp?.(selectedMcp.catalogId, mcpServerInfo);
