@@ -125,6 +125,9 @@ config:
 # extraEnv -- A map of additional environment variables to set
 extraEnv: { }
 
+# extraEnvFrom -- A list of additional environment variables to set from a secret
+extraEnvFrom: [ ]
+
 # resources -- Resource requests and limits to use for Obot
 resources: { }
 
@@ -144,6 +147,12 @@ persistence:
   # persistence.size --e Persistent Volume size
   size: 8Gi
   existingClaim: ""
+
+# extraVolumes -- A list of additional volumes to create
+extraVolumes: [ ]
+
+# extraVolumeMounts -- A list of additional volume mounts to create
+extraVolumeMounts: [ ]
 
 serviceAccount:
   # serviceAccount.create - Specifies whether a service account should be created
