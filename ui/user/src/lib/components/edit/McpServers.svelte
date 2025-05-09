@@ -1,16 +1,15 @@
 <script lang="ts">
 	import { getProjectMCPs } from '$lib/context/projectMcps.svelte';
 	import { ChatService, type MCP, type Project, type ProjectMCP } from '$lib/services';
-	import { PencilLine, Plus, Server, Trash2 } from 'lucide-svelte/icons';
+	import { PencilLine, Plus, Server, Trash2, Wrench } from 'lucide-svelte/icons';
 	import McpInfoConfig from '$lib/components/mcp/McpInfoConfig.svelte';
 	import Confirm from '$lib/components/Confirm.svelte';
-	import McpCatalog from '$lib/components/mcp/McpCatalog.svelte';
 	import { onMount } from 'svelte';
 	import CollapsePane from '$lib/components/edit/CollapsePane.svelte';
 	import { HELPER_TEXTS } from '$lib/context/helperMode.svelte';
 	import DotDotDot from '$lib/components/DotDotDot.svelte';
-	import { createProjectMcp } from '$lib/services/chat/mcp';
-	import { getLayout, openEditProjectMcp } from '$lib/context/layout.svelte';
+	import { getLayout, openEditProjectMcp, openMCPServerTools } from '$lib/context/layout.svelte';
+	import McpSetupWizard from '$lib/components/mcp/McpSetupWizard.svelte';
 
 	interface Props {
 		project: Project;
@@ -19,9 +18,11 @@
 	let { project }: Props = $props();
 	let mcpToShow = $state<ProjectMCP>();
 	let toDelete = $state<ProjectMCP>();
-	let mcpConfigDialog = $state<ReturnType<typeof McpInfoConfig>>();
-	let mcpCatalog = $state<ReturnType<typeof McpCatalog>>();
 	let mcps = $state<MCP[]>([]);
+
+	let mcpConfigDialog = $state<ReturnType<typeof McpInfoConfig>>();
+	let mcpSetupWizard = $state<ReturnType<typeof McpSetupWizard>>();
+
 	const projectMCPs = getProjectMCPs();
 	const selectedMcpIds = $derived(
 		projectMCPs.items.reduce<string[]>((acc, mcp) => {
@@ -76,12 +77,18 @@
 								{mcp.name || 'My Custom Server'}
 							</p>
 						</button>
-						<button
-							class="py-2 pr-3 transition-opacity duration-200 group-hover:opacity-100 md:opacity-0"
-							onclick={() => (toDelete = mcp)}
+						<DotDotDot
+							class="p-0 pr-2.5 transition-opacity duration-200 group-hover:opacity-100 md:opacity-0"
 						>
-							<Trash2 class="size-4" />
-						</button>
+							<div class="default-dialog flex min-w-max flex-col p-2">
+								<button class="menu-button" onclick={() => openMCPServerTools(layout, mcp)}>
+									<Wrench class="size-4" /> Manage Tools
+								</button>
+								<button class="menu-button" onclick={() => (toDelete = mcp)}>
+									<Trash2 class="size-4" /> Delete
+								</button>
+							</div>
+						</DotDotDot>
 					</div>
 				{/each}
 			</div>
@@ -92,7 +99,7 @@
 					<Plus class="size-4" /> Add MCP Server
 				{/snippet}
 				<div class="default-dialog flex min-w-max flex-col p-2">
-					<button class="menu-button" onclick={() => mcpCatalog?.open()}>
+					<button class="menu-button" onclick={() => mcpSetupWizard?.open()}>
 						<Server class="size-4" /> Browse Catalog
 					</button>
 					<button class="menu-button" onclick={() => openEditProjectMcp(layout)}>
@@ -100,15 +107,19 @@
 					</button>
 				</div>
 			</DotDotDot>
-			<McpCatalog
-				bind:this={mcpCatalog}
-				{mcps}
-				subtitle="Extend your agent's capabilities by adding multiple MCP servers from our evergrowing catalog."
-				onSetupMcp={async (mcpId, mcpServerInfo) => {
-					const newProjectMcp = await createProjectMcp(mcpServerInfo, project, mcpId);
-					projectMCPs.items.push(newProjectMcp);
-				}}
+			<McpSetupWizard
+				bind:this={mcpSetupWizard}
+				catalogDescription="Extend your agent's capabilities by adding multiple MCP servers from our evergrowing catalog."
+				catalogSubmitText="Create agent with server"
 				{selectedMcpIds}
+				{project}
+				{mcps}
+				onFinish={(newProjectMcp) => {
+					if (newProjectMcp) {
+						projectMCPs.items.push(newProjectMcp);
+					}
+					mcpSetupWizard?.close();
+				}}
 			/>
 		</div>
 	</div>
