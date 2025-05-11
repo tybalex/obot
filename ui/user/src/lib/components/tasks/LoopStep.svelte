@@ -47,15 +47,17 @@
 	class:opacity-50={isStepRunning && !isLoopStepRunning}
 >
 	<div class="flex items-center gap-2 overflow-hidden">
-		<textarea
-			use:autoHeight
-			bind:value
-			rows="1"
-			placeholder="Instructions..."
-			class="ghost-input border-surface2 h-auto grow resize-none"
-			disabled={isReadOnly}
-			onkeydown={onKeydown}
-		></textarea>
+		<div class="flex w-full px-4">
+			<textarea
+				use:autoHeight
+				bind:value
+				rows="1"
+				placeholder="Instructions..."
+				class="ghost-input border-surface2 h-auto grow resize-none"
+				disabled={isReadOnly}
+				onkeydown={onKeydown}
+			></textarea>
+		</div>
 
 		{#if !isReadOnly}
 			<div class="flex items-center">
@@ -72,7 +74,7 @@
 
 	{#if (isStepRunning || isStepRunned) && shouldShowOutput}
 		<div
-			class="transition-height relative -ml-4 box-content flex min-h-6 flex-col gap-4 overflow-hidden rounded-lg bg-white p-5 duration-200 dark:bg-black"
+			class="loop-step-messages transition-loop-step-message relative box-content flex min-h-11 flex-col gap-4 overflow-hidden rounded-none p-5 duration-200"
 			class:outline-2={isStepRunning && isLoopStepRunning}
 			class:outline-blue={isStepRunning && isLoopStepRunning}
 			in:slide|global={{
@@ -108,3 +110,14 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	:global(.transition-loop-step-message) {
+		transition-property: height, transform, translate, margin;
+		transition-duration: var(--tw-duration, 100ms);
+		transition-timing-function: var(--tw-timing-function, linear);
+
+		will-change: height, transform, translate, margin;
+		transform: translateZ(1);
+	}
+</style>

@@ -288,40 +288,49 @@
 							<!-- Get the current iteration steps messages array -->
 							{@const messages = iteration ?? []}
 
-							<div class="iteration flex flex-col">
-								<div class="flex py-2">
+							<div
+								class="iteration border-surface2 -ml-4 flex flex-col rounded-lg border pt-4"
+								in:fade|global={{ duration: 200 }}
+								out:fade={{ duration: 0 }}
+							>
+								<div class="mb-2 flex px-4">
 									<div class="text-lg font-semibold">
 										<span>Iteration</span>
 										<span>{i + 1}</span>
 									</div>
 								</div>
 
-								{#each step.loop! as _, j (j)}
-									<!-- Get the current step messages array -->
-									{@const stepMessages = messages[j] ?? []}
+								<div class="flex flex-col">
+									{#each step.loop! as _, j}
+										<!-- Get the current step messages array -->
+										{@const stepMessages = messages[j] ?? []}
 
-									<LoopStep
-										bind:value={step.loop![j]}
-										{project}
-										messages={stepMessages}
-										isReadOnly={readOnly}
-										isLoopStepRunning={isRunning &&
-											taskRunStepLoopProgress &&
-											taskRunStepLoopProgress.iteration === i &&
-											taskRunStepLoopProgress.loopStep === j}
-										isStepRunning={isRunning}
-										isStepRunned={isRunnedBefore}
-										shouldShowOutput={showOutput}
-										{stale}
-										onKeydown={onkeydown}
-										onDelete={() => step.loop!.splice(j, 1)}
-										index={j}
-									/>
-								{/each}
+										<LoopStep
+											bind:value={step.loop![j]}
+											{project}
+											messages={stepMessages}
+											isReadOnly={readOnly}
+											isLoopStepRunning={isRunning &&
+												taskRunStepLoopProgress &&
+												taskRunStepLoopProgress.iteration === i &&
+												taskRunStepLoopProgress.loopStep === j}
+											isStepRunning={isRunning}
+											isStepRunned={isRunnedBefore}
+											shouldShowOutput={showOutput}
+											{stale}
+											onKeydown={onkeydown}
+											onDelete={() => step.loop!.splice(j, 1)}
+										/>
+									{/each}
+								</div>
 							</div>
 						{/each}
 					{:else}
-						<div class="flex flex-col gap-2">
+						<div
+							class="flex flex-col gap-2 pl-4"
+							in:fade|global={{ duration: 200 }}
+							out:fade={{ duration: 0 }}
+						>
 							{#if isRunning || isRunnedBefore}
 								<div class="flex h-11 rounded-lg py-2">
 									<div class="text-lg font-semibold opacity-30">Waiting for iteration data...</div>
@@ -363,7 +372,9 @@
 					class:text-blue={isLoopStep}
 					data-testid="step-loop-btn"
 					onclick={toggleLoop}
-					use:tooltip={isLoopStep ? 'Convert to regular step' : 'Convert to loop step'}
+					use:tooltip={isLoopStep
+						? 'Convert to regular step'
+						: 'Iterate through the results of this step'}
 				>
 					<Repeat class="size-4" />
 				</button>

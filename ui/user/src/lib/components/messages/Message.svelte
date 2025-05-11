@@ -328,7 +328,7 @@
 		{:else if msg.toolCall}
 			{@render toolContent()}
 		{:else if content}
-			{#if msg.sourceName !== 'Abort Current Task'}
+			{#if ['Abort Current Task', 'Loop Data', 'Search'].every((d) => d !== msg.sourceName)}
 				{@render messageContent()}
 			{/if}
 		{/if}
