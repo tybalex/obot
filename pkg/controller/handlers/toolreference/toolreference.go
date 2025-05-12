@@ -271,6 +271,11 @@ func (h *Handler) readMCPCatalog(catalog string) ([]client.Object, error) {
 		// Best effort to parse metadata
 		_ = json.Unmarshal([]byte(entry.Metadata), &m)
 
+		if m["categories"] == "Official" {
+			delete(m, "categories") // This shouldn't happen, but do this just in case.
+			// We don't want to mark random MCP servers from the catalog as official.
+		}
+
 		catalogEntry := v1.MCPServerCatalogEntry{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      name.SafeHashConcatName(strings.Split(entry.FullName, "/")...),
@@ -578,13 +583,26 @@ func (h *Handler) createMCPServerCatalog(req router.Request, toolRef *v1.ToolRef
 	if err := req.Client.Get(req.Ctx, router.Key(system.DefaultNamespace, toolRef.Name), &mcpCatalogEntry); client.IgnoreNotFound(err) != nil {
 		return err
 	} else if err == nil {
+		// Migration: add the obot-official metadata key to the command manifest if it isn't there.
+		var shouldUpdate bool
+		if mcpCatalogEntry.Spec.CommandManifest.Metadata["categories"] == "" {
+			if mcpCatalogEntry.Spec.CommandManifest.Metadata == nil {
+				mcpCatalogEntry.Spec.CommandManifest.Metadata = make(map[string]string)
+			}
+			mcpCatalogEntry.Spec.CommandManifest.Metadata["categories"] = "Official"
+			shouldUpdate = true
+		}
+
 		if equality.Semantic.DeepEqual(mcpCatalogEntry.Spec.CommandManifest.Server, serverManifest) &&
 			mcpCatalogEntry.Spec.ToolReferenceName == toolRef.Name {
-			return nil
+			shouldUpdate = true
 		}
-		mcpCatalogEntry.Spec.CommandManifest.Server = serverManifest
-		mcpCatalogEntry.Spec.ToolReferenceName = toolRef.Name
-		return req.Client.Update(req.Ctx, &mcpCatalogEntry)
+
+		if shouldUpdate {
+			mcpCatalogEntry.Spec.CommandManifest.Server = serverManifest
+			mcpCatalogEntry.Spec.ToolReferenceName = toolRef.Name
+			return req.Client.Update(req.Ctx, &mcpCatalogEntry)
+		}
 	}
 
 	return req.Client.Create(req.Ctx, &v1.MCPServerCatalogEntry{
@@ -594,7 +612,8 @@ func (h *Handler) createMCPServerCatalog(req router.Request, toolRef *v1.ToolRef
 		},
 		Spec: v1.MCPServerCatalogEntrySpec{
 			CommandManifest: types.MCPServerCatalogEntryManifest{
-				Server: serverManifest,
+				Server:   serverManifest,
+				Metadata: map[string]string{"categories": "Official"},
 			},
 			ToolReferenceName: toolRef.Name,
 		},
