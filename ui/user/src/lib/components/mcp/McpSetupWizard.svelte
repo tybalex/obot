@@ -26,6 +26,7 @@
 		onFinish?: (projectMcp?: ProjectMCP, project?: Project) => void;
 		project?: Project;
 		selectedMcpIds?: string[];
+		preselected?: string;
 	}
 
 	let {
@@ -35,7 +36,8 @@
 		inline,
 		onFinish,
 		project: refProject,
-		selectedMcpIds
+		selectedMcpIds,
+		preselected
 	}: Props = $props();
 	let project = $state(refProject);
 	let projectMcp = $state<ProjectMCP>();
@@ -111,6 +113,7 @@
 	}}
 	{selectedMcpIds}
 	submitText={catalogSubmitText}
+	preselectedMcp={preselected}
 />
 
 {#if processing}
