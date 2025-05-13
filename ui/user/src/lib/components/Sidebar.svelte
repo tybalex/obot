@@ -25,6 +25,7 @@
 	import Toggle from '$lib/components/Toggle.svelte';
 	import Memories from '$lib/components/edit/Memories.svelte';
 	import { scrollFocus } from '$lib/actions/scrollFocus.svelte';
+	import BuiltInCapabilities from '$lib/components/edit/BuiltInCapabilities.svelte';
 
 	interface Props {
 		project: Project;
@@ -51,14 +52,7 @@
 
 <div class="bg-surface1 dark:bg-surface2 relative flex size-full flex-col">
 	<div class="flex h-16 w-full flex-shrink-0 items-center px-3">
-		<button
-			onclick={() => {
-				layout.sidebarOpen = false;
-			}}
-			use:tooltip={'Close Sidebar'}
-		>
-			<Logo class="ml-0" />
-		</button>
+		<Logo class="ml-0" />
 		<div class="flex grow"></div>
 		{#if !shared}
 			<button
@@ -98,6 +92,7 @@
 				>
 					<General bind:project />
 					<SystemPrompt bind:project />
+					<BuiltInCapabilities bind:project />
 					<Introduction bind:project />
 					<Knowledge {project} />
 					<Files {project} classes={{ list: 'text-sm flex flex-col gap-2' }} />
