@@ -277,7 +277,7 @@
 					in:fade|global={{ duration: 200 }}
 					out:fade={{ duration: 0 }}
 				>
-					{#each step.loop! as s, i (s)}
+					{#each step.loop! as _, i (i)}
 						<!-- Get the current iteration steps messages array -->
 						{@const messages = iterations[i] ?? []}
 
@@ -358,7 +358,7 @@
 
 										<LoopStep
 											class=""
-											bind:value={step.loop![j]}
+											value={step.loop![j]}
 											{project}
 											messages={stepMessages}
 											isReadOnly={readOnly}
