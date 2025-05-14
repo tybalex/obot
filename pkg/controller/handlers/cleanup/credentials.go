@@ -8,6 +8,7 @@ import (
 	"github.com/gptscript-ai/go-gptscript"
 	"github.com/obot-platform/nah/pkg/router"
 	"github.com/obot-platform/obot/apiclient/types"
+	"github.com/obot-platform/obot/pkg/mcp"
 	v1 "github.com/obot-platform/obot/pkg/storage/apis/obot.obot.ai/v1"
 	"github.com/obot-platform/obot/pkg/system"
 	"k8s.io/apimachinery/pkg/fields"
@@ -15,12 +16,14 @@ import (
 )
 
 type Credentials struct {
-	gClient *gptscript.GPTScript
+	gClient           *gptscript.GPTScript
+	mcpSessionManager *mcp.SessionManager
 }
 
-func NewCredentials(gClient *gptscript.GPTScript) *Credentials {
+func NewCredentials(gClient *gptscript.GPTScript, mcpSessionManager *mcp.SessionManager) *Credentials {
 	return &Credentials{
-		gClient: gClient,
+		gClient:           gClient,
+		mcpSessionManager: mcpSessionManager,
 	}
 }
 
@@ -74,20 +77,59 @@ func (c *Credentials) Remove(req router.Request, _ router.Response) error {
 }
 
 func (c *Credentials) RemoveMCPCredentials(req router.Request, _ router.Response) error {
-	mcp := req.Object.(*v1.MCPServer)
-	creds, err := c.gClient.ListCredentials(req.Ctx, gptscript.ListCredentialsOptions{
-		CredentialContexts: []string{
-			fmt.Sprintf("%s-%s", mcp.Spec.ThreadName, mcp.Name),
-			fmt.Sprintf("%s-%s-shared", mcp.Spec.ThreadName, mcp.Name),
-		},
-	})
-	if err != nil {
+	mcpServer := req.Object.(*v1.MCPServer)
+
+	var projects v1.ThreadList
+	if err := req.List(&projects, &kclient.ListOptions{
+		FieldSelector: fields.SelectorFromSet(map[string]string{
+			"spec.parentThreadName": mcpServer.Spec.ThreadName,
+		}),
+		Namespace: req.Namespace,
+	}); err != nil {
 		return err
 	}
 
-	for _, cred := range creds {
-		if err = c.gClient.DeleteCredential(req.Ctx, cred.Context, cred.ToolName); err != nil && !errors.As(err, &gptscript.ErrNotFound{}) {
+	projectNames := make([]string, 0, len(projects.Items)+1)
+	for _, project := range projects.Items {
+		if project.Spec.Project {
+			projectNames = append(projectNames, project.Name)
+		}
+	}
+	projectNames = append(projectNames, mcpServer.Spec.ThreadName)
+
+	for _, projectName := range projectNames {
+		creds, err := c.gClient.ListCredentials(req.Ctx, gptscript.ListCredentialsOptions{
+			CredentialContexts: []string{
+				fmt.Sprintf("%s-%s", projectName, mcpServer.Name),
+				fmt.Sprintf("%s-%s-shared", projectName, mcpServer.Name),
+			},
+		})
+		if err != nil {
 			return err
+		}
+
+		for _, cred := range creds {
+			// Have to reveal the credential to get the values
+			cred, err = c.gClient.RevealCredential(req.Ctx, []string{cred.Context}, cred.ToolName)
+			if err != nil {
+				return err
+			}
+
+			// Shutdown the server
+			serverConfig, _ := mcp.ToServerConfig(*mcpServer, projectName, cred.Env, nil)
+			if err = c.mcpSessionManager.ShutdownServer(req.Ctx, serverConfig); err != nil {
+				return fmt.Errorf("failed to shutdown server: %w", err)
+			}
+
+			if err = c.gClient.DeleteCredential(req.Ctx, cred.Context, cred.ToolName); err != nil && !errors.As(err, &gptscript.ErrNotFound{}) {
+				return err
+			}
+		}
+
+		// Shutdown a potential server running without any configuration. We wouldn't detect its existence with a credential.
+		serverConfig, _ := mcp.ToServerConfig(*mcpServer, projectName, nil, nil)
+		if err = c.mcpSessionManager.ShutdownServer(req.Ctx, serverConfig); err != nil {
+			return fmt.Errorf("failed to shutdown server: %w", err)
 		}
 	}
 
