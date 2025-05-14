@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { type Messages, type Project, type Task, type TaskStep } from '$lib/services';
 	import Step from '$lib/components/tasks/Step.svelte';
-	import { SvelteMap } from 'svelte/reactivity';
 	import Files from '$lib/components/tasks/Files.svelte';
 	import { tooltip } from '$lib/actions/tooltip.svelte';
 	import { Eye, EyeClosed, UsersRound, ArrowBigDown } from 'lucide-svelte';
@@ -15,13 +14,14 @@
 		runID?: string;
 		project: Project;
 		run: (step?: TaskStep) => Promise<void>;
-		stepMessages: SvelteMap<string, Messages>;
+		stepMessages: Record<string, Messages>;
 		pending: boolean;
 		running: boolean;
 		error: string;
 		showAllOutput: boolean;
 		readOnly?: boolean;
 		shouldFollowTaskRun?: boolean;
+		lastStepId?: string;
 	}
 
 	let {
@@ -35,7 +35,8 @@
 		running,
 		error,
 		readOnly,
-		shouldFollowTaskRun = $bindable()
+		shouldFollowTaskRun = $bindable(),
+		lastStepId
 	}: Props = $props();
 
 	const steps = $derived(task?.steps ?? []);
@@ -222,7 +223,22 @@
 		<button
 			class="icon-button"
 			data-testid="steps-toggle-output-btn"
-			onclick={() => (showAllOutput = !showAllOutput)}
+			onclick={async () => {
+				if (showAllOutput) {
+					requestAnimationFrame(() => {});
+
+					const scrollableElement = element?.closest('[data-scrollable="true"]');
+
+					if (scrollableElement) {
+						// Search up the DOM tree for the scollable parent
+						scrollableElement?.scrollTo({ top: 0, behavior: 'smooth' });
+						await tick();
+						showAllOutput = false;
+					}
+				} else {
+					showAllOutput = true;
+				}
+			}}
 			use:tooltip={'Toggle All Output Visbility'}
 		>
 			{#if showAllOutput}
@@ -246,6 +262,7 @@
 				{project}
 				showOutput={showAllOutput}
 				{readOnly}
+				{lastStepId}
 			/>
 		{/each}
 	</ol>

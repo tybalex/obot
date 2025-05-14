@@ -15,7 +15,6 @@
 	import { Thread } from '$lib/services/chat/thread.svelte';
 	import { errors, responsive } from '$lib/stores';
 	import { tooltip } from '$lib/actions/tooltip.svelte';
-	import { SvelteMap } from 'svelte/reactivity';
 	import { fade, slide } from 'svelte/transition';
 	import TaskOptions from './TaskOptions.svelte';
 	import { twMerge } from 'tailwind-merge';
@@ -23,6 +22,7 @@
 	import Input from './Input.svelte';
 	import Tools from '../navbar/Tools.svelte';
 	import { clickOutside } from '$lib/actions/clickoutside';
+
 	interface Props {
 		task: Task;
 		project: Project;
@@ -36,7 +36,8 @@
 	const readOnly = !!inputRunID;
 	let runID = $state(inputRunID);
 	let thread: Thread | undefined = $state<Thread>();
-	let stepMessages = new SvelteMap<string, Messages>();
+	let lastStepId: string | undefined = $state(undefined);
+	let stepMessages: Record<string, Messages> = $state({});
 	let allMessages = $state<Messages>({ messages: [], inProgress: false });
 	let input = $state('');
 	let error = $state('');
@@ -190,7 +191,8 @@
 		thread.close();
 		thread = undefined;
 		runID = undefined;
-		stepMessages.clear();
+		lastStepId = undefined;
+		stepMessages = {};
 		allMessages = { messages: [], inProgress: false };
 	}
 
@@ -201,9 +203,10 @@
 			task: task,
 			runID: runID
 		});
-		stepMessages.clear();
+		stepMessages = {};
 		thread.onStepMessages = (stepID, messages) => {
-			stepMessages.set(stepID, messages);
+			lastStepId = stepID;
+			stepMessages[stepID] = messages;
 		};
 		thread.onMessages = (messages) => {
 			allMessages = messages;
@@ -212,8 +215,6 @@
 
 	async function click() {
 		error = '';
-		showAllOutput = true;
-
 		shouldFollowTaskRun = true;
 
 		const hasAtLeastOneInstruction = task.steps.some((step) => (step.step ?? '').trim().length > 0);
@@ -259,6 +260,8 @@
 			).id;
 			return;
 		}
+
+		lastStepId = undefined;
 
 		await thread.runStep(task.id, step.id, {
 			input: input
@@ -396,6 +399,7 @@
 							bind:task
 							bind:showAllOutput
 							bind:shouldFollowTaskRun
+							{lastStepId}
 							{project}
 							{run}
 							{runID}

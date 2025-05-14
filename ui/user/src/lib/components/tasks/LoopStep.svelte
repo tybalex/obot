@@ -8,8 +8,10 @@
 	import { transitionParentHeight } from '$lib/actions/size.svelte';
 	import { slide } from 'svelte/transition';
 	import { linear } from 'svelte/easing';
+	import { twMerge } from 'tailwind-merge';
 
 	type Props = {
+		class?: string;
 		value: string;
 		messages: Messages;
 		project: Project;
@@ -27,6 +29,7 @@
 
 	let {
 		value = $bindable(),
+		class: klass = '',
 		messages,
 		project,
 		isLoopStepRunning = false,
@@ -43,23 +46,31 @@
 </script>
 
 <div
-	class="iteration-step flex w-full flex-col gap-2 transition-opacity duration-100"
+	class={twMerge(
+		'iteration-step flex w-full flex-col gap-0 transition-opacity duration-100',
+		(isReadOnly || isStepRunned || isStepRunning) && 'border-surface2 border-b last:border-none',
+		klass
+	)}
 	class:opacity-50={isStepRunning && !isLoopStepRunning}
+	class:outline-2={isStepRunning && isLoopStepRunning}
+	class:outline-blue={isStepRunning && isLoopStepRunning}
 >
-	<div class="flex items-center gap-2 overflow-hidden">
-		<div class="flex w-full px-4">
-			<textarea
-				use:autoHeight
-				bind:value
-				rows="1"
-				placeholder="Instructions..."
-				class="ghost-input border-surface2 h-auto grow resize-none"
-				disabled={isReadOnly}
-				onkeydown={onKeydown}
-			></textarea>
-		</div>
+	<div class={'flex items-center gap-2 overflow-hidden px-4'}>
+		<textarea
+			use:autoHeight
+			bind:value
+			rows="1"
+			placeholder="Instructions..."
+			class={twMerge(
+				'ghost-input border-surface2 h-auto grow resize-none',
+				(isReadOnly || isStepRunned || isStepRunning) && 'border-transparent opacity-50'
+			)}
+			disabled={isReadOnly}
+			readonly={isReadOnly || isStepRunned || isStepRunning}
+			onkeydown={onKeydown}
+		></textarea>
 
-		{#if !isReadOnly}
+		{#if !isReadOnly && !isStepRunned && !isStepRunning}
 			<div class="flex items-center">
 				<button class="icon-button" onclick={onDelete} use:tooltip={'Remove step from loop'}>
 					<Trash2 class="size-4" />
@@ -74,9 +85,7 @@
 
 	{#if (isStepRunning || isStepRunned) && shouldShowOutput}
 		<div
-			class="loop-step-messages transition-loop-step-message relative box-content flex min-h-11 flex-col gap-4 overflow-hidden rounded-none p-5 duration-200"
-			class:outline-2={isStepRunning && isLoopStepRunning}
-			class:outline-blue={isStepRunning && isLoopStepRunning}
+			class="loop-step-messages transition-loop-step-message relative box-content flex min-h-11 flex-col gap-4 overflow-hidden rounded-none px-4 py-4 duration-200"
 			in:slide|global={{
 				duration: !isReadOnly ? 200 : 0,
 				delay: isStepRunning && !isReadOnly ? index * 190 : 0,
