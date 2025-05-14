@@ -559,6 +559,16 @@ func (h *Handler) createMCPServerCatalog(req router.Request, toolRef *v1.ToolRef
 		return nil
 	}
 
+	// MIGRATION: for capability tools, delete the catalog entry.
+	if toolRef.Spec.IsCapability {
+		return client.IgnoreNotFound(req.Client.Delete(req.Ctx, &v1.MCPServerCatalogEntry{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      toolRef.Name,
+				Namespace: system.DefaultNamespace,
+			},
+		}))
+	}
+
 	if toolRef.Status.Tool == nil {
 		return nil
 	}
