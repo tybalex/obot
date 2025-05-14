@@ -52,6 +52,7 @@
 	let isRunnedBefore = $derived(!!stepMessages?.[step.id]?.lastRunID);
 	let stale: boolean = $derived(parentStale || !parentMatches());
 	let toDelete = $state<boolean>();
+	let isConvertToRegularDialogShown = $state(false);
 
 	let shouldShowOutputLocal = $state(!!shouldShowOutputGlobal);
 
@@ -181,10 +182,20 @@
 
 	async function toggleLoop() {
 		if (isLoopStep) {
-			step.loop = undefined;
-		} else {
-			step.loop = [''];
+			isConvertToRegularDialogShown = true;
+			return;
 		}
+
+		makeLooptep();
+	}
+
+	function makeRegularStep() {
+		step.loop = undefined;
+		// Close the dialog
+		isConvertToRegularDialogShown = false;
+	}
+	function makeLooptep() {
+		step.loop = [''];
 	}
 
 	async function deleteStep() {
@@ -458,4 +469,11 @@
 	msg={`Are you sure you want to delete this step`}
 	onsuccess={deleteStep}
 	oncancel={() => (toDelete = undefined)}
+/>
+
+<Confirm
+	show={isConvertToRegularDialogShown}
+	msg={`Making this a regular step will delete all loop step, are you sure you want to continue?`}
+	onsuccess={makeRegularStep}
+	oncancel={() => (isConvertToRegularDialogShown = false)}
 />
