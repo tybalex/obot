@@ -154,8 +154,7 @@
 						<div class="flex items-center gap-3">
 							<Info class="size-6" />
 							<p>
-								{legacyAuthText ??
-									"This server support OAuth authentication. You'll be prompted to login after launching."}
+								{legacyAuthText ?? "You'll be prompted to login after launching."}
 							</p>
 						</div>
 					</div>
