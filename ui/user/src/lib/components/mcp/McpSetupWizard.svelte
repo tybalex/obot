@@ -59,6 +59,11 @@
 
 	export function open() {
 		mcpCatalog?.open();
+
+		// reset on open
+		projectMcp = undefined;
+		projectMcpServerInfo = undefined;
+		projectMcpServerTools = [];
 	}
 
 	export function close() {
@@ -167,18 +172,20 @@
 	}}
 >
 	{#if projectMcp && project}
-		<McpServerTools
-			tools={projectMcpServerTools}
-			mcpServer={projectMcp}
-			{project}
-			onSubmit={async () => {
-				if (onFinish) {
-					onFinish(projectMcp, project);
-				} else if (project) {
-					await goto(`/o/${project.id}`);
-				}
-			}}
-			isNew
-		/>
+		{#key projectMcp.id}
+			<McpServerTools
+				tools={projectMcpServerTools}
+				mcpServer={projectMcp}
+				{project}
+				onSubmit={async () => {
+					if (onFinish) {
+						onFinish(projectMcp, project);
+					} else if (project) {
+						await goto(`/o/${project.id}`);
+					}
+				}}
+				isNew
+			/>
+		{/key}
 	{/if}
 </dialog>
