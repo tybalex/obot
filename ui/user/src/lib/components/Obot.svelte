@@ -64,12 +64,9 @@
 	}
 
 	$effect(() => {
-		ChatService.listProjectCredentials(project.assistantID, project.id).then((creds) => {
+		ChatService.listProjectLocalCredentials(project.assistantID, project.id).then((creds) => {
 			credentials = creds.items;
 			credToAuth = credentials.find((c) => c.toolID === 'slack-bot-bundle');
-			if (credToAuth) {
-				credToAuth.exists = false;
-			}
 			if (
 				project.capabilities?.onSlackMessage &&
 				!credentials.find((c) => c.toolID === 'slack-bot-bundle')?.exists
@@ -296,7 +293,7 @@
 				bind:this={authDialog}
 				credential={credToAuth}
 				{project}
-				local={false}
+				local={true}
 				toolID="slack-bot-bundle"
 				onClose={() => {
 					credToAuth = undefined;

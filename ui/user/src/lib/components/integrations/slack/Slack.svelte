@@ -16,6 +16,10 @@
 	import CollapsePane from '$lib/components/edit/CollapsePane.svelte';
 	import Toggle from '$lib/components/Toggle.svelte';
 	import { fade } from 'svelte/transition';
+	import { openTask } from '$lib/context/layout.svelte';
+	import type { Task } from '$lib/services';
+	import type { ProjectCredential } from '$lib/services/chat/types';
+	import CredentialAuth from '$lib/components/edit/CredentialAuth.svelte';
 
 	interface Props {
 		project: Project;
@@ -50,8 +54,19 @@
 		signingSecret: ''
 	});
 	let slackEnabled = $derived(project.capabilities?.onSlackMessage);
-	let errorMessage = $state('');
 	let showSteps = $state(!project.capabilities?.onSlackMessage);
+	let taskDialog: HTMLDialogElement | undefined = $state();
+	let task = $state<Task | undefined>();
+	let authDialog: ReturnType<typeof CredentialAuth> | undefined = $state();
+	let credToAuth = $state<ProjectCredential | undefined>();
+	let credentials = $state<ProjectCredential[]>([]);
+
+	$effect(() => {
+		ChatService.listProjectLocalCredentials(project.assistantID, project.id).then((creds) => {
+			credentials = creds.items;
+			credToAuth = credentials.find((c) => c.toolID === 'slack-bot-bundle');
+		});
+	});
 
 	$effect(() => {
 		redirectUrl = `${window.location.protocol}//${window.location.host}/api/app-oauth/callback/oa1t1${project.id.slice(2, 8)}`;
@@ -77,24 +92,19 @@
 	});
 
 	async function handleSubmit() {
-		try {
-			let slackReceiver = await configureProjectSlack(
-				project.assistantID,
-				project.id,
-				config,
-				slackEnabled ? 'PUT' : 'POST'
-			);
-			project = await ChatService.getProject(project.id);
-			dialog.close();
-			addSlackBotTool.showModal();
-			config.appId = slackReceiver.appId;
-			config.clientId = slackReceiver.clientId;
-			config.clientSecret = '';
-			config.signingSecret = '';
-			errorMessage = '';
-		} catch (error) {
-			errorMessage = 'Failed to configure Slack, error: ' + error;
-		}
+		let slackReceiver = await configureProjectSlack(
+			project.assistantID,
+			project.id,
+			config,
+			slackEnabled ? 'PUT' : 'POST'
+		);
+		project = await ChatService.getProject(project.id);
+		dialog.close();
+		addSlackBotTool.showModal();
+		config.appId = slackReceiver.appId;
+		config.clientId = slackReceiver.clientId;
+		config.clientSecret = '';
+		config.signingSecret = '';
 	}
 
 	async function disableSlack() {
@@ -115,27 +125,36 @@
 			await ChatService.updateProjectTools(project.assistantID, project.id, {
 				items: Object.values(toolSelection)
 			});
-			let task = await ChatService.createTask(project.assistantID, project.id, {
-				id: '',
-				name: 'Slack Trigger Task',
-				description:
-					'This task will be triggered when a message is sent to a slack channel that mentions the bot.',
-				steps: [
-					{
-						step: 'reply back to the user in the thread',
-						id: ''
-					}
-				],
-				onSlackMessage: {}
-			});
-			layout.tasks = (await ChatService.listTasks(project.assistantID, project.id)).items;
-			if (!project.sharedTasks) {
-				project.sharedTasks = [];
-			}
-			project.sharedTasks.push(task.id);
-			project = await ChatService.updateProject(project);
 		}
-		addSlackBotTool.close();
+
+		// Wait for the Slack workflow to be created
+		let maxAttempts = 30;
+		let attempts = 0;
+
+		while (attempts < maxAttempts) {
+			attempts++;
+			project = await ChatService.getProject(project.id);
+
+			if (project.workflowNameFromIntegration) {
+				layout.tasks = (await ChatService.listTasks(project.assistantID, project.id)).items;
+				task = layout.tasks.find((t) => t.id === project.workflowNameFromIntegration);
+				if (task) {
+					authDialog?.show();
+				}
+
+				if (!project.sharedTasks) {
+					project.sharedTasks = [];
+				}
+				if (!project.sharedTasks.includes(project.workflowNameFromIntegration)) {
+					project.sharedTasks.push(project.workflowNameFromIntegration);
+					project = await ChatService.updateProject(project);
+				}
+				break;
+			}
+
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+		}
+		addSlackBotTool?.close();
 	}
 </script>
 
@@ -281,6 +300,41 @@
 		</div>
 	</div>
 </dialog>
+
+<dialog bind:this={taskDialog}>
+	<div class="modal-box">
+		<div class="p-4">
+			<h3 class="text-lg font-medium">Task Created</h3>
+			<p class="mt-2 text-sm text-gray-500">
+				Task "{task?.name}" has been created from the Slack integration.
+			</p>
+
+			<div class="mt-6 flex justify-end gap-3">
+				<button
+					class="button"
+					onclick={() => {
+						taskDialog?.close();
+						openTask(layout, task?.id);
+					}}
+				>
+					Go to Task
+				</button>
+			</div>
+		</div>
+	</div>
+</dialog>
+
+<CredentialAuth
+	bind:this={authDialog}
+	credential={credToAuth}
+	{project}
+	local={true}
+	toolID="slack-bot-bundle"
+	onClose={() => {
+		credToAuth = undefined;
+		taskDialog?.showModal();
+	}}
+/>
 
 {#snippet steps()}
 	<div class="space-y-6">
@@ -449,7 +503,7 @@
 {#snippet form()}
 	<div class="space-y-3">
 		<div>
-			<label for="appId" class="text-sm font-medium">App ID</label>
+			<label for="appIdLabel" class="text-sm font-medium">App ID</label>
 			<input
 				type="text"
 				id="appId"
@@ -461,7 +515,7 @@
 		</div>
 
 		<div>
-			<label for="clientId" class="text-sm font-medium">Client ID</label>
+			<label for="clientIdLabel" class="text-sm font-medium">Client ID</label>
 			<input
 				type="text"
 				id="clientId"
@@ -473,7 +527,7 @@
 		</div>
 
 		<form>
-			<label for="clientSecret" class="text-sm font-medium">Client Secret</label>
+			<label for="clientSecretLabel" class="text-sm font-medium">Client Secret</label>
 			<input
 				type="password"
 				id="clientSecret"
@@ -486,7 +540,7 @@
 		</form>
 
 		<form>
-			<label for="signingSecret" class="text-sm font-medium">Signing Secret</label>
+			<label for="signingSecretLabel" class="text-sm font-medium">Signing Secret</label>
 			<input
 				type="password"
 				id="signingSecret"
@@ -512,11 +566,5 @@
 			{/if}
 			<button class="button" onclick={handleSubmit}> Configure </button>
 		</div>
-
-		{#if errorMessage}
-			<div class="mt-4 flex justify-end">
-				<p class="text-red-500">{errorMessage}</p>
-			</div>
-		{/if}
 	</div>
 {/snippet}
