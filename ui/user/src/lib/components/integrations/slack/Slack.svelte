@@ -119,6 +119,7 @@
 	}
 
 	async function configureSlackTool() {
+		addSlackBotTool?.close();
 		if (toolSelection['slack-bot-bundle'] && !toolSelection['slack-bot-bundle'].enabled) {
 			toolSelection['slack-bot-bundle'].enabled = true;
 			projectTools.tools = Object.values(toolSelection);
@@ -154,7 +155,6 @@
 
 			await new Promise((resolve) => setTimeout(resolve, 1000));
 		}
-		addSlackBotTool?.close();
 	}
 </script>
 
