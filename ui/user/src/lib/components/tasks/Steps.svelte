@@ -16,7 +16,7 @@
 		run: (step?: TaskStep) => Promise<void>;
 		stepMessages: Record<string, Messages>;
 		pending: boolean;
-		running: boolean;
+		isTaskRunning: boolean;
 		error: string;
 		showAllOutput: boolean;
 		readOnly?: boolean;
@@ -32,7 +32,7 @@
 		run,
 		stepMessages,
 		pending,
-		running,
+		isTaskRunning = false,
 		error,
 		readOnly,
 		shouldFollowTaskRun = $bindable(),
@@ -57,7 +57,7 @@
 
 	$effect(() => {
 		// Run only during task run
-		if (!running) return;
+		if (!isTaskRunning) return;
 
 		// If scrollable element not found, break
 		if (!scrollableElement) return;
@@ -87,8 +87,8 @@
 		// If scrollable element is not yet ready, break
 		if (!scrollableElement) return;
 
-		// Task is not running; then no need to listen for scrolls
-		if (!running) return;
+		// Task is not isTaskRunning; then no need to listen for scrolls
+		if (!isTaskRunning) return;
 
 		// capture the old scroll top value
 		let previousScrollTop = scrollableElement.scrollTop;
@@ -177,7 +177,7 @@
 	});
 
 	function onNavigationClick() {
-		if (!readOnly && running) {
+		if (!readOnly && isTaskRunning) {
 			shouldFollowTaskRun = true;
 		}
 
@@ -201,15 +201,19 @@
 
 		scrollableElement!.scrollTo({
 			top,
-			behavior: running && shouldFollowTaskRun ? 'instant' : 'smooth'
+			behavior: isTaskRunning && shouldFollowTaskRun ? 'instant' : 'smooth'
 		});
+
+		if (isTaskRunning) {
+			shouldFollowTaskRun = true;
+		}
 	}
 
 	function scrollUp() {
 		if (!scrollableElement) return;
 		scrollableElement!.scrollTo({
 			top: 0,
-			behavior: running && shouldFollowTaskRun ? 'instant' : 'smooth'
+			behavior: isTaskRunning && shouldFollowTaskRun ? 'instant' : 'smooth'
 		});
 	}
 </script>
@@ -263,6 +267,7 @@
 				showOutput={showAllOutput}
 				{readOnly}
 				{lastStepId}
+				{isTaskRunning}
 			/>
 		{/each}
 	</ol>
@@ -271,8 +276,8 @@
 		<div class="mt-2 text-red-500">{error}</div>
 	{/if}
 
-	{#if (!readOnly && running) || hasScrollingContent}
-		{@const isFollowModeActive = !readOnly && running && shouldFollowTaskRun}
+	{#if (!readOnly && isTaskRunning) || hasScrollingContent}
+		{@const isFollowModeActive = !readOnly && isTaskRunning && shouldFollowTaskRun}
 
 		<div class="pointer-events-none absolute inset-0 z-10 flex items-end justify-end p-4">
 			<button
@@ -301,7 +306,7 @@
 </div>
 
 {#if runID}
-	<Files taskID={task.id} {runID} running={running || pending} {project} />
+	<Files taskID={task.id} {runID} running={isTaskRunning || pending} {project} />
 {/if}
 
 <style>

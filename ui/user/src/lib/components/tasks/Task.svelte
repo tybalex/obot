@@ -52,50 +52,31 @@
 	let isTaskInfoVisible = $state(true);
 	let observer: IntersectionObserver;
 
+	// TODO: Find a way to auto close the thread when task run is completed
+
 	/**************************************************************************************************/
 	// HACK: fix glitch that happens when in messages.inProgress when loop steps executed
 	// Make sure that the .inProgress stays true until the end of the current run task
 
 	let timeoutId: number | undefined = undefined;
 	// save how many step.inProgress === false we got
-	let inProgressFalseCount = $state(0);
 
 	let isRunning = $state(false);
 
 	// Indicate whther the user is activating the task run following or not
 	let shouldFollowTaskRun = $state(true);
 
+	// when not in progess is recieved; wait 1 seconds and force set task as not running
 	$effect(() => {
-		(() => allMessages?.inProgress)();
-
-		untrack(() => {
-			clearTimeout(timeoutId);
-
-			// check if inProgress is false
-			if (!allMessages?.inProgress) {
-				// increment the counter
-				inProgressFalseCount++;
-
-				// check if we got 2 false responses
-				if (inProgressFalseCount > 2) {
-					// set as not running
-					isRunning = false;
-
-					inProgressFalseCount = 0;
-				}
-
-				// in case we got the last message and 1 false inProgress; set a timeout function to update isRunning after some time
+		clearTimeout(timeoutId);
+		if (!allMessages?.inProgress) {
+			untrack(() => {
 				timeoutId = setTimeout(() => {
 					isRunning = false;
-					inProgressFalseCount = 0;
+					shouldFollowTaskRun = false;
 				}, 1000);
-			} else {
-				// set task as running
-				isRunning = true;
-
-				inProgressFalseCount = 0;
-			}
-		});
+			});
+		}
 	});
 
 	/**************************************************************************************************/
@@ -215,7 +196,6 @@
 
 	async function click() {
 		error = '';
-		shouldFollowTaskRun = true;
 
 		const hasAtLeastOneInstruction = task.steps.some((step) => (step.step ?? '').trim().length > 0);
 		if (!hasAtLeastOneInstruction) {
@@ -230,6 +210,9 @@
 					runID: runID
 				});
 			}
+
+			isRunning = false;
+			shouldFollowTaskRun = false;
 			return;
 		}
 
@@ -237,7 +220,11 @@
 			inputDialog?.showModal();
 			return;
 		}
+
 		await run();
+
+		isRunning = true;
+		shouldFollowTaskRun = true;
 	}
 
 	async function run(step?: TaskStep) {
@@ -405,7 +392,7 @@
 							{runID}
 							{stepMessages}
 							{pending}
-							running={isRunning}
+							isTaskRunning={isRunning}
 							{error}
 							{readOnly}
 						/>

@@ -17,9 +17,9 @@
 	import LoopStep from './LoopStep.svelte';
 	import { transitionParentHeight } from '$lib/actions/size.svelte';
 	import { linear } from 'svelte/easing';
+	import { twMerge } from 'tailwind-merge';
 
 	interface Props {
-		parentStale?: boolean;
 		run?: (step: TaskStep) => Promise<void>;
 		task: Task;
 		index: number;
@@ -31,10 +31,10 @@
 		showOutput?: boolean;
 		readOnly?: boolean;
 		lastStepId?: string;
+		isTaskRunning?: boolean;
 	}
 
 	let {
-		parentStale,
 		run,
 		task = $bindable(),
 		index,
@@ -45,12 +45,12 @@
 		project,
 		showOutput: shouldShowOutputGlobal,
 		readOnly,
-		lastStepId
+		lastStepId,
+		isTaskRunning = false
 	}: Props = $props();
 
 	// let isRunning = $derived(stepMessages?.get(step.id)?.inProgress ?? false);
 	let isRunnedBefore = $derived(!!stepMessages?.[step.id]?.lastRunID);
-	let stale: boolean = $derived(parentStale || !parentMatches());
 	let toDelete = $state<boolean>();
 	let isConvertToRegularDialogShown = $state(false);
 
@@ -58,7 +58,7 @@
 
 	let shouldShowOutput = $derived(shouldShowOutputLocal && shouldShowOutputGlobal);
 
-	let isRunning = $state(stepMessages?.[step.id]?.inProgress ?? false);
+	let isRunning = $state(lastStepId?.includes(step.id) ?? false);
 
 	let timeoutId: number | undefined = undefined;
 	// save how many step.inProgress === false we got
@@ -166,20 +166,6 @@
 		return iterations.filter(Boolean);
 	});
 
-	function parentMatches() {
-		if (isRunning) {
-			return true;
-		}
-		if (index === 0) {
-			return true;
-		}
-		const lastRun = stepMessages?.[task.steps[index - 1].id]?.messages.findLast((msg) => msg.runID);
-		const currentRun = stepMessages?.[task.steps[index].id]?.messages.find(
-			(msg) => msg.parentRunID
-		);
-		return lastRun?.runID === currentRun?.parentRunID;
-	}
-
 	async function toggleLoop() {
 		if (isLoopStep) {
 			isConvertToRegularDialogShown = true;
@@ -266,7 +252,7 @@
 	}
 </script>
 
-<li class="ms-4">
+<li class={twMerge('ms-4', isTaskRunning && !isRunning && 'opacity-50')}>
 	<div class="flex items-start justify-between gap-6">
 		<div class="flex grow flex-col gap-0">
 			<div class="flex items-center gap-2">
@@ -278,16 +264,12 @@
 					id={'step' + step.id}
 					bind:value={step.step}
 					class="ghost-input border-surface2 ml-1 grow resize-none"
-					disabled={readOnly}
+					readonly={readOnly}
 				></textarea>
 			</div>
 
 			{#if isLoopStep}
-				<div
-					class="loop-steps flex flex-col gap-2"
-					in:fade|global={{ duration: 200 }}
-					out:fade={{ duration: 0 }}
-				>
+				<div class="loop-steps flex flex-col gap-2">
 					{#each step.loop! as _, i (i)}
 						<!-- Get the current iteration steps messages array -->
 						{@const messages = iterations[i] ?? []}
@@ -304,7 +286,6 @@
 							isStepRunning={false}
 							isStepRunned={false}
 							{shouldShowOutput}
-							{stale}
 							onKeydown={onkeydown}
 							onDelete={() => step.loop!.splice(i, 1)}
 							onAdd={() => step.loop!.splice(i + 1, 0, '')}
@@ -331,12 +312,6 @@
 							{/if}
 						{/each}
 					</div>
-
-					{#if stale}
-						<div
-							class="absolute inset-0 h-full w-full rounded-3xl bg-white opacity-80 dark:bg-black"
-						></div>
-					{/if}
 				</div>
 			{/if}
 
@@ -378,8 +353,8 @@
 												runningProgress?.loopStep === j}
 											isStepRunning={isRunning}
 											isStepRunned={isRunnedBefore}
+											{isTaskRunning}
 											{shouldShowOutput}
-											{stale}
 											onKeydown={onkeydown}
 											onDelete={() => step.loop!.splice(j, 1)}
 										/>
@@ -393,7 +368,7 @@
 		</div>
 
 		{#if !readOnly}
-			<div class="flex items-start">
+			<div class={twMerge('flex items-start', isTaskRunning && 'pointer-events-none')}>
 				<button
 					class="icon-button"
 					class:text-blue={isLoopStep}

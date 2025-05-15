@@ -18,9 +18,9 @@
 		isLoopStepRunning?: boolean;
 		isStepRunning?: boolean;
 		isStepRunned?: boolean;
+		isTaskRunning?: boolean;
 		isReadOnly?: boolean;
 		shouldShowOutput?: boolean;
-		stale?: boolean;
 		index?: number;
 		onKeydown?: KeyboardEventHandler<HTMLTextAreaElement>;
 		onDelete?: () => void;
@@ -35,9 +35,9 @@
 		isLoopStepRunning = false,
 		isStepRunning = false,
 		isStepRunned = false,
+		isTaskRunning = false,
 		isReadOnly = false,
 		shouldShowOutput = false,
-		stale = false,
 		index = 0,
 		onKeydown = undefined,
 		onDelete = undefined,
@@ -47,7 +47,7 @@
 
 <div
 	class={twMerge(
-		'iteration-step flex w-full flex-col gap-0 transition-opacity duration-100',
+		'iteration-step flex w-full flex-col gap-0',
 		(isReadOnly || isStepRunned || isStepRunning) && 'border-surface2 border-b last:border-none',
 		klass
 	)}
@@ -61,12 +61,8 @@
 			bind:value
 			rows="1"
 			placeholder="Instructions..."
-			class={twMerge(
-				'ghost-input border-surface2 h-auto grow resize-none',
-				(isReadOnly || isStepRunned || isStepRunning) && 'border-transparent opacity-50'
-			)}
-			disabled={isReadOnly}
-			readonly={isReadOnly || isStepRunned || isStepRunning}
+			class="ghost-input border-surface2 h-auto grow resize-none"
+			readonly={isReadOnly || isTaskRunning}
 			onkeydown={onKeydown}
 		></textarea>
 
@@ -110,12 +106,6 @@
 					{/each}
 				{/if}
 			</div>
-
-			{#if stale}
-				<div
-					class="absolute inset-0 h-full w-full rounded-3xl bg-white opacity-80 dark:bg-black"
-				></div>
-			{/if}
 		</div>
 	{/if}
 </div>
