@@ -4,10 +4,7 @@
 	import Confirm from '$lib/components/Confirm.svelte';
 	import { tooltip } from '$lib/actions/tooltip.svelte';
 	import CollapsePane from '$lib/components/edit/CollapsePane.svelte';
-	import Toggle from '$lib/components/Toggle.svelte';
-	import CopyButton from '$lib/components/CopyButton.svelte';
-	import { browser } from '$app/environment';
-	import { ChatService, type Project, type ProjectShare, type ProjectMember } from '$lib/services';
+	import { ChatService, type Project, type ProjectMember } from '$lib/services';
 	import { profile } from '$lib/stores';
 	import { HELPER_TEXTS } from '$lib/context/helperMode.svelte';
 	import {
@@ -35,12 +32,6 @@
 
 	let { project }: Props = $props();
 	let members = $state<ProjectMember[]>([]);
-	let share = $state<ProjectShare>();
-	let url = $derived(
-		browser && share?.publicID
-			? `${window.location.protocol}//${window.location.host}/s/${share.publicID}`
-			: ''
-	);
 	const layout = getLayout();
 
 	async function loadMembers() {
@@ -53,32 +44,22 @@
 		await loadMembers();
 	}
 
-	async function updateShare() {
-		share = await ChatService.getProjectShare(project.assistantID, project.id);
-	}
-
 	function manageInvitations() {
 		if (!isOwnerOrAdmin) return;
 		openSidebarConfig(layout, 'invitations');
 	}
 
+	function openChatbotConfig() {
+		openSidebarConfig(layout, 'chatbot');
+	}
+
 	$effect(() => {
 		if (project) {
 			ownerID = project.userID;
-			updateShare();
 			loadMembers();
 			loadTemplates();
 		}
 	});
-
-	async function handleChange(checked: boolean) {
-		if (checked) {
-			share = await ChatService.createProjectShare(project.assistantID, project.id);
-		} else {
-			await ChatService.deleteProjectShare(project.assistantID, project.id);
-			share = undefined;
-		}
-	}
 
 	async function loadTemplates() {
 		try {
@@ -225,29 +206,18 @@
 			helpText={HELPER_TEXTS.chatbot}
 		>
 			<div class="flex flex-col gap-3">
-				<div class="flex w-full items-center justify-between gap-4">
-					<p class="flex grow text-sm">Enable ChatBot</p>
-					<Toggle label="Toggle ChatBot" checked={!!share?.publicID} onChange={handleChange} />
-				</div>
-
-				{#if share?.publicID}
-					<div
-						class="dark:bg-surface2 flex w-full flex-col gap-2 rounded-xl bg-white p-3 shadow-sm"
+				<p class="text-xs text-gray-500">
+					Configure ChatBot to produce a link that allows anyone to use this agent in a read-only
+					mode.
+				</p>
+				<div class="mt-2 flex justify-end" in:fade>
+					<button
+						class="button flex cursor-pointer items-center justify-end gap-1 text-xs"
+						onclick={openChatbotConfig}
 					>
-						<p class="text-xs text-gray-500">
-							<b>Anyone with this link</b> can use this agent, which includes <b>any credentials</b>
-							assigned to this agent.
-						</p>
-						<div class="flex gap-1">
-							<CopyButton text={url} />
-							<a href={url} class="overflow-hidden text-sm text-ellipsis hover:underline">{url}</a>
-						</div>
-					</div>
-				{:else}
-					<p class="text-xs text-gray-500">
-						Enable ChatBot to allow anyone with the link to use this agent.
-					</p>
-				{/if}
+						<span>Configure ChatBot</span>
+					</button>
+				</div>
 			</div>
 		</CollapsePane>
 
