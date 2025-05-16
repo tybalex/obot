@@ -241,6 +241,35 @@ func (m *MCPHandler) DeleteServer(req api.Context) error {
 	return req.Write(convertMCPServer(server, nil, nil))
 }
 
+func mergeMCPServerManifests(existing, override types.MCPServerManifest) types.MCPServerManifest {
+	if override.Name != "" {
+		existing.Name = override.Name
+	}
+	if override.Description != "" {
+		existing.Description = override.Description
+	}
+	if override.Icon != "" {
+		existing.Icon = override.Icon
+	}
+	if len(override.Env) > 0 {
+		existing.Env = override.Env
+	}
+	if override.Command != "" {
+		existing.Command = override.Command
+	}
+	if len(override.Args) > 0 {
+		existing.Args = override.Args
+	}
+	if override.URL != "" {
+		existing.URL = override.URL
+	}
+	if len(override.Headers) > 0 {
+		existing.Headers = override.Headers
+	}
+
+	return existing
+}
+
 func (m *MCPHandler) CreateServer(req api.Context) error {
 	var input types.MCPServer
 	if err := req.Read(&input); err != nil {
@@ -277,10 +306,9 @@ func (m *MCPHandler) CreateServer(req api.Context) error {
 			server.Spec.Manifest = catalogEntry.Spec.CommandManifest.Server
 		}
 		server.Spec.ToolReferenceName = catalogEntry.Spec.ToolReferenceName
-	}
 
-	if input.URL != "" {
-		server.Spec.Manifest.URL = input.URL
+		// Override the defaults from the catalog with the values from the request.
+		server.Spec.Manifest = mergeMCPServerManifests(server.Spec.Manifest, input.MCPServerManifest)
 	}
 
 	if err = req.Create(&server); err != nil {
