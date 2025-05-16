@@ -1,6 +1,7 @@
 <script lang="ts">
 	import {
 		ChatService,
+		getTaskRun,
 		type Messages,
 		type Project,
 		type Task,
@@ -51,6 +52,17 @@
 	let taskHeaderActionDiv: HTMLDivElement | undefined = $state<HTMLDivElement>();
 	let isTaskInfoVisible = $state(true);
 	let observer: IntersectionObserver;
+
+	let taskRun: Task | undefined = $state(undefined);
+
+	$effect(() => {
+		// Load task run data only in readonly mode; so that we can get the correct steps & loop steps related to the current task
+		if (readOnly && project && runID) {
+			getTaskRun(project.assistantID, project.id, task.id, runID).then((res) => {
+				taskRun = res.task;
+			});
+		}
+	});
 
 	// TODO: Find a way to auto close the thread when task run is completed
 
@@ -386,6 +398,7 @@
 							bind:task
 							bind:showAllOutput
 							bind:shouldFollowTaskRun
+							{taskRun}
 							{lastStepId}
 							{project}
 							{run}

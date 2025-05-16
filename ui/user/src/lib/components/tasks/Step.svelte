@@ -24,6 +24,7 @@
 		task: Task;
 		index: number;
 		step: TaskStep;
+		loopSteps?: string[];
 		runID?: string;
 		pending?: boolean;
 		stepMessages?: Record<string, Messages>;
@@ -39,6 +40,7 @@
 		task = $bindable(),
 		index,
 		step = $bindable(),
+		loopSteps = $bindable([]),
 		runID,
 		pending,
 		stepMessages,
@@ -270,7 +272,7 @@
 
 			{#if isLoopStep}
 				<div class="loop-steps flex flex-col gap-2">
-					{#each step.loop! as _, i (i)}
+					{#each loopSteps as _, i (i)}
 						<!-- Get the current iteration steps messages array -->
 						{@const messages = iterations[i] ?? []}
 
@@ -278,7 +280,7 @@
 						{@const stepMessages = messages[i] ?? []}
 
 						<LoopStep
-							bind:value={step.loop![i]}
+							bind:value={loopSteps[i]}
 							{project}
 							messages={stepMessages}
 							isReadOnly={readOnly}
@@ -287,8 +289,8 @@
 							isStepRunned={false}
 							{shouldShowOutput}
 							onKeydown={onkeydown}
-							onDelete={() => step.loop!.splice(i, 1)}
-							onAdd={() => step.loop!.splice(i + 1, 0, '')}
+							onDelete={() => loopSteps.splice(i, 1)}
+							onAdd={() => loopSteps.splice(i + 1, 0, '')}
 						/>
 					{/each}
 				</div>
@@ -338,13 +340,13 @@
 								</div>
 
 								<div class="flex flex-col">
-									{#each step.loop! as s, j (s)}
+									{#each loopSteps as s, j (s)}
 										<!-- Get the current step messages array -->
 										{@const stepMessages = messages[j] ?? []}
 
 										<LoopStep
 											class=""
-											value={step.loop![j]}
+											value={loopSteps[j]}
 											{project}
 											messages={stepMessages}
 											isReadOnly={readOnly}
@@ -356,7 +358,9 @@
 											{isTaskRunning}
 											{shouldShowOutput}
 											onKeydown={onkeydown}
-											onDelete={() => step.loop!.splice(j, 1)}
+											onDelete={() => {
+												step.loop = loopSteps!.splice(j, 1);
+											}}
 										/>
 									{/each}
 								</div>
