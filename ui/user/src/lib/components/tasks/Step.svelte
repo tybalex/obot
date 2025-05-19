@@ -56,6 +56,9 @@
 	let toDelete = $state<boolean>();
 	let isConvertToRegularDialogShown = $state(false);
 
+	let loopStepToDeleteIndex: number | undefined = $state(undefined);
+	let isLoopStepDeleteDialogShown = $derived(typeof loopStepToDeleteIndex === 'number');
+
 	let shouldShowOutputLocal = $state(!!shouldShowOutputGlobal);
 
 	let shouldShowOutput = $derived(shouldShowOutputLocal && shouldShowOutputGlobal);
@@ -252,6 +255,12 @@
 
 		return undefined;
 	}
+
+	function deleteLoopStep(index?: number) {
+		if (index === undefined) return;
+
+		loopSteps.splice(index, 1);
+	}
 </script>
 
 <li class={twMerge('ms-4', isTaskRunning && !isRunning && 'opacity-50')}>
@@ -289,7 +298,7 @@
 							isStepRunned={false}
 							{shouldShowOutput}
 							onKeydown={onkeydown}
-							onDelete={() => loopSteps.splice(i, 1)}
+							onDelete={() => (loopStepToDeleteIndex = i)}
 							onAdd={() => loopSteps.splice(i + 1, 0, '')}
 						/>
 					{/each}
@@ -455,4 +464,14 @@
 	msg={`Making this a regular step will delete all loop step, are you sure you want to continue?`}
 	onsuccess={makeRegularStep}
 	oncancel={() => (isConvertToRegularDialogShown = false)}
+/>
+
+<Confirm
+	show={isLoopStepDeleteDialogShown}
+	msg={`Are you sure you want to delete this loop step?`}
+	onsuccess={() => {
+		deleteLoopStep(loopStepToDeleteIndex);
+		loopStepToDeleteIndex = undefined;
+	}}
+	oncancel={() => (loopStepToDeleteIndex = undefined)}
 />
