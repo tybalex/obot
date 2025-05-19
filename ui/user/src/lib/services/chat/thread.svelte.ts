@@ -163,8 +163,6 @@ export class Thread {
 			if (progress.step?.id) {
 				stepID = progress.step?.id.split('{')[0];
 				fullStepID = progress.step?.id;
-				newMessages.delete(stepID);
-				newMessages.delete(fullStepID);
 			}
 			if (stepID) {
 				if (!newMessages.has(stepID)) {
