@@ -111,19 +111,13 @@
 
 	let runningProgress = $state(getCurrentRunData(step.id, lastStepId));
 
-	let isCompleted = $state(false);
-
 	$effect(() => {
-		if (lastStepId && !isCompleted) {
+		if (lastStepId && isRunning) {
 			untrack(() => {
 				const newVal = getCurrentRunData(step.id, lastStepId);
 
 				if (newVal && newVal.iteration >= (runningProgress?.iteration ?? 0)) {
 					runningProgress = newVal;
-				}
-
-				if (runningProgress && !newVal) {
-					isCompleted = true;
 				}
 			});
 		} else if (!lastStepId) {
@@ -309,8 +303,8 @@
 			{#if shouldShowOutput && messages.length}
 				<div
 					class="transition-height relative my-3 -ml-4 box-content flex min-h-6 flex-col gap-4 overflow-hidden rounded-lg bg-white p-5 dark:bg-black"
-					class:outline-2={isRunning}
-					class:outline-blue={isRunning}
+					class:outline-2={isTaskRunning && isRunning}
+					class:outline-blue={isTaskRunning && isRunning}
 					transition:slide={{ duration: 200, easing: linear }}
 				>
 					<div
