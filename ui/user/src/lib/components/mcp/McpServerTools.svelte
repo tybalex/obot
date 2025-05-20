@@ -6,6 +6,7 @@
 	import { fade, slide } from 'svelte/transition';
 	import { twMerge } from 'tailwind-merge';
 	import { DEFAULT_CUSTOM_SERVER_NAME } from '$lib/constants';
+	import { responsive } from '$lib/stores';
 
 	interface Props {
 		mcpServer: ProjectMCP;
@@ -38,7 +39,9 @@
 	let allToolsEnabled = $derived(selected[0] === '*' || selected.length === tools.length);
 	let loading = $state(false);
 	let expandedDescriptions = $state<Record<string, boolean>>({});
+	let expandedParams = $state<Record<string, boolean>>({});
 	let allDescriptionsEnabled = $state(true);
+	let allParamsEnabled = $state(true);
 	$effect(() => {
 		if (refTools) {
 			tools = refTools;
@@ -91,7 +94,7 @@
 </script>
 
 <div class="flex h-full flex-col gap-4">
-	<div class="relative flex flex-col gap-4 p-4 pb-0">
+	<div class="relative flex flex-col gap-4 pb-0 md:p-4">
 		{#if header}
 			{@render header()}
 		{:else}
@@ -125,7 +128,7 @@
 			</div>
 		{:else}
 			<div in:fade class="flex flex-col gap-2">
-				<div class="flex justify-end gap-4 border-r border-transparent pr-3">
+				<div class="flex flex-wrap justify-end gap-4 border-r border-transparent pr-3">
 					<Toggle
 						checked={allDescriptionsEnabled}
 						onChange={(checked) => {
@@ -139,7 +142,26 @@
 						}}
 					/>
 
-					<div class="bg-surface3 h-5 w-0.5"></div>
+					{#if !responsive.isMobile}
+						<div class="bg-surface3 h-5 w-0.5"></div>
+					{/if}
+
+					<Toggle
+						checked={allParamsEnabled}
+						onChange={(checked) => {
+							allParamsEnabled = checked;
+							expandedParams = {};
+						}}
+						label="Show All Parameters"
+						labelInline
+						classes={{
+							label: 'text-sm gap-2'
+						}}
+					/>
+
+					{#if !responsive.isMobile}
+						<div class="bg-surface3 h-5 w-0.5"></div>
+					{/if}
 
 					<Toggle
 						checked={allToolsEnabled}
@@ -193,6 +215,29 @@
 								<p in:slide={{ axis: 'y' }} class="text-sm font-light text-gray-500">
 									{tool.description}
 								</p>
+								{#if Object.keys(tool.params ?? {}).length > 0}
+									{#if expandedParams[tool.id] || allParamsEnabled}
+										<div
+											class={'from-surface2 dark:from-surface3 flex w-full flex-shrink-0 bg-linear-to-r to-transparent px-4 py-2 text-xs font-semibold text-gray-500 md:w-sm'}
+										>
+											Available Parameters
+										</div>
+										<div class="flex flex-col px-4 text-xs" in:slide={{ axis: 'y' }}>
+											<div class="flex flex-col gap-2">
+												{#each Object.keys(tool.params ?? {}) as paramKey}
+													<div class="flex flex-col items-center gap-2 md:flex-row">
+														<p class="self-start font-semibold text-gray-500 md:min-w-xs">
+															{paramKey}
+														</p>
+														<p class="self-start font-light text-gray-500">
+															{tool.params?.[paramKey]}
+														</p>
+													</div>
+												{/each}
+											</div>
+										</div>
+									{/if}
+								{/if}
 							{/if}
 						</div>
 					{/each}
@@ -203,7 +248,7 @@
 	<div class="flex grow"></div>
 	<div
 		class={twMerge(
-			'dark:bg-surface2 sticky bottom-0 left-0 flex w-full justify-end bg-white p-4',
+			'dark:bg-surface2 sticky bottom-0 left-0 flex w-full justify-end bg-white py-4 md:px-4',
 			classes?.actions
 		)}
 	>
