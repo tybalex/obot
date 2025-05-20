@@ -35,7 +35,7 @@
 	}: Props = $props();
 
 	let tools = $state<MCPServerTool[]>(refTools ?? []);
-	let selected = $state<string[]>(['*']);
+	let selected = $state<string[]>([]);
 	let allToolsEnabled = $derived(selected[0] === '*' || selected.length === tools.length);
 	let loading = $state(false);
 	let expandedDescriptions = $state<Record<string, boolean>>({});
@@ -45,7 +45,7 @@
 	$effect(() => {
 		if (refTools) {
 			tools = refTools;
-			selected = isNew ? ['*'] : tools.filter((t) => t.enabled).map((t) => t.id);
+			selected = tools.filter((t) => t.enabled).map((t) => t.id);
 		}
 	});
 
@@ -53,7 +53,9 @@
 		loading = true;
 		if (refTools) {
 			tools = refTools;
-		} else if (!refTools && project && mcpServer) {
+		}
+		if ((isNew || !refTools) && project && mcpServer) {
+			// Fetch the tools so we can figure out which ones should be enabled or not.
 			tools = currentThreadID
 				? await ChatService.listProjectThreadMcpServerTools(
 						project.assistantID,
@@ -66,8 +68,9 @@
 						project.id,
 						mcpServer.id
 					);
+			console.log('tools', tools);
 		}
-		selected = isNew ? ['*'] : tools.filter((t) => t.enabled).map((t) => t.id);
+		selected = tools.filter((t) => t.enabled).map((t) => t.id);
 		loading = false;
 	});
 
@@ -181,7 +184,14 @@
 							class="border-surface2 dark:border-surface3 flex flex-col gap-2 rounded-md border p-3"
 						>
 							<div class="flex items-center justify-between gap-2">
-								<p class="text-md font-semibold">{tool.name}</p>
+								<p class="text-md font-semibold">
+									{tool.name}
+									{#if tool.unsupported}
+										<span class="ml-3 text-sm text-gray-500">
+											⚠️ Not yet fully supported in Obot
+										</span>
+									{/if}
+								</p>
 								<div class="flex flex-shrink-0 items-center gap-2">
 									<button
 										class="icon-button h-fit min-h-auto w-fit min-w-auto flex-shrink-0 p-1"

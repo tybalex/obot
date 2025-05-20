@@ -27,6 +27,7 @@ type MCPServerCatalogEntrySpec struct {
 	CommandManifest   types.MCPServerCatalogEntryManifest `json:"commandManifest,omitzero"`
 	URLManifest       types.MCPServerCatalogEntryManifest `json:"urlManifest,omitzero"`
 	ToolReferenceName string                              `json:"toolReferenceName,omitempty"`
+	UnsupportedTools  []string                            `json:"unsupportedTools,omitempty"`
 }
 
 type MCPServerCatalogEntryStatus struct {

@@ -328,7 +328,7 @@ func (m *MCPHandler) CreateServer(req api.Context) error {
 			server.Spec.Manifest = catalogEntry.Spec.CommandManifest.Server
 		}
 		server.Spec.ToolReferenceName = catalogEntry.Spec.ToolReferenceName
-
+		server.Spec.UnsupportedTools = catalogEntry.Spec.UnsupportedTools
 		// Override the defaults from the catalog with the values from the request.
 		server.Spec.Manifest = mergeMCPServerManifests(server.Spec.Manifest, input.MCPServerManifest)
 	}
@@ -772,7 +772,8 @@ func (m *MCPHandler) toolsForServer(ctx context.Context, client kclient.Client, 
 			Name:        t.Name,
 			Description: t.Description,
 			Metadata:    t.MetaData,
-			Enabled:     allTools || len(allowedTools) == 0 || slices.Contains(allowedTools, t.Name),
+			Enabled:     allTools || (len(allowedTools) == 0 && !slices.Contains(server.Spec.UnsupportedTools, t.Name)) || slices.Contains(allowedTools, t.Name),
+			Unsupported: slices.Contains(server.Spec.UnsupportedTools, t.Name),
 		}
 
 		if t.Arguments != nil {

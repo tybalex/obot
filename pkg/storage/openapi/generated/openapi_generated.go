@@ -2756,6 +2756,12 @@ func schema_obot_platform_obot_apiclient_types_MCPServerTool(ref common.Referenc
 							Format:  "",
 						},
 					},
+					"unsupported": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 				},
 				Required: []string{"id", "name", "enabled"},
 			},
@@ -8644,6 +8650,20 @@ func schema_storage_apis_obotobotai_v1_MCPServerCatalogEntrySpec(ref common.Refe
 							Format: "",
 						},
 					},
+					"unsupportedTools": {
+						SchemaProps: spec.SchemaProps{
+							Type: []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
+						},
+					},
 				},
 				Required: []string{"commandManifest", "urlManifest"},
 			},
@@ -8761,6 +8781,21 @@ func schema_storage_apis_obotobotai_v1_MCPServerSpec(ref common.ReferenceCallbac
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},
 							Ref:     ref("github.com/obot-platform/obot/apiclient/types.MCPServerManifest"),
+						},
+					},
+					"unsupportedTools": {
+						SchemaProps: spec.SchemaProps{
+							Description: "List of tool names that are known to not work well in Obot.",
+							Type:        []string{"array"},
+							Items: &spec.SchemaOrArray{
+								Schema: &spec.Schema{
+									SchemaProps: spec.SchemaProps{
+										Default: "",
+										Type:    []string{"string"},
+										Format:  "",
+									},
+								},
+							},
 						},
 					},
 					"threadName": {
