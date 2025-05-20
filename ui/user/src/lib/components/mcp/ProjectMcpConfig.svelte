@@ -34,11 +34,16 @@
 	let savedProjectMcp = $state<ProjectMCP>();
 
 	function isObotHosted(projectMcp: ProjectMCP) {
-		return (
-			(projectMcp.env?.length ?? 0) > 0 ||
-			(projectMcp.args?.length ?? 0) > 0 ||
-			!!projectMcp.command
-		);
+		// Prioritize command presence for determining if it's Obot-hosted
+		// If there's no command but there's a URL, it should be treated as remote
+		if (projectMcp.command && projectMcp.command !== '') {
+			return true;
+		}
+		if (projectMcp.url && projectMcp.url !== '') {
+			return false;
+		}
+		// If neither command nor URL is present, fall back to checking other properties
+		return (projectMcp.args?.length ?? 0) > 0;
 	}
 
 	const initConfig: MCPServerInfo = projectMcp

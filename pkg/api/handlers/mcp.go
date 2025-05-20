@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"slices"
 
 	"github.com/gptscript-ai/go-gptscript"
@@ -24,6 +25,8 @@ type MCPHandler struct {
 	gptscript         *gptscript.GPTScript
 	mcpSessionManager *mcp.SessionManager
 }
+
+var envVarRegex = regexp.MustCompile(`\${([^}]+)}`)
 
 func NewMCPHandler(gptscript *gptscript.GPTScript, mcpLoader *mcp.SessionManager) *MCPHandler {
 	return &MCPHandler{
@@ -60,6 +63,9 @@ func (m *MCPHandler) ListCatalog(req api.Context) error {
 }
 
 func convertMCPServerCatalogEntry(entry v1.MCPServerCatalogEntry) types.MCPServerCatalogEntry {
+	// Add extracted env vars directly to the entry
+	addExtractedEnvVarsToCatalogEntry(&entry)
+
 	return types.MCPServerCatalogEntry{
 		Metadata:          MetadataFrom(&entry),
 		CommandManifest:   entry.Spec.CommandManifest,
@@ -111,13 +117,20 @@ func (m *MCPHandler) ListServer(req api.Context) error {
 	credMap := make(map[string]map[string]string, len(creds))
 	for _, cred := range creds {
 		if _, ok := credMap[cred.ToolName]; !ok {
-			credMap[cred.ToolName] = cred.Env
+			c, err := m.gptscript.RevealCredential(req.Context(), []string{cred.Context}, cred.ToolName)
+			if err != nil && !errors.As(err, &gptscript.ErrNotFound{}) {
+				return fmt.Errorf("failed to find credential: %w", err)
+			}
+			credMap[cred.ToolName] = c.Env
 		}
 	}
 
 	var tools []types.MCPServerTool
 	items := make([]types.MCPServer, 0, len(servers.Items))
 	for _, server := range servers.Items {
+		// Add extracted env vars to the server definition
+		addExtractedEnvVars(&server)
+
 		if withTools {
 			credCtxs := []string{fmt.Sprintf("%s-%s", project.Name, server.Name)}
 			if project.IsSharedProject() {
@@ -169,6 +182,9 @@ func (m *MCPHandler) getServer(req api.Context, withTools bool) error {
 	if err := req.Get(&server, id); err != nil {
 		return err
 	}
+
+	// Add extracted env vars to the server definition
+	addExtractedEnvVars(&server)
 
 	project, err := getProjectThread(req)
 	if err != nil {
@@ -224,6 +240,9 @@ func (m *MCPHandler) DeleteServer(req api.Context) error {
 	if err := req.Get(&server, id); err != nil {
 		return err
 	}
+
+	// Add extracted env vars to the server definition
+	addExtractedEnvVars(&server)
 
 	// Ensure that the MCP server is in the same project as the request before deleting it.
 	// This prevents chatbot users from deleting MCP servers from the agent.
@@ -294,6 +313,9 @@ func (m *MCPHandler) CreateServer(req api.Context) error {
 		},
 	}
 
+	// Add extracted env vars to the server definition
+	addExtractedEnvVars(&server)
+
 	if input.CatalogID != "" {
 		var catalogEntry v1.MCPServerCatalogEntry
 		if err := req.Get(&catalogEntry, input.CatalogID); err != nil {
@@ -333,6 +355,9 @@ func (m *MCPHandler) UpdateServer(req api.Context) error {
 	if err := req.Get(&existing, id); err != nil {
 		return err
 	}
+
+	// Add extracted env vars to the server definition
+	addExtractedEnvVars(&existing)
 
 	project, err := getProjectThread(req)
 	if err != nil {
@@ -397,6 +422,7 @@ func (m *MCPHandler) UpdateServer(req api.Context) error {
 	}
 
 	existing.Spec.Manifest = updated
+
 	if err := req.Update(&existing); err != nil {
 		return err
 	}
@@ -409,6 +435,9 @@ func (m *MCPHandler) ConfigureServer(req api.Context) error {
 	if err := req.Get(&mcpServer, req.PathValue("mcp_server_id")); err != nil {
 		return err
 	}
+
+	// Add extracted env vars to the server definition
+	addExtractedEnvVars(&mcpServer)
 
 	project, err := getProjectThread(req)
 	if err != nil {
@@ -449,6 +478,9 @@ func (m *MCPHandler) ConfigureSharedServer(req api.Context) error {
 	if err := req.Get(&mcpServer, req.PathValue("mcp_server_id")); err != nil {
 		return err
 	}
+
+	// Add extracted env vars to the server definition
+	addExtractedEnvVars(&mcpServer)
 
 	project, err := getProjectThread(req)
 	if err != nil {
@@ -517,6 +549,9 @@ func (m *MCPHandler) DeconfigureServer(req api.Context) error {
 		return err
 	}
 
+	// Add extracted env vars to the server definition
+	addExtractedEnvVars(&mcpServer)
+
 	project, err := getProjectThread(req)
 	if err != nil {
 		return err
@@ -534,6 +569,9 @@ func (m *MCPHandler) DeconfigureSharedServer(req api.Context) error {
 	if err := req.Get(&mcpServer, req.PathValue("mcp_server_id")); err != nil {
 		return err
 	}
+
+	// Add extracted env vars to the server definition
+	addExtractedEnvVars(&mcpServer)
 
 	project, err := getProjectThread(req)
 	if err != nil {
@@ -782,8 +820,139 @@ func (m *MCPHandler) removeMCPServerAndCred(ctx context.Context, mcpServer v1.MC
 	return nil
 }
 
+func extractEnvVars(text string) []string {
+	if text == "" {
+		return nil
+	}
+
+	matches := envVarRegex.FindAllStringSubmatch(text, -1)
+
+	vars := make([]string, 0, len(matches))
+	for _, match := range matches {
+		if len(match) > 1 {
+			vars = append(vars, match[1])
+		}
+	}
+
+	return vars
+}
+
+// addExtractedEnvVars extracts and adds environment variables to the server definition
+func addExtractedEnvVars(server *v1.MCPServer) {
+	// Keep track of existing env vars in the spec to avoid duplicates
+	existing := make(map[string]struct{})
+	for _, env := range server.Spec.Manifest.Env {
+		existing[env.Key] = struct{}{}
+	}
+
+	// Extract variables from command
+	extracted := make(map[string]struct{})
+	for _, v := range extractEnvVars(server.Spec.Manifest.Command) {
+		extracted[v] = struct{}{}
+	}
+
+	// Extract variables from args
+	for _, arg := range server.Spec.Manifest.Args {
+		for _, v := range extractEnvVars(arg) {
+			extracted[v] = struct{}{}
+		}
+	}
+
+	// Extract variables from URL
+	for _, v := range extractEnvVars(server.Spec.Manifest.URL) {
+		extracted[v] = struct{}{}
+	}
+
+	// Add any new vars to the server's Env list
+	for v := range extracted {
+		if _, exists := existing[v]; !exists {
+			server.Spec.Manifest.Env = append(server.Spec.Manifest.Env, types.MCPEnv{
+				MCPHeader: types.MCPHeader{
+					Name:        v,
+					Key:         v,
+					Description: "Automatically detected variable",
+					Sensitive:   true,
+					Required:    true,
+				},
+			})
+		}
+	}
+}
+
+// addExtractedEnvVarsToCatalogEntry extracts and adds environment variables to both manifests in the catalog entry
+func addExtractedEnvVarsToCatalogEntry(entry *v1.MCPServerCatalogEntry) {
+	// Extract and add env vars to Command Manifest
+	if entry.Spec.CommandManifest.Server.Command != "" {
+		// Keep track of existing env vars in the command manifest to avoid duplicates
+		existingCmd := make(map[string]struct{})
+		for _, env := range entry.Spec.CommandManifest.Server.Env {
+			existingCmd[env.Key] = struct{}{}
+		}
+
+		// Extract variables from command
+		extractedCmd := make(map[string]struct{})
+		for _, v := range extractEnvVars(entry.Spec.CommandManifest.Server.Command) {
+			extractedCmd[v] = struct{}{}
+		}
+
+		// Extract variables from args
+		for _, arg := range entry.Spec.CommandManifest.Server.Args {
+			for _, v := range extractEnvVars(arg) {
+				extractedCmd[v] = struct{}{}
+			}
+		}
+
+		// Add any new vars to the Command Manifest's Env list
+		for v := range extractedCmd {
+			if _, exists := existingCmd[v]; !exists {
+				entry.Spec.CommandManifest.Server.Env = append(entry.Spec.CommandManifest.Server.Env, types.MCPEnv{
+					MCPHeader: types.MCPHeader{
+						Name:        v,
+						Key:         v,
+						Description: "Automatically detected variable",
+						Sensitive:   true,
+						Required:    true,
+					},
+				})
+			}
+		}
+	}
+
+	// Extract and add env vars to URL Manifest
+	if entry.Spec.URLManifest.Server.URL != "" {
+		// Keep track of existing env vars in the URL manifest to avoid duplicates
+		existingURL := make(map[string]struct{})
+		for _, env := range entry.Spec.URLManifest.Server.Env {
+			existingURL[env.Key] = struct{}{}
+		}
+
+		// Extract variables from URL
+		extractedURL := make(map[string]struct{})
+		for _, v := range extractEnvVars(entry.Spec.URLManifest.Server.URL) {
+			extractedURL[v] = struct{}{}
+		}
+
+		// Add any new vars to the URL Manifest's Env list
+		for v := range extractedURL {
+			if _, exists := existingURL[v]; !exists {
+				entry.Spec.URLManifest.Server.Env = append(entry.Spec.URLManifest.Server.Env, types.MCPEnv{
+					MCPHeader: types.MCPHeader{
+						Name:        v,
+						Key:         v,
+						Description: "Automatically detected variable",
+						Sensitive:   true,
+						Required:    true,
+					},
+				})
+			}
+		}
+	}
+}
+
 func convertMCPServer(server v1.MCPServer, tools []types.MCPServerTool, credEnv map[string]string) types.MCPServer {
 	var missingEnvVars, missingHeaders []string
+
+	// Check for missing required env vars
 	for _, env := range server.Spec.Manifest.Env {
 		if !env.Required {
 			continue
@@ -793,6 +962,8 @@ func convertMCPServer(server v1.MCPServer, tools []types.MCPServerTool, credEnv 
 			missingEnvVars = append(missingEnvVars, env.Key)
 		}
 	}
+
+	// Check for missing required headers
 	for _, header := range server.Spec.Manifest.Headers {
 		if !header.Required {
 			continue
