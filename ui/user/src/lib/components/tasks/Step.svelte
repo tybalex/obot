@@ -257,7 +257,13 @@
 	}
 </script>
 
-<li class={twMerge('ms-4', isTaskRunning && !isRunning && 'opacity-50')}>
+<li
+	class={twMerge(
+		'ms-4 rounded-md',
+		toDelete && 'bg-surface1 dark:bg-surface2',
+		isTaskRunning && !isRunning && 'opacity-50'
+	)}
+>
 	<div class="flex items-start justify-between gap-6">
 		<div class="flex grow flex-col gap-0">
 			<div class="flex items-center gap-2">
@@ -284,6 +290,10 @@
 
 						<LoopStep
 							bind:value={loopSteps[i]}
+							class={twMerge(
+								'rounded-md',
+								loopStepToDeleteIndex === i && 'bg-surface1 dark:bg-surface2'
+							)}
 							{project}
 							messages={stepMessages}
 							isReadOnly={readOnly}
