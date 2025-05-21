@@ -1,10 +1,17 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, tick, untrack } from 'svelte';
 	import { ChevronDown } from 'lucide-svelte';
-	import type { Thread as ThreadType } from '$lib/services/chat/types';
+	import type { ModelProvider, Thread as ThreadType } from '$lib/services/chat/types';
 	import type { Project } from '$lib/services';
-	import { getThread, updateThread, getDefaultModelForThread } from '$lib/services/chat/operations';
+	import {
+		getThread,
+		updateThread,
+		getDefaultModelForThread,
+		listModelProviders
+	} from '$lib/services/chat/operations';
 	import { twMerge } from 'tailwind-merge';
+	import { SvelteMap } from 'svelte/reactivity';
+	import { darkMode } from '$lib/stores';
 
 	interface Props {
 		threadId: string | undefined;
@@ -131,9 +138,51 @@
 			});
 		}
 	});
+
+	let modelProvidersMap = new SvelteMap<string, ModelProvider>();
+
+	$effect(() => {
+		loadModelProviders(project);
+	});
+
+	// Function to fetch model providers
+	async function loadModelProviders(project: Project) {
+		try {
+			listModelProviders(project.assistantID, project.id).then((res) => {
+				untrack(() => {
+					for (const provider of res.items) {
+						modelProvidersMap.set(provider.id, provider);
+					}
+				});
+			});
+		} catch (error) {
+			console.error('Failed to load model providers:', error);
+		}
+	}
+
+	type ScrollIntoSelectedModelParams = {
+		providerId?: string;
+		modelId?: string;
+	};
+
+	// TODO: We are loading model providers in different location in the app
+	// A better approach to load them once and share them, with the abbility to reload the results
+	function scrollIntoSelectedModel(node: HTMLElement, params: ScrollIntoSelectedModelParams) {
+		if (!params.modelId) return;
+		if (!params.providerId) return;
+
+		tick().then(() => {
+			const modelElement = node.querySelector(
+				`[data-provider="${params.providerId}"][data-model="${params.modelId}"]`
+			);
+			if (modelElement) {
+				modelElement.scrollIntoView({ behavior: 'instant', block: 'center' });
+			}
+		});
+	}
 </script>
 
-<!-- TODO: Refactor this to use a dropdown component either third-party in internally crafted -->
+<!-- TODO: Refactor this to use a dropdown component either third-party or internally crafted -->
 <div class="relative mr-2 md:mr-6 lg:mr-8">
 	<button
 		class={twMerge(
@@ -173,7 +222,7 @@
 			role="listbox"
 			tabindex="-1"
 			aria-labelledby="thread-model-button"
-			class="available-models-popover default-scrollbar-thin border-surface1 dark:bg-surface2 absolute right-0 bottom-full z-10 mb-1 max-h-60 w-max max-w-sm overflow-hidden overflow-y-auto rounded-md border bg-white p-2 shadow-lg md:max-w-md lg:max-w-lg"
+			class="available-models-popover default-scrollbar-thin border-surface1 dark:bg-surface2 absolute right-0 bottom-full z-10 mb-1 max-h-60 w-max max-w-sm overflow-hidden overflow-y-auto rounded-md border bg-white px-2 shadow-lg md:max-w-md lg:max-w-lg"
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => {
 				if (e.key === 'Escape') {
@@ -182,30 +231,73 @@
 				}
 			}}
 			bind:this={modelSelectorRef}
+			use:scrollIntoSelectedModel={{
+				providerId: threadDetails?.modelProvider,
+				modelId: threadDetails?.model
+			}}
 		>
 			{#if modelsEntries.length}
-				{#each modelsEntries as [providerId, models] (providerId)}
-					{#if Array.isArray(models) && models.length > 0 && providerId}
-						{#each models as model (model)}
-							<button
-								role="option"
-								aria-selected={threadDetails?.modelProvider === providerId &&
-									threadDetails?.model === model}
-								class={twMerge(
-									'hover:bg-surface1 focus:bg-surface1 w-full rounded px-2 py-1.5 text-left text-sm focus:outline-none',
-									defaultModel?.model === model && 'text-blue hover:bg-blue/10 active:bg-blue/15'
-								)}
-								onclick={() => setThreadModel(model, providerId)}
-								tabindex="0"
-							>
-								{model}
-								{#if threadDetails?.modelProvider === providerId && threadDetails?.model === model}
-									<span class="ml-1 text-xs text-green-500">✓</span>
-								{/if}
-							</button>
-						{/each}
-					{/if}
-				{/each}
+				<div class="flex flex-col">
+					{#each modelsEntries as [providerId, models] (providerId)}
+						{#if Array.isArray(models) && models.length > 0 && providerId}
+							{@const provider = modelProvidersMap.get(providerId)}
+							<div class="border-surface1 flex flex-col border-b py-2 last:border-transparent">
+								<div class="mb-2 flex gap-1 text-xs">
+									{#if provider?.icon || provider?.iconDark}
+										<img
+											src={darkMode.isDark && provider.iconDark ? provider.iconDark : provider.icon}
+											alt={provider.name}
+											class={twMerge(
+												'size-4',
+												darkMode.isDark && !provider.iconDark ? 'dark:invert' : ''
+											)}
+										/>
+									{/if}
+									<div>{provider?.name ?? ''}</div>
+								</div>
+								<div class="provider-models flex flex-col gap-1">
+									{#each models as model (model)}
+										{@const isModelSelected =
+											threadDetails?.modelProvider === providerId && threadDetails?.model === model}
+
+										{@const isDefaultModel =
+											defaultModel?.modelProvider === providerId && defaultModel?.model === model}
+
+										<button
+											role="option"
+											aria-selected={isModelSelected}
+											class={twMerge(
+												'hover:bg-surface1/70 active:bg-surface1/80 focus:bg-surface1/70 flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm transition-colors duration-200 focus:outline-none',
+												isModelSelected && 'text-blue bg-blue/10 hover:bg-blue/15 active:bg-blue/20'
+											)}
+											onclick={() => setThreadModel(model, providerId)}
+											tabindex="0"
+											data-provider={providerId}
+											data-model={model}
+										>
+											<div>
+												{model}
+											</div>
+
+											{#if isDefaultModel}
+												<img
+													class={twMerge(' size-4', !isModelSelected && 'grayscale-100')}
+													src="/user/images/obot-icon-blue.svg"
+													alt="Obot default model"
+													title="Obot default model"
+												/>
+											{/if}
+
+											{#if threadDetails?.modelProvider === providerId && threadDetails?.model === model}
+												<div class="ml-auto text-xs text-blue-500">✓</div>
+											{/if}
+										</button>
+									{/each}
+								</div>
+							</div>
+						{/if}
+					{/each}
+				</div>
 
 				{#if isUpdatingModel}
 					<div class="flex justify-center p-2">
