@@ -468,7 +468,7 @@
 						{/if}
 					</div>
 
-					<div class="relative flex flex-1 flex-col">
+					<div class="relative flex min-h-[180px] flex-1 flex-col">
 						<div
 							class="default-scrollbar-thin scrollbar-track-rounded-full absolute inset-0 flex h-full max-h-full flex-col overflow-y-auto px-2"
 						>
