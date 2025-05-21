@@ -241,10 +241,17 @@
 			return;
 		}
 
-		await run();
+		try {
+			// make sure this runs after run() function and before promise is resolved
+			setTimeout(() => {
+				isRunning = true;
+				shouldFollowTaskRun = true;
+			}, 0);
 
-		isRunning = true;
-		shouldFollowTaskRun = true;
+			await run();
+		} catch (_) {
+			isRunning = false;
+		}
 	}
 
 	async function run(step?: TaskStep) {

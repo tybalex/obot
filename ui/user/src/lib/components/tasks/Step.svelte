@@ -19,6 +19,7 @@
 	import { linear } from 'svelte/easing';
 	import { DraggableHandle, DraggableItem } from '../primitives/draggable';
 	import { twMerge } from 'tailwind-merge';
+	import Loading from '$lib/icons/Loading.svelte';
 
 	interface Props {
 		run?: (step: TaskStep) => Promise<void>;
@@ -260,7 +261,9 @@
 	class={twMerge(
 		'ms-4 w-full gap-2 rounded-md',
 		toDelete && 'bg-surface1 dark:bg-surface2',
-		isTaskRunning && !isRunning && 'opacity-50'
+		isTaskRunning &&
+			((index > 0 && !isRunning) || (index === 0 && messages.length && !isRunning)) &&
+			'opacity-50'
 	)}
 	{index}
 	id={step.id}
@@ -411,22 +414,45 @@
 			{/if}
 
 			<!-- This code section is responsible for showing messages in a !loop task -->
-			{#if shouldShowOutput && messages.length}
+			<!-- Show messages container when: -->
+			<!-- Show output is active -->
+			<!-- Task is running and this is the first step to display an indicator so user knows something is hapenning -->
+			<!-- This step is running -->
+			<!-- Messages array is not empty -->
+			{#if shouldShowOutput && ((isTaskRunning && index == 0) || isRunning || messages.length)}
+				{@const shouldShowOutline = isRunning || (isTaskRunning && !messages.length && index === 0)}
+
 				<div
 					class="transition-height relative my-3 -ml-4 box-content flex min-h-6 flex-col gap-4 overflow-hidden rounded-lg bg-white p-5 dark:bg-black"
-					class:outline-2={isTaskRunning && isRunning}
-					class:outline-blue={isTaskRunning && isRunning}
-					transition:slide={{ duration: 200, easing: linear }}
+					class:outline-2={shouldShowOutline}
+					class:outline-blue={shouldShowOutline}
+					transition:slide={{
+						duration: 200,
+						easing: linear
+					}}
 				>
 					<div
 						class="messages-container flex w-full flex-col gap-4"
 						use:transitionParentHeight={() => isRunning || messages}
 					>
-						{#each messages as msg}
-							{#if !msg.sent}
-								<Message {msg} {project} disableMessageToEditor />
-							{/if}
-						{/each}
+						{#if messages.length || isRunning}
+							{#each messages as msg}
+								{#if !msg.sent}
+									<Message {msg} {project} disableMessageToEditor />
+								{/if}
+							{/each}
+							<!-- Show a loading placeholder in the first step when task is running and messages array is empty -->
+						{:else if index == 0 && !messages.length && isTaskRunning}
+							<!-- Running placeholder -->
+							<!-- Show only on the first step when we don have any messages yet and only when task is running -->
+							<div
+								class="flex items-center gap-2 text-sm font-semibold"
+								transition:fade={{ duration: 100 }}
+							>
+								<div>loading...</div>
+								<Loading class="size-4" />
+							</div>
+						{/if}
 					</div>
 				</div>
 			{/if}
