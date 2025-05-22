@@ -278,19 +278,19 @@
 					placeholder={isLoopStep ? 'Description of the data to loop over...' : 'Instructions...'}
 					use:autoHeight
 					id={'step' + step.id}
-					bind:value={
-						() => step.step,
-						(v) => {
-							// Get a snapshot of procied object
-							const s = $state.snapshot(step);
-							// Apply new changes
-							s.step = v;
-							// Send it upp to be saved
-							onChange?.(s);
-						}
-					}
+					value={step.step}
 					class="ghost-input border-surface2 ml-1 grow resize-none"
 					readonly={readOnly}
+					oninput={(ev) => {
+						const value = (ev.target as HTMLInputElement).value;
+
+						// Get a snapshot of procied object
+						const s = $state.snapshot(step);
+						// Apply new changes
+						s.step = value;
+						// Send it upp to be saved
+						onChange?.(s);
+					}}
 				></textarea>
 
 				{#if !readOnly}

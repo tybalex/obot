@@ -57,13 +57,16 @@
 	<div class={'flex items-center gap-2 overflow-hidden pl-4'}>
 		<textarea
 			use:autoHeight
-			bind:value
+			{value}
 			rows="1"
 			placeholder="Instructions..."
 			class={'ghost-input border-surface2 h-auto grow resize-none'}
 			disabled={isReadOnly}
 			readonly={isReadOnly || isTaskRunning}
 			onkeydown={onKeydown}
+			oninput={(ev) => {
+				value = (ev.target as HTMLInputElement).value;
+			}}
 		></textarea>
 
 		{#if !isReadOnly && !isStepRunned && !isStepRunning}
