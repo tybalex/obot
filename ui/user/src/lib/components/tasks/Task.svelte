@@ -322,7 +322,7 @@
 
 <div class="flex h-full w-full grow flex-col">
 	<div
-		class="sticky top-0 left-0 z-40 flex h-0 flex-col items-center justify-center bg-white px-4 opacity-0 transition-all duration-200 md:px-8 dark:bg-black"
+		class="sticky top-0 left-0 z-40 flex h-0 flex-col items-center justify-center px-4 opacity-0 transition-all duration-200 md:px-8"
 		class:opacity-100={!isTaskInfoVisible}
 		class:h-16={!isTaskInfoVisible}
 	>
