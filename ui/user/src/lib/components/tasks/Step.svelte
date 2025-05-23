@@ -259,7 +259,7 @@
 <DraggableItem
 	as="li"
 	class={twMerge(
-		'ms-4 w-full gap-2 rounded-md',
+		'w-full gap-2 rounded-md',
 		toDelete && 'bg-surface1 dark:bg-surface2',
 		isTaskRunning &&
 			((index > 0 && !isRunning) || (index === 0 && messages.length && !isRunning)) &&
