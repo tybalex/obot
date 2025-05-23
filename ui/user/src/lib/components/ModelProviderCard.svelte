@@ -1,4 +1,4 @@
-<script module>
+<script lang="ts" module>
 	function sortGptModels(models: string[]) {
 		const query = 'gpt';
 
