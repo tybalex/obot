@@ -1,8 +1,10 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"slices"
 	"strings"
 
@@ -523,6 +525,31 @@ func (h *ProjectsHandler) CreateProjectThread(req api.Context) error {
 			ParentThreadName: projectThread.Name,
 			UserID:           req.User.GetUID(),
 		},
+	}
+
+	body, err := io.ReadAll(req.Request.Body)
+	if err != nil {
+		return err
+	}
+
+	if len(body) > 0 {
+		// Attempt to parse the model and model provider from the body.
+		var bodyContents struct {
+			Model         string `json:"model"`
+			ModelProvider string `json:"modelProvider"`
+		}
+
+		if err := json.Unmarshal(body, &bodyContents); err != nil {
+			return fmt.Errorf("failed to unmarshal request body: %w", err)
+		}
+
+		// Make sure that this model and model provider are valid on the project.
+		if !slices.Contains(projectThread.Spec.Models[bodyContents.ModelProvider], bodyContents.Model) {
+			return types.NewErrBadRequest("model %q from model provider %q is not configured for this project", bodyContents.Model, bodyContents.ModelProvider)
+		}
+
+		thread.Spec.DefaultModel = bodyContents.Model
+		thread.Spec.DefaultModelProvider = bodyContents.ModelProvider
 	}
 
 	if err := req.Create(&thread); err != nil {
