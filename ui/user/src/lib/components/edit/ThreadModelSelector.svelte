@@ -16,22 +16,45 @@
 	interface Props {
 		threadId: string | undefined;
 		project: Project;
+		projectDefaultModelProvider?: string;
+		projectDefaultModel?: string;
 		onModelChanged?: () => void;
+		onCreateThread?: (model?: string, modelProvider?: string) => Promise<void> | void;
 	}
 
-	let { threadId, project, onModelChanged }: Props = $props();
+	let {
+		threadId,
+		project,
+		projectDefaultModel,
+		projectDefaultModelProvider,
+		onModelChanged,
+		onCreateThread
+	}: Props = $props();
 
 	let showModelSelector = $state(false);
-	let threadDetails = $state<ThreadType | null>(null);
+	let threadType = $state<ThreadType | null>(null);
 	let isUpdatingModel = $state(false);
 	let modelSelectorRef = $state<HTMLDivElement>();
 	let modelButtonRef = $state<HTMLButtonElement>();
-	let defaultModel = $state<{ model: string; modelProvider: string } | null>(null);
-
 	let modelsEntries = $derived(Object.entries(project.models || {}));
 
+	let threadDefaultModel = $state<string>();
+	let threadDefaultModelProvider = $state<string>();
+
+	let defaultModel = $derived(threadDefaultModel ?? projectDefaultModel);
+	let defaultModelProvider = $derived(threadDefaultModelProvider ?? projectDefaultModelProvider);
+
+	// Selected model provider & model for the current thread
+	let threadModel = $derived(threadType?.model ?? threadDefaultModel ?? defaultModel);
+	let threadModelProvider = $derived(
+		threadType?.modelProvider ?? threadDefaultModelProvider ?? defaultModelProvider
+	);
+
 	const isDefaultModelSelected = $derived(
-		threadDetails && defaultModel?.model !== '' && defaultModel?.model === threadDetails?.model
+		defaultModelProvider &&
+			defaultModel &&
+			defaultModelProvider === threadModelProvider &&
+			defaultModel === threadModel
 	);
 
 	// Function to fetch thread details including model
@@ -40,7 +63,7 @@
 
 		try {
 			const thread = await getThread(project.assistantID, project.id, threadId);
-			threadDetails = thread;
+			threadType = thread;
 
 			// Fetch default model information
 			fetchDefaultModel();
@@ -54,19 +77,41 @@
 		if (!threadId) return;
 
 		try {
-			defaultModel = await getDefaultModelForThread(project.assistantID, project.id, threadId);
+			const res = await getDefaultModelForThread(project.assistantID, project.id, threadId);
+
+			threadDefaultModel = res.model;
+			threadDefaultModelProvider = res.modelProvider;
 		} catch (err) {
 			console.error('Error fetching default model:', err);
-			defaultModel = null;
+
+			threadDefaultModel = undefined;
+			threadDefaultModelProvider = undefined;
 		}
 	}
 
 	// Function to update thread model
 	async function setThreadModel(model: string, provider: string) {
-		if (!threadId || !threadDetails) return;
+		if (!threadId || !threadType) {
+			// User change model in chat view; Create a new thread with selected model and model provider
+			const promise = onCreateThread?.(model, provider);
+
+			// Check if returned type is a promise
+			if (promise instanceof Promise) {
+				// Wait for the promise
+				await promise;
+			}
+
+			// Fetch newly created thread details
+			await fetchThreadDetails();
+
+			// Close dropdown
+			showModelSelector = false;
+
+			return;
+		}
 
 		// Prevent setting to empty if default model is empty
-		if (!model && !provider && defaultModel?.model === '' && defaultModel?.modelProvider === '') {
+		if (!model && !provider && projectDefaultModel === '' && projectDefaultModelProvider === '') {
 			return;
 		}
 
@@ -74,17 +119,17 @@
 
 		try {
 			const updatedThread = await updateThread(project.assistantID, project.id, {
-				...threadDetails,
-				model: model || undefined,
-				modelProvider: provider || undefined
+				...threadType,
+				model: model,
+				modelProvider: provider
 			});
 
 			// Update local state
-			threadDetails = updatedThread;
+			threadType = updatedThread;
 
 			// If resetting to default, fetch the default model
 			if (!model && !provider) {
-				fetchDefaultModel();
+				await fetchDefaultModel();
 			}
 
 			// Close dropdown
@@ -125,12 +170,12 @@
 	$effect(() => {
 		if (threadId) {
 			fetchThreadDetails().then(() => {
-				if (threadDetails && threadDetails.model && threadDetails.modelProvider) {
+				if (threadType && threadModel && threadModelProvider) {
 					// Make sure that the thread model is available on the project, and replace it with default if not.
 					if (
 						!project.models ||
-						!project.models[threadDetails.modelProvider] ||
-						!project.models[threadDetails.modelProvider].includes(threadDetails.model)
+						!project.models[threadModelProvider] ||
+						!project.models[threadModelProvider].includes(threadModel)
 					) {
 						setThreadModel('', '');
 					}
@@ -187,7 +232,7 @@
 	<button
 		class={twMerge(
 			'hover:bg-surface2/50 active:bg-surface2/80 flex h-10 items-center gap-3 rounded-full px-2  py-1 text-xs text-gray-600 md:px-4 lg:px-6',
-			(isDefaultModelSelected || (!threadDetails?.model && defaultModel?.model)) &&
+			(isDefaultModelSelected || (!threadModel && defaultModel)) &&
 				'text-blue hover:bg-blue/10 active:bg-blue/15 bg-transparent'
 		)}
 		onclick={(e) => {
@@ -200,16 +245,16 @@
 		id="thread-model-button"
 		title={isDefaultModelSelected
 			? 'Default model is selected'
-			: threadDetails?.model
+			: threadModel
 				? ''
 				: 'Select model for this thread'}
 		bind:this={modelButtonRef}
 	>
 		<div class="max-w-40 truncate sm:max-w-60 md:max-w-96 lg:max-w-none">
-			{#if threadDetails?.modelProvider && threadDetails?.model}
-				{threadDetails.model}
-			{:else if defaultModel?.model && defaultModel.model !== ''}
-				{defaultModel.model}
+			{#if threadModelProvider && threadModel}
+				{threadModel}
+			{:else if defaultModel}
+				{defaultModel}
 			{:else}
 				No Default Model
 			{/if}
@@ -233,8 +278,8 @@
 			}}
 			bind:this={modelSelectorRef}
 			use:scrollIntoSelectedModel={{
-				providerId: threadDetails?.modelProvider ?? defaultModel?.modelProvider,
-				modelId: threadDetails?.model ?? defaultModel?.model
+				providerId: threadModelProvider,
+				modelId: threadModel
 			}}
 		>
 			{#if modelsEntries.length}
@@ -259,10 +304,10 @@
 								<div class="provider-models flex flex-col gap-1">
 									{#each models as model (model)}
 										{@const isModelSelected =
-											threadDetails?.modelProvider === providerId && threadDetails?.model === model}
+											threadModelProvider === providerId && threadModel === model}
 
 										{@const isDefaultModel =
-											defaultModel?.modelProvider === providerId && defaultModel?.model === model}
+											defaultModelProvider === providerId && defaultModel === model}
 
 										<button
 											role="option"
@@ -289,7 +334,7 @@
 												/>
 											{/if}
 
-											{#if threadDetails?.modelProvider === providerId && threadDetails?.model === model}
+											{#if threadModelProvider === providerId && threadModel === model}
 												<div class="ml-auto text-xs text-blue-500">✓</div>
 											{/if}
 										</button>

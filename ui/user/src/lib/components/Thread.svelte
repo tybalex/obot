@@ -7,7 +7,7 @@
 	import { fade } from 'svelte/transition';
 	import { onDestroy, onMount } from 'svelte';
 	import { toHTMLFromMarkdown } from '$lib/markdown';
-	import { getLayout } from '$lib/context/layout.svelte';
+	import { closeAll, getLayout } from '$lib/context/layout.svelte';
 	import Files from '$lib/components/edit/Files.svelte';
 	import Tools from '$lib/components/navbar/Tools.svelte';
 	import type { UIEventHandler } from 'svelte/elements';
@@ -18,7 +18,7 @@
 	import EditIcon from '$lib/components/edit/EditIcon.svelte';
 	import { DEFAULT_PROJECT_DESCRIPTION, DEFAULT_PROJECT_NAME } from '$lib/constants';
 	import { twMerge } from 'tailwind-merge';
-	import { getThread } from '$lib/services/chat/operations';
+	import { getProjectDefaultModel, getThread } from '$lib/services/chat/operations';
 	import type { Thread as ThreadType } from '$lib/services/chat/types';
 	import ThreadModelSelector from '$lib/components/edit/ThreadModelSelector.svelte';
 
@@ -115,12 +115,13 @@
 		layout.fileEditorOpen = true;
 	}
 
-	async function ensureThread() {
+	async function ensureThread(params?: { model?: string; modelProvider?: string }) {
 		if (thread && thread.closed && id) {
 			await constructThread();
 		}
 		if (!id) {
-			id = (await ChatService.createThread(project.assistantID, project.id)).id;
+			const body = params?.model && params?.modelProvider ? { ...params } : {};
+			id = (await ChatService.createThread(project.assistantID, project.id, body)).id;
 			await constructThread();
 		}
 	}
@@ -276,15 +277,51 @@
 		}
 	});
 
+	let projectDefaultModelProvider = $state<string>();
+	let projectDefaultModel = $state<string>();
+
+	let projectModelProvider = $derived(project.defaultModelProvider ?? projectDefaultModelProvider);
+	let projectModel = $derived(project.defaultModel ?? projectDefaultModel);
+
+	$effect(() => {
+		if (!project.defaultModelProvider || !project.defaultModel) {
+			getProjectDefaultModel(project.assistantID, project.id).then((res) => {
+				projectDefaultModelProvider = res.modelProvider;
+				projectDefaultModel = res.model;
+			});
+		}
+	});
+
 	// Handle model change in the thread
 	function handleModelChanged() {
-		// Close and recreate the thread to use the new model settings
-		if (thread) {
-			// Close the current thread
-			thread.close();
+		ensureThread();
+	}
 
-			// Recreate the thread (this will use the updated model settings)
-			constructThread();
+	// Create a new Thread with model & model provider
+	async function handleCreateThread(model?: string, modelProvider?: string) {
+		await ensureThread({ model, modelProvider });
+
+		// open created thread
+		if (id) {
+			handleNavigateToThread?.();
+		}
+	}
+
+	// Select a thread by id
+	function handleNavigateToThread() {
+		if (responsive.isMobile) {
+			layout.sidebarOpen = false;
+		}
+
+		layout.items = [];
+		closeAll(layout);
+		focusChat();
+	}
+
+	function focusChat() {
+		const e = window.document.querySelector('#main-input textarea');
+		if (e instanceof HTMLTextAreaElement) {
+			e.focus();
 		}
 	}
 </script>
@@ -385,7 +422,7 @@
 				</div>
 			{:else if project.editor && !shared}
 				<button
-					class="message-content group hover:bg-surface1 hover:border-surface2 relative mt-4 w-fit self-center rounded-md border-2 border-dashed border-transparent pt-4 transition-all duration-200"
+					class="message-content hover:bg-surface1 hover:border-surface2 group relative mt-4 w-fit self-center rounded-md border-2 border-dashed border-transparent pt-4 transition-all duration-200"
 					onclick={() => (editBasicDetails = true)}
 					id="edit-basic-details-button"
 				>
@@ -479,8 +516,15 @@
 								<Tools {project} bind:currentThreadID={id} />
 							{/if}
 						</div>
-						{#if id}
-							<ThreadModelSelector threadId={id} {project} onModelChanged={handleModelChanged} />
+						{#if projectModelProvider && projectModel}
+							<ThreadModelSelector
+								threadId={id}
+								{project}
+								projectDefaultModel={projectModel}
+								projectDefaultModelProvider={projectModelProvider}
+								onModelChanged={handleModelChanged}
+								onCreateThread={handleCreateThread}
+							/>
 						{/if}
 					</div>
 				</Input>
