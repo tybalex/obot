@@ -4694,6 +4694,12 @@ func schema_obot_platform_obot_apiclient_types_SlackReceiver(ref common.Referenc
 							Format: "",
 						},
 					},
+					"appToken": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 				},
 				Required: []string{"Metadata", "SlackReceiverManifest"},
 			},
@@ -10157,6 +10163,14 @@ func schema_storage_apis_obotobotai_v1_SlackReceiverStatus(ref common.ReferenceC
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
+				Properties: map[string]spec.Schema{
+					"socketConnectError": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+				},
 			},
 		},
 	}
