@@ -376,6 +376,15 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("GET /api/all-mcp-catalogs/entries", mcp.ListEntriesForAllCatalogs)
 	mux.HandleFunc("GET /api/all-mcp-catalogs/entries/{entry_id}", mcp.GetCatalogEntry)
 
+	// MCP Shared Servers Within Catalogs
+	mux.HandleFunc("GET /api/all-mcp-catalogs/servers", mcp.ListServersForAllCatalogs)
+	mux.HandleFunc("GET /api/all-mcp-catalogs/servers/{mcp_server_id}", mcp.GetServerFromCatalogs)
+	mux.HandleFunc("GET /api/all-mcp-catalogs/servers/{mcp_server_id}/tools", mcp.GetTools)
+	mux.HandleFunc("GET /api/all-mcp-catalogs/servers/{mcp_server_id}/resources", mcp.GetResources)
+	mux.HandleFunc("GET /api/all-mcp-catalogs/servers/{mcp_server_id}/resources/{resource_uri}", mcp.ReadResource)
+	mux.HandleFunc("GET /api/all-mcp-catalogs/servers/{mcp_server_id}/prompts", mcp.GetPrompts)
+	mux.HandleFunc("GET /api/all-mcp-catalogs/servers/{mcp_server_id}/prompts/{prompt_name}", mcp.GetPrompt)
+
 	// MCP Catalogs (admin only)
 	mux.HandleFunc("GET /api/mcp-catalogs", mcpCatalogs.List)
 	mux.HandleFunc("GET /api/mcp-catalogs/{catalog_id}", mcpCatalogs.Get)
@@ -387,6 +396,14 @@ func Router(services *services.Services) (http.Handler, error) {
 	mux.HandleFunc("POST /api/mcp-catalogs/{catalog_id}/entries", mcpCatalogs.CreateEntry)
 	mux.HandleFunc("PUT /api/mcp-catalogs/{catalog_id}/entries/{entry_id}", mcpCatalogs.UpdateEntry)
 	mux.HandleFunc("DELETE /api/mcp-catalogs/{catalog_id}/entries/{entry_id}", mcpCatalogs.DeleteEntry)
+	mux.HandleFunc("GET /api/mcp-catalogs/{catalog_id}/servers", mcp.ListServer)
+	mux.HandleFunc("GET /api/mcp-catalogs/{catalog_id}/servers/{mcp_server_id}", mcp.GetServer)
+	mux.HandleFunc("POST /api/mcp-catalogs/{catalog_id}/servers", mcp.CreateServer)
+	mux.HandleFunc("PUT /api/mcp-catalogs/{catalog_id}/servers/{mcp_server_id}", mcp.UpdateServer)
+	mux.HandleFunc("DELETE /api/mcp-catalogs/{catalog_id}/servers/{mcp_server_id}", mcp.DeleteServer)
+	mux.HandleFunc("POST /api/mcp-catalogs/{catalog_id}/servers/{mcp_server_id}/configure", mcp.ConfigureServer)
+	mux.HandleFunc("POST /api/mcp-catalogs/{catalog_id}/servers/{mcp_server_id}/deconfigure", mcp.DeconfigureServer)
+	mux.HandleFunc("POST /api/mcp-catalogs/{catalog_id}/servers/{mcp_server_id}/reveal", mcp.Reveal)
 
 	// MCP Servers
 	mux.HandleFunc("GET /api/assistants/{assistant_id}/projects/{project_id}/mcpservers", mcp.ListServer)
