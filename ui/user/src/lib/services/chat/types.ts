@@ -302,6 +302,41 @@ export interface MCPServerTool {
 	unsupported?: boolean;
 }
 
+export interface MCPServerPrompt {
+	name: string;
+	description: string;
+	arguments?: {
+		description: string;
+		name: string;
+		required: boolean;
+	}[];
+}
+
+export interface McpServerGeneratedPrompt {
+	description: string;
+	messages: {
+		content: {
+			text: string;
+			type: string;
+			resource?: McpServerResource;
+		};
+		role: string;
+	}[];
+}
+
+export interface McpServerResource {
+	uri: string;
+	name: string;
+	mimeType: string;
+}
+
+export interface McpServerResourceContent {
+	uri: string;
+	mimeType: string;
+	text?: string;
+	blob?: string;
+}
+
 export interface MCPInfo {
 	server: MCPServer;
 	githubStars: number;
