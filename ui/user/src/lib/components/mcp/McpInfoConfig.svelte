@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { clickOutside } from '$lib/actions/clickoutside';
 	import { dialogAnimation } from '$lib/actions/dialogAnimation';
-	import { formatNumber } from '$lib/format';
 	import {
 		ChatService,
 		type ProjectCredential,
@@ -11,28 +10,18 @@
 		type MCPServer
 	} from '$lib/services';
 	import { responsive } from '$lib/stores';
-	import {
-		ChevronRight,
-		ChevronsRight,
-		Info,
-		Link,
-		LoaderCircle,
-		Server,
-		Star,
-		X
-	} from 'lucide-svelte';
+	import { ChevronRight, ChevronsRight, Info, Link, LoaderCircle, Server, X } from 'lucide-svelte';
 	import {
 		initMCPConfig,
 		isValidMcpConfig,
 		type MCPServerInfo,
 		isAuthRequiredBundle
 	} from '$lib/services/chat/mcp';
-	import HostedMcpForm from '$lib/components/mcp/HostedMcpForm.svelte';
 	import type { Snippet } from 'svelte';
 	import CredentialAuth from '$lib/components/edit/CredentialAuth.svelte';
-	import RemoteMcpForm from './RemoteMcpForm.svelte';
 	import { DEFAULT_CUSTOM_SERVER_NAME } from '$lib/constants';
 	import { toHTMLFromMarkdownWithNewTabLinks } from '$lib/markdown';
+	import McpCredentials from './McpCredentials.svelte';
 
 	interface Props {
 		manifest?: MCPServer | ProjectMCP;
@@ -47,10 +36,8 @@
 		legacyBundleId?: string;
 		project?: Project;
 		legacyAuthText?: string;
-		manifestType?: 'command' | 'url';
 		info?: {
-			githubStars?: number;
-			githubUrl?: string;
+			repoURL?: string;
 		};
 	}
 	let {
@@ -66,29 +53,26 @@
 		legacyBundleId,
 		legacyAuthText,
 		project = $bindable(),
-		manifestType,
 		info
 	}: Props = $props();
 	let configDialog = $state<HTMLDialogElement>();
 	let authDialog = $state<HTMLDialogElement>();
 
 	let config = $state<MCPServerInfo>(prefilledConfig ?? initMCPConfig(manifest));
-	let showSubmitError = $state(false);
-	let showAdvancedOptions = $state(false);
+
 	let loadingCredential = $state<Promise<ProjectCredential | undefined>>();
+
 	export function open() {
 		reset();
 		configDialog?.showModal();
 	}
 
 	function reset() {
-		showSubmitError = false;
 		config = prefilledConfig ?? initMCPConfig(manifest);
 	}
 
 	export function close() {
 		configDialog?.close();
-		showAdvancedOptions = false;
 	}
 
 	async function getProjectCredential() {
@@ -125,7 +109,6 @@
 		if (!manifest) return;
 
 		if (!legacyBundleId && !isValidMcpConfig(config)) {
-			showSubmitError = true;
 			return;
 		}
 
@@ -164,11 +147,7 @@
 				{/if}
 			{:else}
 				<div class="flex w-full flex-col gap-4">
-					{#if manifestType === 'url'}
-						<RemoteMcpForm bind:config {showSubmitError} />
-					{:else}
-						<HostedMcpForm bind:config {showSubmitError} bind:showAdvancedOptions />
-					{/if}
+					<McpCredentials bind:config />
 				</div>
 			{/if}
 		</div>
@@ -249,9 +228,9 @@
 				<div class="flex flex-col gap-1">
 					<h3 class="text-lg leading-5.5 font-semibold">
 						{name}
-						{#if info?.githubUrl}
+						{#if info?.repoURL}
 							<a
-								href={info.githubUrl}
+								href={info.repoURL}
 								target="_blank"
 								rel="noopener noreferrer"
 								class="ml-1 inline-block align-middle"
@@ -260,13 +239,6 @@
 							</a>
 						{/if}
 					</h3>
-
-					{#if info?.githubStars}
-						<span class="text-md flex h-fit w-fit items-center gap-1 font-light text-gray-500">
-							<Star class="size-4" />
-							{formatNumber(info.githubStars)}
-						</span>
-					{/if}
 				</div>
 			</div>
 			<div class="markdown-description-content message-content">

@@ -1,3 +1,5 @@
+import type { MCPCatalogEntryServerManifest } from '../admin/types';
+
 export interface Progress {
 	runID?: string;
 	parentRunID?: string;
@@ -274,6 +276,7 @@ export interface MCP {
 	created: string;
 	commandManifest?: MCPInfo;
 	urlManifest?: MCPInfo;
+	type: string;
 }
 
 export interface MCPList {
@@ -287,7 +290,8 @@ export interface MCPServer {
 	args?: string[];
 	env?: MCPSubField[];
 	command?: string;
-	url?: string;
+	fixedURL?: string;
+	hostname?: string;
 	headers?: MCPSubField[];
 }
 
@@ -337,11 +341,9 @@ export interface McpServerResourceContent {
 	blob?: string;
 }
 
-export interface MCPInfo {
-	server: MCPServer;
-	githubStars: number;
+export interface MCPInfo extends MCPServer {
 	metadata: Record<string, string>;
-	url?: string;
+	repoURL?: string;
 }
 
 export interface ProjectMCPList {
@@ -353,6 +355,8 @@ export interface ProjectMCP extends MCPServer {
 	catalogEntryID?: string;
 	configured?: boolean;
 	deleted?: boolean;
+	type: string;
+	connectURL?: string;
 }
 
 export interface Credential {
@@ -383,6 +387,7 @@ export interface Task {
 	onDiscordMessage?: object;
 	alias?: string;
 	managed?: boolean;
+	projectID?: string;
 }
 
 export interface OnDemand {
@@ -635,14 +640,22 @@ export interface ModelProvider {
 	icon?: string;
 	iconDark?: string;
 	configured: boolean;
-	requiredConfigurationParameters?: Array<{
+	requiredConfigurationParameters?: {
 		name: string;
 		friendlyName?: string;
 		description?: string;
 		sensitive?: boolean;
 		hidden?: boolean;
-	}>;
+	}[];
 	missingConfigurationParameters?: string[];
+	created: string;
+	optionalConfigurationParameters?: {
+		name: string;
+		friendlyName?: string;
+		description?: string;
+		sensitive?: boolean;
+		hidden?: boolean;
+	}[];
 }
 
 export interface ModelProviderList {
@@ -663,4 +676,23 @@ export interface Model {
 
 export interface ModelList {
 	data: Model[];
+}
+
+export interface MCPCatalogServer extends MCPCatalogEntryServerManifest {
+	id: string;
+	name: string;
+	description: string;
+	icon: string;
+	configured: boolean;
+	missingRequiredEnvVars: string[];
+	missingRequiredHeaders: string[];
+	catalogEntryID: string;
+	sharedWithinCatalogName: string;
+	connectURL: string;
+	createdAt: string;
+	updatedAt: string;
+	type: string;
+	metadata?: {
+		categories?: string;
+	};
 }
