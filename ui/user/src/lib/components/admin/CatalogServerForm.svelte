@@ -2,7 +2,7 @@
 	import {
 		type MCPCatalogEntry,
 		type MCPCatalogEntryFormData,
-		type MCPCatalogEntryManifest,
+		type MCPCatalogEntryServerManifest,
 		type MCPCatalogServerManifest
 	} from '$lib/services/admin/types';
 	import { Plus, Trash2 } from 'lucide-svelte';
@@ -49,30 +49,31 @@
 				args: [''],
 				command: '',
 				fixedURL: '',
+				url: '',
 				headers: [],
 				icon: ''
 			};
 		}
 
 		if (item.type === 'mcpserver') {
-			const server = item as MCPCatalogServer;
+			const server = item as MCPCatalogServerManifest;
 			return {
 				categories: [],
-				icon: server.icon,
-				name: server.name,
-				description: server.description,
-				env: server.env,
-				args: server.args,
-				command: server.command,
-				fixedURL: server.fixedURL,
-				headers: server.headers
+				icon: server.manifest.icon,
+				name: server.manifest.name,
+				description: server.manifest.description,
+				env: server.manifest.env,
+				args: server.manifest.args,
+				command: server.manifest.command,
+				url: server.manifest.url,
+				headers: server.manifest.headers
 			};
 		} else {
 			const entry = item as MCPCatalogEntry;
 			return {
 				categories:
-					entry.commandManifest?.metadata?.categories.split(',') ??
-					entry.urlManifest?.metadata?.categories.split(',') ??
+					entry.commandManifest?.metadata?.categories?.split(',') ??
+					entry.urlManifest?.metadata?.categories?.split(',') ??
 					[],
 				name: entry.commandManifest?.name ?? entry.urlManifest?.name ?? '',
 				icon: entry.commandManifest?.icon ?? entry.urlManifest?.icon ?? '',
@@ -118,7 +119,9 @@
 			: undefined;
 	}
 
-	function convertToEntryManifest(formData: MCPCatalogEntryFormData): MCPCatalogEntryManifest {
+	function convertToEntryManifest(
+		formData: MCPCatalogEntryFormData
+	): MCPCatalogEntryServerManifest {
 		const { categories, ...rest } = formData;
 		return {
 			...rest,
@@ -129,8 +132,10 @@
 	function convertToServerManifest(formData: MCPCatalogEntryFormData): MCPCatalogServerManifest {
 		const { categories, ...rest } = formData;
 		return {
-			...rest,
-			...convertCategoriesToMetadata(categories)
+			manifest: {
+				...rest,
+				...convertCategoriesToMetadata(categories)
+			}
 		};
 	}
 
@@ -154,8 +159,10 @@
 			response = await AdminService.createMCPCatalogServer(catalogId, manifest);
 		}
 
-		if (manifest.command && manifest.env && manifest.env.length > 0) {
-			const envValues = Object.fromEntries(manifest.env.map((env) => [env.key, env.value]));
+		if (manifest.manifest.command && manifest.manifest.env && manifest.manifest.env.length > 0) {
+			const envValues = Object.fromEntries(
+				manifest.manifest.env.map((env) => [env.key, env.value])
+			);
 			await AdminService.configureMCPCatalogServer(catalogId, response.id, envValues);
 		}
 		return response;

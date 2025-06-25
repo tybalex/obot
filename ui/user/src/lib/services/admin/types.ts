@@ -1,5 +1,3 @@
-import type { MCPInfo } from '../chat/types';
-
 export interface MCPCatalogManifest {
 	displayName: string;
 	sourceURLs: string[];
@@ -14,16 +12,8 @@ export interface MCPCatalogSource {
 	id: string;
 }
 
-export interface MCPCatalogEntry {
-	id: string;
-	created: string;
-	commandManifest?: MCPInfo;
-	urlManifest?: MCPInfo;
-	sourceURL?: string;
-	type: string;
-}
-
 export interface MCPCatalogEntryServerManifest {
+	icon?: string;
 	args?: string[];
 	env?: MCPCatalogEntryFieldManifest[];
 	command?: string;
@@ -32,13 +22,18 @@ export interface MCPCatalogEntryServerManifest {
 	headers?: MCPCatalogEntryFieldManifest[];
 	name?: string;
 	description?: string;
-}
-
-export interface MCPCatalogEntryManifest extends MCPCatalogEntryServerManifest {
-	icon?: string;
 	metadata?: {
 		categories?: string;
 	};
+}
+
+export interface MCPCatalogEntry {
+	id: string;
+	created: string;
+	commandManifest?: MCPCatalogEntryServerManifest;
+	urlManifest?: MCPCatalogEntryServerManifest;
+	sourceURL?: string;
+	type: string;
 }
 
 export interface MCPCatalogEntryFieldManifest {
@@ -50,16 +45,15 @@ export interface MCPCatalogEntryFieldManifest {
 	value: string;
 }
 
-export type MCPCatalogEntryFormData = Omit<MCPCatalogEntryManifest, 'metadata'> & {
+export type MCPCatalogEntryFormData = Omit<MCPCatalogEntryServerManifest, 'metadata'> & {
 	categories: string[];
+	url?: string;
 };
 
-export interface MCPCatalogServerManifest extends MCPCatalogEntryServerManifest {
-	description?: string;
-	icon?: string;
+export interface MCPCatalogServerManifest {
 	catalogEntryID?: string;
-	metadata?: {
-		categories?: string;
+	manifest: Omit<MCPCatalogEntryServerManifest, 'fixedURL'> & {
+		url?: string;
 	};
 }
 
