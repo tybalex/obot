@@ -1,0 +1,217 @@
+<script lang="ts">
+	import { AdminService, type MCPCatalogServer } from '$lib/services';
+	import type { AccessControlRule, MCPCatalogEntry } from '$lib/services/admin/types';
+	import { twMerge } from 'tailwind-merge';
+	import McpServerInfo from '../mcp/McpServerInfo.svelte';
+	import CatalogServerForm from './CatalogServerForm.svelte';
+	import Table from '../Table.svelte';
+	import { Eye, GlobeLock, LoaderCircle, Router, Trash2, Users } from 'lucide-svelte';
+	import { tooltip } from '$lib/actions/tooltip.svelte';
+	import { goto } from '$app/navigation';
+	import Confirm from '../Confirm.svelte';
+
+	interface Props {
+		catalogId?: string;
+		entry?: MCPCatalogEntry | MCPCatalogServer;
+		type?: 'single' | 'multi' | 'remote';
+		readonly?: boolean;
+		onCancel?: () => void;
+		onSubmit?: () => void;
+	}
+
+	let { entry, catalogId, type, readonly, onCancel, onSubmit }: Props = $props();
+	const tabs = $derived(
+		entry
+			? [
+					{ label: 'Overview', view: 'overview' },
+					{ label: 'Configuration', view: 'configuration' },
+					{ label: 'Access Control', view: 'access-control' },
+					{ label: 'Usage', view: 'usage' },
+					{ label: 'Server Instances', view: 'server-instances' }
+				]
+			: []
+	);
+
+	let usage = $state([]);
+	let instances = $state([]);
+	let listAccessControlRules = $state<Promise<AccessControlRule[]>>();
+	let deleteServer = $state(false);
+	let view = $state<string>(entry ? 'overview' : 'configuration');
+
+	$effect(() => {
+		if (view === 'access-control') {
+			listAccessControlRules = AdminService.listAccessControlRules();
+		}
+	});
+
+	function filterRulesByEntry(rules?: AccessControlRule[]) {
+		if (!entry || !rules) return [];
+		return rules.filter((r) => r.resources?.find((resource) => resource.id === entry.id));
+	}
+</script>
+
+<div class="flex h-full w-full flex-col gap-8">
+	{#if entry}
+		<div class="flex items-center justify-between gap-4">
+			<div class="flex items-center gap-2">
+				{#if 'manifest' in entry}
+					{#if entry.manifest.icon}
+						<img
+							src={entry.manifest.icon}
+							alt={entry.manifest.name}
+							class="bg-surface1 size-10 rounded-md p-1 dark:bg-gray-600"
+						/>
+					{/if}
+					<h1 class="text-2xl font-semibold capitalize">{entry.manifest.name || 'Unknown'}</h1>
+				{:else}
+					{@const icon = entry.commandManifest?.icon || entry.urlManifest?.icon}
+					{#if icon}
+						<img
+							src={icon}
+							alt={entry.commandManifest?.name || entry.urlManifest?.name}
+							class="bg-surface1 size-10 rounded-md p-1 dark:bg-gray-600"
+						/>
+					{/if}
+					<h1 class="text-2xl font-semibold capitalize">
+						{entry?.commandManifest?.name || entry?.urlManifest?.name || 'Unknown'}
+					</h1>
+				{/if}
+			</div>
+			<button
+				class="button-destructive flex items-center gap-1 text-xs font-normal"
+				use:tooltip={'Delete Server'}
+				onclick={() => {
+					deleteServer = true;
+				}}
+			>
+				<Trash2 class="size-4" />
+			</button>
+		</div>
+	{/if}
+	<div class="flex flex-col gap-2">
+		{#if tabs.length > 0}
+			<div class="grid grid-cols-5 items-center gap-2 text-sm font-light">
+				{#each tabs as tab}
+					<button
+						onclick={() => (view = tab.view)}
+						class={twMerge(
+							'rounded-md border border-transparent px-4 py-2 text-center transition-colors duration-300',
+							view === tab.view && 'dark:bg-surface1 dark:border-surface3 bg-white shadow-sm',
+							view !== tab.view && 'hover:bg-surface3'
+						)}
+					>
+						{tab.label}
+					</button>
+				{/each}
+			</div>
+		{/if}
+
+		{#if view === 'overview' && entry}
+			<McpServerInfo
+				class="dark:bg-surface1 dark:border-surface3 flex flex-col gap-8 rounded-lg border border-transparent bg-white p-4 shadow-sm"
+				{entry}
+			/>
+		{:else if view === 'configuration'}
+			{@render configurationView()}
+		{:else if view === 'access-control'}
+			{@render accessControlView()}
+		{:else if view === 'usage'}
+			{@render usageView()}
+		{:else if view === 'server-instances'}
+			{@render serverInstancesView()}
+		{/if}
+	</div>
+</div>
+
+{#snippet configurationView()}
+	<div class="flex flex-col gap-8">
+		<CatalogServerForm
+			{entry}
+			{type}
+			{readonly}
+			{catalogId}
+			{onCancel}
+			{onSubmit}
+			hideTitle={Boolean(entry)}
+		/>
+	</div>
+{/snippet}
+
+{#snippet accessControlView()}
+	{#await listAccessControlRules}
+		<div class="flex w-full justify-center">
+			<LoaderCircle class="size-6 animate-spin" />
+		</div>
+	{:then rules}
+		{@const serverRules = entry ? filterRulesByEntry(rules) : []}
+		{#if serverRules && serverRules.length > 0}
+			<Table
+				data={serverRules}
+				fields={['displayName']}
+				headers={[{ title: 'Name', property: 'displayName' }]}
+				onSelectRow={(d) => {
+					goto(`/v2/admin/access-control/${d.id}`);
+				}}
+			>
+				{#snippet actions()}
+					<button class="icon-button" use:tooltip={'View Rule'}>
+						<Eye class="size-4" />
+					</button>
+				{/snippet}
+			</Table>
+		{:else}
+			<div class="mt-12 flex w-md flex-col items-center gap-4 self-center text-center">
+				<GlobeLock class="size-24 text-gray-200 dark:text-gray-900" />
+				<h4 class="text-lg font-semibold text-gray-400 dark:text-gray-600">
+					No access control rules
+				</h4>
+				<p class="text-sm font-light text-gray-400 dark:text-gray-600">
+					This server is not tied to any access control rules.
+				</p>
+			</div>
+		{/if}
+	{/await}
+{/snippet}
+
+{#snippet usageView()}
+	{#if usage.length === 0}
+		<div class="mt-12 flex w-md flex-col items-center gap-4 self-center text-center">
+			<Users class="size-24 text-gray-200 dark:text-gray-900" />
+			<h4 class="text-lg font-semibold text-gray-400 dark:text-gray-600">No usage data</h4>
+			<p class="text-sm font-light text-gray-400 dark:text-gray-600">
+				This server has not been used yet or data is not available.
+			</p>
+		</div>
+	{:else}
+		<Table data={[]} fields={['name']} />
+	{/if}
+{/snippet}
+
+{#snippet serverInstancesView()}
+	{#if instances.length === 0}
+		<div class="mt-12 flex w-md flex-col items-center gap-4 self-center text-center">
+			<Router class="size-24 text-gray-200 dark:text-gray-900" />
+			<h4 class="text-lg font-semibold text-gray-400 dark:text-gray-600">No server instance</h4>
+			<p class="text-sm font-light text-gray-400 dark:text-gray-600">
+				No server instances have been created yet for this server.
+			</p>
+		</div>
+	{:else}
+		<Table data={[]} fields={['name']} />
+	{/if}
+{/snippet}
+
+<Confirm
+	msg="Are you sure you want to delete this server?"
+	show={deleteServer}
+	onsuccess={async () => {
+		if (!catalogId || !entry) return;
+		if (type === 'single' || type === 'remote') {
+			await AdminService.deleteMCPCatalogEntry(catalogId, entry.id);
+		} else {
+			await AdminService.deleteMCPCatalogServer(catalogId, entry.id);
+		}
+		goto('/v2/admin/mcp-servers');
+	}}
+	oncancel={() => (deleteServer = false)}
+/>

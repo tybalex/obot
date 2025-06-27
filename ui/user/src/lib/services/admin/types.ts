@@ -18,12 +18,14 @@ export interface MCPCatalogEntryServerManifest {
 	env?: MCPCatalogEntryFieldManifest[];
 	command?: string;
 	fixedURL?: string;
+	repoURL?: string;
 	hostname?: string;
 	headers?: MCPCatalogEntryFieldManifest[];
 	name?: string;
 	description?: string;
 	metadata?: {
 		categories?: string;
+		'allow-multiple'?: string;
 	};
 }
 
@@ -66,6 +68,12 @@ export interface OrgUser {
 	iconURL: string;
 	id: string;
 	lastActiveDay?: string;
+}
+
+export interface OrgGroup {
+	id: string;
+	name: string;
+	iconURL?: string;
 }
 
 export const Role = {
@@ -187,4 +195,29 @@ export const ModelAliasToUsageMap = {
 export interface DefaultModelAlias {
 	alias: ModelAlias;
 	model: string;
+}
+
+export interface AccessControlRuleResource {
+	type: 'mcpServerCatalogEntry' | 'mcpServer' | 'selector';
+	id: string;
+}
+
+export interface AccessControlRuleSubject {
+	type: 'user' | 'selector';
+	id: string;
+}
+
+export interface AccessControlRuleManifest {
+	id?: string;
+	displayName: string;
+	subjects?: AccessControlRuleSubject[];
+	resources?: AccessControlRuleResource[];
+}
+
+export interface AccessControlRule extends Omit<AccessControlRuleManifest, 'id'> {
+	id: string;
+	created: string;
+	deleted?: string;
+	links?: Record<string, string>;
+	metadata?: Record<string, string>;
 }

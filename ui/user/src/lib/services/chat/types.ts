@@ -262,7 +262,7 @@ export interface ToolReferenceList {
 
 export interface MCPSubField {
 	description: string;
-	file: boolean;
+	file?: boolean;
 	key: string;
 	name: string;
 	required: boolean;
@@ -277,14 +277,10 @@ export interface MCP {
 	type: string;
 }
 
-export interface MCPList {
-	items: MCP[];
-}
-
 export interface MCPServer {
-	description: string;
-	icon: string;
-	name: string;
+	description?: string;
+	icon?: string;
+	name?: string;
 	args?: string[];
 	env?: MCPSubField[];
 	command?: string;
@@ -343,7 +339,10 @@ export interface McpServerResourceContent {
 }
 
 export interface MCPInfo extends MCPServer {
-	metadata: Record<string, string>;
+	metadata?: {
+		'allow-multiple'?: string;
+		categories?: string;
+	};
 	repoURL?: string;
 }
 
@@ -357,7 +356,6 @@ export interface ProjectMCP {
 	configured?: boolean;
 	deleted?: boolean;
 	type: string;
-	connectURL?: string;
 	manifest: MCPServer;
 }
 
@@ -545,18 +543,6 @@ export interface ProjectCredentialList {
 	items: ProjectCredential[];
 }
 
-export interface AuthProvider {
-	configured: boolean;
-	icon?: string;
-	name: string;
-	namespace: string;
-	id: string;
-}
-
-export interface AuthProviderList {
-	items: AuthProvider[];
-}
-
 export interface Sites {
 	sites?: Site[];
 	siteTool?: string;
@@ -664,7 +650,7 @@ export interface ModelProviderList {
 	items: ModelProvider[];
 }
 
-export interface Model {
+export interface ChatModel {
 	created: number;
 	id: string;
 	object: string;
@@ -676,8 +662,8 @@ export interface Model {
 	};
 }
 
-export interface ModelList {
-	data: Model[];
+export interface ChatModelList {
+	data: ChatModel[];
 }
 
 export interface MCPCatalogServer {
@@ -687,9 +673,20 @@ export interface MCPCatalogServer {
 	missingRequiredEnvVars: string[];
 	missingRequiredHeaders: string[];
 	sharedWithinCatalogName: string;
-	connectURL: string;
-	createdAt: string;
-	updatedAt: string;
+	created: string;
+	updated: string;
 	type: string;
 	manifest: MCPServer;
+}
+
+export interface MCPServerInstance {
+	id: string;
+	created: string;
+	deleted?: string;
+	links?: Record<string, string>;
+	metadata?: Record<string, string>;
+	userID: string;
+	mcpServerID?: string;
+	mcpCatalogID?: string;
+	connectURL?: string;
 }
