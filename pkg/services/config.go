@@ -25,12 +25,14 @@ import (
 	"github.com/obot-platform/nah/pkg/leader"
 	"github.com/obot-platform/nah/pkg/router"
 	"github.com/obot-platform/nah/pkg/runtime"
+	apiclienttypes "github.com/obot-platform/obot/apiclient/types"
 	"github.com/obot-platform/obot/pkg/api/authn"
 	"github.com/obot-platform/obot/pkg/api/authz"
 	"github.com/obot-platform/obot/pkg/api/server"
 	"github.com/obot-platform/obot/pkg/api/server/audit"
 	"github.com/obot-platform/obot/pkg/api/server/ratelimiter"
 	"github.com/obot-platform/obot/pkg/bootstrap"
+	"github.com/obot-platform/obot/pkg/controller/handlers/accesscontrolrule"
 	"github.com/obot-platform/obot/pkg/credstores"
 	"github.com/obot-platform/obot/pkg/encryption"
 	"github.com/obot-platform/obot/pkg/events"
@@ -56,6 +58,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apiserver/pkg/authentication/authenticator"
 	"k8s.io/apiserver/pkg/authentication/request/union"
+	gocache "k8s.io/client-go/tools/cache"
 
 	// Setup nah logging
 	_ "github.com/obot-platform/nah/pkg/logrus"
@@ -143,6 +146,9 @@ type Services struct {
 	SendgridWebhookPassword string
 
 	AllowedMCPDockerImageRepos []string
+
+	// Used for indexed lookups of access control rules.
+	AccessControlRuleHelper *accesscontrolrule.Helper
 
 	// Used for loading and running MCP servers with GPTScript.
 	MCPRunner engine.MCPRunner
@@ -373,6 +379,53 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		return nil, err
 	}
 
+	gvk, err := r.Backend().GroupVersionKindFor(&v1.AccessControlRule{})
+	if err != nil {
+		return nil, err
+	}
+
+	informer, err := r.Backend().GetInformerForKind(ctx, gvk)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = informer.AddIndexers(map[string]gocache.IndexFunc{
+		"catalog-entry-names": func(obj any) ([]string, error) {
+			acr := obj.(*v1.AccessControlRule)
+			var results []string
+			for _, resource := range acr.Spec.Manifest.Resources {
+				if resource.Type == apiclienttypes.ResourceTypeMCPServerCatalogEntry {
+					results = append(results, resource.ID)
+				}
+			}
+			return results, nil
+		},
+		"server-names": func(obj any) ([]string, error) {
+			acr := obj.(*v1.AccessControlRule)
+			var results []string
+			for _, resource := range acr.Spec.Manifest.Resources {
+				if resource.Type == apiclienttypes.ResourceTypeMCPServer {
+					results = append(results, resource.ID)
+				}
+			}
+			return results, nil
+		},
+		"selectors": func(obj any) ([]string, error) {
+			acr := obj.(*v1.AccessControlRule)
+			var results []string
+			for _, resource := range acr.Spec.Manifest.Resources {
+				if resource.Type == apiclienttypes.ResourceTypeSelector {
+					results = append(results, resource.ID)
+				}
+			}
+			return results, nil
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	acrHelper := accesscontrolrule.NewAccessControlRuleHelper(informer.GetIndexer())
+
 	apply.AddValidOwnerChange("otto-controller", "obot-controller")
 	apply.AddValidOwnerChange("mcpcatalogentries", "catalog-default")
 
@@ -514,7 +567,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 			gatewayClient,
 			gptscriptClient,
 			authn.NewAuthenticator(authenticators),
-			authz.NewAuthorizer(r.Backend(), config.DevMode),
+			authz.NewAuthorizer(r.Backend(), config.DevMode, acrHelper),
 			proxyManager,
 			auditLogger,
 			rateLimiter,
@@ -553,6 +606,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 			CodeChallengeMethodsSupported:     []string{"S256", "plain"},
 			TokenEndpointAuthMethodsSupported: []string{"client_secret_basic", "client_secret_post", "none"},
 		},
+		AccessControlRuleHelper: acrHelper,
 	}, nil
 }
 
