@@ -5,7 +5,7 @@
 	import McpServerInfo from '../mcp/McpServerInfo.svelte';
 	import CatalogServerForm from './CatalogServerForm.svelte';
 	import Table from '../Table.svelte';
-	import { Eye, GlobeLock, LoaderCircle, Router, Trash2, Users } from 'lucide-svelte';
+	import { GlobeLock, ListFilter, LoaderCircle, Router, Trash2, Users } from 'lucide-svelte';
 	import { tooltip } from '$lib/actions/tooltip.svelte';
 	import { goto } from '$app/navigation';
 	import Confirm from '../Confirm.svelte';
@@ -27,7 +27,8 @@
 					{ label: 'Configuration', view: 'configuration' },
 					{ label: 'Access Control', view: 'access-control' },
 					{ label: 'Usage', view: 'usage' },
-					{ label: 'Server Instances', view: 'server-instances' }
+					{ label: 'Server Instances', view: 'server-instances' },
+					{ label: 'Filters', view: 'filters' }
 				]
 			: []
 	);
@@ -36,6 +37,10 @@
 	let instances = $state([]);
 	let listAccessControlRules = $state<Promise<AccessControlRule[]>>();
 	let deleteServer = $state(false);
+	let deleteResourceFromRule = $state<{
+		rule: AccessControlRule;
+		resourceId: string;
+	}>();
 	let view = $state<string>(entry ? 'overview' : 'configuration');
 
 	$effect(() => {
@@ -46,7 +51,9 @@
 
 	function filterRulesByEntry(rules?: AccessControlRule[]) {
 		if (!entry || !rules) return [];
-		return rules.filter((r) => r.resources?.find((resource) => resource.id === entry.id));
+		return rules.filter((r) =>
+			r.resources?.find((resource) => resource.id === entry.id || resource.id === '*')
+		);
 	}
 </script>
 
@@ -77,20 +84,24 @@
 					</h1>
 				{/if}
 			</div>
-			<button
-				class="button-destructive flex items-center gap-1 text-xs font-normal"
-				use:tooltip={'Delete Server'}
-				onclick={() => {
-					deleteServer = true;
-				}}
-			>
-				<Trash2 class="size-4" />
-			</button>
+			{#if !readonly}
+				<button
+					class="button-destructive flex items-center gap-1 text-xs font-normal"
+					use:tooltip={'Delete Server'}
+					onclick={() => {
+						deleteServer = true;
+					}}
+				>
+					<Trash2 class="size-4" />
+				</button>
+			{/if}
 		</div>
 	{/if}
 	<div class="flex flex-col gap-2">
 		{#if tabs.length > 0}
-			<div class="grid grid-cols-5 items-center gap-2 text-sm font-light">
+			<div
+				class="grid grid-cols-3 items-center gap-2 text-sm font-light md:grid-cols-4 lg:grid-cols-6"
+			>
 				{#each tabs as tab}
 					<button
 						onclick={() => (view = tab.view)}
@@ -119,6 +130,8 @@
 			{@render usageView()}
 		{:else if view === 'server-instances'}
 			{@render serverInstancesView()}
+		{:else if view === 'filters'}
+			{@render filtersView()}
 		{/if}
 	</div>
 </div>
@@ -133,7 +146,19 @@
 			{onCancel}
 			{onSubmit}
 			hideTitle={Boolean(entry)}
-		/>
+		>
+			{#snippet readonlyMessage()}
+				{#if entry && 'sourceURL' in entry && !!entry.sourceURL}
+					<p>
+						This MCP Server comes from an external Git Source URL <span
+							class="text-xs text-gray-500">({entry.sourceURL.split('/').pop()})</span
+						> and cannot be edited.
+					</p>
+				{:else}
+					<p>This MCP server is non-editable.</p>
+				{/if}
+			{/snippet}
+		</CatalogServerForm>
 	</div>
 {/snippet}
 
@@ -147,16 +172,29 @@
 		{#if serverRules && serverRules.length > 0}
 			<Table
 				data={serverRules}
-				fields={['displayName']}
-				headers={[{ title: 'Name', property: 'displayName' }]}
+				fields={['displayName', 'resources']}
+				headers={[
+					{ title: 'Rule', property: 'displayName' },
+					{ title: 'Reference', property: 'resources' }
+				]}
 				onSelectRow={(d) => {
-					goto(`/v2/admin/access-control/${d.id}`);
+					if (!entry) return;
+					goto(
+						`/v2/admin/access-control/${d.id}?from=${encodeURIComponent(`/mcp-servers/${entry.id}`)}`
+					);
 				}}
 			>
-				{#snippet actions()}
-					<button class="icon-button" use:tooltip={'View Rule'}>
-						<Eye class="size-4" />
-					</button>
+				{#snippet onRenderColumn(property, d)}
+					<span class="flex min-h-9 items-center">
+						{#if property === 'resources'}
+							{@const referencedResource = d.resources?.find(
+								(r) => r.id === entry?.id || r.id === '*'
+							)}
+							{referencedResource?.id === '*' ? 'Everything' : 'Self'}
+						{:else}
+							{d[property as keyof typeof d]}
+						{/if}
+					</span>
 				{/snippet}
 			</Table>
 		{:else}
@@ -201,6 +239,23 @@
 	{/if}
 {/snippet}
 
+{#snippet filtersView()}
+	<div class="mt-12 flex w-lg flex-col items-center gap-4 self-center text-center">
+		<ListFilter class="size-24 text-gray-200 dark:text-gray-900" />
+		<h4 class="text-lg font-semibold text-gray-400 dark:text-gray-600">Filters</h4>
+		<p class="text-md font-light text-gray-400 dark:text-gray-600">
+			The <b class="font-semibold">Filters</b> feature allows you to intercept and process incoming
+			requests
+			<b class="font-semibold">before they reach the MCP Server</b>. This enables you to perform
+			critical tasks such as
+			<b class="font-semibold"
+				>authorization, request logging, tool access control, or traffic routing</b
+			>. Filters act as customizable middleware components, giving you control over how requests are
+			handled and whether they should be modified, allowed, or blocked before reaching the core
+			application logic.
+		</p>
+	</div>
+{/snippet}
 <Confirm
 	msg="Are you sure you want to delete this server?"
 	show={deleteServer}
@@ -214,4 +269,26 @@
 		goto('/v2/admin/mcp-servers');
 	}}
 	oncancel={() => (deleteServer = false)}
+/>
+
+<Confirm
+	msg={deleteResourceFromRule?.resourceId === '*'
+		? 'Are you sure you want to remove Everything from this rule?'
+		: 'Are you sure you want to remove this MCP server from this rule?'}
+	show={Boolean(deleteResourceFromRule)}
+	onsuccess={async () => {
+		if (!deleteResourceFromRule) {
+			return;
+		}
+		await AdminService.updateAccessControlRule(deleteResourceFromRule.rule.id, {
+			...deleteResourceFromRule.rule,
+			resources: deleteResourceFromRule.rule.resources?.filter(
+				(r) => r.id !== deleteResourceFromRule!.resourceId
+			)
+		});
+
+		listAccessControlRules = AdminService.listAccessControlRules();
+		deleteResourceFromRule = undefined;
+	}}
+	oncancel={() => (deleteResourceFromRule = undefined)}
 />
