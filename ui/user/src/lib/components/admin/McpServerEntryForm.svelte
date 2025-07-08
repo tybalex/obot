@@ -9,14 +9,17 @@
 	import { tooltip } from '$lib/actions/tooltip.svelte';
 	import { goto } from '$app/navigation';
 	import Confirm from '../Confirm.svelte';
+	import { ADMIN_SESSION_STORAGE } from '$lib/constants';
+
+	type MCPType = 'single' | 'multi' | 'remote';
 
 	interface Props {
 		catalogId?: string;
 		entry?: MCPCatalogEntry | MCPCatalogServer;
-		type?: 'single' | 'multi' | 'remote';
+		type?: MCPType;
 		readonly?: boolean;
 		onCancel?: () => void;
-		onSubmit?: () => void;
+		onSubmit?: (id: string, type: MCPType) => void;
 		onUpdate?: () => void;
 	}
 
@@ -58,7 +61,10 @@
 	}
 </script>
 
-<div class="flex h-full w-full flex-col gap-4">
+<div
+	class="flex h-full w-full flex-col gap-4"
+	class:mb-8={view !== 'configuration' || (view === 'configuration' && readonly)}
+>
 	{#if entry}
 		<div class="flex items-center justify-between gap-4">
 			<div class="flex items-center gap-2">
@@ -177,8 +183,16 @@
 				]}
 				onSelectRow={(d) => {
 					if (!entry) return;
+					const name =
+						'manifest' in entry
+							? entry.manifest?.name
+							: (entry.commandManifest?.name ?? entry.urlManifest?.name);
+					sessionStorage.setItem(
+						ADMIN_SESSION_STORAGE.LAST_VISITED_MCP_SERVER,
+						JSON.stringify({ id: entry.id, name, type })
+					);
 					goto(
-						`/v2/admin/access-control/${d.id}?from=${encodeURIComponent(`/mcp-servers/${entry.id}`)}`
+						`/v2/admin/access-control/${d.id}?from=${encodeURIComponent(`mcp-servers/${entry.id}`)}`
 					);
 				}}
 			>
@@ -261,10 +275,10 @@
 	show={deleteServer}
 	onsuccess={async () => {
 		if (!catalogId || !entry) return;
-		if (type === 'single' || type === 'remote') {
-			await AdminService.deleteMCPCatalogEntry(catalogId, entry.id);
-		} else {
+		if ('manifest' in entry) {
 			await AdminService.deleteMCPCatalogServer(catalogId, entry.id);
+		} else {
+			await AdminService.deleteMCPCatalogEntry(catalogId, entry.id);
 		}
 		goto('/v2/admin/mcp-servers');
 	}}
