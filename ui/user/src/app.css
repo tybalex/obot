@@ -188,19 +188,19 @@
 		margin-top: 1.7142857em;
 		margin-bottom: 1.7142857em;
 		border-radius: 0.375rem;
-	}
 
-	code,
-	code * {
-		background-color: transparent !important;
-		color: var(--tw-prose-pre-code) !important;
-		border-width: 0;
-		border-radius: 0;
-		padding: 0;
-		font-weight: inherit;
-		font-size: inherit;
-		font-family: inherit;
-		line-height: inherit;
+		& code,
+		& code * {
+			background-color: transparent !important;
+			color: var(--tw-prose-pre-code) !important;
+			border-width: 0;
+			border-radius: 0;
+			padding: 0;
+			font-weight: inherit;
+			font-size: inherit;
+			font-family: inherit;
+			line-height: inherit;
+		}
 	}
 
 	.scrollbar-gutter-stable {
@@ -745,6 +745,133 @@
 		transition-duration: 300ms;
 		&:hover {
 			color: var(--color-blue-600);
+		}
+	}
+}
+
+.milkdown-content {
+	& h1,
+	& h2,
+	& h3,
+	& h4,
+	& p {
+		&:first-child {
+			margin-top: 0;
+		}
+		&:last-child {
+			margin-bottom: 0;
+		}
+	}
+
+	& h1 {
+		margin-top: 1rem;
+		margin-bottom: 1rem; /* my-4 */
+		font-size: 1.5rem; /* text-2xl */
+		font-weight: 700; /* font-bold */
+	}
+
+	& h2 {
+		margin-top: 1rem;
+		margin-bottom: 1rem;
+		font-size: 1.25rem; /* text-xl */
+		font-weight: 700;
+	}
+
+	& h3,
+	& h4 {
+		margin-top: 1rem;
+		margin-bottom: 1rem;
+		font-size: 1rem; /* text-base */
+		font-weight: 700;
+	}
+
+	& p {
+		margin-bottom: 1rem;
+		font-size: var(--text-md);
+
+		& * {
+			display: inline-block;
+		}
+	}
+
+	& pre {
+		padding: 0.5rem 1rem;
+	}
+
+	& a {
+		color: var(--color-blue-500);
+		text-decoration: underline;
+		&:hover {
+			color: var(--color-blue-600);
+		}
+	}
+
+	& ol {
+		margin: 1rem 0;
+		list-style-type: decimal;
+		padding-left: 1rem;
+
+		& li {
+			margin-bottom: 0.5rem;
+		}
+
+		& ::marker {
+			color: var(--color-gray-500);
+		}
+	}
+
+	& ul {
+		margin: 1rem 0;
+		list-style-type: disc;
+		padding-left: 1rem;
+
+		& li {
+			margin-bottom: 0.5rem;
+		}
+
+		& ::marker {
+			color: var(--color-gray-500);
+		}
+	}
+
+	& img {
+		justify-self: center;
+	}
+
+	& table {
+		border: 1px solid var(--surface3);
+
+		& th {
+			padding: 0.5rem 1rem;
+			border-bottom: 1px solid var(--surface3);
+			&:not(:last-child) {
+				border-right: 1px solid var(--surface3);
+			}
+		}
+
+		& td {
+			padding: 0.5rem 1rem;
+			&:not(:last-child) {
+				border-right: 1px solid var(--surface3);
+			}
+		}
+
+		& tr:not(:last-child) {
+			border-bottom: 1px solid var(--surface3);
+		}
+	}
+
+	& code {
+		background-color: var(--surface1);
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.25rem;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: var(--on-surface1);
+
+		.dark & {
+			background-color: var(--surface2);
+			color: var(--on-surface2);
 		}
 	}
 }
