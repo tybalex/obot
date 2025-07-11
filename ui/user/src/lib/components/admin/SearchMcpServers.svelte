@@ -4,7 +4,7 @@
 	import ResponsiveDialog from '../ResponsiveDialog.svelte';
 	import { getAdminMcpServerAndEntries } from '$lib/context/admin/mcpServerAndEntries.svelte';
 	import { twMerge } from 'tailwind-merge';
-	import { toHTMLFromMarkdown } from '$lib/markdown';
+	import { stripMarkdownToText } from '$lib/markdown';
 
 	interface Props {
 		onAdd: (mcpCatalogEntryIds: string[], mcpServerIds: string[], otherSelectors: string[]) => void;
@@ -110,7 +110,7 @@
 				</div>
 
 				<div class="flex flex-col">
-					{#each filteredData as item}
+					{#each filteredData as item (item.id)}
 						<button
 							class={twMerge(
 								'dark:hover:bg-surface1 hover:bg-surface2 flex w-full items-center gap-2 px-4 py-2 text-left',
@@ -142,7 +142,7 @@
 								<div class="flex min-w-0 grow flex-col">
 									<p class="truncate">{item.name}</p>
 									<span class="line-clamp-2 text-xs text-gray-500">
-										{@html toHTMLFromMarkdown(item.description ?? '')}
+										{@html stripMarkdownToText(item.description ?? '')}
 									</span>
 								</div>
 							</div>

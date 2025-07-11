@@ -7,6 +7,7 @@
 	import { fade, slide } from 'svelte/transition';
 	import {
 		Captions,
+		Funnel,
 		GlobeLock,
 		LockKeyhole,
 		Server,
@@ -46,6 +47,11 @@
 						icon: Captions,
 						label: 'Audit Logs',
 						disabled: isBootStrapUser
+					},
+					{
+						href: '/v2/admin/filters',
+						icon: Funnel,
+						label: 'Filters'
 					},
 					{
 						href: '/v2/admin/users',
@@ -91,7 +97,7 @@
 
 				<div class="text-md flex grow flex-col gap-8 px-3 pt-8 font-light">
 					<div class="flex flex-col gap-1">
-						{#each navLinks as link}
+						{#each navLinks as link (link.href)}
 							{#if link.disabled}
 								<div class="sidebar-link disabled">
 									<link.icon class="size-5" />

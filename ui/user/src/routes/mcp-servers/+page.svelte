@@ -377,7 +377,7 @@
 						</button>
 					</div>
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-						{#each connectedServers as connectedServer}
+						{#each connectedServers as connectedServer, i (i)}
 							{@render connectedMcpServerCard(connectedServer)}
 						{/each}
 					</div>
@@ -394,7 +394,7 @@
 					placeholder="Search by name..."
 				/>
 				<div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-					{#each paginatedData as item}
+					{#each paginatedData as item (item.id)}
 						{@render mcpServerCard(item)}
 					{/each}
 				</div>
@@ -479,7 +479,7 @@
 				</div>
 			</div>
 			<div class="flex w-full flex-wrap gap-1 pt-2">
-				{#each categories as category}
+				{#each categories as category (category)}
 					<div
 						class="border-surface3 rounded-full border px-1.5 py-0.5 text-[10px] font-light text-gray-400 dark:text-gray-600"
 					>
@@ -616,7 +616,7 @@
 				</div>
 			</div>
 			<div class="flex w-full flex-wrap gap-1 pt-2">
-				{#each categories as category}
+				{#each categories as category (category)}
 					<div
 						class="border-surface3 rounded-full border px-1.5 py-0.5 text-[10px] font-light text-gray-400 dark:text-gray-600"
 					>
@@ -870,7 +870,7 @@
 )}
 	<div class="my-4 flex flex-col gap-4">
 		{#if fields.envs && fields.envs.length > 0}
-			{#each fields.envs as env, i}
+			{#each fields.envs as env, i (env.key)}
 				<div class="flex flex-col gap-1">
 					<span class="flex items-center gap-2">
 						<label for={env.key}>
@@ -895,7 +895,7 @@
 			{/each}
 		{/if}
 		{#if fields.headers && fields.headers.length > 0}
-			{#each fields.headers as header, i}
+			{#each fields.headers as header, i (header.key)}
 				<div class="flex flex-col gap-1">
 					<span class="flex items-center gap-2">
 						<label for={header.key}>
@@ -1001,7 +1001,7 @@
 {/snippet}
 
 <Confirm
-	msg={'Are you sure you want to delete this server?'}
+	msg="Are you sure you want to delete this server?"
 	show={Boolean(deletingInstance)}
 	onsuccess={async () => {
 		if (deletingInstance) {
@@ -1016,7 +1016,7 @@
 />
 
 <Confirm
-	msg={'Are you sure you want to delete this server?'}
+	msg="Are you sure you want to delete this server?"
 	show={Boolean(deletingServer)}
 	onsuccess={async () => {
 		if (deletingServer) {
