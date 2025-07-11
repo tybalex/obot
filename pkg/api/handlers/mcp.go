@@ -148,7 +148,8 @@ func (m *MCPHandler) ListServer(req api.Context) error {
 	} else {
 		// List servers scoped to the user.
 		fieldSelector = kclient.MatchingFields{
-			"spec.userID": req.User.GetUID(),
+			"spec.userID":     req.User.GetUID(),
+			"spec.threadName": "",
 		}
 	}
 

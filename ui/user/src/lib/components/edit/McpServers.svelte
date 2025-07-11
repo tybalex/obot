@@ -9,7 +9,6 @@
 	} from '$lib/services';
 	import { type MCPServerInfo } from '$lib/services/chat/mcp';
 	import {
-		Plus,
 		Server,
 		Trash2,
 		Wrench,
@@ -25,7 +24,6 @@
 	import { HELPER_TEXTS } from '$lib/context/helperMode.svelte';
 	import DotDotDot from '$lib/components/DotDotDot.svelte';
 	import { getLayout, openMCPServerTools } from '$lib/context/chatLayout.svelte';
-	import McpSetupWizard from '$lib/components/mcp/McpSetupWizard.svelte';
 	import { getToolBundleMap } from '$lib/context/toolReferences.svelte';
 	import { DEFAULT_CUSTOM_SERVER_NAME } from '$lib/constants';
 	import { errors } from '$lib/stores';
@@ -44,7 +42,6 @@
 	let localConfigurations = $state<Record<string, boolean>>({});
 
 	let mcpConfigDialog = $state<ReturnType<typeof McpInfoConfig>>();
-	let mcpSetupWizard = $state<ReturnType<typeof McpSetupWizard>>();
 	let resourcesDialog = $state<ReturnType<typeof ProjectMcpResources>>();
 
 	const projectMCPs = getProjectMCPs();
@@ -78,13 +75,6 @@
 		mcpToShow?.catalogEntryID && toolBundleMap.get(mcpToShow.catalogEntryID)
 			? mcpToShow.catalogEntryID
 			: undefined
-	);
-
-	const selectedMcpIds = $derived(
-		projectMCPs.items.reduce<string[]>((acc, mcp) => {
-			if (mcp.catalogEntryID !== undefined) acc.push(mcp.catalogEntryID);
-			return acc;
-		}, [])
 	);
 
 	async function fetchCredentials() {
@@ -294,33 +284,6 @@
 						{/if}
 					</div>
 				{/each}
-			</div>
-		{/if}
-		{#if !chatbot}
-			<div class="flex justify-end">
-				<DotDotDot class="button flex items-center gap-1 text-xs">
-					{#snippet icon()}
-						<Plus class="size-4" /> Add MCP Server
-					{/snippet}
-					<div class="default-dialog flex min-w-max flex-col p-2">
-						<button class="menu-button" onclick={() => mcpSetupWizard?.open()}>
-							<Server class="size-4" /> Browse Catalog
-						</button>
-					</div>
-				</DotDotDot>
-				<McpSetupWizard
-					bind:this={mcpSetupWizard}
-					catalogDescription="Extend your agent's capabilities by adding multiple MCP servers from our evergrowing catalog."
-					catalogSubmitText="Add to agent"
-					{selectedMcpIds}
-					{project}
-					onFinish={(newProjectMcp) => {
-						if (newProjectMcp) {
-							projectMCPs.items.push(newProjectMcp);
-						}
-						mcpSetupWizard?.close();
-					}}
-				/>
 			</div>
 		{/if}
 	</div>

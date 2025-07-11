@@ -171,9 +171,6 @@
 					</h3>
 				</div>
 			</div>
-			<p class="text-sm font-light text-gray-500">
-				{mcpServer.manifest.description}
-			</p>
 		</div>
 
 		{#if loading}
