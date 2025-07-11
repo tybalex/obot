@@ -6,6 +6,8 @@
 	import type { Snippet } from 'svelte';
 	import { fade, slide } from 'svelte/transition';
 	import {
+		Box,
+		Boxes,
 		Captions,
 		Funnel,
 		GlobeLock,
@@ -62,13 +64,28 @@
 						href: '/v2/admin/auth-providers',
 						icon: LockKeyhole,
 						label: 'Auth Providers'
+					},
+					{
+						href: '/v2/admin/model-providers',
+						icon: Boxes,
+						label: 'Model Providers'
 					}
+					// {
+					// 	href: '/v2/admin/guardrails',
+					// 	icon: TrainTrack,
+					// 	label: 'Guardrails'
+					// }
 				]
 			: [
 					{
 						href: '/mcp-servers',
 						icon: Server,
 						label: 'MCP Servers'
+					},
+					{
+						href: '/models',
+						icon: Box,
+						label: 'Models'
 					}
 				]
 	);
