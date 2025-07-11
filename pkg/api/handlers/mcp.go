@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"errors"
@@ -1573,4 +1574,112 @@ func (m *MCPHandler) ClearOAuthCredentials(req api.Context) error {
 
 	req.WriteHeader(http.StatusNoContent)
 	return nil
+}
+
+func (m *MCPHandler) GetServerDetails(req api.Context) error {
+	if !m.mcpSessionManager.KubernetesEnabled() {
+		return types.NewErrNotFound("Kubernetes is not enabled")
+	}
+
+	_, serverConfig, err := ServerForAction(req)
+	if err != nil {
+		return err
+	}
+
+	details, err := m.mcpSessionManager.GetServerDetails(req.Context(), serverConfig)
+	if err != nil {
+		return err
+	}
+
+	return req.Write(details)
+}
+
+func (m *MCPHandler) StreamServerLogs(req api.Context) error {
+	if !m.mcpSessionManager.KubernetesEnabled() {
+		return types.NewErrNotFound("Kubernetes is not enabled")
+	}
+
+	_, serverConfig, err := ServerForAction(req)
+	if err != nil {
+		return err
+	}
+
+	logs, err := m.mcpSessionManager.StreamServerLogs(req.Context(), serverConfig)
+	if err != nil {
+		return err
+	}
+
+	defer logs.Close()
+
+	// Set up Server-Sent Events headers
+	req.ResponseWriter.Header().Set("Content-Type", "text/event-stream")
+	req.ResponseWriter.Header().Set("Cache-Control", "no-cache")
+	req.ResponseWriter.Header().Set("Connection", "keep-alive")
+
+	flusher, shouldFlush := req.ResponseWriter.(http.Flusher)
+
+	// Send initial connection event
+	fmt.Fprintf(req.ResponseWriter, "event: connected\ndata: Log stream started\n\n")
+	if shouldFlush {
+		flusher.Flush()
+	}
+
+	// Channel to coordinate between goroutines
+	logChan := make(chan string, 100) // Buffered to prevent blocking
+
+	// Start a goroutine to read logs
+	go func() {
+		defer close(logChan)
+
+		scanner := bufio.NewScanner(logs)
+		for scanner.Scan() {
+			line := scanner.Text()
+			select {
+			case <-req.Context().Done():
+				return
+			case logChan <- line:
+			}
+		}
+		if err := scanner.Err(); err != nil {
+			// Send error event
+			select {
+			case logChan <- fmt.Sprintf("ERROR retrieving logs: %v", err):
+			case <-req.Context().Done():
+			}
+			return
+		}
+	}()
+
+	// Send log events as they come in
+	ticker := time.NewTicker(30 * time.Second) // Keep-alive ping
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-req.Context().Done():
+			fmt.Fprintf(req.ResponseWriter, "event: disconnected\ndata: Client disconnected\n\n")
+			if shouldFlush {
+				flusher.Flush()
+			}
+			return nil
+		case <-ticker.C:
+			// Send keep-alive ping
+			fmt.Fprintf(req.ResponseWriter, "event: ping\ndata: keep-alive\n\n")
+			if shouldFlush {
+				flusher.Flush()
+			}
+		case logLine, ok := <-logChan:
+			if !ok {
+				fmt.Fprintf(req.ResponseWriter, "event: ended\ndata: Log stream ended\n\n")
+				if shouldFlush {
+					flusher.Flush()
+				}
+				return nil
+			}
+			fmt.Fprintf(req.ResponseWriter, "event: log\ndata: %s\n\n", logLine)
+			if shouldFlush {
+				flusher.Flush()
+			}
+		}
+	}
 }
