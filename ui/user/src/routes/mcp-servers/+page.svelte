@@ -311,35 +311,34 @@
 			(project) => project.name === connectedServer.server?.manifest.name
 		);
 
-		if (match) {
-			// go ahead and open the tab with the project
-			window.open(`/o/${match.id}`, '_blank');
-			chatLoading = false;
-			return;
+		let project = match;
+		if (!match) {
+			// if no project match, create a new one w/ mcp server connected to it
+			project = await EditorService.createObot({
+				name: connectedServer.server?.manifest.name ?? ''
+			});
 		}
 
-		// if no project match, create a new one w/ mcp server connected to it
-		const project = await EditorService.createObot({
-			name: connectedServer.server?.manifest.name ?? ''
-		});
+		if (
+			project &&
+			!(await ChatService.listProjectMCPs(project.assistantID, project.id)).find(
+				(mcp) => mcp.manifest.name === connectedServer.server?.manifest.name
+			)
+		) {
+			const mcpServerInfo = {
+				manifest: {
+					name: connectedServer.server.manifest.name,
+					icon: connectedServer.server.manifest.icon,
+					description: connectedServer.server.manifest.description,
+					metadata: connectedServer.server.manifest.metadata,
+					url: connectedServer.connectURL
+				}
+			} as MCPServerInfo;
 
-		let values: Record<string, string> = {};
-		if (connectedServer.parent) {
-			values = await ChatService.revealSingleOrRemoteMcpServer(connectedServer.server.id);
+			await createProjectMcp(mcpServerInfo, project);
 		}
-		const mcpServerInfo = {
-			...connectedServer.server,
-			env: connectedServer.server?.manifest.env?.map((env) => ({
-				...env,
-				value: values[env.key] ?? ''
-			})),
-			headers: connectedServer.server?.manifest.headers?.map((header) => ({
-				...header,
-				value: values[header.key] ?? ''
-			}))
-		};
-		await createProjectMcp(mcpServerInfo, project);
-		window.open(`/o/${project.id}`, '_blank');
+
+		window.open(`/o/${project?.id}`, '_blank');
 		chatLoading = false;
 	}
 

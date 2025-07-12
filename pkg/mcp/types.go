@@ -1,13 +1,12 @@
 package mcp
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
+	"strings"
 
-	"github.com/gptscript-ai/go-gptscript"
 	gmcp "github.com/gptscript-ai/gptscript/pkg/mcp"
-	"github.com/gptscript-ai/gptscript/pkg/types"
+	"github.com/obot-platform/obot/pkg/jwt"
 	v1 "github.com/obot-platform/obot/pkg/storage/apis/obot.obot.ai/v1"
 )
 
@@ -42,7 +41,7 @@ func expandEnvVars(text string, credEnv map[string]string) string {
 	})
 }
 
-func ToServerConfig(mcpServer v1.MCPServer, scope string, credEnv map[string]string, allowedTools ...string) (ServerConfig, []string) {
+func ToServerConfig(tokenService *jwt.TokenService, mcpServer v1.MCPServer, baseURL, scope string, credEnv map[string]string, allowedTools ...string) (ServerConfig, []string, error) {
 	// Expand environment variables in command, args, and URL
 	command := expandEnvVars(mcpServer.Spec.Manifest.Command, credEnv)
 	url := expandEnvVars(mcpServer.Spec.Manifest.URL, credEnv)
@@ -93,22 +92,16 @@ func ToServerConfig(mcpServer v1.MCPServer, scope string, credEnv map[string]str
 		serverConfig.Headers = append(serverConfig.Headers, fmt.Sprintf("%s=%s", header.Key, val))
 	}
 
-	return serverConfig, missingRequiredNames
-}
+	if strings.HasPrefix(serverConfig.URL, baseURL+"/mcp-connect/") {
+		token, err := tokenService.NewToken(jwt.TokenContext{
+			UserID: mcpServer.Spec.UserID,
+		})
+		if err != nil {
+			return ServerConfig{}, nil, fmt.Errorf("failed to create token: %w", err)
+		}
 
-func ServerToolWithCreds(mcpServer v1.MCPServer, serverConfig ServerConfig) (gptscript.ToolDef, error) {
-	b, err := json.Marshal(serverConfig)
-	if err != nil {
-		return gptscript.ToolDef{}, fmt.Errorf("failed to marshal MCP Server %s config: %w", mcpServer.Spec.Manifest.Name, err)
+		serverConfig.Headers = append(serverConfig.Headers, fmt.Sprintf("Authorization=Bearer %s", token))
 	}
 
-	name := mcpServer.Spec.Manifest.Name
-	if name == "" {
-		name = mcpServer.Name
-	}
-
-	return gptscript.ToolDef{
-		Name:         name + "-bundle",
-		Instructions: fmt.Sprintf("%s\n%s", types.MCPPrefix, string(b)),
-	}, nil
+	return serverConfig, missingRequiredNames, nil
 }

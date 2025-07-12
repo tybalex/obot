@@ -364,7 +364,7 @@ func (i *Invoker) Agent(ctx context.Context, c kclient.WithWatch, agent *v1.Agen
 		}
 	}
 
-	tools, extraEnv, err := render.Agent(ctx, c, i.gptClient, agent, i.serverURL, render.AgentOptions{
+	tools, extraEnv, err := render.Agent(ctx, i.tokenService, c, i.gptClient, agent, i.serverURL, render.AgentOptions{
 		Thread:         thread,
 		WorkflowStepID: opt.WorkflowStepID,
 	})
