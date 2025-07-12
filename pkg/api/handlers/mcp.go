@@ -760,8 +760,9 @@ func (m *MCPHandler) CreateServer(req api.Context) error {
 		server.Spec.Manifest = manifest
 		server.Spec.ToolReferenceName = catalogEntry.Spec.ToolReferenceName
 		server.Spec.UnsupportedTools = catalogEntry.Spec.UnsupportedTools
-	} else if req.UserIsAdmin() {
+	} else if req.UserIsAdmin() || projectID != "" {
 		// If the user is an admin, they can create a server with a manifest that is not in the catalog.
+		// Additionally, creating a server in a project for a user is OK, too.
 		server.Spec.Manifest = input.MCPServerManifest
 	} else {
 		return types.NewErrBadRequest("catalogEntryID is required")
