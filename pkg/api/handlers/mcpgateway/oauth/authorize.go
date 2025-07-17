@@ -281,15 +281,16 @@ func (h *handler) callback(req api.Context) error {
 			ClientCredLookup: oauthHandler,
 			TokenStorage:     h.tokenStore.ForMCPID(oauthHandler.mcpID),
 		})
-		// We only need this client for checking for OAuth. Close it when we're done.
-		if shutdownErr := h.mcpSessionManager.ShutdownServer(ctx, mcpServerConfig); shutdownErr != nil {
-			log.Errorf("failed to shutdown server after authentication %s: %v", mcpServer.Name, shutdownErr)
-		}
 		if err != nil {
 			errChan <- fmt.Errorf("failed to get client for server %s: %v", mcpServer.Name, err)
-			return
+		} else {
+			errChan <- nil
 		}
-		errChan <- nil
+
+		// We only need this client for checking for OAuth. Close it, now that we're done.
+		if err = h.mcpSessionManager.ShutdownServer(context.Background(), mcpServerConfig); err != nil {
+			log.Errorf("failed to shutdown server after authentication %s: %v", mcpServer.Name, err)
+		}
 	}()
 
 	select {
