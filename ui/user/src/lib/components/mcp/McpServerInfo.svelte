@@ -5,7 +5,8 @@
 		type MCPServerPrompt,
 		type McpServerResource,
 		ChatService,
-		AdminService
+		AdminService,
+		type Project
 	} from '$lib/services';
 	import type { MCPCatalogEntry, MCPCatalogServerManifest } from '$lib/services/admin/types';
 	import { CircleCheckBig, CircleOff, Info, LoaderCircle, Pencil, RefreshCcw } from 'lucide-svelte';
@@ -16,12 +17,15 @@
 	import { toHTMLFromMarkdownWithNewTabLinks } from '$lib/markdown';
 	import { tooltip } from '$lib/actions/tooltip.svelte';
 	import MarkdownTextEditor from '../admin/MarkdownTextEditor.svelte';
+	import { onDestroy } from 'svelte';
 
 	interface Props {
 		entry: MCPCatalogEntry | MCPCatalogServer;
 		editable?: boolean;
 		catalogId?: string;
 		onUpdate?: () => void;
+		onAuthenticate?: () => void;
+		project?: Project;
 	}
 
 	type EntryDetail = {
@@ -132,7 +136,7 @@
 		}
 	}
 
-	let { entry, editable = false, catalogId, onUpdate }: Props = $props();
+	let { entry, editable = false, catalogId, onUpdate, onAuthenticate, project }: Props = $props();
 	let tools = $state<MCPServerTool[]>([]);
 	let prompts = $state<MCPServerPrompt[]>([]);
 	let resources = $state<McpServerResource[]>([]);
@@ -157,36 +161,65 @@
 	);
 	let displayTools = $derived(showRealTools ? tools : showPreviewTools ? previewTools : []);
 
+	// Create AbortController for cancelling API calls
+	let abortController = $state<AbortController | null>(null);
+
 	async function loadServerData() {
+		// Cancel any existing requests
+		if (abortController) {
+			abortController.abort();
+		}
+
+		// Create new AbortController for this request
+		abortController = new AbortController();
+
 		loading = true;
 		oauthURL = '';
 		showRefresh = false;
 
-		const isOauthNeeded = await ChatService.isMcpServerOauthNeeded(entry.id);
-		if (isOauthNeeded) {
-			oauthURL = await ChatService.getMcpServerOauthURL(entry.id);
-			loading = false;
-			return;
-		}
-
-		// Try loading tools first, if that fails with a 424,
-		// prompt user for MCP oauth authentication then try again
 		try {
-			const [toolsRes, promptsRes, resourcesRes] = await Promise.all([
-				ChatService.listMcpCatalogServerTools(entry.id),
-				ChatService.listMcpCatalogServerPrompts(entry.id),
-				ChatService.listMcpCatalogServerResources(entry.id)
-			]);
+			const oauthURLResponse = await ChatService.getMcpServerOauthURL(entry.id, {
+				signal: abortController.signal
+			});
+			if (oauthURLResponse) {
+				oauthURL = oauthURLResponse;
+				loading = false;
+				return;
+			}
+
+			let promises = project
+				? Promise.all([
+						ChatService.listProjectMCPServerTools(project.assistantID, project.id, entry.id, {
+							signal: abortController.signal
+						}),
+						ChatService.listProjectMcpServerPrompts(project.assistantID, project.id, entry.id, {
+							signal: abortController.signal
+						}),
+						ChatService.listProjectMcpServerResources(project.assistantID, project.id, entry.id, {
+							signal: abortController.signal
+						})
+					])
+				: Promise.all([
+						ChatService.listMcpCatalogServerTools(entry.id, { signal: abortController.signal }),
+						ChatService.listMcpCatalogServerPrompts(entry.id, { signal: abortController.signal }),
+						ChatService.listMcpCatalogServerResources(entry.id, { signal: abortController.signal })
+					]);
+
+			const [toolsRes, promptsRes, resourcesRes] = await promises;
 			tools = toolsRes;
 			prompts = promptsRes;
 			resources = resourcesRes;
-		} catch (err) {
-			console.error(err);
-			tools = [];
-			prompts = [];
-			resources = [];
+		} catch (err: unknown) {
+			// Only handle errors if the request wasn't aborted
+			if (err instanceof Error && err.name !== 'AbortError') {
+				console.error(err);
+				tools = [];
+				prompts = [];
+				resources = [];
+			}
+		} finally {
+			loading = false;
 		}
-		loading = false;
 	}
 
 	async function handleDescriptionUpdate(markdown: string) {
@@ -213,6 +246,13 @@
 		if (entry && 'manifest' in entry && entry.id !== previousEntryId) {
 			previousEntryId = entry.id;
 			loadServerData();
+		}
+	});
+
+	// Clean up AbortController when component is destroyed
+	onDestroy(() => {
+		if (abortController) {
+			abortController.abort();
 		}
 	});
 </script>
@@ -279,7 +319,11 @@
 				{#if showRefresh}
 					<button
 						class="button flex items-center justify-center gap-1 text-center text-sm"
-						onclick={() => loadServerData()}
+						onclick={async () => {
+							await loadServerData();
+							onAuthenticate?.();
+						}}
+						disabled={loading}
 					>
 						<RefreshCcw class="size-4" /> Reload
 					</button>

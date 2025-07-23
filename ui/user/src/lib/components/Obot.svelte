@@ -15,14 +15,14 @@
 	import { tooltip } from '$lib/actions/tooltip.svelte';
 	import { columnResize } from '$lib/actions/resize';
 	import { X } from 'lucide-svelte';
-	import CredentialAuth from '$lib/components/edit/CredentialAuth.svelte';
 	import Projects from '$lib/components/navbar/Projects.svelte';
-	import type { Assistant, ProjectCredential } from '$lib/services';
+	import type { Assistant } from '$lib/services';
 	import { clickOutside } from '$lib/actions/clickoutside';
 	import { goto } from '$app/navigation';
 	import SidebarConfig from './chat/ChatSidebarConfig.svelte';
 	import { onMount, onDestroy } from 'svelte';
 	import { browser } from '$app/environment';
+	import McpServerOauths from './chat/McpServerOauths.svelte';
 
 	interface Props {
 		assistant?: Assistant;
@@ -36,10 +36,6 @@
 	let layout = getLayout();
 	let editor: HTMLDivElement | undefined = $state();
 
-	let credentials = $state<ProjectCredential[]>([]);
-	let authDialog: ReturnType<typeof CredentialAuth> | undefined = $state();
-	let credToAuth = $state<ProjectCredential | undefined>();
-	let configDialog: HTMLDialogElement;
 	let shortcutsDialog: HTMLDialogElement;
 	let nav = $state<HTMLDivElement>();
 
@@ -62,20 +58,6 @@
 			errors.append((error as Error).message);
 		}
 	}
-
-	$effect(() => {
-		ChatService.listProjectLocalCredentials(project.assistantID, project.id).then((creds) => {
-			credentials = creds.items;
-			credToAuth = credentials.find((c) => c.toolID === 'slack-bot-bundle');
-			if (
-				project.capabilities?.onSlackMessage &&
-				!credentials.find((c) => c.toolID === 'slack-bot-bundle')?.exists
-			) {
-				configDialog?.showModal();
-				return;
-			}
-		});
-	});
 
 	function handleKeydown(event: KeyboardEvent) {
 		// Ctrl + E for edit mode
@@ -180,7 +162,7 @@
 										class="button flex flex-shrink-0 items-center gap-1 text-xs"
 										onclick={() => createNewAgent()}
 									>
-										<Plus class="size-4" /> Create New Agent
+										<Plus class="size-4" /> Create New Project
 									</button>
 								{/if}
 							</div>
@@ -259,44 +241,6 @@
 			</div>
 
 			<dialog
-				bind:this={configDialog}
-				class="default-dialog"
-				use:clickOutside={() => configDialog?.close()}
-			>
-				<div class="p-6">
-					<button class="absolute top-0 right-0 p-3" onclick={() => configDialog?.close()}>
-						<X class="icon-default" />
-					</button>
-					<h3 class="mb-4 text-lg font-semibold">Configure Slack</h3>
-					<p class="text-sm text-gray-600">
-						To run this task, you'll need to configure the Slack Bot tool first.
-					</p>
-					<div class="mt-6 flex justify-end gap-3">
-						<button
-							class="button"
-							onclick={() => {
-								configDialog?.close();
-								authDialog?.show();
-							}}
-						>
-							Configure Now
-						</button>
-					</div>
-				</div>
-			</dialog>
-
-			<CredentialAuth
-				bind:this={authDialog}
-				credential={credToAuth}
-				{project}
-				local={true}
-				toolID="slack-bot-bundle"
-				onClose={() => {
-					credToAuth = undefined;
-				}}
-			/>
-
-			<dialog
 				bind:this={shortcutsDialog}
 				class="default-dialog"
 				use:clickOutside={() => shortcutsDialog?.close()}
@@ -323,6 +267,8 @@
 		</main>
 	</div>
 </div>
+
+<McpServerOauths />
 
 {#snippet openSidebar()}
 	<button class="icon-button" onclick={() => (layout.sidebarOpen = true)}>

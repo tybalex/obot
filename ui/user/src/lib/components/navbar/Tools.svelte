@@ -9,6 +9,7 @@
 	import { fade } from 'svelte/transition';
 	import { DEFAULT_CUSTOM_SERVER_NAME } from '$lib/constants';
 	import { responsive } from '$lib/stores';
+	import PageLoading from '../PageLoading.svelte';
 
 	interface Props {
 		project: Project;
@@ -19,6 +20,8 @@
 	let dialog = $state<HTMLDialogElement | undefined>();
 	let selectedProjectMcp = $state<ProjectMCP>();
 	const projectMCPs = getProjectMCPs();
+	let authenticatedMcps = $derived(projectMCPs.items.filter((mcp) => mcp.authenticated));
+	let loading = $state(false);
 
 	async function sleep(ms: number): Promise<void> {
 		return new Promise((resolve) => setTimeout(resolve, ms));
@@ -34,22 +37,24 @@
 	}
 </script>
 
-{#if projectMCPs.items.length > 0}
+{#if authenticatedMcps.length > 0}
 	<div use:tooltip={'Tools'} in:fade>
 		<DotDotDot class="icon-button hover:bg-surface2 hover:text-blue-500">
 			{#snippet icon()}
 				<Wrench class="h-5 w-5" />
 			{/snippet}
 			<div class="default-dialog flex min-w-max flex-col p-2">
-				{#each projectMCPs.items as projectMcp (projectMcp.id)}
+				{#each authenticatedMcps as projectMcp (projectMcp.id)}
 					<button
 						class="menu-button"
 						onclick={async () => {
 							selectedProjectMcp = projectMcp;
 
 							if (!currentThreadID) {
+								loading = true;
 								const thread = await createThread();
 								currentThreadID = thread.id;
+								loading = false;
 							}
 							dialog?.showModal();
 						}}
@@ -90,3 +95,5 @@
 		{/key}
 	{/if}
 </dialog>
+
+<PageLoading show={loading} text="Loading tools..." />

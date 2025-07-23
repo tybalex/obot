@@ -933,7 +933,7 @@ export async function getMcpCatalogServer(
 
 export async function listMcpCatalogServerTools(
 	id: string,
-	opts?: { fetch?: Fetcher }
+	opts?: { fetch?: Fetcher; signal?: AbortSignal }
 ): Promise<MCPServerTool[]> {
 	return (await doGet(`/all-mcp-catalogs/servers/${id}/tools`, {
 		...opts,
@@ -943,7 +943,7 @@ export async function listMcpCatalogServerTools(
 
 export async function listMcpCatalogServerPrompts(
 	id: string,
-	opts?: { fetch?: Fetcher }
+	opts?: { fetch?: Fetcher; signal?: AbortSignal }
 ): Promise<MCPServerPrompt[]> {
 	return (await doGet(`/all-mcp-catalogs/servers/${id}/prompts`, {
 		...opts,
@@ -953,7 +953,7 @@ export async function listMcpCatalogServerPrompts(
 
 export async function listMcpCatalogServerResources(
 	id: string,
-	opts?: { fetch?: Fetcher }
+	opts?: { fetch?: Fetcher; signal?: AbortSignal }
 ): Promise<McpServerResource[]> {
 	return (await doGet(`/all-mcp-catalogs/servers/${id}/resources`, {
 		...opts,
@@ -1084,12 +1084,14 @@ export async function deconfigureSharedProjectMCP(
 export async function listProjectMCPServerTools(
 	assistantID: string,
 	projectID: string,
-	projectMcpServerId: string
+	projectMcpServerId: string,
+	opts?: { signal?: AbortSignal }
 ): Promise<MCPServerTool[]> {
 	return (await doGet(
 		`/assistants/${assistantID}/projects/${projectID}/mcpservers/${projectMcpServerId}/tools`,
 		{
-			dontLogErrors: true
+			dontLogErrors: true,
+			signal: opts?.signal
 		}
 	)) as MCPServerTool[];
 }
@@ -1140,12 +1142,14 @@ export async function configureProjectThreadMcpServerTools(
 export async function listProjectMcpServerPrompts(
 	assistantID: string,
 	projectID: string,
-	projectMcpServerId: string
+	projectMcpServerId: string,
+	opts?: { signal?: AbortSignal }
 ): Promise<MCPServerPrompt[]> {
 	const response = (await doGet(
 		`/assistants/${assistantID}/projects/${projectID}/mcpservers/${projectMcpServerId}/prompts`,
 		{
-			dontLogErrors: true
+			dontLogErrors: true,
+			signal: opts?.signal
 		}
 	)) as MCPServerPrompt[];
 	return response;
@@ -1168,12 +1172,14 @@ export async function generateProjectMcpServerPrompt(
 export async function listProjectMcpServerResources(
 	assistantID: string,
 	projectID: string,
-	projectMcpServerId: string
+	projectMcpServerId: string,
+	opts?: { signal?: AbortSignal }
 ) {
 	const response = (await doGet(
 		`/assistants/${assistantID}/projects/${projectID}/mcpservers/${projectMcpServerId}/resources`,
 		{
-			dontLogErrors: true
+			dontLogErrors: true,
+			signal: opts?.signal
 		}
 	)) as McpServerResource[];
 	return response;
@@ -1516,9 +1522,15 @@ export async function deleteMcpServerInstance(id: string): Promise<void> {
 }
 
 // 412 means oauth is needed
-export async function getMcpServerOauthURL(id: string): Promise<string> {
+export async function getMcpServerOauthURL(
+	id: string,
+	opts?: { signal?: AbortSignal }
+): Promise<string> {
 	try {
-		const response = (await doGet(`/mcp-servers/${id}/oauth-url`, { dontLogErrors: true })) as {
+		const response = (await doGet(`/mcp-servers/${id}/oauth-url`, {
+			dontLogErrors: true,
+			signal: opts?.signal
+		})) as {
 			oauthURL: string;
 		};
 		return response.oauthURL;
@@ -1527,9 +1539,15 @@ export async function getMcpServerOauthURL(id: string): Promise<string> {
 	}
 }
 
-export async function isMcpServerOauthNeeded(id: string): Promise<boolean> {
+export async function isMcpServerOauthNeeded(
+	id: string,
+	opts?: { signal?: AbortSignal }
+): Promise<boolean> {
 	try {
-		await doGet(`/mcp-servers/${id}/check-oauth`, { dontLogErrors: true });
+		await doGet(`/mcp-servers/${id}/check-oauth`, {
+			dontLogErrors: true,
+			signal: opts?.signal
+		});
 	} catch (err) {
 		if (err instanceof Error && err.message.includes('412')) {
 			return true;
