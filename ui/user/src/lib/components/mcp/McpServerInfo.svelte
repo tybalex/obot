@@ -188,8 +188,9 @@
 				return;
 			}
 
+			// Make a best effort attempt to load tools, prompts, and resources concurrently
 			let promises = project
-				? Promise.all([
+				? Promise.allSettled([
 						ChatService.listProjectMCPServerTools(project.assistantID, project.id, entry.id, {
 							signal: abortController.signal
 						}),
@@ -200,23 +201,28 @@
 							signal: abortController.signal
 						})
 					])
-				: Promise.all([
+				: Promise.allSettled([
 						ChatService.listMcpCatalogServerTools(entry.id, { signal: abortController.signal }),
 						ChatService.listMcpCatalogServerPrompts(entry.id, { signal: abortController.signal }),
 						ChatService.listMcpCatalogServerResources(entry.id, { signal: abortController.signal })
 					]);
 
 			const [toolsRes, promptsRes, resourcesRes] = await promises;
-			tools = toolsRes;
-			prompts = promptsRes;
-			resources = resourcesRes;
+
+			// Keep capabilities from requests that were successful
+			tools = toolsRes.status === 'fulfilled' ? toolsRes.value : [];
+			prompts = promptsRes.status === 'fulfilled' ? promptsRes.value : [];
+			resources = resourcesRes.status === 'fulfilled' ? resourcesRes.value : [];
+
+			for (const result of [toolsRes, promptsRes, resourcesRes]) {
+				if (result.status === 'rejected') {
+					throw result.reason;
+				}
+			}
 		} catch (err: unknown) {
 			// Only handle errors if the request wasn't aborted
 			if (err instanceof Error && err.name !== 'AbortError') {
 				console.error(err);
-				tools = [];
-				prompts = [];
-				resources = [];
 			}
 		} finally {
 			loading = false;
@@ -308,15 +314,15 @@
 		<div class="flex flex-col gap-2">
 			<h4 class="text-md font-semibold">Capabilities</h4>
 			<ul class="flex flex-wrap items-center gap-2">
-				{@render capabiliity('Tool Catalog', displayTools.length > 0)}
-				{@render capabiliity('Prompts', prompts.length > 0)}
-				{@render capabiliity('Resources', resources.length > 0)}
+				{@render capability('Tool Catalog', displayTools.length > 0)}
+				{@render capability('Prompts', prompts.length > 0)}
+				{@render capability('Resources', resources.length > 0)}
 			</ul>
 		</div>
 	{/if}
 {/snippet}
 
-{#snippet capabiliity(name: string, enabled: boolean)}
+{#snippet capability(name: string, enabled: boolean)}
 	<li
 		class={twMerge(
 			'flex w-fit items-center justify-center gap-1 rounded-full px-4 py-1 text-xs font-light',
