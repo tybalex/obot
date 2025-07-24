@@ -222,11 +222,11 @@
 			{/if}
 		</CollapsePane>
 	{:else}
-		<div class="flex flex-col px-3 text-xs">
-			<div class="mb-1 flex items-center justify-between">
-				<p class="grow text-sm font-semibold">Threads</p>
+		<div class="flex flex-col text-xs">
+			<div class="flex items-center justify-between">
+				<p class="text-md grow font-medium">Threads</p>
 				<button class="icon-button" onclick={createThread} use:tooltip={'Start New Thread'}>
-					<Plus class="h-5 w-5" />
+					<Plus class="size-5" />
 				</button>
 			</div>
 			{@render content()}
