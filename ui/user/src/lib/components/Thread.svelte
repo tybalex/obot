@@ -27,6 +27,7 @@
 	import { getProjectDefaultModel, getThread } from '$lib/services/chat/operations';
 	import type {
 		CreateProjectForm,
+		Assistant,
 		MCPServerPrompt,
 		Thread as ThreadType
 	} from '$lib/services/chat/types';
@@ -40,13 +41,15 @@
 		project: Project;
 		shared?: boolean;
 		createProject?: CreateProjectForm;
+		assistant?: Assistant;
 	}
 
 	let {
 		id = $bindable(),
 		project = $bindable(),
 		shared,
-		createProject = $bindable()
+		createProject = $bindable(),
+		assistant
 	}: Props = $props();
 
 	let messagesDiv = $state<HTMLDivElement>();
@@ -649,6 +652,7 @@
 							<ThreadModelSelector
 								threadId={id}
 								{project}
+								{assistant}
 								projectDefaultModel={projectModel}
 								projectDefaultModelProvider={projectModelProvider}
 								onModelChanged={handleModelChanged}
