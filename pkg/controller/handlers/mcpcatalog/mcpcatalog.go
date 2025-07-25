@@ -315,8 +315,8 @@ func (h *Handler) DeleteUnauthorizedMCPServers(req router.Request, _ router.Resp
 
 	// Iterate through each MCPServer and make sure it is still allowed to exist.
 	for _, server := range mcpServers.Items {
-		if server.Spec.ToolReferenceName != "" || server.Spec.ThreadName != "" || server.Spec.SharedWithinMCPCatalogName != "" {
-			// For legacy gptscript tools, project-scoped servers, and multi-user servers created by the admin, we don't need to check them.
+		if server.Spec.ThreadName != "" || server.Spec.SharedWithinMCPCatalogName != "" {
+			// For project-scoped servers and multi-user servers created by the admin, we don't need to check them.
 			continue
 		}
 

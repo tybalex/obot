@@ -1,16 +1,33 @@
 package mcpserver
 
 import (
+	"fmt"
 	"net/url"
 	"slices"
+	"strings"
 
 	"github.com/obot-platform/nah/pkg/router"
+	"github.com/obot-platform/nah/pkg/untriggered"
 	"github.com/obot-platform/obot/apiclient/types"
 	v1 "github.com/obot-platform/obot/pkg/storage/apis/obot.obot.ai/v1"
+	"github.com/obot-platform/obot/pkg/system"
 	"github.com/obot-platform/obot/pkg/utils"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
+	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func DetectDrift(req router.Request, _ router.Response) error {
+type Handler struct {
+	baseURL string
+}
+
+func New(baseURL string) *Handler {
+	return &Handler{
+		baseURL: baseURL,
+	}
+}
+
+func (h *Handler) DetectDrift(req router.Request, _ router.Response) error {
 	server := req.Object.(*v1.MCPServer)
 
 	if server.Spec.MCPServerCatalogEntryName == "" {
@@ -67,4 +84,52 @@ func configurationHasDrifted(serverManifest types.MCPServerManifest, entryManife
 		!utils.SlicesEqualIgnoreOrder(serverManifest.Headers, entryManifest.Headers)
 
 	return drifted, nil
+}
+
+func (h *Handler) MigrateProjectMCPServers(req router.Request, _ router.Response) error {
+	server := req.Object.(*v1.MCPServer)
+	mcpID, ok := strings.CutPrefix(server.Spec.Manifest.URL, fmt.Sprintf("%s/mcp-connect/", h.baseURL))
+	if !ok || server.Spec.ThreadName == "" {
+		return nil
+	}
+
+	var projectMCPServers v1.ProjectMCPServerList
+	if err := req.List(untriggered.UncachedList(&projectMCPServers), &kclient.ListOptions{
+		FieldSelector: fields.SelectorFromSet(map[string]string{
+			"spec.threadName": server.Spec.ThreadName,
+		}),
+	}); err != nil {
+		return err
+	}
+
+	var found bool
+	for _, projectMCPServer := range projectMCPServers.Items {
+		if projectMCPServer.Spec.Manifest.MCPID == mcpID {
+			found = true
+			break
+		}
+	}
+
+	if found {
+		return kclient.IgnoreNotFound(req.Delete(server))
+	}
+
+	if err := req.Client.Create(req.Ctx, &v1.ProjectMCPServer{
+		ObjectMeta: metav1.ObjectMeta{
+			GenerateName: system.ProjectMCPServerPrefix,
+			Namespace:    req.Namespace,
+			Finalizers:   []string{v1.ProjectMCPServerFinalizer},
+		},
+		Spec: v1.ProjectMCPServerSpec{
+			Manifest: types.ProjectMCPServerManifest{
+				MCPID: mcpID,
+			},
+			ThreadName: server.Spec.ThreadName,
+			UserID:     server.Spec.UserID,
+		},
+	}); err != nil {
+		return err
+	}
+
+	return kclient.IgnoreNotFound(req.Delete(server))
 }
