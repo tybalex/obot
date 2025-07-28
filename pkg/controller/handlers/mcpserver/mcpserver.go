@@ -44,9 +44,9 @@ func (h *Handler) DetectDrift(req router.Request, _ router.Response) error {
 		err     error
 	)
 	if entry.Spec.CommandManifest.Name != "" {
-		drifted, err = configurationHasDrifted(server.Spec.Manifest, entry.Spec.CommandManifest)
+		drifted, err = configurationHasDrifted(server.Spec.NeedsURL, server.Spec.Manifest, entry.Spec.CommandManifest)
 	} else {
-		drifted, err = configurationHasDrifted(server.Spec.Manifest, entry.Spec.URLManifest)
+		drifted, err = configurationHasDrifted(server.Spec.NeedsURL, server.Spec.Manifest, entry.Spec.URLManifest)
 	}
 	if err != nil {
 		return err
@@ -59,13 +59,16 @@ func (h *Handler) DetectDrift(req router.Request, _ router.Response) error {
 	return nil
 }
 
-func configurationHasDrifted(serverManifest types.MCPServerManifest, entryManifest types.MCPServerCatalogEntryManifest) (bool, error) {
+func configurationHasDrifted(needsURL bool, serverManifest types.MCPServerManifest, entryManifest types.MCPServerCatalogEntryManifest) (bool, error) {
 	// First, check on the URL or hostname.
 	if entryManifest.FixedURL != "" && serverManifest.URL != entryManifest.FixedURL {
 		return true, nil
 	}
 
-	if entryManifest.Hostname != "" {
+	// We skip the hostname check if needsURL is already set to true.
+	// NeedsURL is true if the admin already triggered an update for this server, and the user has not yet fixed the URL to make it match the hostname.
+	// If NeedsURL is false, then we can check the hostname, and if it doesn't match, that means that admin does have an update available to trigger.
+	if entryManifest.Hostname != "" && !needsURL {
 		u, err := url.Parse(serverManifest.URL)
 		if err != nil {
 			// Shouldn't ever happen.
