@@ -1,5 +1,4 @@
 <script lang="ts">
-	import AssistantIcon from '$lib/icons/AssistantIcon.svelte';
 	import { ChatService, type Project } from '$lib/services';
 	import { ChevronDown, Settings } from 'lucide-svelte/icons';
 	import { popover } from '$lib/actions';
@@ -92,7 +91,7 @@
 	<div
 		use:buttonPopover={{ disablePortal: true }}
 		class={twMerge(
-			'border-surface3 dark:bg-surface1 flex -translate-x-[3px] -translate-y-[3px] flex-col overflow-hidden rounded-b-xs border bg-white',
+			'border-surface3 dark:bg-surface1 default-scrollbar-thin flex max-h-[calc(100vh-123px)] -translate-x-[3px] -translate-y-[3px] flex-col overflow-hidden overflow-y-auto rounded-b-xs border bg-white',
 			classes?.tooltip
 		)}
 		style="width: {container?.clientWidth}px"
@@ -120,12 +119,11 @@
 	{@const isActive = p.id === project.id}
 	<div
 		class={twMerge(
-			'group hover:bg-surface3 flex items-center p-2 transition-colors',
+			'group hover:bg-surface3 flex min-h-14 items-center p-2 transition-colors',
 			isActive && 'bg-surface1 dark:bg-surface2'
 		)}
 	>
 		<a href="/o/{p.id}" rel="external" class="flex grow items-center gap-2">
-			<AssistantIcon project={p} class="shrink-0" />
 			<div class="flex grow flex-col">
 				<span class="text-on-background text-sm font-semibold"
 					>{p.name || DEFAULT_PROJECT_NAME}</span
