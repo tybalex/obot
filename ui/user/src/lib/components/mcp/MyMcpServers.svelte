@@ -5,7 +5,11 @@
 		type MCPCatalogServer,
 		type MCPServerInstance
 	} from '$lib/services';
-	import type { MCPServerInfo } from '$lib/services/chat/mcp';
+	import {
+		convertEnvHeadersToRecord,
+		hasEditableConfiguration,
+		requiresUserUpdate
+	} from '$lib/services/chat/mcp';
 	import { fly } from 'svelte/transition';
 	import type { LaunchFormData } from './CatalogConfigureForm.svelte';
 	import { PAGE_TRANSITION_DURATION } from '$lib/constants';
@@ -18,6 +22,7 @@
 	import CatalogConfigureForm from './CatalogConfigureForm.svelte';
 	import DotDotDot from '../DotDotDot.svelte';
 	import Confirm from '../Confirm.svelte';
+	import { twMerge } from 'tailwind-merge';
 
 	type Entry = MCPCatalogEntry & {
 		categories: string[]; // categories for the entry
@@ -49,6 +54,7 @@
 		onConnectServer: (connectedServer: ConnectedServer) => void;
 		onSelectConnectedServer?: (connectedServer: ConnectedServer) => void;
 		onDisconnect?: () => void;
+		onUpdateConfigure?: () => void;
 		connectSelectText: string;
 		disablePortal?: boolean;
 	}
@@ -68,6 +74,7 @@
 		onConnectServer,
 		onSelectConnectedServer,
 		onDisconnect,
+		onUpdateConfigure,
 		connectSelectText,
 		disablePortal
 	}: Props = $props();
@@ -190,35 +197,6 @@
 		deletingInstance = undefined;
 		deletingServer = undefined;
 	}
-
-	function hasEditableConfiguration(item: MCPCatalogEntry) {
-		const manifest = item.commandManifest ?? item.urlManifest;
-		const hasUrlToFill = !manifest?.fixedURL && manifest?.hostname;
-		const hasEnvsToFill = manifest?.env && manifest.env.length > 0;
-		const hasHeadersToFill = manifest?.headers && manifest.headers.length > 0;
-
-		return hasUrlToFill || hasEnvsToFill || hasHeadersToFill;
-	}
-
-	function convertEnvHeadersToRecord(
-		envs: MCPServerInfo['env'],
-		headers: MCPServerInfo['headers']
-	) {
-		const secretValues: Record<string, string> = {};
-		for (const env of envs ?? []) {
-			if (env.value) {
-				secretValues[env.key] = env.value;
-			}
-		}
-
-		for (const header of headers ?? []) {
-			if (header.value) {
-				secretValues[header.key] = header.value;
-			}
-		}
-		return secretValues;
-	}
-
 	async function handleLaunchCatalogEntry(entry: Entry) {
 		const manifest = entry.commandManifest ?? entry.urlManifest;
 		if (!manifest) {
@@ -321,12 +299,21 @@
 
 		try {
 			if ('server' in selectedEntryOrServer && selectedEntryOrServer.server?.id) {
+				if (selectedEntryOrServer.parent && selectedEntryOrServer.parent.urlManifest) {
+					await ChatService.updateSingleOrRemoteMcpServer(selectedEntryOrServer.server.id, {
+						...selectedEntryOrServer.parent.urlManifest,
+						url: configureForm.url
+					});
+				}
+
 				const secretValues = convertEnvHeadersToRecord(configureForm.envs, configureForm.headers);
 				await ChatService.configureSingleOrRemoteMcpServer(
 					selectedEntryOrServer.server.id,
 					secretValues
 				);
+
 				configDialog?.close();
+				onUpdateConfigure?.();
 			} else {
 				configDialog?.close();
 				// Add a small delay to ensure dialog is fully closed before handling launch
@@ -463,7 +450,7 @@
 	icon={selectedManifest?.icon}
 	name={selectedManifest?.name}
 	onSave={handleConfigureForm}
-	submitText={selectedEntryOrServer && 'server' in selectedEntryOrServer ? 'Launch' : 'Update'}
+	submitText={selectedEntryOrServer && 'server' in selectedEntryOrServer ? 'Update' : 'Launch'}
 	loading={saving}
 />
 
@@ -577,8 +564,12 @@
 {/snippet}
 
 {#snippet prependedDefaultActions(connectedServer: ConnectedServer)}
+	{@const requiresUpdate = requiresUserUpdate(connectedServer)}
 	<button
-		class="menu-button"
+		class={twMerge(
+			'menu-button',
+			requiresUpdate && 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/30'
+		)}
 		onclick={async () => {
 			if (!connectedServer?.server) {
 				console.error('No user configured server for this entry found');
@@ -604,7 +595,7 @@
 					value: values[header.key] ?? ''
 				})),
 				url: connectedServer.server.manifest.url,
-				hostname: connectedServer.server.manifest.hostname
+				hostname: connectedServer.parent?.urlManifest?.hostname
 			};
 			configDialog?.open();
 		}}

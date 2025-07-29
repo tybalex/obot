@@ -11,8 +11,9 @@
 		type Project,
 		type ProjectMCP
 	} from '$lib/services';
-	import { createProjectMcp, parseCategories } from '$lib/services/chat/mcp';
+	import { createProjectMcp, parseCategories, requiresUserUpdate } from '$lib/services/chat/mcp';
 	import MyMcpServers, { type ConnectedServer } from '../mcp/MyMcpServers.svelte';
+	import { twMerge } from 'tailwind-merge';
 
 	interface Props {
 		project: Project;
@@ -173,18 +174,32 @@
 						{selectedCategory}
 						disablePortal
 						onConnectServer={(connectedServer) => {
-							setupProjectMcp(connectedServer);
+							if (connectedServer.server?.configured) {
+								setupProjectMcp(connectedServer);
+							}
 						}}
 						onConnectedServerCardClick={(connectedServer) => {
-							setupProjectMcp(connectedServer);
+							if (connectedServer.server?.configured) {
+								setupProjectMcp(connectedServer);
+							}
 						}}
 						onDisconnect={() => {
 							loadData(true);
 						}}
 					>
-						{#snippet connectedServerCardAction()}
+						{#snippet connectedServerCardAction(d)}
+							{@const requiresUpdate = requiresUserUpdate(d)}
 							<button
-								class="icon-button hover:bg-surface1 dark:hover:bg-surface2 size-6 min-h-auto min-w-auto flex-shrink-0 p-1 hover:text-blue-500"
+								disabled={requiresUpdate}
+								class={twMerge(
+									'icon-button hover:bg-surface1 dark:hover:bg-surface2 size-6 min-h-auto min-w-auto flex-shrink-0 p-1 hover:text-blue-500',
+									requiresUpdate &&
+										'hover:text-initial cursor-not-allowed opacity-50 hover:bg-transparent dark:hover:bg-transparent'
+								)}
+								onclick={() => {
+									if (requiresUpdate) return;
+									setupProjectMcp(d);
+								}}
 								use:tooltip={{
 									text: 'Add To Chat',
 									disablePortal: true,

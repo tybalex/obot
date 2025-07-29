@@ -3,7 +3,7 @@
 	import CopyButton from '$lib/components/CopyButton.svelte';
 	import Layout from '$lib/components/Layout.svelte';
 	import ResponsiveDialog from '$lib/components/ResponsiveDialog.svelte';
-	import { createProjectMcp, parseCategories } from '$lib/services/chat/mcp';
+	import { createProjectMcp, parseCategories, requiresUserUpdate } from '$lib/services/chat/mcp';
 	import {
 		ChatService,
 		EditorService,
@@ -16,7 +16,7 @@
 	import { fade } from 'svelte/transition';
 	import PageLoading from '$lib/components/PageLoading.svelte';
 	import { afterNavigate } from '$app/navigation';
-	import MyMcpServers from '$lib/components/mcp/MyMcpServers.svelte';
+	import MyMcpServers, { type ConnectedServer } from '$lib/components/mcp/MyMcpServers.svelte';
 	import { responsive } from '$lib/stores';
 
 	let userServerInstances = $state<MCPServerInstance[]>([]);
@@ -188,6 +188,9 @@
 					loadData(true);
 				}}
 				connectSelectText="Connect To Server"
+				onUpdateConfigure={() => {
+					loadData(true);
+				}}
 				{selectedCategory}
 			>
 				{#snippet appendConnectedServerTitle()}
@@ -199,12 +202,14 @@
 					{@render connectedActions(connectedServer)}
 				{/snippet}
 				{#snippet additConnectedServerCardActions(connectedServer)}
+					{@const requiresUpdate = requiresUserUpdate(connectedServer)}
 					<button
 						class="menu-button"
 						onclick={async () => {
 							connectToServer = connectedServer;
 							connectDialog?.open();
 						}}
+						disabled={requiresUpdate}
 					>
 						Connect To Server
 					</button>
@@ -215,9 +220,11 @@
 	</div>
 </Layout>
 
-{#snippet connectedActions(connectedServer: typeof connectToServer)}
+{#snippet connectedActions(connectedServer: ConnectedServer)}
+	{@const requiresUpdate = requiresUserUpdate(connectedServer)}
 	<button
 		class="menu-button justify-between"
+		disabled={requiresUpdate}
 		onclick={() => {
 			if (!connectedServer) return;
 			handleSetupChat(connectedServer);
