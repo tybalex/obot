@@ -7,7 +7,7 @@
 	import { ChatService, type Project } from '$lib/services';
 	import type { EditorItem } from '$lib/services/editor/index.svelte';
 	import { darkMode, responsive } from '$lib/stores';
-	import { closeAll, getLayout } from '$lib/context/chatLayout.svelte';
+	import { closeAll, getLayout, isSomethingSelected } from '$lib/context/chatLayout.svelte';
 	import { GripVertical, MessageCirclePlus, SidebarOpen } from 'lucide-svelte';
 	import { fade, slide } from 'svelte/transition';
 	import { twMerge } from 'tailwind-merge';
@@ -120,9 +120,9 @@
 			class:hidden={layout.sidebarOpen && responsive.isMobile}
 		>
 			<div class="w-full">
-				<Navbar>
+				<Navbar hideProfileButton={layout.fileEditorOpen}>
 					{#snippet leftContent()}
-						{#if !layout.sidebarOpen || layout.fileEditorOpen}
+						{#if !layout.sidebarOpen || (layout.fileEditorOpen && !isSomethingSelected(layout))}
 							{@render logo()}
 							<button
 								class="icon-button ml-2 p-0.5"
@@ -189,30 +189,6 @@
 						/>
 					{/if}
 				{/if}
-
-				{#if editor && layout.fileEditorOpen}
-					<div
-						use:columnResize={{ column: editor, direction: 'right' }}
-						class="relative h-full w-8 cursor-grab"
-						transition:slide={{ axis: 'x' }}
-					>
-						<div
-							class="text-on-surface1 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-						>
-							<GripVertical class="text-surface3 size-3" />
-						</div>
-					</div>
-				{/if}
-				<div
-					bind:this={editor}
-					class={twMerge(
-						'border-surface2 absolute right-0 z-30 float-right flex w-full flex-shrink-0 translate-x-full transform border-4 border-r-0 transition-transform duration-300 md:w-3/5 md:max-w-[calc(100%-320px)] md:min-w-[320px] md:rounded-l-3xl',
-						layout.fileEditorOpen && 'relative w-full translate-x-0',
-						!layout.fileEditorOpen && 'w-0'
-					)}
-				>
-					<Editor {project} {currentThreadID} />
-				</div>
 			</div>
 
 			<dialog
@@ -240,6 +216,28 @@
 				</div>
 			</dialog>
 		</main>
+
+		{#if editor && layout.fileEditorOpen}
+			<div
+				use:columnResize={{ column: editor, direction: 'right' }}
+				class="relative h-full w-8 cursor-grab"
+				transition:slide={{ axis: 'x' }}
+			>
+				<div class="text-on-surface1 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+					<GripVertical class="text-surface3 size-3" />
+				</div>
+			</div>
+		{/if}
+		<div
+			bind:this={editor}
+			class={twMerge(
+				'border-surface2 dark:bg-surface1 absolute right-0 z-30 float-right flex w-full flex-shrink-0 translate-x-full transform border border-r-0 bg-gray-50 transition-transform duration-300 md:w-3/5 md:max-w-[calc(100%-320px)] md:min-w-[320px]',
+				layout.fileEditorOpen && 'relative w-full translate-x-0',
+				!layout.fileEditorOpen && 'w-0'
+			)}
+		>
+			<Editor {project} {currentThreadID} />
+		</div>
 	</div>
 </div>
 

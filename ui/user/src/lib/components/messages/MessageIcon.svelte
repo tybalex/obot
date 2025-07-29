@@ -1,7 +1,6 @@
 <script lang="ts">
 	import ProfileIcon from '$lib/components/profile/ProfileIcon.svelte';
 	import type { Message } from '$lib/services';
-	import { Pencil } from 'lucide-svelte/icons';
 	import { AlertCircle } from 'lucide-svelte';
 	import { twMerge } from 'tailwind-merge';
 
@@ -15,15 +14,11 @@
 
 {#if !msg.icon}
 	<!-- Nothing -->
-{:else if msg.icon === 'Assistant'}
+{:else if msg.icon === 'Pencil' || msg.icon === 'Assistant'}
 	<!-- Nothing -->
 {:else}
 	<div class={twMerge('shrink-0', klass)}>
-		{#if msg.icon === 'Pencil'}
-			<Pencil class="size-4 md:size-6" />
-		{:else if msg.icon === 'Assistant'}
-			<!-- Nothing -->
-		{:else if msg.icon === 'Profile'}
+		{#if msg.icon === 'Profile'}
 			<ProfileIcon />
 		{:else if msg.icon === 'Error'}
 			<AlertCircle class="size-4 text-red-500 md:size-6" />
