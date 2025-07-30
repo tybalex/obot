@@ -13,6 +13,7 @@
 		Funnel,
 		GlobeLock,
 		LockKeyhole,
+		MessageCircle,
 		Server,
 		Settings,
 		SidebarClose,
@@ -30,9 +31,11 @@
 		showUserLinks?: boolean;
 		onRenderSubContent?: Snippet<[string]>;
 		hideSidebar?: boolean;
+		whiteBackground?: boolean;
 	}
 
-	const { children, showUserLinks, onRenderSubContent, hideSidebar }: Props = $props();
+	const { children, showUserLinks, onRenderSubContent, hideSidebar, whiteBackground }: Props =
+		$props();
 	let nav = $state<HTMLDivElement>();
 	let collapsed = $state<Record<string, boolean>>({});
 	let pathname = $state('');
@@ -67,6 +70,12 @@
 						icon: GlobeLock,
 						label: 'Access Control',
 						disabled: isBootStrapUser,
+						collapsible: false
+					},
+					{
+						href: '/admin/chat-threads',
+						icon: MessageCircle,
+						label: 'Chat Threads',
 						collapsible: false
 					},
 					{
@@ -219,7 +228,10 @@
 		{/if}
 
 		<main
-			class="bg-surface1 default-scrollbar-thin relative flex h-svh w-full grow flex-col overflow-y-auto dark:bg-black"
+			class={twMerge(
+				'default-scrollbar-thin relative flex h-svh w-full grow flex-col overflow-y-auto',
+				whiteBackground ? 'bg-white dark:bg-black' : 'bg-surface1 dark:bg-black'
+			)}
 		>
 			<Navbar class="dark:bg-gray-990 sticky top-0 left-0 z-30 w-full">
 				{#snippet leftContent()}
