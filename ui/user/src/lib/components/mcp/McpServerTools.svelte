@@ -8,10 +8,19 @@
 		type Project,
 		type ProjectMCP
 	} from '$lib/services';
-	import { ChevronDown, ChevronUp, Info, LoaderCircle, RefreshCcw, Wrench } from 'lucide-svelte';
+	import {
+		AlertCircle,
+		ChevronDown,
+		ChevronUp,
+		Info,
+		LoaderCircle,
+		RefreshCcw,
+		Wrench
+	} from 'lucide-svelte';
 	import Toggle from '../Toggle.svelte';
 	import { slide } from 'svelte/transition';
 	import { responsive } from '$lib/stores';
+	import { parseErrorContent } from '$lib/errors';
 	import Search from '../Search.svelte';
 
 	interface Props {
@@ -30,6 +39,7 @@
 	let previousEntryId = $state<string | undefined>(undefined);
 	let oauthURL = $state<string>('');
 	let showRefresh = $state(false);
+	let error = $state('');
 	// Create AbortController for cancelling API calls
 	let abortController = $state<AbortController | null>(null);
 
@@ -112,6 +122,7 @@
 		loading = true;
 		oauthURL = '';
 		showRefresh = false;
+		error = '';
 
 		try {
 			if (project) {
@@ -154,6 +165,8 @@
 			// Only handle errors if the request wasn't aborted
 			if (err instanceof Error && err.name !== 'AbortError') {
 				console.error(err);
+				const { message } = parseErrorContent(err);
+				error = message;
 			}
 		} finally {
 			loading = false;
@@ -220,6 +233,17 @@
 						This is a preview of the tools that are available for this MCP server; the actual tools
 						may differ on user connection.
 					</div>
+				</div>
+			</div>
+		{/if}
+		{#if error}
+			<div class="notification-error flex w-full items-center gap-2 p-3">
+				<AlertCircle class="size-4" />
+				<div class="flex flex-col">
+					<p class="text-sm font-semibold">Unable to retrieve the server's tools</p>
+					<p class="text-sm font-light">
+						{error}
+					</p>
 				</div>
 			</div>
 		{/if}
