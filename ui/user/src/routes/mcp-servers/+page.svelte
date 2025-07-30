@@ -169,6 +169,7 @@
 			</ul>
 		{/if}
 		<div class="flex w-full flex-col gap-8 pt-4" in:fade>
+			<h1 class="text-2xl font-semibold">My Connectors</h1>
 			<MyMcpServers
 				{userServerInstances}
 				userConfiguredServers={convertedUserConfiguredServers}
@@ -187,7 +188,7 @@
 				onDisconnect={() => {
 					loadData(true);
 				}}
-				connectSelectText="Connect To Server"
+				connectSelectText="Connect"
 				onUpdateConfigure={() => {
 					loadData(true);
 				}}
@@ -203,6 +204,7 @@
 				{/snippet}
 				{#snippet additConnectedServerCardActions(connectedServer)}
 					{@const requiresUpdate = requiresUserUpdate(connectedServer)}
+					{@render connectedActions(connectedServer)}
 					<button
 						class="menu-button"
 						onclick={async () => {
@@ -211,9 +213,8 @@
 						}}
 						disabled={requiresUpdate}
 					>
-						Connect To Server
+						Connect
 					</button>
-					{@render connectedActions(connectedServer)}
 				{/snippet}
 			</MyMcpServers>
 		</div>
