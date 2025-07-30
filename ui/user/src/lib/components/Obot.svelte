@@ -4,14 +4,13 @@
 	import Sidebar from '$lib/components/chat/ChatSidebar.svelte';
 	import Task from '$lib/components/tasks/Task.svelte';
 	import Thread from '$lib/components/Thread.svelte';
-	import { ChatService, type Project } from '$lib/services';
+	import { type Project } from '$lib/services';
 	import type { EditorItem } from '$lib/services/editor/index.svelte';
 	import { darkMode, responsive } from '$lib/stores';
-	import { closeAll, getLayout, isSomethingSelected } from '$lib/context/chatLayout.svelte';
-	import { GripVertical, MessageCirclePlus, SidebarOpen } from 'lucide-svelte';
+	import { getLayout, isSomethingSelected } from '$lib/context/chatLayout.svelte';
+	import { GripVertical, SidebarOpen } from 'lucide-svelte';
 	import { fade, slide } from 'svelte/transition';
 	import { twMerge } from 'tailwind-merge';
-	import { tooltip } from '$lib/actions/tooltip.svelte';
 	import { columnResize } from '$lib/actions/resize';
 	import { X } from 'lucide-svelte';
 	import type { Assistant, CreateProjectForm } from '$lib/services';
@@ -29,24 +28,13 @@
 		shared?: boolean;
 	}
 
-	let { project = $bindable(), currentThreadID = $bindable(), assistant, shared }: Props = $props();
+	let { project = $bindable(), currentThreadID = $bindable(), assistant }: Props = $props();
 	let layout = getLayout();
 	let editor: HTMLDivElement | undefined = $state();
 	let createProject = $state<CreateProjectForm>();
 
 	let shortcutsDialog: HTMLDialogElement;
 	let nav = $state<HTMLDivElement>();
-
-	async function createNewThread() {
-		const thread = await ChatService.createThread(project.assistantID, project.id);
-		const found = layout.threads?.find((t) => t.id === thread.id);
-		if (!found) {
-			layout.threads?.splice(0, 0, thread);
-		}
-
-		closeAll(layout);
-		currentThreadID = thread.id;
-	}
 
 	function handleKeydown(event: KeyboardEvent) {
 		// Ctrl + E for edit mode
@@ -124,14 +112,6 @@
 					{#snippet leftContent()}
 						{#if !layout.sidebarOpen || (layout.fileEditorOpen && !isSomethingSelected(layout))}
 							{@render logo()}
-							<button
-								class="icon-button ml-2 p-0.5"
-								in:fade={{ delay: 350, duration: 0 }}
-								use:tooltip={'Start New Thread'}
-								onclick={() => createNewThread()}
-							>
-								<MessageCirclePlus class="size-6" />
-							</button>
 						{/if}
 						{#if !layout.sidebarOpen && responsive.isMobile}
 							{@render openSidebar()}
@@ -180,13 +160,7 @@
 					{:else if layout.sidebarConfig}
 						<SidebarConfig bind:project bind:currentThreadID {assistant} />
 					{:else}
-						<Thread
-							bind:id={currentThreadID}
-							bind:project
-							{shared}
-							{assistant}
-							bind:createProject
-						/>
+						<Thread bind:id={currentThreadID} bind:project {assistant} bind:createProject />
 					{/if}
 				{/if}
 			</div>

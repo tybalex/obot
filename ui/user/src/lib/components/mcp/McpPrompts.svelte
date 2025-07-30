@@ -2,7 +2,7 @@
 	import { ChatService, type MCPServerPrompt, type Project, type ProjectMCP } from '$lib/services';
 	import { getProjectMCPs, validateOauthProjectMcps } from '$lib/context/projectMcps.svelte';
 	import Menu from '$lib/components/navbar/Menu.svelte';
-	import { ChevronRight, LoaderCircle, Plus, X } from 'lucide-svelte';
+	import { ChevronRight, LoaderCircle, MessageSquarePlus, X } from 'lucide-svelte';
 	import { responsive } from '$lib/stores';
 	import { tooltip } from '$lib/actions/tooltip.svelte';
 	import { twMerge } from 'tailwind-merge';
@@ -14,6 +14,8 @@
 		filterText?: string;
 		onSelect?: (prompt: MCPServerPrompt, mcp: ProjectMCP, params?: Record<string, string>) => void;
 		onClickOutside?: () => void;
+		limit?: number;
+		selectedIndex?: number;
 	}
 
 	type PromptSet = {
@@ -21,11 +23,27 @@
 		prompts: MCPServerPrompt[];
 	};
 
-	let { project, variant, filterText, onSelect, onClickOutside }: Props = $props();
+	let {
+		project,
+		variant,
+		filterText,
+		onSelect,
+		onClickOutside,
+		limit = $bindable(0),
+		selectedIndex = $bindable(0)
+	}: Props = $props();
 	let menu = $state<ReturnType<typeof Menu>>();
 	let ref = $state<HTMLDivElement>();
 	let loading = $state(false);
 	let mcpPromptSets = $state<PromptSet[]>([]);
+	let indexMatchedPrompt = $derived(
+		mcpPromptSets
+			.map((mcpPromptSet) =>
+				mcpPromptSet.prompts.map((prompt) => ({ prompt, mcp: mcpPromptSet.mcp }))
+			)
+			.flat()[selectedIndex]
+	);
+	let isHovering = $state(false);
 
 	let params = $state<Record<string, string>>({});
 	let selectedPrompt = $state<{ prompt: MCPServerPrompt; mcp: ProjectMCP }>();
@@ -44,6 +62,16 @@
 		}
 	});
 
+	export function hasPromptHighlighted() {
+		return !!indexMatchedPrompt;
+	}
+
+	export function triggerSelectPrompt() {
+		if (indexMatchedPrompt) {
+			handleClick(indexMatchedPrompt.prompt, indexMatchedPrompt.mcp);
+		}
+	}
+
 	function handleClickOutside() {
 		if (ref?.classList.contains('hidden')) return; // already hidden
 		ref?.classList.add('hidden');
@@ -56,7 +84,7 @@
 		await validateOauthProjectMcps(project.assistantID, project.id, projectMcps.items);
 		for (const mcp of projectMcps.items) {
 			if (mcp.authenticated) {
-				ChatService.listProjectMcpServerPrompts(project.assistantID, project.id, mcp.id).then(
+				await ChatService.listProjectMcpServerPrompts(project.assistantID, project.id, mcp.id).then(
 					(prompts) => {
 						mcpPromptSets.push({
 							mcp,
@@ -66,6 +94,8 @@
 				);
 			}
 		}
+		limit = mcpPromptSets.reduce((acc, mcpPromptSet) => acc + mcpPromptSet.prompts.length, 0);
+		selectedIndex = 0;
 		loading = false;
 	}
 
@@ -105,7 +135,7 @@
 		</div>
 	{:else if !hasPrompts && variant !== 'messages'}
 		<div class="flex h-full flex-col items-center justify-center">
-			<p class="text-sm text-gray-500">No prompts found</p>
+			<p class="text-sm text-gray-500">No prompts available</p>
 		</div>
 	{:else}
 		{#each setsToUse as mcpPromptSet (mcpPromptSet.mcp.id)}
@@ -117,13 +147,15 @@
 						variant !== 'messages' && 'border-0 px-2 py-2 first:pt-0'
 					)}
 				>
-					{#if variant === 'messages'}
-						<img
-							src={mcpPromptSet.mcp.icon}
-							alt={mcpPromptSet.mcp.name}
-							class="size-4 rounded-sm"
-						/>
-					{/if}
+					<div class="flex-shrink-0 rounded-sm">
+						{#if variant === 'messages'}
+							{#if mcpPromptSet.mcp.icon}
+								<img src={mcpPromptSet.mcp.icon} alt={mcpPromptSet.mcp.name} class="size-4" />
+							{:else}
+								<MessageSquarePlus class="size-4 text-gray-400 dark:text-gray-600" />
+							{/if}
+						{/if}
+					</div>
 					{mcpPromptSet.mcp.name}
 				</div>
 
@@ -149,14 +181,22 @@
 					>
 						{#each mcpPromptSet.prompts as prompt (prompt.name)}
 							<button
-								class="menu-button flex h-full w-full items-center gap-2 border-0 text-left"
+								class={twMerge(
+									'menu-button flex h-full w-full items-center gap-2 border-0 text-left',
+									indexMatchedPrompt?.prompt.name === prompt.name &&
+										indexMatchedPrompt?.mcp.id === mcpPromptSet.mcp.id &&
+										!isHovering &&
+										'bg-surface2 dark:bg-surface3 hover:bg-surface2 dark:hover:bg-surface3'
+								)}
 								onclick={() => handleClick(prompt, mcpPromptSet.mcp)}
 							>
-								<img
-									src={mcpPromptSet.mcp.icon}
-									alt={mcpPromptSet.mcp.name}
-									class="size-6 rounded-sm"
-								/>
+								<div class="flex-shrink-0 rounded-sm">
+									{#if mcpPromptSet.mcp.icon}
+										<img src={mcpPromptSet.mcp.icon} alt={mcpPromptSet.mcp.name} class="size-6" />
+									{:else}
+										<MessageSquarePlus class="size-5 text-gray-400 dark:text-gray-600" />
+									{/if}
+								</div>
 								<div class="flex flex-col">
 									<p class="text-xs font-light">
 										{prompt.name}
@@ -195,12 +235,13 @@
 			onLoad={fetchPrompts}
 			slide={responsive.isMobile ? 'up' : undefined}
 			fixed={responsive.isMobile}
+			placement="top-start"
 		>
 			{#snippet body()}
 				{@render content()}
 			{/snippet}
 			{#snippet icon()}
-				<Plus class="size-5" />
+				<MessageSquarePlus class="size-5" />
 			{/snippet}
 		</Menu>
 	</div>
@@ -222,6 +263,10 @@
 		bind:this={ref}
 		class="default-dialog absolute top-0 left-0 w-full -translate-y-full py-2"
 		use:clickOutside={handleClickOutside}
+		onmouseenter={() => (isHovering = true)}
+		onmouseleave={() => (isHovering = false)}
+		role="listbox"
+		tabindex={0}
 	>
 		{@render content(filteredByNameDescription)}
 	</div>

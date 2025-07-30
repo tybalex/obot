@@ -15,7 +15,6 @@
 	import { toHTMLFromMarkdown } from '$lib/markdown';
 	import { closeAll, getLayout } from '$lib/context/chatLayout.svelte';
 	import Files from '$lib/components/edit/Files.svelte';
-	import Tools from '$lib/components/navbar/Tools.svelte';
 	import type { UIEventHandler } from 'svelte/elements';
 	import { responsive } from '$lib/stores';
 	import { Bug, LoaderCircle, X } from 'lucide-svelte';
@@ -36,7 +35,6 @@
 	interface Props {
 		id?: string;
 		project: Project;
-		shared?: boolean;
 		createProject?: CreateProjectForm;
 		assistant?: Assistant;
 	}
@@ -44,7 +42,6 @@
 	let {
 		id = $bindable(),
 		project = $bindable(),
-		shared,
 		createProject = $bindable(),
 		assistant
 	}: Props = $props();
@@ -59,8 +56,12 @@
 	let loadingOlderMessages = $state(false);
 	let showLoadOlderButton = $state(false);
 	let input = $state<ReturnType<typeof Input>>();
-	let promptPending = $state(false);
 	let savingNewProject = $state(false);
+
+	let promptDialogRef = $state<ReturnType<typeof McpPrompts>>();
+	let promptPending = $state(false);
+	let globalPromptIndex = $state(0);
+	let globalPromptCount = $state(0);
 
 	// Model selector state
 	let threadDetails = $state<ThreadType | null>(null);
@@ -558,27 +559,37 @@
 						await thread?.abort();
 					}}
 					onSubmit={async (i) => {
+						if (promptDialogRef?.hasPromptHighlighted()) {
+							promptDialogRef?.triggerSelectPrompt();
+							return;
+						}
+
 						await ensureThread();
 						scrollSmooth = false;
 						await tick();
 						scrollControls?.stickToBottom();
 						await thread?.invoke(i);
 					}}
+					onArrowKeys={(direction) => {
+						if (direction === 'up' && globalPromptIndex > 0) {
+							globalPromptIndex--;
+						} else if (direction === 'down' && globalPromptIndex < globalPromptCount - 1) {
+							globalPromptIndex++;
+						}
+					}}
 					bind:items={layout.items}
 				>
 					<div class="flex w-full items-center justify-between">
 						<div class="flex items-center">
-							<McpPrompts {project} variant="button" onSelect={handleMcpPromptSelect} />
-							<Files
-								thread
-								{project}
-								bind:currentThreadID={id}
-								helperText="Files"
-								classes={{ list: 'max-h-[60vh] space-y-4 overflow-y-auto pt-2 pb-6 text-sm' }}
-							/>
-							{#if project.editor && !shared}
-								<Tools {project} bind:currentThreadID={id} />
-							{/if}
+							<div in:fade>
+								<Files
+									thread
+									{project}
+									bind:currentThreadID={id}
+									helperText="Files"
+									classes={{ list: 'max-h-[60vh] space-y-4 overflow-y-auto pt-2 pb-6 text-sm' }}
+								/>
+							</div>
 						</div>
 						{#if projectModelProvider && projectModel}
 							<ThreadModelSelector
@@ -594,6 +605,7 @@
 					</div>
 					{#snippet inputPopover(value: string)}
 						<McpPrompts
+							bind:this={promptDialogRef}
 							{project}
 							variant="popover"
 							filterText={value}
@@ -601,6 +613,8 @@
 							onClickOutside={() => {
 								input?.clear();
 							}}
+							bind:selectedIndex={globalPromptIndex}
+							bind:limit={globalPromptCount}
 						/>
 					{/snippet}
 				</Input>

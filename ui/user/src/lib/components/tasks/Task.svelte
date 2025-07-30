@@ -21,7 +21,6 @@
 	import { twMerge } from 'tailwind-merge';
 	import ChatInput from '../messages/Input.svelte';
 	import Input from './Input.svelte';
-	import Tools from '../navbar/Tools.svelte';
 	import { clickOutside } from '$lib/actions/clickoutside';
 
 	interface Props {
@@ -431,7 +430,7 @@
 			<div class="grow"></div>
 
 			<div
-				class="sticky bottom-0 flex items-center justify-center bg-white px-6 opacity-0 transition-opacity dark:bg-black"
+				class="sticky bottom-0 z-50 flex items-center justify-center bg-white px-6 opacity-0 transition-opacity dark:bg-black"
 				class:chat-overlay={showChat}
 			>
 				{#if allMessages.messages.length > 0 && showChat}
@@ -449,13 +448,7 @@
 								await thread?.invoke(i);
 							}}
 							placeholder="What can I help with?"
-						>
-							<div class="flex w-fit items-center gap-1">
-								<div use:tooltip={'Tools'}>
-									<Tools {project} />
-								</div>
-							</div>
-						</ChatInput>
+						/>
 					</div>
 				{/if}
 			</div>
