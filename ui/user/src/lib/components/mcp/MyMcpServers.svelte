@@ -14,7 +14,7 @@
 	import type { LaunchFormData } from './CatalogConfigureForm.svelte';
 	import { PAGE_TRANSITION_DURATION } from '$lib/constants';
 	import { ChevronLeft, ChevronRight, LoaderCircle, ServerIcon } from 'lucide-svelte';
-	import type { Snippet } from 'svelte';
+	import { tick, type Snippet } from 'svelte';
 	import McpCard from './McpCard.svelte';
 	import Search from '../Search.svelte';
 	import ResponsiveDialog from '../ResponsiveDialog.svelte';
@@ -326,6 +326,13 @@
 		}
 	}
 
+	async function handleSelectCard(item: Entry | Server | ConnectedServer) {
+		showServerInfo = true;
+		selectedEntryOrServer = item;
+		await tick();
+		document.getElementsByTagName('main')[0].scrollTo({ top: 0, behavior: 'instant' });
+	}
+
 	const duration = PAGE_TRANSITION_DURATION;
 </script>
 
@@ -367,8 +374,7 @@
 										if (onConnectedServerCardClick) {
 											onConnectedServerCardClick(connectedServer);
 										} else {
-											showServerInfo = true;
-											selectedEntryOrServer = connectedServer;
+											handleSelectCard(connectedServer);
 										}
 									}}
 								>
@@ -403,8 +409,7 @@
 						<McpCard
 							data={item}
 							onClick={() => {
-								showServerInfo = true;
-								selectedEntryOrServer = item;
+								handleSelectCard(item);
 							}}
 						/>
 					{/each}
@@ -562,43 +567,46 @@
 
 {#snippet appendedDefaultActions(connectedServer: ConnectedServer)}
 	{@const requiresUpdate = requiresUserUpdate(connectedServer)}
-	<button
-		class={twMerge(
-			'menu-button',
-			requiresUpdate && 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/30'
-		)}
-		onclick={async () => {
-			if (!connectedServer?.server) {
-				console.error('No user configured server for this entry found');
-				return;
-			}
-			let values: Record<string, string>;
-			try {
-				values = await ChatService.revealSingleOrRemoteMcpServer(connectedServer.server.id);
-			} catch (error) {
-				if (error instanceof Error && !error.message.includes('404')) {
-					console.error('Failed to reveal user server values due to unexpected error', error);
+	{@const canConfigure = connectedServer.parent && hasEditableConfiguration(connectedServer.parent)}
+	{#if canConfigure}
+		<button
+			class={twMerge(
+				'menu-button',
+				requiresUpdate && 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/30'
+			)}
+			onclick={async () => {
+				if (!connectedServer?.server) {
+					console.error('No user configured server for this entry found');
+					return;
 				}
-				values = {};
-			}
-			selectedEntryOrServer = connectedServer;
-			configureForm = {
-				envs: connectedServer.server.manifest.env?.map((env) => ({
-					...env,
-					value: values[env.key] ?? ''
-				})),
-				headers: connectedServer.server.manifest.headers?.map((header) => ({
-					...header,
-					value: values[header.key] ?? ''
-				})),
-				url: connectedServer.server.manifest.url,
-				hostname: connectedServer.parent?.urlManifest?.hostname
-			};
-			configDialog?.open();
-		}}
-	>
-		Edit
-	</button>
+				let values: Record<string, string>;
+				try {
+					values = await ChatService.revealSingleOrRemoteMcpServer(connectedServer.server.id);
+				} catch (error) {
+					if (error instanceof Error && !error.message.includes('404')) {
+						console.error('Failed to reveal user server values due to unexpected error', error);
+					}
+					values = {};
+				}
+				selectedEntryOrServer = connectedServer;
+				configureForm = {
+					envs: connectedServer.server.manifest.env?.map((env) => ({
+						...env,
+						value: values[env.key] ?? ''
+					})),
+					headers: connectedServer.server.manifest.headers?.map((header) => ({
+						...header,
+						value: values[header.key] ?? ''
+					})),
+					url: connectedServer.server.manifest.url,
+					hostname: connectedServer.parent?.urlManifest?.hostname
+				};
+				configDialog?.open();
+			}}
+		>
+			Edit
+		</button>
+	{/if}
 	<button
 		class="menu-button text-red-500"
 		onclick={async () => {
