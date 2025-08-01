@@ -214,6 +214,13 @@
 		scrollbar-gutter: stable;
 	}
 
+	.no-scrollbar {
+		scrollbar-width: none;
+	}
+	.no-scrollbar::-webkit-scrollbar {
+		display: none;
+	}
+
 	.transition-height {
 		transition-property: height, transform, translate;
 		transition-duration: var(--tw-duration, 100ms);

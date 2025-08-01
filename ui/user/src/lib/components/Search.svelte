@@ -9,6 +9,7 @@
 		onMouseDown?: (e: MouseEvent) => void;
 		onMouseUp?: (e: MouseEvent) => void;
 		compact?: boolean;
+		value?: string;
 	}
 
 	let {
@@ -17,7 +18,9 @@
 		placeholder = 'Search Projects...',
 		onMouseDown,
 		onMouseUp,
-		compact
+		compact,
+		value = '',
+		...restProps
 	}: Props = $props();
 	let searchTimeout: ReturnType<typeof setTimeout>;
 	let input = $state<HTMLInputElement | null>(null);
@@ -42,13 +45,14 @@
 	}
 </script>
 
-<div class="relative w-full">
+<div class="relative w-full" {...restProps}>
 	<input
 		bind:this={input}
+		{value}
 		type="text"
 		{placeholder}
 		class={twMerge(
-			'peer bg-surface1 w-full rounded-xl px-2.5 py-3 pl-12 ring-2 ring-transparent transition-all duration-200 hover:ring-2 hover:ring-blue-500 focus:w-full focus:ring-2 focus:ring-blue-500 focus:outline-hidden',
+			'bg-surface1 peer w-full rounded-lg px-2.5 py-3 pl-12 ring-2 ring-transparent transition-all duration-200 hover:ring-2 hover:ring-blue-500 focus:w-full focus:ring-2 focus:ring-blue-500 focus:outline-hidden',
 			compact && 'py-2 pl-8',
 			klass
 		)}

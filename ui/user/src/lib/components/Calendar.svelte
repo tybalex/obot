@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { clickOutside } from '$lib/actions/clickoutside';
 	import { tooltip } from '$lib/actions/tooltip.svelte';
+	import { differenceInHours, endOfDay, isSameDay, startOfDay } from 'date-fns';
 	import { ChevronLeft, ChevronRight, CalendarCog } from 'lucide-svelte';
 	import { twMerge } from 'tailwind-merge';
+	import TimeInput from './TimeInput.svelte';
+	import { slide } from 'svelte/transition';
 
 	export interface DateRange {
 		start: Date | null;
@@ -22,6 +25,8 @@
 			grid?: string;
 			day?: string;
 		};
+		start: Date | null;
+		end: Date | null;
 		minDate?: Date;
 		maxDate?: Date;
 		placeholder?: string;
@@ -29,7 +34,7 @@
 		compact?: boolean;
 	}
 
-	const {
+	let {
 		id,
 		disabled,
 		initialValue = { start: null, end: null },
@@ -38,22 +43,25 @@
 		classes,
 		minDate,
 		maxDate,
+		start = $bindable(initialValue.start),
+		end = $bindable(initialValue.end),
 		placeholder = 'Select date range',
 		format = 'MMM dd, yyyy',
 		compact
 	}: Props = $props();
 
 	let currentDate = $state(new Date());
-	let popover = $state<HTMLDialogElement>();
+	let calendarPopover = $state<HTMLDialogElement>();
 
 	// Local state for the date range being edited
-	let localValue = $state<DateRange>({ ...initialValue });
+	// let localValue = $derived<DateRange>({ start, end });
 
 	// Get current month's first day and last day
 	let firstDayOfMonth = $derived(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1));
 	let startOfWeek = $derived.by(() => {
 		const date = new Date(firstDayOfMonth);
 		date.setDate(date.getDate() - date.getDay());
+
 		return date;
 	});
 
@@ -103,27 +111,24 @@
 	}
 
 	function formatRange(): string {
-		if (!localValue.start && !localValue.end) return placeholder;
-		if (localValue.start && !localValue.end)
-			return `${formatDate(localValue.start)} - Select end date`;
-		if (!localValue.start && localValue.end)
-			return `Select start date - ${formatDate(localValue.end)}`;
-		if (localValue.start && localValue.end)
-			return `${formatDate(localValue.start)} - ${formatDate(localValue.end)}`;
+		if (!start && !end) return placeholder;
+		if (start && !end) return `${formatDate(start)} - Select end date`;
+		if (!start && end) return `Select start date - ${formatDate(end)}`;
+		if (start && end) return `${formatDate(start)} - ${formatDate(end)}`;
 		return placeholder;
 	}
 
 	function isInRange(date: Date): boolean {
-		if (!localValue.start || !localValue.end) return false;
-		return date >= localValue.start && date <= localValue.end;
+		if (!start || !end) return false;
+		return date >= start && date <= end;
 	}
 
 	function isStartDate(date: Date): boolean {
-		return localValue.start ? date.toDateString() === localValue.start.toDateString() : false;
+		return start ? date.toDateString() === start.toDateString() : false;
 	}
 
 	function isEndDate(date: Date): boolean {
-		return localValue.end ? date.toDateString() === localValue.end.toDateString() : false;
+		return end ? date.toDateString() === end.toDateString() : false;
 	}
 
 	function isToday(date: Date): boolean {
@@ -148,19 +153,20 @@
 
 		let newRange: DateRange;
 
-		if (!localValue.start || (localValue.start && localValue.end)) {
+		if (!start || (start && end)) {
 			// Start new range
-			newRange = { start: date, end: null };
+			newRange = { start: startOfDay(date), end: null };
 		} else {
 			// Complete the range
-			if (date < localValue.start) {
-				newRange = { start: date, end: localValue.start };
+			if (date < start) {
+				newRange = { start: startOfDay(date), end: endOfDay(start) };
 			} else {
-				newRange = { start: localValue.start, end: date };
+				newRange = { start: startOfDay(start), end: endOfDay(date) };
 			}
 		}
 
-		localValue = newRange;
+		start = newRange.start;
+		end = newRange.end;
 	}
 
 	function previousMonth() {
@@ -172,14 +178,18 @@
 	}
 
 	function handleApply() {
-		onChange(localValue);
-		popover?.close();
+		onChange({ start, end });
+
+		calendarPopover?.close();
 	}
 
 	function handleCancel() {
 		// Reset local value to initial value
-		localValue = { ...initialValue };
-		popover?.close();
+		// localValue = { ...initialValue };
+		start = initialValue.start;
+		end = initialValue.end;
+
+		calendarPopover?.close();
 	}
 
 	function getDayClass(date: Date): string {
@@ -221,10 +231,10 @@
 		)}
 		onmousedown={() => {
 			if (disabled) return;
-			if (popover?.open) {
-				popover?.close();
+			if (calendarPopover?.open) {
+				calendarPopover?.close();
 			} else {
-				popover?.show();
+				calendarPopover?.show();
 			}
 		}}
 		use:tooltip={{
@@ -241,8 +251,8 @@
 	</button>
 
 	<dialog
-		use:clickOutside={[() => popover?.close(), true]}
-		bind:this={popover}
+		use:clickOutside={[() => calendarPopover?.close(), true]}
+		bind:this={calendarPopover}
 		class={twMerge(
 			'default-dialog absolute top-full left-12 z-50 mt-1 min-w-[320px] -translate-x-full p-4',
 			classes?.calendar
@@ -285,6 +295,45 @@
 				</button>
 			{/each}
 		</div>
+
+		{#if (start && !end) || (start && end && differenceInHours(end, start) <= 24)}
+			<!-- Render Time pickers -->
+			<div
+				class="mt-4 flex flex-col gap-2"
+				in:slide={{ duration: 200 }}
+				out:slide={{ duration: 100 }}
+			>
+				<div class="flex flex-col gap-1">
+					<div class="text-xs text-gray-500">{start.toDateString()}</div>
+					<TimeInput
+						date={start}
+						onChange={(date) => {
+							start = date;
+						}}
+					/>
+				</div>
+
+				<div class="flex flex-col gap-1">
+					<!-- In case start and end dates in the same day do not render the label -->
+					{#if !isSameDay(end ?? start, start) && differenceInHours(end ?? start, start) <= 24}
+						<div
+							class="text-xs text-gray-500"
+							in:slide={{ duration: 200 }}
+							out:slide={{ duration: 100 }}
+						>
+							{end?.toDateString()}
+						</div>
+					{/if}
+
+					<TimeInput
+						date={end ?? endOfDay(start)}
+						onChange={(date) => {
+							end = date;
+						}}
+					/>
+				</div>
+			</div>
+		{/if}
 
 		<div class="mt-4 flex justify-end gap-2">
 			<button class="button text-xs" onclick={handleCancel}>Cancel</button>

@@ -25,7 +25,7 @@ import type {
 	BootstrapStatus,
 	AuditLog,
 	AuditLogUsageStats,
-	AuditLogFilters,
+	AuditLogURLFilters,
 	K8sServerLog,
 	K8sServerDetail,
 	BaseAgent,
@@ -539,7 +539,7 @@ function buildQueryString(filters: Record<string, string | number | boolean | un
 		.join('&');
 }
 
-export async function listAuditLogs(filters?: AuditLogFilters, opts?: { fetch?: Fetcher }) {
+export async function listAuditLogs(filters?: AuditLogURLFilters, opts?: { fetch?: Fetcher }) {
 	const queryString = buildQueryString(filters ?? {});
 	const response = (await doGet(
 		`/mcp-audit-logs${queryString ? `?${queryString}` : ''}`,
@@ -550,7 +550,7 @@ export async function listAuditLogs(filters?: AuditLogFilters, opts?: { fetch?: 
 
 export async function listServerOrInstanceAuditLogs(
 	mcpId: string, // can either by server instance or mcp server id ex. ms- or msi-
-	filters?: AuditLogFilters,
+	filters?: AuditLogURLFilters,
 	opts?: { fetch?: Fetcher }
 ) {
 	const queryString = buildQueryString(filters ?? {});
@@ -577,6 +577,13 @@ export async function listAuditLogUsageStats(
 		`/mcp-stats${queryString ? `?${queryString}` : ''}`,
 		opts
 	)) as AuditLogUsageStats;
+	return response;
+}
+
+export async function listAuditLogFilterOptions(filterId: string, opts?: { fetch?: Fetcher }) {
+	const response = (await doGet(`/mcp-audit-logs/filter-options/${filterId}`, opts)) as {
+		options: string[];
+	};
 	return response;
 }
 

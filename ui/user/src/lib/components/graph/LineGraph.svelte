@@ -1,6 +1,6 @@
 <script lang="ts" generics="T">
 	import { Chart, Axis, Spline, Tooltip, Highlight, Svg } from 'layerchart';
-	import { scaleTime } from 'd3-scale';
+	import { scaleTime } from 'd3';
 	import { formatTime } from '$lib/time';
 	import { onMount } from 'svelte';
 
@@ -23,7 +23,7 @@
 	});
 </script>
 
-<div class="group h-[300px] w-full">
+<div class="group h-full w-full">
 	{#key data.length}
 		<Chart
 			{data}

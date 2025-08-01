@@ -27,6 +27,9 @@
 	import BetaLogo from './navbar/BetaLogo.svelte';
 
 	interface Props {
+		classes?: {
+			childrenContainer?: string;
+		};
 		children: Snippet;
 		showUserLinks?: boolean;
 		onRenderSubContent?: Snippet<[string]>;
@@ -34,8 +37,14 @@
 		whiteBackground?: boolean;
 	}
 
-	const { children, showUserLinks, onRenderSubContent, hideSidebar, whiteBackground }: Props =
-		$props();
+	const {
+		classes,
+		children,
+		showUserLinks,
+		onRenderSubContent,
+		hideSidebar,
+		whiteBackground
+	}: Props = $props();
 	let nav = $state<HTMLDivElement>();
 	let collapsed = $state<Record<string, boolean>>({});
 	let pathname = $state('');
@@ -241,7 +250,9 @@
 				{/snippet}
 			</Navbar>
 			<div class="flex h-full flex-col items-center justify-center p-4 md:px-8">
-				<div class="h-full w-full max-w-(--breakpoint-xl)">
+				<div
+					class={twMerge('h-full w-full max-w-(--breakpoint-xl)', classes?.childrenContainer ?? '')}
+				>
 					{@render children()}
 				</div>
 			</div>

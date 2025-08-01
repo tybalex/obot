@@ -102,10 +102,11 @@
 		} else {
 			listAuditLogs = AdminService.listAuditLogs({
 				...sortAndFilters,
-				mcpServerCatalogEntryName: mcpCatalogEntryId,
-				mcpServerDisplayName
+				mcp_server_catalog_entry_name: mcpCatalogEntryId,
+				mcp_server_display_name: mcpServerDisplayName
 			});
 			listUsageStats = AdminService.listAuditLogUsageStats({
+				...filters,
 				startTime: filters?.startTime ?? '',
 				endTime: filters?.endTime ?? '',
 				mcpServerCatalogEntryName: mcpCatalogEntryId,
@@ -640,7 +641,12 @@
 			<AuditLogDetails onClose={handleRightSidebarClose} auditLog={selectedAuditLog} />
 		{/if}
 		{#if showFilters}
-			<AuditFilters {auditLogs} onClose={handleRightSidebarClose} {filters} />
+			<AuditFilters
+				onClose={handleRightSidebarClose}
+				{filters}
+				getFilterDisplayLabel={(d) => d}
+				fetchUserById={(id) => Promise.resolve({ id: id, displayName: id } as OrgUser)}
+			/>
 		{/if}
 	</dialog>
 {/await}

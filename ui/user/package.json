@@ -46,7 +46,8 @@
 		"@sveltejs/vite-plugin-svelte": "^5.1.0",
 		"@tailwindcss/postcss": "^4.0.14",
 		"@trivago/prettier-plugin-sort-imports": "^4.3.0",
-		"@types/d3-scale": "^4.0.9",
+		"@types/d3": "^7.4.3",
+		"@types/d3-time-format": "^4.0.3",
 		"@types/eslint": "^9.6.1",
 		"@uiw/codemirror-theme-github": "^4.23.8",
 		"@xterm/addon-fit": "^0.10.0",
@@ -77,8 +78,9 @@
 	"type": "module",
 	"dependencies": {
 		"@codemirror/lang-markdown": "^6.3.3",
-		"d3-array": "^3.2.4",
-		"d3-scale": "^4.0.2",
+		"d3": "^7.9.0",
+		"d3-time-format": "^4.1.0",
+		"date-fns": "^4.1.0",
 		"es-toolkit": "^1.37.2",
 		"layerchart": "1.0.11"
 	}

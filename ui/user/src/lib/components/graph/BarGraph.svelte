@@ -1,5 +1,5 @@
 <script lang="ts" generics="T extends object">
-	import { scaleBand } from 'd3-scale';
+	import { scaleBand } from 'd3';
 	import { Axis, Chart, Svg, Tooltip, Highlight, RectClipPath, Bars } from 'layerchart';
 	import { onMount } from 'svelte';
 	import { cubicInOut } from 'svelte/easing';
