@@ -57,7 +57,12 @@
 		previewTools.length > 0 && (!hasConnectedServer || (loading && tools.length === 0))
 	);
 	let displayTools = $derived(
-		(showRealTools ? tools : showPreviewTools ? previewTools : []).filter(
+		(showRealTools
+			? tools
+			: showPreviewTools
+				? previewTools.map((t) => ({ ...t, id: t.id || t.name }))
+				: []
+		).filter(
 			(tool) =>
 				tool.name.toLowerCase().includes(search.toLowerCase()) ||
 				tool.description?.toLowerCase().includes(search.toLowerCase())
@@ -76,7 +81,7 @@
 	function handleToggleDescription(toolId: string) {
 		if (allDescriptionsEnabled) {
 			allDescriptionsEnabled = false;
-			for (const { id: refToolId } of tools) {
+			for (const { id: refToolId } of displayTools) {
 				if (toolId !== refToolId) {
 					expandedDescriptions[refToolId] = true;
 				}
@@ -88,7 +93,7 @@
 
 		const expandedDescriptionValues = Object.values(expandedDescriptions);
 		if (
-			expandedDescriptionValues.length === tools.length &&
+			expandedDescriptionValues.length === displayTools.length &&
 			expandedDescriptionValues.every((v) => v)
 		) {
 			allDescriptionsEnabled = true;
@@ -334,20 +339,22 @@
 										<ChevronDown class="size-4" />
 									{/if}
 								</button>
-								<Toggle
-									checked={selected.includes(tool.id) || allToolsEnabled}
-									onChange={(checked) => {
-										if (allToolsEnabled) {
-											selected = tools.map((t) => t.id).filter((id) => id !== tool.id);
-										} else {
-											selected = checked
-												? [...selected, tool.id]
-												: selected.filter((id) => id !== tool.id);
-										}
-									}}
-									label="On/Off"
-									disablePortal
-								/>
+								{#if project}
+									<Toggle
+										checked={selected.includes(tool.id) || allToolsEnabled}
+										onChange={(checked) => {
+											if (allToolsEnabled) {
+												selected = tools.map((t) => t.id).filter((id) => id !== tool.id);
+											} else {
+												selected = checked
+													? [...selected, tool.id]
+													: selected.filter((id) => id !== tool.id);
+											}
+										}}
+										label="On/Off"
+										disablePortal
+									/>
+								{/if}
 							</div>
 						</div>
 						{#if expandedDescriptions[tool.id] || allDescriptionsEnabled}
