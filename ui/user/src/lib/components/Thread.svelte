@@ -378,6 +378,7 @@
 		}
 
 		input?.setValue(promptContent);
+		input?.focus();
 		promptPending = false;
 	}
 
