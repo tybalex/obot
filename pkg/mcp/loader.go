@@ -11,10 +11,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gptscript-ai/gptscript/pkg/hash"
-	gmcp "github.com/gptscript-ai/gptscript/pkg/mcp"
 	"github.com/gptscript-ai/gptscript/pkg/types"
 	"github.com/obot-platform/nah/pkg/apply"
 	otypes "github.com/obot-platform/obot/apiclient/types"
@@ -45,8 +45,11 @@ type Options struct {
 type SessionManager struct {
 	client                                             kclient.WithWatch
 	clientset                                          kubernetes.Interface
+	contextLock                                        sync.Mutex
+	sessionCtx                                         context.Context
+	cancel                                             func()
+	sessions                                           sync.Map
 	tokenStorage                                       GlobalTokenStore
-	local                                              *gmcp.Local
 	baseURL, baseImage, mcpNamespace, mcpClusterDomain string
 	allowLocalhostMCP                                  bool
 }
@@ -65,7 +68,7 @@ const streamableHTTPHealthcheckBody string = `{
     }
 }`
 
-func NewSessionManager(ctx context.Context, defaultLoader *gmcp.Local, tokenStorage GlobalTokenStore, baseURL string, opts Options) (*SessionManager, error) {
+func NewSessionManager(ctx context.Context, tokenStorage GlobalTokenStore, baseURL string, opts Options) (*SessionManager, error) {
 	var (
 		client    kclient.WithWatch
 		clientset kubernetes.Interface
@@ -98,7 +101,6 @@ func NewSessionManager(ctx context.Context, defaultLoader *gmcp.Local, tokenStor
 	return &SessionManager{
 		client:            client,
 		clientset:         clientset,
-		local:             defaultLoader,
 		tokenStorage:      tokenStorage,
 		baseURL:           baseURL,
 		baseImage:         opts.MCPBaseImage,
@@ -109,17 +111,45 @@ func NewSessionManager(ctx context.Context, defaultLoader *gmcp.Local, tokenStor
 }
 
 // Close does nothing with the deployments and services. It just closes the local session.
+// This should return an error to satisfy the GPTScript loader interface.
 func (sm *SessionManager) Close() error {
-	return sm.local.Close()
+	sm.contextLock.Lock()
+	if sm.sessionCtx == nil {
+		sm.contextLock.Unlock()
+		return nil
+	}
+	sm.contextLock.Unlock()
+
+	defer func() {
+		sm.cancel()
+		sm.contextLock.Lock()
+		sm.sessionCtx = nil
+		sm.contextLock.Unlock()
+	}()
+
+	sm.sessions.Range(func(id, value any) bool {
+		value.(*sync.Map).Range(func(clientScope, session any) bool {
+			if s, ok := session.(*Client); ok && s.Client != nil {
+				log.Infof("closing MCP session %s, %s", id, clientScope)
+				s.Session.Close()
+				s.Session.Wait()
+			}
+			return true
+		})
+		return true
+	})
+
+	return nil
 }
 
 // CloseClient will close the client for this MCP server, but leave the deployment running.
-func (sm *SessionManager) CloseClient(ctx context.Context, server ServerConfig) error {
+func (sm *SessionManager) CloseClient(ctx context.Context, server ServerConfig, clientScope string) error {
 	if !sm.KubernetesEnabled() || server.Command == "" {
-		return sm.local.ShutdownServer(server.ServerConfig)
+		sm.closeClient(server, clientScope)
+		return nil
 	}
 
-	id := sessionID(server)
+	id := deploymentID(server)
 
 	var pods corev1.PodList
 	err := sm.client.List(ctx, &pods, &kclient.ListOptions{
@@ -135,21 +165,48 @@ func (sm *SessionManager) CloseClient(ctx context.Context, server ServerConfig) 
 	if len(pods.Items) != 0 {
 		// If the pod was removed, then this won't do anything. The session will only get cleaned up when the server restarts.
 		// That's better than the alternative of having unusable sessions that users are still trying to use.
-		if err = sm.local.ShutdownServer(gmcp.ServerConfig{URL: fmt.Sprintf("http://%s.%s.svc.%s/%s", id, sm.mcpNamespace, sm.mcpClusterDomain, strings.TrimPrefix(server.ContainerPath, "/")), Scope: pods.Items[0].Name}); err != nil {
-			return err
-		}
+		sm.closeClient(ServerConfig{URL: fmt.Sprintf("http://%s.%s.svc.%s/%s", id, sm.mcpNamespace, sm.mcpClusterDomain, strings.TrimPrefix(server.ContainerPath, "/")), Scope: pods.Items[0].Name}, clientScope)
+		return nil
 	}
 
 	return nil
 }
 
-// ShutdownServer will close the connections to the MCP server and remove the Kubernetes objects.
-func (sm *SessionManager) ShutdownServer(ctx context.Context, server ServerConfig) error {
-	if err := sm.CloseClient(ctx, server); err != nil {
-		return err
+func (sm *SessionManager) closeClient(server ServerConfig, clientScope string) {
+	id := deploymentID(server)
+
+	sm.contextLock.Lock()
+	if sm.sessionCtx == nil {
+		sm.contextLock.Unlock()
+		return
+	}
+	sm.contextLock.Unlock()
+
+	sessions, ok := sm.sessions.Load(id)
+	if !ok || sessions == nil {
+		return
 	}
 
-	id := sessionID(server)
+	clientSessions, ok := sessions.(*sync.Map)
+	if !ok || clientSessions == nil {
+		return
+	}
+
+	sess, ok := clientSessions.LoadAndDelete(clientScope)
+	if !ok || sess == nil {
+		return
+	}
+
+	if s, ok := sess.(*Client); ok && s.Client != nil {
+		s.Session.Close()
+		s.Session.Wait()
+	}
+}
+
+// ShutdownServer will close the connections to the MCP server and remove the Kubernetes objects.
+func (sm *SessionManager) ShutdownServer(ctx context.Context, server ServerConfig) error {
+	id := deploymentID(server)
+	sm.closeClients(id)
 
 	if sm.client != nil {
 		if err := apply.New(sm.client).WithNamespace(sm.mcpNamespace).WithOwnerSubContext(id).WithPruneTypes(new(corev1.Secret), new(appsv1.Deployment), new(corev1.Service)).Apply(ctx, nil, nil); err != nil {
@@ -159,13 +216,40 @@ func (sm *SessionManager) ShutdownServer(ctx context.Context, server ServerConfi
 	return nil
 }
 
+func (sm *SessionManager) closeClients(id string) {
+	sm.contextLock.Lock()
+	if sm.sessionCtx == nil {
+		sm.contextLock.Unlock()
+		return
+	}
+	sm.contextLock.Unlock()
+
+	sessions, ok := sm.sessions.LoadAndDelete(id)
+	if !ok || sessions == nil {
+		return
+	}
+
+	clientSessions, ok := sessions.(*sync.Map)
+	if !ok || clientSessions == nil {
+		return
+	}
+
+	clientSessions.Range(func(_, session any) bool {
+		if s, ok := session.(*Client); ok && s.Client != nil {
+			s.Session.Close()
+			s.Session.Wait()
+		}
+		return true
+	})
+}
+
 // RestartK8sDeployment restarts the Kubernetes deployment using kubectl rollout restart style.
 // This patches the deployment with a restart annotation to trigger a rolling restart.
 func (sm *SessionManager) RestartK8sDeployment(ctx context.Context, server ServerConfig) error {
 	if server.Command == "" {
 		return nil
 	}
-	id := sessionID(server)
+	id := deploymentID(server)
 
 	var deployment appsv1.Deployment
 	if err := sm.client.Get(ctx, kclient.ObjectKey{Name: id, Namespace: sm.mcpNamespace}, &deployment); err != nil {
@@ -200,46 +284,16 @@ func (sm *SessionManager) KubernetesEnabled() bool {
 	return sm.client != nil
 }
 
-func (sm *SessionManager) Load(ctx context.Context, tool types.Tool) (result []types.Tool, _ error) {
-	_, configData, _ := strings.Cut(tool.Instructions, "\n")
-
-	var servers Config
-	if err := json.Unmarshal([]byte(strings.TrimSpace(configData)), &servers); err != nil {
-		return nil, fmt.Errorf("failed to parse MCP configuration: %w\n%s", err, configData)
-	}
-
-	if len(servers.MCPServers) == 0 {
-		// Try to load just one server
-		var server ServerConfig
-		if err := json.Unmarshal([]byte(strings.TrimSpace(configData)), &server); err != nil {
-			return nil, fmt.Errorf("failed to parse single MCP server configuration: %w\n%s", err, configData)
-		}
-		if server.Command == "" && server.URL == "" && server.Server == "" {
-			return nil, fmt.Errorf("no MCP server configuration found in tool instructions: %s", configData)
-		}
-		servers.MCPServers = map[string]ServerConfig{
-			"default": server,
-		}
-	}
-
-	if len(servers.MCPServers) > 1 {
-		return nil, fmt.Errorf("only a single MCP server definition is supported")
-	}
-
-	for key, server := range servers.MCPServers {
-		config, err := sm.ensureDeployment(ctx, server, key, strings.TrimSuffix(tool.Name, "-bundle"))
-		if err != nil {
-			return nil, err
-		}
-		return sm.local.LoadTools(ctx, config, key, tool.Name)
-	}
-
-	return nil, fmt.Errorf("no MCP server configuration found in tool instructions: %s", configData)
+// Load is used by GPTScript to load tools from dynamic MCP server tool definitions.
+// Obot is responsible for loading these tools and managing the clients and sessions.
+// Error here to catch any server tools that slipped through. This should never be called.
+func (sm *SessionManager) Load(_ context.Context, t types.Tool) ([]types.Tool, error) {
+	return nil, fmt.Errorf("MCP servers must be loaded in Obot: %s", t.Name)
 }
 
-func (sm *SessionManager) ensureDeployment(ctx context.Context, server ServerConfig, key, serverName string) (gmcp.ServerConfig, error) {
+func (sm *SessionManager) ensureDeployment(ctx context.Context, server ServerConfig, serverName string) (ServerConfig, error) {
 	if server.Runtime == otypes.RuntimeRemote && server.URL == "" {
-		return gmcp.ServerConfig{}, fmt.Errorf("MCP server %s needs to update its URL", serverName)
+		return ServerConfig{}, fmt.Errorf("MCP server %s needs to update its URL", serverName)
 	}
 
 	if server.Runtime == otypes.RuntimeRemote || !sm.KubernetesEnabled() {
@@ -247,65 +301,65 @@ func (sm *SessionManager) ensureDeployment(ctx context.Context, server ServerCon
 			// Ensure the URL is not a localhost URL.
 			u, err := url.Parse(server.URL)
 			if err != nil {
-				return gmcp.ServerConfig{}, fmt.Errorf("failed to parse MCP server URL: %w", err)
+				return ServerConfig{}, fmt.Errorf("failed to parse MCP server URL: %w", err)
 			}
 
 			// LookupHost will properly detect IP addresses.
 			addrs, err := net.DefaultResolver.LookupHost(ctx, u.Hostname())
 			if err != nil {
-				return gmcp.ServerConfig{}, fmt.Errorf("failed to resolve MCP server URL hostname: %w", err)
+				return ServerConfig{}, fmt.Errorf("failed to resolve MCP server URL hostname: %w", err)
 			}
 
 			for _, addr := range addrs {
 				if ip := net.ParseIP(addr); ip != nil && ip.IsLoopback() {
-					return gmcp.ServerConfig{}, fmt.Errorf("MCP server URL must not be a localhost URL: %s", server.URL)
+					return ServerConfig{}, fmt.Errorf("MCP server URL must not be a localhost URL: %s", server.URL)
 				}
 			}
 		}
 		// Either we aren't deploying to Kubernetes, or this is a remote MCP server (so there is nothing to deploy to Kubernetes).
-		return server.ServerConfig, nil
+		return server, nil
 	}
 
 	// Generate the Kubernetes deployment objects.
 	var (
-		id   = sessionID(server)
+		id   = deploymentID(server)
 		objs []kclient.Object
 		err  error
 	)
 	switch server.Runtime {
 	case otypes.RuntimeNPX, otypes.RuntimeUVX:
-		objs, err = sm.k8sObjectsForUVXOrNPX(server, key, serverName)
+		objs, err = sm.k8sObjectsForUVXOrNPX(server, serverName)
 	case otypes.RuntimeContainerized:
-		objs, err = sm.k8sObjectsForContainerized(server, key, serverName)
+		objs, err = sm.k8sObjectsForContainerized(server, serverName)
 	default:
-		return gmcp.ServerConfig{}, fmt.Errorf("unsupported MCP runtime: %s", server.Runtime)
+		return ServerConfig{}, fmt.Errorf("unsupported MCP runtime: %s", server.Runtime)
 	}
 	if err != nil {
-		return gmcp.ServerConfig{}, fmt.Errorf("failed to generate kubernetes objects for server %s: %w", id, err)
+		return ServerConfig{}, fmt.Errorf("failed to generate kubernetes objects for server %s: %w", id, err)
 	}
 
 	if err := apply.New(sm.client).WithNamespace(sm.mcpNamespace).WithOwnerSubContext(id).Apply(ctx, nil, objs...); err != nil {
-		return gmcp.ServerConfig{}, fmt.Errorf("failed to create MCP deployment %s: %w", id, err)
+		return ServerConfig{}, fmt.Errorf("failed to create MCP deployment %s: %w", id, err)
 	}
 
 	u := fmt.Sprintf("http://%s.%s.svc.%s", id, sm.mcpNamespace, sm.mcpClusterDomain)
 	podName, err := sm.updatedMCPPodName(ctx, u, id, server)
 	if err != nil {
-		return gmcp.ServerConfig{}, err
+		return ServerConfig{}, err
 	}
 
 	fullURL := fmt.Sprintf("%s/%s", u, strings.TrimPrefix(server.ContainerPath, "/"))
 
 	// Use the pod name as the scope, so we get a new session if the pod restarts. MCP sessions aren't persistent on the server side.
-	return gmcp.ServerConfig{URL: fullURL, Scope: podName, AllowedTools: server.AllowedTools}, nil
+	return ServerConfig{URL: fullURL, Scope: podName, AllowedTools: server.AllowedTools}, nil
 }
 
-func (sm *SessionManager) transformServerConfig(ctx context.Context, mcpServerName string, serverConfig ServerConfig) (gmcp.ServerConfig, error) {
-	return sm.ensureDeployment(ctx, serverConfig, "default", mcpServerName)
+func (sm *SessionManager) transformServerConfig(ctx context.Context, mcpServerName string, serverConfig ServerConfig) (ServerConfig, error) {
+	return sm.ensureDeployment(ctx, serverConfig, mcpServerName)
 }
 
-func sessionID(server ServerConfig) string {
-	// The allowed tools aren't part of the session ID.
+func deploymentID(server ServerConfig) string {
+	// The allowed tools and client scope aren't part of the deployment ID.
 	server.AllowedTools = nil
 	return "mcp" + hash.Digest(server)[:60]
 }

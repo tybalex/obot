@@ -3,43 +3,55 @@ package mcpgateway
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	nmcp "github.com/nanobot-ai/nanobot/pkg/mcp"
+	gateway "github.com/obot-platform/obot/pkg/gateway/client"
 	gatewaytypes "github.com/obot-platform/obot/pkg/gateway/types"
 )
 
-func (m *messageHandler) clientMessageHandlerAsClientOption(tokenStore nmcp.TokenStorage, session *nmcp.Session) nmcp.ClientOption {
+type clientMessageHandlerFactory struct {
+	gatewayClient   *gateway.Client
+	pendingRequests *nmcp.PendingRequests
+}
+
+func (c *clientMessageHandlerFactory) asClientOption(tokenStore nmcp.TokenStorage, session *nmcp.Session, userID, mcpID, serverDisplayName, serverCatalogEntryName string) nmcp.ClientOption {
 	return nmcp.ClientOption{
 		ClientName:   "Obot MCP Gateway",
 		TokenStorage: tokenStore,
 		OnMessage: (&clientMessageHandler{
-			session:         session,
-			pendingRequests: m.handler.pendingRequests,
-			messageHandler:  m,
+			gatewayClient:   c.gatewayClient,
+			pendingRequests: c.pendingRequests,
+			session: &gatewaySession{
+				session:                session,
+				userID:                 userID,
+				mcpID:                  mcpID,
+				serverDisplayName:      serverDisplayName,
+				serverCatalogEntryName: serverCatalogEntryName,
+			},
 		}).onMessage,
 	}
 }
 
 type clientMessageHandler struct {
-	session         *nmcp.Session
+	gatewayClient   *gateway.Client
 	pendingRequests *nmcp.PendingRequests
-	messageHandler  *messageHandler
+	session         *gatewaySession
 }
 
 func (c *clientMessageHandler) onMessage(ctx context.Context, msg nmcp.Message) error {
-	// Capture audit log information
 	startTime := time.Now()
 	auditLog := &gatewaytypes.MCPAuditLog{
-		UserID:                    c.messageHandler.userID,
-		MCPID:                     c.messageHandler.mcpID,
-		MCPServerDisplayName:      c.messageHandler.mcpServer.Spec.Manifest.Name,
-		MCPServerCatalogEntryName: c.messageHandler.mcpServer.Spec.MCPServerCatalogEntryName,
-		ClientName:                msg.Session.InitializeRequest.ClientInfo.Name,
-		ClientVersion:             msg.Session.InitializeRequest.ClientInfo.Version,
+		UserID:                    c.session.userID,
+		MCPID:                     c.session.mcpID,
+		MCPServerDisplayName:      c.session.serverDisplayName,
+		MCPServerCatalogEntryName: c.session.serverCatalogEntryName,
+		ClientName:                c.session.session.InitializeRequest.ClientInfo.Name,
+		ClientVersion:             c.session.session.InitializeRequest.ClientInfo.Version,
 		CreatedAt:                 startTime,
 		CallType:                  msg.Method,
 	}
@@ -53,17 +65,24 @@ func (c *clientMessageHandler) onMessage(ctx context.Context, msg nmcp.Message) 
 	}
 
 	var (
-		err    error
-		result json.RawMessage
+		err          error
+		result       json.RawMessage
+		dropAuditLog bool
 	)
 
 	defer func() {
+		if dropAuditLog {
+			return
+		}
+
 		// Complete audit log
 		auditLog.ProcessingTimeMs = time.Since(startTime).Milliseconds()
 
 		if err != nil {
 			auditLog.Error = err.Error()
-			auditLog.ResponseStatus = http.StatusInternalServerError
+			if auditLog.ResponseStatus == 0 {
+				auditLog.ResponseStatus = http.StatusInternalServerError
+			}
 		} else {
 			auditLog.ResponseStatus = http.StatusOK
 			// Capture response body if available
@@ -75,16 +94,22 @@ func (c *clientMessageHandler) onMessage(ctx context.Context, msg nmcp.Message) 
 		}
 
 		if strings.HasPrefix(msg.Method, "notifications/") {
-			c.messageHandler.insertAuditLog(auditLog)
+			insertAuditLog(c.gatewayClient, auditLog)
 		} else {
-			c.messageHandler.updateAuditLog(auditLog)
+			updateAuditLog(c.gatewayClient, auditLog)
 		}
 	}()
 
 	ch := c.pendingRequests.WaitFor(msg.ID)
 	defer c.pendingRequests.Done(msg.ID)
 
-	if err = c.session.Send(ctx, msg); err != nil {
+	if err = c.session.session.Send(ctx, msg); err != nil {
+		if errors.Is(err, nmcp.ErrNoReader) {
+			// No clients are reading these messages. Return and drop the audit log.
+			dropAuditLog = true
+
+			return nil
+		}
 		msg.SendError(ctx, err)
 		return fmt.Errorf("failed to send message: %w", err)
 	}
@@ -118,4 +143,11 @@ func (c *clientMessageHandler) onMessage(ctx context.Context, msg nmcp.Message) 
 	}
 
 	return err
+}
+
+type gatewaySession struct {
+	session                *nmcp.Session
+	userID, mcpID          string
+	serverDisplayName      string
+	serverCatalogEntryName string
 }
