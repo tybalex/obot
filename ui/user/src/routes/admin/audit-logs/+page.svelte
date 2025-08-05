@@ -135,7 +135,7 @@
 		query = value;
 
 		if (value) {
-			page.url.searchParams.set('query', value);
+			page.url.searchParams.set('query', encodeURIComponent(value));
 		} else {
 			page.url.searchParams.delete('query');
 		}

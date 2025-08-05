@@ -157,6 +157,13 @@
 				</div>
 			</div>
 
+			{#if auditLog.error}
+				<div class="mt-4 flex flex-col">
+					<div class="mb-2 text-base font-semibold">Response Error</div>
+					<p class="text-red-500">{auditLog.error}</p>
+				</div>
+			{/if}
+
 			{#if Object.keys(auditLog.responseBody ?? {}).length > 0}
 				<p class="translate-y-2 pt-4 text-base font-semibold">Response Body</p>
 				<pre class="default-scrollbar-thin max-h-96 overflow-y-auto p-4"><code class="language-json"
