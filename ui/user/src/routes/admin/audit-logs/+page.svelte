@@ -190,7 +190,7 @@
 
 	function getFilterDisplayLabel(key: keyof AuditLogURLFilters) {
 		if (key === 'mcp_server_display_name') return 'Server';
-		if (key === 'mcp_server_catalog_entry_name') return 'Server ID';
+		if (key === 'mcp_server_catalog_entry_name') return 'Server Catalog Entry Name';
 		if (key === 'mcp_id') return 'Server ID';
 		if (key === 'start_time') return 'Start Time';
 		if (key === 'end_time') return 'End Time';
