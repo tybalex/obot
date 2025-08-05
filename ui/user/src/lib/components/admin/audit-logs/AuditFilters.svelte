@@ -22,18 +22,23 @@
 	import { X } from 'lucide-svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import type { AuditLogURLFilters, OrgUser } from '$lib/services/admin/types';
+	import type { AuditLogURLFilters } from '$lib/services/admin/types';
 	import { AdminService } from '$lib/services';
 	import { untrack } from 'svelte';
 
 	interface Props {
 		filters?: AuditLogURLFilters;
 		onClose: () => void;
-		fetchUserById: (userId: string) => Promise<OrgUser | undefined>;
+		getUserDisplayName: (userId: string) => string;
 		getFilterDisplayLabel?: (key: keyof AuditLogURLFilters) => string;
 	}
 
-	let { filters: externFilters, onClose, fetchUserById, getFilterDisplayLabel }: Props = $props();
+	let {
+		filters: externFilters,
+		onClose,
+		getUserDisplayName,
+		getFilterDisplayLabel
+	}: Props = $props();
 
 	let filters = $derived({ ...(externFilters ?? {}) });
 
@@ -80,11 +85,12 @@
 			const response = await AdminService.listAuditLogFilterOptions(filterId);
 
 			if (filterId === 'user_id') {
-				return await Promise.all(
-					response.options
-						.map((d) => fetchUserById(d).then((user) => ({ id: d, label: user?.displayName ?? d })))
-						.filter(Boolean)
-				);
+				return response.options
+					.map((d) => ({
+						id: d,
+						label: getUserDisplayName(d)
+					}))
+					.filter(Boolean);
 			}
 
 			return response.options.map((d) => ({

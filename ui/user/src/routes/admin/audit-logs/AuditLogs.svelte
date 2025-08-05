@@ -6,7 +6,7 @@
 		data = [],
 		onSelectRow,
 		emptyContent,
-		fetchUserById,
+		getUserDisplayName,
 		currentFragmentIndex = 0,
 		getFragmentIndex,
 		getFragmentRowIndex,
@@ -127,11 +127,7 @@
 								.replace(/,/g, '')}</td
 						>
 						<td class="px-6 py-4 text-sm whitespace-nowrap">
-							{#await fetchUserById(item.userID)}
-								<span class="text-gray-500">Loading...</span>
-							{:then user}
-								{user?.displayName || 'Unknown User'}
-							{/await}
+							{getUserDisplayName(item.userID)}
 						</td>
 						<td class="px-6 py-4 text-sm whitespace-nowrap">{item.mcpServerDisplayName}</td>
 						<td class="px-6 py-4 text-sm whitespace-nowrap">{item.callType}</td>

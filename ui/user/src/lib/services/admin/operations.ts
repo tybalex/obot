@@ -295,7 +295,10 @@ export async function listUsers(opts?: { fetch?: Fetcher }): Promise<OrgUser[]> 
 	return response.items ?? [];
 }
 
-export async function getUser(userID: string, opts?: { fetch?: Fetcher }): Promise<OrgUser> {
+export async function getUser(
+	userID: string,
+	opts?: { fetch?: Fetcher; dontLogErrors?: boolean }
+): Promise<OrgUser> {
 	const response = (await doGet(`/users/${userID}`, opts)) as OrgUser;
 	return response;
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { fade, slide } from 'svelte/transition';
+	import { SvelteMap } from 'svelte/reactivity';
 	import { X, ChevronLeft, ChevronRight, Funnel, Captions } from 'lucide-svelte';
 	import { throttle } from 'es-toolkit';
 	import { page } from '$app/state';
@@ -14,7 +15,7 @@
 		AdminService,
 		type AuditLog
 	} from '$lib/services';
-	import { getUser, type PaginatedResponse } from '$lib/services/admin/operations';
+	import { type PaginatedResponse } from '$lib/services/admin/operations';
 	import { clickOutside } from '$lib/actions/clickoutside';
 	import { dialogAnimation } from '$lib/actions/dialogAnimation';
 	import AuditLogDetails from '$lib/components/admin/audit-logs/AuditLogDetails.svelte';
@@ -55,7 +56,7 @@
 
 	const fragmentedAuditLogs = $derived(remoteAuditLogs.slice(fragmentSliceStart, fragmentSliceEnd));
 
-	const users = new Map<string, OrgUser>();
+	const users = new SvelteMap<string, OrgUser>();
 
 	let showFilters = $state(false);
 	let selectedAuditLog = $state<AuditLog & { user: string }>();
@@ -175,17 +176,9 @@
 		}
 	}
 
-	async function fetchUserById(id: string) {
-		const cache = users.get(id);
-
-		if (cache) {
-			return cache;
-		}
-
-		const remote = await getUser(id);
-		users.set(id, remote);
-
-		return remote;
+	function getUserDisplayName(id: string): string {
+		const user = users.get(id);
+		return user?.displayName ?? user?.username ?? user?.email ?? 'Unknown User';
 	}
 
 	function getFilterDisplayLabel(key: keyof AuditLogURLFilters) {
@@ -205,27 +198,25 @@
 		return key.replace(/_(\w)/g, ' $1');
 	}
 
-	async function getFilterValue(label: keyof AuditLogURLFilters, value: string | number) {
+	function getFilterValue(label: keyof AuditLogURLFilters, value: string | number) {
 		if (label === 'start_time' || label === 'end_time') {
-			return Promise.resolve(
-				new Date(value).toLocaleString(undefined, {
-					year: 'numeric',
-					month: 'short',
-					day: 'numeric',
-					hour: '2-digit',
-					minute: '2-digit',
-					second: '2-digit',
-					hour12: true,
-					timeZoneName: 'short'
-				})
-			);
+			return new Date(value).toLocaleString(undefined, {
+				year: 'numeric',
+				month: 'short',
+				day: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+				second: '2-digit',
+				hour12: true,
+				timeZoneName: 'short'
+			});
 		}
 
 		if (label === 'user_id') {
-			return (await fetchUserById(value + '')).displayName;
+			return getUserDisplayName(value + '');
 		}
 
-		return Promise.resolve(value + '');
+		return value + '';
 	}
 
 	function handleRightSidebarClose() {
@@ -365,7 +356,7 @@
 						showFilters = false;
 						rightSidebar?.show();
 					}}
-					{fetchUserById}
+					{getUserDisplayName}
 				>
 					{#snippet emptyContent()}
 						<!-- Just to skip ts checker, have to added later -->
@@ -398,7 +389,7 @@
 		<AuditFilters
 			onClose={handleRightSidebarClose}
 			filters={{ ...searchParamFilters }}
-			{fetchUserById}
+			{getUserDisplayName}
 			{getFilterDisplayLabel}
 		/>
 	{/if}
@@ -431,17 +422,15 @@
 						{#each values as value (value)}
 							{@const isMultiple = values.length > 1}
 
-							{#await getFilterValue(key, value) then response}
-								{#if isMultiple}
-									<span class="font-light">
-										<span>{response}</span>
-									</span>
+							{#if isMultiple}
+								<span class="font-light">
+									<span>{getFilterValue(key, value)}</span>
+								</span>
 
-									<span class="mx-1 font-bold last:hidden">OR</span>
-								{:else}
-									<span class="font-light">{response}</span>
-								{/if}
-							{/await}
+								<span class="mx-1 font-bold last:hidden">OR</span>
+							{:else}
+								<span class="font-light">{getFilterValue(key, value)}</span>
+							{/if}
 						{/each}
 					</div>
 

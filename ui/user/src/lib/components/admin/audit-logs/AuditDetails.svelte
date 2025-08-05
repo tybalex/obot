@@ -645,7 +645,7 @@
 				onClose={handleRightSidebarClose}
 				{filters}
 				getFilterDisplayLabel={(d) => d}
-				fetchUserById={(id) => Promise.resolve({ id: id, displayName: id } as OrgUser)}
+				getUserDisplayName={(id) => usersMap.get(id)?.displayName ?? 'Unknown User'}
 			/>
 		{/if}
 	</dialog>
