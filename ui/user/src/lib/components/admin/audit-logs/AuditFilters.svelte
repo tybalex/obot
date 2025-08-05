@@ -104,7 +104,7 @@
 		});
 	});
 
-	function handleApplyFilters() {
+	async function handleApplyFilters() {
 		const url = page.url;
 
 		for (const filterInput of filterInputsAsArray) {
@@ -118,7 +118,9 @@
 			}
 		}
 
-		goto(url, { noScroll: true });
+		await goto(url, { noScroll: true });
+
+		onClose?.();
 	}
 
 	function handleClearAllFilters() {
