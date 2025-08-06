@@ -36,6 +36,7 @@
 	import { browser } from '$app/environment';
 	import BackLink from '$lib/components/admin/BackLink.svelte';
 	import Search from '$lib/components/Search.svelte';
+	import { formatTimeAgo } from '$lib/time';
 
 	const defaultCatalogId = DEFAULT_MCP_CATALOG_ID;
 	let search = $state('');
@@ -95,7 +96,8 @@
 					data: entry,
 					users: entry.userCount ?? 0,
 					editable: !entry.sourceURL,
-					type: entry.manifest.runtime === 'remote' ? 'remote' : 'single'
+					type: entry.manifest.runtime === 'remote' ? 'remote' : 'single',
+					created: entry.created
 				};
 			});
 	}
@@ -116,7 +118,8 @@
 					type: 'multi',
 					data: server,
 					users: server.mcpServerInstanceUserCount ?? 0,
-					editable: true
+					editable: true,
+					created: server.created
 				};
 			});
 	}
@@ -138,7 +141,11 @@
 	);
 
 	let filteredTableData = $derived(
-		tableData.filter((d) => d.name.toLowerCase().includes(search.toLowerCase()))
+		tableData
+			.filter((d) => d.name.toLowerCase().includes(search.toLowerCase()))
+			.sort((a, b) => {
+				return a.name.localeCompare(b.name);
+			})
 	);
 
 	let defaultCatalog = $state<MCPCatalog>();
@@ -180,6 +187,7 @@
 		refreshing = false;
 	}
 	const duration = PAGE_TRANSITION_DURATION;
+	const OFFICIAL_MCP_CATALOG_LINK = 'https://github.com/obot-platform/mcp-catalog';
 </script>
 
 <Layout>
@@ -242,7 +250,7 @@
 			{:else}
 				<Table
 					data={filteredTableData}
-					fields={['name', 'type', 'users', 'source']}
+					fields={['name', 'type', 'users', 'source', 'created']}
 					onSelectRow={(d) => {
 						if (d.type === 'single' || d.type === 'remote') {
 							goto(`/admin/mcp-servers/c/${d.id}`);
@@ -250,7 +258,7 @@
 							goto(`/admin/mcp-servers/s/${d.id}`);
 						}
 					}}
-					sortable={['name', 'type', 'users', 'source']}
+					sortable={['name', 'type', 'users', 'source', 'created']}
 					noDataMessage="No catalog servers added."
 				>
 					{#snippet onRenderColumn(property, d)}
@@ -267,14 +275,18 @@
 								</div>
 								<p class="flex items-center gap-1">
 									{d.name}
-									{#if d.source !== 'manual'}
-										<span class="text-xs text-gray-500">({d.source.split('/').pop()})</span>{/if}
 								</p>
 							</div>
 						{:else if property === 'type'}
 							{d.type === 'single' ? 'Single User' : d.type === 'multi' ? 'Multi-User' : 'Remote'}
 						{:else if property === 'source'}
-							{d.source === 'manual' ? 'Web Console' : d.source}
+							{d.source === 'manual'
+								? 'Web Console'
+								: d.source === OFFICIAL_MCP_CATALOG_LINK
+									? 'Official'
+									: d.source}
+						{:else if property === 'created'}
+							{formatTimeAgo(d.created).relativeTime}
 						{:else}
 							{d[property as keyof typeof d]}
 						{/if}

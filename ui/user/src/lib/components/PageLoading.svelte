@@ -1,19 +1,54 @@
 <script lang="ts">
-	import { LoaderCircle } from 'lucide-svelte';
+	import { AlertCircle, LoaderCircle, X } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
-	import { fade, slide } from 'svelte/transition';
+	import { fade } from 'svelte/transition';
 	import { onDestroy } from 'svelte';
+	import { twMerge } from 'tailwind-merge';
+	import { clickOutside } from '$lib/actions/clickoutside';
 
 	interface Props {
 		show: boolean;
 		text?: string;
-		longLoadContent?: Snippet;
+		longLoadMessage?: string;
 		longLoadDuration?: number;
+		isProgressBar?: boolean;
+		progress?: number;
+		error?: string;
+		errorPreContent?: Snippet;
+		errorPostContent?: Snippet;
+		onClose?: () => void;
 	}
 
-	let { show, text, longLoadContent, longLoadDuration = 30000 }: Props = $props();
+	let {
+		show,
+		text,
+		longLoadMessage,
+		longLoadDuration = 30000,
+		progress,
+		isProgressBar,
+		error,
+		errorPreContent,
+		errorPostContent,
+		onClose
+	}: Props = $props();
 	let isLongLoad = $state(false);
 	let timeout = $state<ReturnType<typeof setTimeout>>();
+	let displayedProgress = $state<number>(0);
+
+	$effect(() => {
+		if (!progress) {
+			displayedProgress = 0;
+		} else if (progress < displayedProgress) {
+			displayedProgress = progress ?? 0;
+		} else {
+			const intervalRate = (progress - displayedProgress) / 100;
+			const interval = setInterval(() => {
+				displayedProgress = Math.min(displayedProgress + 1, progress ?? 0);
+			}, intervalRate * 10);
+
+			return () => clearInterval(interval);
+		}
+	});
 
 	onDestroy(() => {
 		if (timeout) {
@@ -40,21 +75,79 @@
 
 {#if show}
 	<div
-		in:fade={{ duration: 200 }}
-		class="fixed top-0 left-0 z-50 flex h-svh w-svw items-center justify-center bg-black/50"
+		in:fade|global={{ duration: 200 }}
+		class="fixed top-0 left-0 z-50 flex h-svh w-svw items-center justify-center bg-black/90"
 	>
-		<div
-			class="dark:bg-surface2 dark:border-surface3 flex flex-col items-center rounded-xl bg-white px-4 py-2 shadow-sm dark:border"
-		>
-			<div class="flex items-center gap-2">
-				<LoaderCircle class="size-8 animate-spin " />
-				<p class="text-xl font-semibold">{text ?? 'Loading...'}</p>
-			</div>
-			{#if isLongLoad && longLoadContent}
-				<div in:slide>
-					{@render longLoadContent()}
+		{#if error}
+			<div
+				class="dark:bg-surface2 dark:border-surface3 relative flex w-full flex-col items-center gap-4 rounded-lg bg-white p-4 md:w-md dark:border"
+				use:clickOutside={() => onClose?.()}
+			>
+				<button class="icon-button absolute top-2 right-2 self-end" onclick={() => onClose?.()}
+					><X class="size-5" /></button
+				>
+
+				{#if errorPreContent}
+					{@render errorPreContent()}
+				{:else}
+					<h4 class="text-xl font-semibold">An Error Occurred</h4>
+				{/if}
+
+				<div class="notification-error flex w-full items-center gap-2">
+					<AlertCircle class="size-6 text-red-500" />
+					<p class="flex flex-col text-sm font-light">
+						<span class="font-semibold">Error Details:</span>
+						<span>
+							{error}
+						</span>
+					</p>
 				</div>
-			{/if}
-		</div>
+
+				{#if errorPostContent}
+					{@render errorPostContent()}
+				{/if}
+
+				<button class="button w-full" onclick={() => onClose?.()}>Close</button>
+			</div>
+		{:else if isProgressBar}
+			<div
+				class="flex w-full max-w-(--breakpoint-md) flex-col items-center justify-center gap-4 px-8"
+			>
+				<div class="text-4xl font-extralight text-white">
+					{Math.round(displayedProgress ?? 0)}%
+				</div>
+
+				<div class="h-3 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+					<div
+						class={twMerge('h-full rounded-full bg-blue-500 transition-all duration-500 ease-out')}
+						style="width: {progress ?? 0}%"
+					></div>
+				</div>
+
+				<div class="flex w-md flex-col justify-center gap-2 text-center">
+					{#if isLongLoad && longLoadMessage}
+						<p in:fade class="text-md font-light text-white">
+							{longLoadMessage}
+						</p>
+					{:else if text}
+						<p class="text-md font-light text-white">{text}</p>
+					{/if}
+				</div>
+			</div>
+		{:else}
+			<div
+				class="dark:bg-surface2 dark:border-surface3 flex flex-col items-center rounded-xl bg-white px-4 py-2 shadow-sm dark:border"
+			>
+				<div class="flex items-center gap-2">
+					<LoaderCircle class="size-8 animate-spin " />
+					<p class="text-xl font-semibold">{text ?? 'Loading...'}</p>
+				</div>
+				{#if isLongLoad && longLoadMessage}
+					<p in:fade class="text-md mt-4 font-light text-gray-500">
+						{longLoadMessage}
+					</p>
+				{/if}
+			</div>
+		{/if}
 	</div>
 {/if}

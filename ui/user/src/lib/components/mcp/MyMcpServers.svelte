@@ -24,6 +24,7 @@
 	import Confirm from '../Confirm.svelte';
 	import { twMerge } from 'tailwind-merge';
 	import McpServerInfoAndTools from './McpServerInfoAndTools.svelte';
+	import PageLoading from '../PageLoading.svelte';
 
 	type Entry = MCPCatalogEntry & {
 		categories: string[]; // categories for the entry
@@ -97,6 +98,10 @@
 	let saving = $state(false);
 	let error = $state<string>();
 
+	let launching = $state(false);
+	let launchError = $state<string>();
+	let launchProgress = $state<number>(0);
+
 	let deletingInstance = $state<MCPServerInstance>();
 	let deletingServer = $state<MCPCatalogServer>();
 
@@ -150,7 +155,14 @@
 		})
 	);
 
-	let filteredData = $derived([...filteredServers, ...filteredEntriesData]);
+	let filteredData = $derived(
+		[...filteredServers, ...filteredEntriesData].sort((a, b) => {
+			if (a.manifest?.name && b.manifest?.name) {
+				return a.manifest.name.localeCompare(b.manifest.name);
+			}
+			return 0;
+		})
+	);
 	let connectedServers: ConnectedServer[] = $derived([
 		...userConfiguredServers
 			.filter(
@@ -177,15 +189,22 @@
 			.filter((item) => !selectedCategory || item.server?.categories?.includes(selectedCategory))
 	]);
 	let filteredConnectedServers = $derived(
-		connectedServers.filter((item) => {
-			if (search) {
-				const searchLower = search.toLowerCase();
-				const manifestName = item.server?.manifest.name?.toLowerCase() || '';
-				const alias = item.server?.alias?.toLowerCase() || '';
-				return manifestName.includes(searchLower) || alias.includes(searchLower);
-			}
-			return true;
-		})
+		connectedServers
+			.filter((item) => {
+				if (search) {
+					const searchLower = search.toLowerCase();
+					const manifestName = item.server?.manifest.name?.toLowerCase() || '';
+					const alias = item.server?.alias?.toLowerCase() || '';
+					return manifestName.includes(searchLower) || alias.includes(searchLower);
+				}
+				return true;
+			})
+			.sort((a, b) => {
+				if (a.server?.manifest.name && b.server?.manifest.name) {
+					return a.server.manifest.name.localeCompare(b.server.manifest.name);
+				}
+				return 0;
+			})
 	);
 
 	let page = $state(0);
@@ -231,6 +250,22 @@
 			return;
 		}
 
+		launchError = undefined;
+		launchProgress = 0;
+		launching = true;
+
+		let timeout1 = setTimeout(() => {
+			launchProgress = 10;
+		}, 100);
+
+		let timeout2 = setTimeout(() => {
+			launchProgress = 30;
+		}, 3000);
+
+		let timeout3 = setTimeout(() => {
+			launchProgress = 80;
+		}, 10000);
+
 		const url = configureForm?.url || entry.manifest.remoteConfig?.fixedURL;
 		const serverName = entry.manifest.name || '';
 
@@ -255,9 +290,26 @@
 				parent: entry
 			} as ConnectedServer;
 
-			onConnectServer?.(selectedEntryOrServer);
+			const launchResponse = await ChatService.validateSingleOrRemoteMcpServerLaunched(
+				configuredResponse.id
+			);
+			if (!launchResponse.success) {
+				launchError = launchResponse.message;
+			} else {
+				launchProgress = 100;
+				const ref = selectedEntryOrServer;
+				setTimeout(() => {
+					launching = false;
+					launchProgress = 0;
+					onConnectServer?.(ref);
+				}, 1000);
+			}
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'An unknown error occurred';
+			launchError = err instanceof Error ? err.message : 'An unknown error occurred';
+		} finally {
+			clearTimeout(timeout1);
+			clearTimeout(timeout2);
+			clearTimeout(timeout3);
 		}
 	}
 
@@ -527,6 +579,29 @@
 	}}
 	oncancel={() => (deletingServer = undefined)}
 />
+
+<PageLoading
+	isProgressBar
+	show={launching}
+	text="Configuring and initializing server..."
+	progress={launchProgress}
+	error={launchError}
+	onClose={() => {
+		launching = false;
+	}}
+>
+	{#snippet errorPreContent()}
+		<h4 class="text-xl font-semibold">MCP Server Launch Failed</h4>
+	{/snippet}
+	{#snippet errorPostContent()}
+		<p class="text-md self-start">An issue occurred while launching the MCP server.</p>
+
+		<p class="text-md self-start">
+			Verify that the MCP server is properly configured and try again. If the problem persists,
+			please contact support.
+		</p>
+	{/snippet}
+</PageLoading>
 
 {#snippet serverInfo(item: Entry | Server | ConnectedServer)}
 	{@const manifest = getManifest(item)}
