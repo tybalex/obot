@@ -19,6 +19,7 @@
 		AlertTriangle,
 		Container,
 		Eye,
+		Info,
 		LoaderCircle,
 		Plus,
 		RefreshCcw,
@@ -183,9 +184,14 @@
 	async function refresh() {
 		refreshing = true;
 		await AdminService.refreshMCPCatalog(defaultCatalogId);
+		defaultCatalog = await AdminService.getMCPCatalog(defaultCatalogId);
 		await fetchMcpServerAndEntries(defaultCatalogId, mcpServerAndEntries);
 		refreshing = false;
 	}
+
+	$effect(() => {
+		console.log(defaultCatalog);
+	});
 	const duration = PAGE_TRANSITION_DURATION;
 	const OFFICIAL_MCP_CATALOG_LINK = 'https://github.com/obot-platform/mcp-catalog';
 </script>
@@ -222,6 +228,18 @@
 				{@render addServerButton()}
 			{/if}
 		</div>
+
+		{#if defaultCatalog?.isSyncing}
+			<div class="notification-info p-3 text-sm font-light">
+				<div class="flex items-center gap-3">
+					<Info class="size-6" />
+					<div>
+						The catalog is currently syncing with the latest Git servers. Please check back in a few
+						minutes or try refreshing.
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		<div class="flex flex-col gap-2">
 			<Search
@@ -472,7 +490,7 @@
 				class="button-primary"
 				disabled={saving}
 				onclick={async () => {
-					if (!editingSource) {
+					if (!editingSource || !defaultCatalog) {
 						return;
 					}
 
@@ -480,17 +498,24 @@
 					sourceError = undefined;
 
 					try {
-						const catalog = await AdminService.getMCPCatalog(defaultCatalogId);
+						const updatingCatalog = { ...defaultCatalog };
 
 						if (editingSource.index === -1) {
-							catalog.sourceURLs = [...(catalog.sourceURLs ?? []), editingSource.value];
+							updatingCatalog.sourceURLs = [
+								...(updatingCatalog.sourceURLs ?? []),
+								editingSource.value
+							];
 						} else {
-							catalog.sourceURLs[editingSource.index] = editingSource.value;
+							updatingCatalog.sourceURLs[editingSource.index] = editingSource.value;
 						}
 
-						const response = await AdminService.updateMCPCatalog(defaultCatalogId, catalog, {
-							dontLogErrors: true
-						});
+						const response = await AdminService.updateMCPCatalog(
+							defaultCatalogId,
+							updatingCatalog,
+							{
+								dontLogErrors: true
+							}
+						);
 						defaultCatalog = response;
 						await refresh();
 						closeSourceDialog();
