@@ -3,7 +3,7 @@
 	import { tooltip } from '$lib/actions/tooltip.svelte';
 	import Calendar from '$lib/components/Calendar.svelte';
 	import { formatTimeRange, getTimeRangeShorthand } from '$lib/time';
-	import { set, startOfDay, subDays, subHours, subMonths } from 'date-fns';
+	import { set, startOfDay, subDays, subHours } from 'date-fns';
 	import { twMerge } from 'tailwind-merge';
 
 	let { start, end, onChange } = $props();
@@ -56,7 +56,27 @@
 			label: 'Last 30 Days',
 			onpointerdown: () => {
 				end = set(new Date(), { milliseconds: 0, seconds: 0 });
-				start = startOfDay(subMonths(end, 1));
+				start = startOfDay(subDays(end, 30));
+
+				onChange({ end, start: start });
+				quickAccessPopover?.close();
+			}
+		},
+		{
+			label: 'Last 60 Days',
+			onpointerdown: () => {
+				end = set(new Date(), { milliseconds: 0, seconds: 0 });
+				start = startOfDay(subDays(end, 60));
+
+				onChange({ end, start: start });
+				quickAccessPopover?.close();
+			}
+		},
+		{
+			label: 'Last 90 Days',
+			onpointerdown: () => {
+				end = set(new Date(), { milliseconds: 0, seconds: 0 });
+				start = startOfDay(subDays(end, 90));
 
 				onChange({ end, start: start });
 				quickAccessPopover?.close();

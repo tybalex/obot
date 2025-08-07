@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { clickOutside } from '$lib/actions/clickoutside';
 	import { tooltip } from '$lib/actions/tooltip.svelte';
-	import { differenceInHours, endOfDay, isBefore, isSameDay, startOfDay } from 'date-fns';
+	import { differenceInDays, endOfDay, isBefore, isSameDay, startOfDay } from 'date-fns';
 	import { ChevronLeft, ChevronRight, CalendarCog } from 'lucide-svelte';
 	import { twMerge } from 'tailwind-merge';
 	import TimeInput from './TimeInput.svelte';
@@ -293,7 +293,7 @@
 			{/each}
 		</div>
 
-		{#if (start && !end) || (start && end && differenceInHours(end, start) <= 24)}
+		{#if (start && !end) || (start && end && differenceInDays(end, start) <= 20)}
 			<!-- Render Time pickers -->
 			<div
 				class="mt-4 flex flex-col gap-2"
@@ -312,7 +312,7 @@
 
 				<div class="flex flex-col gap-1">
 					<!-- In case start and end dates in the same day do not render the label -->
-					{#if !isSameDay(end ?? start, start) && differenceInHours(end ?? start, start) <= 24}
+					{#if !isSameDay(end ?? start, start)}
 						<div
 							class="text-xs text-gray-500"
 							in:slide={{ duration: 200 }}
