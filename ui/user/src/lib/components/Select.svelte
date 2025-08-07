@@ -21,8 +21,9 @@
 
 <script lang="ts" generics="T extends { id: string | number; label: string }">
 	import { clickOutside } from '$lib/actions/clickoutside';
+	import { computePosition, flip as flipMiddleware } from '@floating-ui/dom';
 	import { ChevronDown, X, Check } from 'lucide-svelte';
-	import type { Snippet } from 'svelte';
+	import { type Snippet } from 'svelte';
 	import { flip } from 'svelte/animate';
 	import { fade } from 'svelte/transition';
 	import { twMerge } from 'tailwind-merge';
@@ -63,6 +64,9 @@
 	});
 
 	let search = $state('');
+	let input = $state<HTMLInputElement>();
+	let optionHighlightIndex = $state(0);
+	let popoverPlacement = $state<{ x: number; y: number }>();
 
 	let availableOptions = $derived(
 		options.filter((option) => option.label.toLowerCase().includes(search.toLowerCase()))
@@ -74,93 +78,160 @@
 			.filter(Boolean) as T[]
 	);
 
+	let ref = $state<HTMLDivElement>();
 	let popover = $state<HTMLDialogElement>();
 
+	async function showPopover() {
+		if (!ref || !popover) return;
+		popover?.show();
+		const { x, y } = await computePosition(ref, popover, {
+			placement: position === 'top' ? 'top-start' : 'bottom-start',
+			middleware: [flipMiddleware()]
+		});
+		popoverPlacement = { x, y };
+	}
+
 	function onInput(e: Event) {
+		if (!popover?.open) {
+			showPopover();
+			input?.focus();
+		}
+
+		optionHighlightIndex = 0;
 		search = (e.target as HTMLInputElement).value;
+	}
+
+	function handleSelect(option: T) {
+		const key = option.id.toString();
+		const isSelected = selectedValues.some((d) => d === key);
+
+		if (isSelected) {
+			selected = selectedValues.filter((d) => d !== key).join(',');
+		} else {
+			selected = [key, ...selectedValues].join(',');
+		}
+
+		search = '';
+		onSelect(option, selected);
+		popover?.close();
 	}
 </script>
 
-<div class={twMerge('relative', classes?.root)}>
-	<div class="relative flex items-center">
-		<button
+<div class={classes?.root}>
+	<div bind:this={ref} class="relative flex w-full items-center">
+		<div
 			{id}
-			{disabled}
 			class={twMerge(
-				'dark:bg-surface1 text-md flex min-h-10 w-full grow resize-none items-center justify-between gap-2 rounded-lg bg-white px-2 py-2 text-left shadow-sm',
-				disabled && 'cursor-not-allowed opacity-50',
+				'dark:bg-surface1 text-md flex min-h-10 w-full grow resize-none items-center gap-2 rounded-lg bg-white px-2 py-2 text-left shadow-sm',
+				disabled && 'pointer-events-none cursor-not-allowed opacity-50',
+				multiple && 'flex-wrap',
 				klass
 			)}
-			placeholder="Enter a task"
-			oninput={onInput}
 			onclick={() => {
-				if (popover?.open) {
-					popover?.close();
-				} else {
-					popover?.show();
+				if (!popover?.open) {
+					showPopover();
+					input?.focus();
 				}
 			}}
+			onkeydown={(e) => {
+				if (e.key === 'Enter') {
+					showPopover();
+					input?.focus();
+				}
+			}}
+			role="button"
+			tabindex="0"
 		>
-			<div class="flex flex-1 flex-wrap items-center justify-start">
+			{#if multiple}
 				<div class="flex flex-wrap items-center justify-start gap-2 whitespace-break-spaces">
-					{#if multiple}
-						{#each selectedOptions as selectedOption (selectedOption.id)}
-							<div
-								class={twMerge(
-									'text-md bg-surface3/50 dark:bg-surface2 inline-flex items-center gap-1 rounded-sm px-1',
-									onClear && '',
-									classes?.buttonContent
-								)}
-								in:fade={{ duration: 100 }}
-								out:fade={{ duration: 0 }}
-								animate:flip={{ duration: 100 }}
-							>
-								{#if buttonStartContent}
-									{@render buttonStartContent()}
-								{/if}
-
-								<div class="flex flex-1 break-all">
-									{selectedOption?.label ?? ''}
-								</div>
-
-								<div class="flex h-[22.5px] items-center place-self-start">
-									<div
-										class={twMerge(
-											'button rounded-xs p-0 transition-colors duration-300',
-											classes?.clear
-										)}
-										role="button"
-										tabindex="0"
-										onclick={(ev) => {
-											ev.preventDefault();
-											ev.stopImmediatePropagation();
-
-											const filteredValues = selectedValues.filter((d) => d !== selectedOption.id);
-
-											selected = filteredValues.join(',');
-
-											onClear?.(selectedOption, selected);
-										}}
-										onkeydown={() => {}}
-									>
-										<X class="size-4 " />
-									</div>
-								</div>
-							</div>
-						{/each}
-					{:else}
-						<div class="flex items-center gap-2">
+					{#each selectedOptions as selectedOption (selectedOption.id)}
+						<div
+							class={twMerge(
+								'text-md bg-surface3/50 dark:bg-surface2 inline-flex items-center gap-1 rounded-sm px-1',
+								onClear && '',
+								classes?.buttonContent
+							)}
+							in:fade={{ duration: 100 }}
+							out:fade={{ duration: 0 }}
+							animate:flip={{ duration: 100 }}
+						>
 							{#if buttonStartContent}
 								{@render buttonStartContent()}
 							{/if}
-							<div>{selectedOptions[0]?.label ?? ''}</div>
+
+							<div class="flex flex-1 break-all">
+								{selectedOption?.label ?? ''}
+							</div>
+
+							<div class="flex h-[22.5px] items-center place-self-start">
+								<button
+									class={twMerge(
+										'button rounded-xs p-0 transition-colors duration-300',
+										classes?.clear
+									)}
+									{disabled}
+									onclick={(ev) => {
+										ev.preventDefault();
+										ev.stopImmediatePropagation();
+
+										const filteredValues = selectedValues.filter((d) => d !== selectedOption.id);
+
+										selected = filteredValues.join(',');
+
+										onClear?.(selectedOption, selected);
+									}}
+								>
+									<X class="size-4 " />
+								</button>
+							</div>
 						</div>
-					{/if}
+					{/each}
 				</div>
-			</div>
+			{/if}
+
+			{#if multiple}
+				<input
+					class="grow bg-inherit focus:ring-0 focus:outline-none"
+					bind:this={input}
+					bind:value={search}
+					oninput={onInput}
+					onkeydown={(e) => {
+						if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && popover?.open) {
+							e.preventDefault();
+							e.stopPropagation();
+
+							if (e.key === 'ArrowDown' && optionHighlightIndex !== availableOptions.length - 1) {
+								optionHighlightIndex++;
+							} else if (e.key === 'ArrowUp' && optionHighlightIndex !== 0) {
+								optionHighlightIndex--;
+							}
+						}
+
+						if (e.key === 'Backspace' && selectedValues.length > 0 && search.length === 0) {
+							selected = selectedValues.slice(0, -1).join(',');
+						}
+
+						if (e.key === 'Enter') {
+							e.preventDefault();
+							e.stopPropagation();
+							const option = availableOptions[optionHighlightIndex];
+							if (option) {
+								handleSelect(option);
+							}
+						}
+					}}
+				/>
+			{:else}
+				{#if buttonStartContent}
+					{@render buttonStartContent()}
+				{/if}
+				<div class="w-full items-center gap-2 truncate">
+					{selectedOptions[0]?.label ?? ''}
+				</div>
+			{/if}
 
 			<ChevronDown class="size-5 flex-shrink-0 self-start" />
-		</button>
+		</div>
 
 		{#if onClear}
 			<button
@@ -181,42 +252,33 @@
 		use:clickOutside={[
 			() => {
 				popover?.close();
+				optionHighlightIndex = 0;
 			},
 			true
 		]}
 		bind:this={popover}
 		class={twMerge(
-			'default-scrollbar-thin absolute top-0 left-0 z-10 max-h-[300px] w-full overflow-y-auto rounded-sm',
-			position === 'top' && 'top-full translate-y-1',
-			position === 'bottom' && '-translate-y-full'
+			'default-scrollbar-thin fixed top-auto right-auto bottom-auto left-auto z-10 max-h-[300px] overflow-y-auto rounded-sm'
 		)}
+		style={`top: ${popoverPlacement?.y ?? 0}px; left: ${popoverPlacement?.x ?? 0}px; width: ${ref?.clientWidth}px`}
 	>
 		{#if availableOptions.length === 0}
 			<div class="px-4 py-2 font-light text-gray-400 dark:text-gray-600">No options available</div>
 		{:else}
-			{#each availableOptions as option (option.id)}
+			{#each availableOptions as option, index (option.id)}
 				{@const isSelected = selectedValues.some((d) => d === option.id)}
+				{@const isHighlighted = optionHighlightIndex === index}
 
 				<button
 					class={twMerge(
 						'dark:hover:bg-surface3 hover:bg-surface2 text-md flex w-full items-center px-4 py-2 text-left break-all transition-colors duration-100',
-						isSelected && 'dark:bg-surface1 bg-surface2',
+						isSelected && 'dark:bg-surface1 bg-gray-50',
+						isHighlighted && 'dark:bg-surface3 bg-surface2',
 						classes?.option
 					)}
 					onclick={(e) => {
 						e.stopPropagation();
-
-						const key = option.id.toString();
-
-						if (isSelected) {
-							selected = selectedValues.filter((d) => d !== key).join(',');
-						} else {
-							selected = [key, ...selectedValues].join(',');
-						}
-
-						onSelect(option, selected);
-
-						popover?.close();
+						handleSelect(option);
 					}}
 				>
 					<div>{option.label}</div>
