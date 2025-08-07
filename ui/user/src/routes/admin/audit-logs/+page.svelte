@@ -23,7 +23,7 @@
 	import AuditLogsTable from './AuditLogs.svelte';
 	import AuditLogsTimeline from './AuditLogsTimeline.svelte';
 	import AuditLogCalendar from './AuditLogCalendar.svelte';
-	import { endOfDay, set, subDays } from 'date-fns';
+	import { endOfDay, isBefore, set, startOfDay, subDays } from 'date-fns';
 	import { localState } from '$lib/runes/localState.svelte';
 
 	const duration = PAGE_TRANSITION_DURATION;
@@ -86,25 +86,52 @@
 	let timeRangeFilters = $derived.by(() => {
 		const { start_time, end_time } = searchParamFilters;
 
-		if (start_time || end_time) {
-			const today = set(new Date(), { milliseconds: 0, seconds: 0 });
+		const endTime = set(new Date(end_time ?? new Date()), { milliseconds: 0, seconds: 0 });
 
-			return {
-				startTime: set(new Date(start_time ?? today), { milliseconds: 0, seconds: 0 }),
-				endTime: set(new Date(end_time ?? subDays(today, 7)), { milliseconds: 0, seconds: 0 })
-			};
-		}
+		const getStartTime = (date: typeof start_time) => {
+			// date is not provided
+			if (!date) {
+				const parsedStartTime = set(new Date(), { milliseconds: 0, seconds: 0 });
+
+				// Ensure start time is not after end time
+				if (isBefore(parsedStartTime, endTime)) {
+					return subDays(parsedStartTime, 90);
+				}
+
+				// Default to 90 days before end time
+				return subDays(endTime, 90);
+			}
+
+			const parsedStartTime = set(new Date(date), {
+				milliseconds: 0,
+				seconds: 0
+			});
+
+			// Ensure start time is not after end time
+			if (isBefore(parsedStartTime, endTime)) {
+				return parsedStartTime;
+			}
+
+			// Default to start of end time day
+			return startOfDay(endTime);
+		};
+
+		const startTime = getStartTime(start_time);
 
 		return {
-			startTime: subDays(set(new Date(), { milliseconds: 0, seconds: 0 }), 7),
-			endTime: set(new Date(new Date()), { milliseconds: 0, seconds: 0 })
+			startTime,
+			endTime
 		};
 	});
 
-	const allFilters = $derived({
+	const activeFilters = $derived({
 		...searchParamFilters,
 		start_time: timeRangeFilters.startTime.toISOString(),
-		end_time: timeRangeFilters.endTime?.toISOString() ?? '',
+		end_time: timeRangeFilters.endTime?.toISOString()
+	});
+
+	const allFilters = $derived({
+		...activeFilters,
 		limit: pageLimit,
 		offset: pageOffset,
 		query: query
@@ -396,8 +423,8 @@
 </dialog>
 
 {#snippet filters()}
-	{@const keys = Object.keys(searchParamFilters) as (keyof AuditLogURLFilters)[]}
-	{@const hasFilters = Object.values(searchParamFilters).some((value) => !!value)}
+	{@const keys = Object.keys(activeFilters) as (keyof AuditLogURLFilters)[]}
+	{@const hasFilters = Object.values(activeFilters).some((value) => !!value)}
 
 	{#if hasFilters}
 		<div
@@ -408,10 +435,8 @@
 			{#each keys as key (key)}
 				{@const displayLabel = getFilterDisplayLabel(key)}
 				{@const values =
-					searchParamFilters[key as keyof typeof searchParamFilters]
-						?.toString()
-						.split(',')
-						.filter(Boolean) ?? []}
+					activeFilters[key as keyof typeof activeFilters]?.toString().split(',').filter(Boolean) ??
+					[]}
 
 				<div
 					class="flex items-center gap-1 rounded-lg border border-blue-500/50 bg-blue-500/10 px-4 py-2 text-blue-600 dark:text-blue-300"
