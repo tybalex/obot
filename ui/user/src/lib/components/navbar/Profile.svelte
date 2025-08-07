@@ -58,37 +58,17 @@
 		showMyMcpServersLink = window.location.pathname.includes('/o/') || inAdminRoute;
 	});
 
-	async function handleChat(event?: MouseEvent) {
-		if (!window) return;
-
-		const isNewTab = event?.ctrlKey || event?.metaKey;
-		loadingChat = true;
-		const projects = (await ChatService.listProjects()).items.sort(
-			(a, b) => new Date(b.created).getTime() - new Date(a.created).getTime()
-		);
-		const lastProject = projects[0];
-		if (lastProject) {
-			if (isNewTab) {
-				window.open(`/o/${lastProject.id}`, '_blank');
-			} else {
-				goto(`/o/${lastProject.id}`);
-			}
-		} else {
-			const newProject = await EditorService.createObot();
-			if (isNewTab) {
-				window.open(`/o/${newProject.id}`, '_blank');
-			} else {
-				goto(`/o/${newProject.id}`);
-			}
-		}
-		loadingChat = false;
-	}
-
-	function handleNavigate(path: string, event: MouseEvent) {
-		if (!window) return;
-		const isNewTab = event?.ctrlKey || event?.metaKey;
-		if (isNewTab) {
-			window.open(path, '_blank');
+	function navigateTo(path: string, asNewTab?: boolean) {
+		if (asNewTab) {
+			// Create a temporary link element and click it; avoids Safari's popup blocker
+			const link = document.createElement('a');
+			link.href = path;
+			link.target = '_blank';
+			link.rel = 'noopener noreferrer';
+			link.style.display = 'none';
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
 		} else {
 			goto(path);
 		}
@@ -142,7 +122,10 @@
 		<div class="flex flex-col gap-2 px-2 pb-4">
 			{#if profile.current.role === 1 && !inAdminRoute}
 				<button
-					onclick={(e) => handleNavigate('/admin/mcp-servers', e)}
+					onclick={(event) => {
+						const asNewTab = event?.ctrlKey || event?.metaKey;
+						navigateTo('/admin', asNewTab);
+					}}
 					class="link"
 					role="menuitem"
 				>
@@ -151,13 +134,44 @@
 				</button>
 			{/if}
 			{#if showMyMcpServersLink}
-				<button onclick={(e) => handleNavigate('/mcp-servers', e)} class="link" role="menuitem">
+				<button
+					onclick={(event) => {
+						const asNewTab = event?.ctrlKey || event?.metaKey;
+						navigateTo('/mcp-servers', asNewTab);
+					}}
+					class="link"
+					role="menuitem"
+				>
 					<Server class="size-4" />
 					My Connectors
 				</button>
 			{/if}
 			{#if showChatLink}
-				<button class="link" onclick={(event) => handleChat(event)}>
+				<button
+					class="link"
+					onclick={async (event) => {
+						const asNewTab = event?.ctrlKey || event?.metaKey;
+						loadingChat = true;
+						try {
+							const projects = (await ChatService.listProjects()).items.sort(
+								(a, b) => new Date(b.created).getTime() - new Date(a.created).getTime()
+							);
+							const lastProject = projects[0];
+							let url: string;
+
+							if (lastProject) {
+								url = `/o/${lastProject.id}`;
+							} else {
+								const newProject = await EditorService.createObot();
+								url = `/o/${newProject.id}`;
+							}
+
+							navigateTo(url, asNewTab);
+						} finally {
+							loadingChat = false;
+						}
+					}}
+				>
 					<MessageCircle class="size-4" />
 					Chat
 				</button>
