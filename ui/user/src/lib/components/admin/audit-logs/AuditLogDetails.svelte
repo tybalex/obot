@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { columnResize } from '$lib/actions/resize';
+	import CopyButton from '$lib/components/CopyButton.svelte';
 	import type { AuditLog } from '$lib/services/admin/types';
 	import { responsive } from '$lib/stores';
 	import { X } from 'lucide-svelte';
@@ -121,10 +122,19 @@
 			</div>
 
 			{#if Object.keys(auditLog.requestBody ?? {}).length > 0}
+				{@const body = JSON.stringify(auditLog.requestBody, null, 2)}
+
 				<p class="translate-y-2 pt-4 text-base font-semibold">Request Body</p>
-				<pre class="default-scrollbar-thin max-h-96 overflow-y-auto p-4"><code class="language-json"
-						>{JSON.stringify(auditLog.requestBody, null, 2)}</code
-					></pre>
+				<div class="relative">
+					<pre class="default-scrollbar-thin max-h-96 overflow-y-auto p-4">
+						<code class="language-json">{body}</code>
+					</pre>
+
+					<CopyButton
+						classes={{ button: 'absolute right-4 top-4 flex flex-col items-end' }}
+						text={body}
+					/>
+				</div>
 			{/if}
 		</div>
 
@@ -165,10 +175,19 @@
 			{/if}
 
 			{#if Object.keys(auditLog.responseBody ?? {}).length > 0}
+				{@const body = JSON.stringify(auditLog.responseBody, null, 2)}
+
 				<p class="translate-y-2 pt-4 text-base font-semibold">Response Body</p>
-				<pre class="default-scrollbar-thin max-h-96 overflow-y-auto p-4"><code class="language-json"
-						>{JSON.stringify(auditLog.responseBody, null, 2)}</code
-					></pre>
+				<div class="relative">
+					<pre class="default-scrollbar-thin max-h-96 overflow-y-auto p-4">
+						<code class="language-json">{body}</code>
+					</pre>
+
+					<CopyButton
+						classes={{ button: 'absolute right-4 top-4 flex flex-col items-end' }}
+						text={body}
+					/>
+				</div>
 			{/if}
 		</div>
 	</div>
