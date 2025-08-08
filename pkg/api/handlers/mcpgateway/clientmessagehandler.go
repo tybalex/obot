@@ -14,18 +14,13 @@ import (
 	gatewaytypes "github.com/obot-platform/obot/pkg/gateway/types"
 )
 
-type clientMessageHandlerFactory struct {
-	gatewayClient   *gateway.Client
-	pendingRequests *nmcp.PendingRequests
-}
-
-func (c *clientMessageHandlerFactory) asClientOption(tokenStore nmcp.TokenStorage, session *nmcp.Session, userID, mcpID, serverDisplayName, serverCatalogEntryName string) nmcp.ClientOption {
+func (h *Handler) asClientOption(session *nmcp.Session, userID, mcpID, serverDisplayName, serverCatalogEntryName string) nmcp.ClientOption {
 	return nmcp.ClientOption{
 		ClientName:   "Obot MCP Gateway",
-		TokenStorage: tokenStore,
+		TokenStorage: h.tokenStore.ForUserAndMCP(userID, mcpID),
 		OnMessage: (&clientMessageHandler{
-			gatewayClient:   c.gatewayClient,
-			pendingRequests: c.pendingRequests,
+			gatewayClient:   h.gatewayClient,
+			pendingRequests: h.pendingRequests,
 			session: &gatewaySession{
 				session:                session,
 				userID:                 userID,
@@ -100,21 +95,24 @@ func (c *clientMessageHandler) onMessage(ctx context.Context, msg nmcp.Message) 
 		}
 	}()
 
-	ch := c.pendingRequests.WaitFor(msg.ID)
-	defer c.pendingRequests.Done(msg.ID)
+	var ch <-chan nmcp.Message
+	if msg.ID != nil {
+		ch = c.pendingRequests.WaitFor(msg.ID)
+		defer c.pendingRequests.Done(msg.ID)
+	}
 
 	if err = c.session.session.Send(ctx, msg); err != nil {
 		if errors.Is(err, nmcp.ErrNoReader) {
 			// No clients are reading these messages. Return and drop the audit log.
 			dropAuditLog = true
 
-			return nil
+			return msg.Reply(ctx, nmcp.Notification{})
 		}
 		msg.SendError(ctx, err)
 		return fmt.Errorf("failed to send message: %w", err)
 	}
 
-	if strings.HasPrefix(msg.Method, "notifications/") {
+	if msg.ID == nil || strings.HasPrefix(msg.Method, "notifications/") {
 		// Notifications only go from server to client. We don't expect a response.
 		return nil
 	}

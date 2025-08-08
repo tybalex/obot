@@ -14,7 +14,7 @@ import (
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (sm *SessionManager) k8sObjectsForUVXOrNPX(server ServerConfig, serverName string) ([]kclient.Object, error) {
+func (sm *SessionManager) k8sObjectsForUVXOrNPX(id string, server ServerConfig, serverName string) ([]kclient.Object, error) {
 	if server.Runtime != otypes.RuntimeUVX && server.Runtime != otypes.RuntimeNPX {
 		return nil, fmt.Errorf("invalid runtime: %s", server.Runtime)
 	}
@@ -25,7 +25,6 @@ func (sm *SessionManager) k8sObjectsForUVXOrNPX(server ServerConfig, serverName 
 		"mcp-server-scope":     server.Scope,
 	}
 
-	id := deploymentID(server)
 	objs := make([]kclient.Object, 0, 5)
 
 	secretStringData := make(map[string]string, len(server.Env)+len(server.Headers)+2)
@@ -207,7 +206,7 @@ func (sm *SessionManager) k8sObjectsForUVXOrNPX(server ServerConfig, serverName 
 	return objs, nil
 }
 
-func (sm *SessionManager) k8sObjectsForContainerized(server ServerConfig, serverName string) ([]kclient.Object, error) {
+func (sm *SessionManager) k8sObjectsForContainerized(id string, server ServerConfig, serverName string) ([]kclient.Object, error) {
 	if server.Runtime != otypes.RuntimeContainerized {
 		return nil, fmt.Errorf("invalid runtime: %s", server.Runtime)
 	}
@@ -217,7 +216,6 @@ func (sm *SessionManager) k8sObjectsForContainerized(server ServerConfig, server
 		"mcp-server-scope":     server.Scope,
 	}
 
-	id := deploymentID(server)
 	objs := make([]kclient.Object, 0, 4)
 
 	secretStringData := make(map[string]string, len(server.Env)+len(server.Headers)+2)

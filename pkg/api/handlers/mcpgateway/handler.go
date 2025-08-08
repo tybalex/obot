@@ -34,33 +34,30 @@ import (
 var log = mvl.Package()
 
 type Handler struct {
-	tokenService         *jwt.TokenService
-	mcpSessionManager    *mcp.SessionManager
-	webhookHelper        *mcp.WebhookHelper
-	sessions             *sessionStoreFactory
-	pendingRequests      *nmcp.PendingRequests
-	tokenStore           mcp.GlobalTokenStore
-	clientMessageFactory *clientMessageHandlerFactory
-	messageHandlers      sync.Map
-	baseURL              string
+	storageClient     kclient.Client
+	gatewayClient     *gateway.Client
+	gptClient         *gptscript.GPTScript
+	tokenService      *jwt.TokenService
+	mcpSessionManager *mcp.SessionManager
+	webhookHelper     *mcp.WebhookHelper
+	mcpSessionCache   sync.Map
+	sessionCache      sync.Map
+	pendingRequests   *nmcp.PendingRequests
+	tokenStore        mcp.GlobalTokenStore
+	baseURL           string
 }
 
-func NewHandler(tokenService *jwt.TokenService, storageClient kclient.Client, mcpSessionManager *mcp.SessionManager, webhookHelper *mcp.WebhookHelper, globalTokenStore mcp.GlobalTokenStore, gatewayClient *gateway.Client, baseURL string) *Handler {
-	pendingRequests := &nmcp.PendingRequests{}
+func NewHandler(tokenService *jwt.TokenService, storageClient kclient.Client, mcpSessionManager *mcp.SessionManager, webhookHelper *mcp.WebhookHelper, globalTokenStore mcp.GlobalTokenStore, gatewayClient *gateway.Client, gptClient *gptscript.GPTScript, baseURL string) *Handler {
 	return &Handler{
+		storageClient:     storageClient,
+		gatewayClient:     gatewayClient,
+		gptClient:         gptClient,
 		tokenService:      tokenService,
 		mcpSessionManager: mcpSessionManager,
 		webhookHelper:     webhookHelper,
-		sessions: &sessionStoreFactory{
-			client: storageClient,
-		},
-		clientMessageFactory: &clientMessageHandlerFactory{
-			gatewayClient:   gatewayClient,
-			pendingRequests: pendingRequests,
-		},
-		pendingRequests: pendingRequests,
-		tokenStore:      globalTokenStore,
-		baseURL:         baseURL,
+		pendingRequests:   &nmcp.PendingRequests{},
+		tokenStore:        globalTokenStore,
+		baseURL:           baseURL,
 	}
 }
 
@@ -83,7 +80,7 @@ func (h *Handler) StreamableHTTP(req api.Context) error {
 			// If the MCP server is not found, remove the session.
 			if sessionID != "" {
 				// We don't need to supply a handler here because the server is not using this session.
-				session, found, err := h.sessions.NewStore(nil).LoadAndDelete(req.Request, sessionID)
+				session, found, err := h.LoadAndDelete(req.Request, sessionID)
 				if err != nil {
 					return fmt.Errorf("failed to get mcp server config: %w", err)
 				}
@@ -96,44 +93,39 @@ func (h *Handler) StreamableHTTP(req api.Context) error {
 		return fmt.Errorf("failed to get mcp server config: %w", err)
 	}
 
-	handler := &messageHandler{
-		handler:       h,
-		mcpID:         mcpID,
-		client:        req.Storage,
-		gatewayClient: req.GatewayClient,
-		gptClient:     req.GPTClient,
-		resp:          req.ResponseWriter,
-		serverConfig:  mcpServerConfig,
-		mcpServer:     mcpServer,
-		req:           req.Request,
-		userID:        req.User.GetUID(),
-	}
+	req.Request = req.WithContext(withMessageContext(req.Context(), messageContext{
+		userID:       req.User.GetUID(),
+		mcpID:        mcpID,
+		serverConfig: mcpServerConfig,
+		mcpServer:    mcpServer,
+		req:          req.Request,
+		resp:         req.ResponseWriter,
+	}))
 
-	m, loaded := h.messageHandlers.LoadOrStore(mcpID, handler)
-	if loaded {
-		handler = m.(*messageHandler)
-		handler.mcpServer = mcpServer
-		handler.serverConfig = mcpServerConfig
-	}
-	nmcp.NewHTTPServer(nil, handler, nmcp.HTTPServerOptions{SessionStore: h.sessions.NewStore(handler)}).ServeHTTP(req.ResponseWriter, req.Request)
+	nmcp.NewHTTPServer(nil, h, nmcp.HTTPServerOptions{SessionStore: h}).ServeHTTP(req.ResponseWriter, req.Request)
 
 	return nil
 }
 
-type messageHandler struct {
-	handler       *Handler
-	mcpID         string
-	client        kclient.Client
-	gatewayClient *gateway.Client
-	gptClient     *gptscript.GPTScript
-	resp          http.ResponseWriter
+type messageContext struct {
+	userID, mcpID string
 	mcpServer     v1.MCPServer
 	serverConfig  mcp.ServerConfig
 	req           *http.Request
-	userID        string
+	resp          http.ResponseWriter
 }
 
-func (m *messageHandler) OnMessage(ctx context.Context, msg nmcp.Message) {
+func (h *Handler) OnMessage(ctx context.Context, msg nmcp.Message) {
+	m, ok := messageContextFromContext(ctx)
+	if !ok {
+		log.Errorf("Failed to get message context from context: %v", ctx)
+		msg.SendError(ctx, &nmcp.RPCError{
+			Code:    -32603,
+			Message: "Failed to get message context",
+		})
+		return
+	}
+
 	auditLog := &gatewaytypes.MCPAuditLog{
 		UserID:                    m.userID,
 		MCPID:                     m.mcpID,
@@ -151,7 +143,7 @@ func (m *messageHandler) OnMessage(ctx context.Context, msg nmcp.Message) {
 	auditLog.RequestID, _ = msg.ID.(string)
 
 	// Go through webhook validations.
-	webhooks, err := m.handler.webhookHelper.GetWebhooksForMCPServer(ctx, m.gptClient, m.mcpServer, msg.Method, auditLog.CallIdentifier)
+	webhooks, err := h.webhookHelper.GetWebhooksForMCPServer(ctx, h.gptClient, m.mcpServer, msg.Method, auditLog.CallIdentifier)
 	if err != nil {
 		log.Errorf("Failed to get webhooks for server %s: %v", m.mcpServer.Name, err)
 		err = msg.Reply(ctx, &nmcp.RPCError{
@@ -195,15 +187,15 @@ func (m *messageHandler) OnMessage(ctx context.Context, msg nmcp.Message) {
 			msg.SendError(ctx, rpcError)
 			err = rpcError
 
-			insertAuditLog(m.gatewayClient, auditLog)
+			insertAuditLog(h.gatewayClient, auditLog)
 
 			return
 		}
 	}
 
-	if m.handler.pendingRequests.Notify(msg) {
+	if h.pendingRequests.Notify(msg) {
 		// Insert the audit log for this request. The message handler will update it with its fields.
-		insertAuditLog(m.gatewayClient, auditLog)
+		insertAuditLog(h.gatewayClient, auditLog)
 		// This is a response to a pending request.
 		// We don't forward it to the client, just return.
 		return
@@ -238,16 +230,16 @@ func (m *messageHandler) OnMessage(ctx context.Context, msg nmcp.Message) {
 				auditLog.ResponseStatus = http.StatusUnauthorized
 				m.resp.Header().Set(
 					"WWW-Authenticate",
-					fmt.Sprintf(`Bearer error="invalid_token", error_description="The access token is invalid or expired. Please re-authenticate and try again.", resource_metadata="%s/.well-known/oauth-protected-resource%s"`, m.handler.baseURL, m.req.URL.Path),
+					fmt.Sprintf(`Bearer error="invalid_token", error_description="The access token is invalid or expired. Please re-authenticate and try again.", resource_metadata="%s/.well-known/oauth-protected-resource%s"`, h.baseURL, m.req.URL.Path),
 				)
 				http.Error(m.resp, fmt.Sprintf("Unauthorized: %v", oauthErr), http.StatusUnauthorized)
-				insertAuditLog(m.gatewayClient, auditLog)
+				insertAuditLog(h.gatewayClient, auditLog)
 				return
 			}
 
 			if rpcError := (*nmcp.RPCError)(nil); errors.As(err, &rpcError) {
 				msg.SendError(ctx, rpcError)
-				insertAuditLog(m.gatewayClient, auditLog)
+				insertAuditLog(h.gatewayClient, auditLog)
 				return
 			}
 
@@ -265,16 +257,15 @@ func (m *messageHandler) OnMessage(ctx context.Context, msg nmcp.Message) {
 			}
 		}
 
-		insertAuditLog(m.gatewayClient, auditLog)
+		insertAuditLog(h.gatewayClient, auditLog)
 	}()
 
-	client, err = m.handler.mcpSessionManager.ClientForMCPServerWithOptions(
+	client, err = h.mcpSessionManager.ClientForMCPServerWithOptions(
 		ctx,
 		msg.Session.ID(),
 		m.mcpServer,
 		m.serverConfig,
-		m.handler.clientMessageFactory.asClientOption(
-			m.handler.tokenStore.ForUserAndMCP(m.userID, m.mcpID),
+		h.asClientOption(
 			msg.Session,
 			m.userID,
 			m.mcpID,
@@ -291,9 +282,6 @@ func (m *messageHandler) OnMessage(ctx context.Context, msg nmcp.Message) {
 	case "notifications/initialized":
 		// This method is special because it is handled automatically by the client.
 		// So, we don't forward this one, just respond with a success.
-		if err = msg.Reply(ctx, nmcp.Notification{}); err != nil {
-			log.Errorf("failed to reply to notifications/initialized: %v", err)
-		}
 		return
 	case "ping":
 		result = nmcp.PingResult{}
@@ -302,7 +290,7 @@ func (m *messageHandler) OnMessage(ctx context.Context, msg nmcp.Message) {
 		go func() {
 			msg.Session.Wait()
 
-			if err := m.handler.mcpSessionManager.CloseClient(context.Background(), m.serverConfig, sessionID); err != nil {
+			if err := h.mcpSessionManager.CloseClient(context.Background(), m.serverConfig, sessionID); err != nil {
 				log.Errorf("Failed to shutdown server %s: %v", m.mcpServer.Name, err)
 			}
 
@@ -313,7 +301,7 @@ func (m *messageHandler) OnMessage(ctx context.Context, msg nmcp.Message) {
 			}
 			req.Header.Set("Mcp-Session-Id", sessionID)
 
-			if _, _, err := m.handler.sessions.NewStore(m).LoadAndDelete(req, sessionID); err != nil {
+			if _, _, err = h.LoadAndDelete(req, sessionID); err != nil {
 				log.Errorf("Failed to delete session %s: %v", sessionID, err)
 			}
 		}()
@@ -358,6 +346,10 @@ func (m *messageHandler) OnMessage(ctx context.Context, msg nmcp.Message) {
 
 	if err = client.Session.Exchange(ctx, msg.Method, &msg, &result); err != nil {
 		log.Errorf("Failed to send %s message to server %s: %v", msg.Method, m.mcpServer.Name, err)
+		msg.SendError(ctx, &nmcp.RPCError{
+			Code:    -32603,
+			Message: fmt.Sprintf("failed to send %s message to server %s: %v", msg.Method, m.mcpServer.Name, err),
+		})
 		return
 	}
 
@@ -367,13 +359,12 @@ func (m *messageHandler) OnMessage(ctx context.Context, msg nmcp.Message) {
 			Code:    -32603,
 			Message: fmt.Sprintf("failed to reply to server %s: %v", m.mcpServer.Name, err),
 		})
-		return
 	}
 }
 
 // Helper methods for audit logging
 
-func (m *messageHandler) getClientIP() string {
+func (m *messageContext) getClientIP() string {
 	// Check X-Forwarded-For header first
 	if forwarded := m.req.Header.Get("X-Forwarded-For"); forwarded != "" {
 		// Take the first IP in the list
@@ -396,7 +387,7 @@ func (m *messageHandler) getClientIP() string {
 	return m.req.RemoteAddr
 }
 
-func (m *messageHandler) extractCallIdentifier(msg nmcp.Message) string {
+func (m *messageContext) extractCallIdentifier(msg nmcp.Message) string {
 	switch msg.Method {
 	case "resources/read":
 		return gjson.GetBytes(msg.Params, "uri").String()
@@ -407,7 +398,7 @@ func (m *messageHandler) extractCallIdentifier(msg nmcp.Message) string {
 	}
 }
 
-func (m *messageHandler) captureHeaders(headers http.Header) json.RawMessage {
+func (m *messageContext) captureHeaders(headers http.Header) json.RawMessage {
 	// Create a filtered version of headers (removing sensitive information)
 	filteredHeaders := make(map[string][]string)
 	for k, v := range headers {

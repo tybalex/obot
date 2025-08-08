@@ -291,7 +291,7 @@ func (sm *SessionManager) Load(_ context.Context, t types.Tool) ([]types.Tool, e
 	return nil, fmt.Errorf("MCP servers must be loaded in Obot: %s", t.Name)
 }
 
-func (sm *SessionManager) ensureDeployment(ctx context.Context, server ServerConfig, serverName string) (ServerConfig, error) {
+func (sm *SessionManager) ensureDeployment(ctx context.Context, id string, server ServerConfig, serverName string) (ServerConfig, error) {
 	if server.Runtime == otypes.RuntimeRemote && server.URL == "" {
 		return ServerConfig{}, fmt.Errorf("MCP server %s needs to update its URL", serverName)
 	}
@@ -322,15 +322,14 @@ func (sm *SessionManager) ensureDeployment(ctx context.Context, server ServerCon
 
 	// Generate the Kubernetes deployment objects.
 	var (
-		id   = deploymentID(server)
 		objs []kclient.Object
 		err  error
 	)
 	switch server.Runtime {
 	case otypes.RuntimeNPX, otypes.RuntimeUVX:
-		objs, err = sm.k8sObjectsForUVXOrNPX(server, serverName)
+		objs, err = sm.k8sObjectsForUVXOrNPX(id, server, serverName)
 	case otypes.RuntimeContainerized:
-		objs, err = sm.k8sObjectsForContainerized(server, serverName)
+		objs, err = sm.k8sObjectsForContainerized(id, server, serverName)
 	default:
 		return ServerConfig{}, fmt.Errorf("unsupported MCP runtime: %s", server.Runtime)
 	}
@@ -355,11 +354,11 @@ func (sm *SessionManager) ensureDeployment(ctx context.Context, server ServerCon
 }
 
 func (sm *SessionManager) transformServerConfig(ctx context.Context, mcpServerName string, serverConfig ServerConfig) (ServerConfig, error) {
-	return sm.ensureDeployment(ctx, serverConfig, mcpServerName)
+	return sm.ensureDeployment(ctx, deploymentID(serverConfig), serverConfig, mcpServerName)
 }
 
 func deploymentID(server ServerConfig) string {
-	// The allowed tools and client scope aren't part of the deployment ID.
+	// The allowed tools aren't part of the deployment ID.
 	server.AllowedTools = nil
 	return "mcp" + hash.Digest(server)[:60]
 }
