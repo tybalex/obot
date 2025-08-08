@@ -25,6 +25,11 @@
 
 	async function handleDeleteProject() {
 		deleting = true;
+		if (isOnProject) {
+			// signal current project is being deleted
+			layout.deleting = true;
+		}
+
 		await ChatService.deleteProject(project.assistantID, project.id);
 		confirmDelete = false;
 
