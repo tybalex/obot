@@ -46,37 +46,26 @@
 	let filtersOptions: FilterOptions = $state({} as FilterOptions);
 
 	type FilterInputs = Record<FilterKey, FilterInput>;
-	let filterInputs = (
-		[
-			'user_id',
-			'mcp_id',
-			'mcp_server_display_name',
-			'mcp_server_catalog_entry_name',
-			'call_type',
-			'client_name',
-			'client_version',
-			'client_ip',
-			'response_status',
-			'session_id'
-		] as FilterKey[]
-	).reduce((acc, filterId) => {
-		acc[filterId] = {
-			property: filterId,
-			label: getFilterDisplayLabel?.(filterId) ?? filterId.replace(/_(\w)/, ' $1'),
-			get selected() {
-				return filters?.[filterId] ?? '';
-			},
-			set selected(v) {
-				filters[filterId] = v ?? '';
-				// Force Component to react
-				filters = { ...filters };
-			},
-			get options() {
-				return filtersOptions[filterId];
-			}
-		};
-		return acc;
-	}, {} as FilterInputs);
+	let filterInputs = $derived(
+		(Object.keys(filters ?? {}) as FilterKey[]).reduce((acc, filterId) => {
+			acc[filterId] = {
+				property: filterId,
+				label: getFilterDisplayLabel?.(filterId) ?? filterId.replace(/_(\w)/, ' $1'),
+				get selected() {
+					return filters?.[filterId] ?? '';
+				},
+				set selected(v) {
+					filters[filterId] = v ?? '';
+					// Force Component to react
+					filters = { ...filters };
+				},
+				get options() {
+					return filtersOptions[filterId];
+				}
+			};
+			return acc;
+		}, {} as FilterInputs)
+	);
 
 	const filterInputsAsArray = $derived(Object.values(filterInputs));
 
@@ -85,18 +74,22 @@
 			const response = await AdminService.listAuditLogFilterOptions(filterId);
 
 			if (filterId === 'user_id') {
-				return response.options
-					.map((d) => ({
-						id: d,
-						label: getUserDisplayName(d)
-					}))
-					.filter(Boolean);
+				return (
+					response.options
+						?.map((d) => ({
+							id: d,
+							label: getUserDisplayName(d)
+						}))
+						?.filter(Boolean) ?? []
+				);
 			}
 
-			return response.options.map((d) => ({
-				id: d,
-				label: d
-			}));
+			return (
+				response?.options?.map((d) => ({
+					id: d,
+					label: d
+				})) ?? []
+			);
 		};
 
 		const filterInputKeys = Object.keys(filterInputs) as FilterKey[];
