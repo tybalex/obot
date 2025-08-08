@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import { slide } from 'svelte/transition';
+	import { fade, slide } from 'svelte/transition';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { flip } from 'svelte/animate';
 	import { X, ChevronLeft, ChevronRight, Funnel, Captions } from 'lucide-svelte';
@@ -25,6 +25,7 @@
 	import AuditLogsTimeline from './AuditLogsTimeline.svelte';
 	import AuditLogCalendar from './AuditLogCalendar.svelte';
 	import { localState } from '$lib/runes/localState.svelte';
+	import Loading from '$lib/icons/Loading.svelte';
 
 	interface Props {
 		mcpId?: string | null;
@@ -66,6 +67,7 @@
 
 	const users = new SvelteMap<string, OrgUser>();
 
+	let showLoadingSpinner = $state(true);
 	let showFilters = $state(false);
 	let selectedAuditLog = $state<AuditLog & { user: string }>();
 	let rightSidebar = $state<HTMLDialogElement>();
@@ -227,12 +229,14 @@
 		if (!allFilters) return;
 		if (!pageIndexLocal.isReady) return;
 
+		showLoadingSpinner = true;
 		fetchAuditLogs({ ...allFilters }).then((res) => {
 			// Reset page and page fragment indexes when the total results are less than the current page offset
 			if (!res || pageOffset > (res?.total ?? 0)) {
 				pageIndexLocal.current = 0;
 				fragmentIndex = 0;
 			}
+			showLoadingSpinner = false;
 		});
 	});
 
@@ -354,6 +358,21 @@
 		pageIndexLocal.current = 0;
 	}
 </script>
+
+{#if showLoadingSpinner}
+	<div
+		class="absolute inset-0 z-10 flex items-center justify-center"
+		in:fade={{ duration: 100 }}
+		out:fade|global={{ duration: 300, delay: 500 }}
+	>
+		<div
+			class="bg-surface3/50 border-surface3 flex flex-col items-center gap-4 rounded-2xl border px-16 py-8 text-blue-500 shadow-md backdrop-blur-[1px] dark:text-blue-500"
+		>
+			<Loading class="size-32 stroke-1" />
+			<div class="text-2xl font-semibold">Loading logs...</div>
+		</div>
+	</div>
+{/if}
 
 <div class="flex gap-4">
 	<Search
