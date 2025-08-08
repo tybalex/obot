@@ -1,18 +1,59 @@
 <script lang="ts">
+	import { flip } from 'svelte/animate';
+	import { slide } from 'svelte/transition';
 	import { twMerge } from 'tailwind-merge';
 	import Select, { type SelectProps } from '$lib/components/Select.svelte';
 	import type { FilterInput } from './AuditFilters.svelte';
-	import { fade } from 'svelte/transition';
 
 	interface Props {
 		filter: FilterInput;
 		onSelect: SelectProps<{ id: string; label: string }>['onSelect'];
 		onClearAll?: () => void;
+		onReset?: () => void;
 	}
 
-	let { filter, onSelect, onClearAll }: Props = $props();
+	let { filter, onSelect, onClearAll, onReset }: Props = $props();
 
 	let options = $derived(filter.options ?? []);
+
+	const value = $derived(
+		filter.selected === null ? (filter.default ?? '') : (filter.selected ?? '')
+	);
+
+	const hasDefaultValue = $derived(!!filter.default);
+
+	const shouldShowResetButton = $derived(
+		hasDefaultValue && filter.selected !== null && filter.default !== filter.selected
+	);
+	const shouldShowClearButton = $derived(!!value);
+
+	const actions = $derived(
+		[
+			shouldShowResetButton
+				? {
+						id: 'reset',
+						label: 'Reset',
+						onclick: () => onReset?.(),
+						class: 'text-blue-500 opacity-80 hover:opacity-90 active:opacity-100'
+					}
+				: undefined,
+			shouldShowClearButton
+				? {
+						id: 'clear',
+						label: ['Clear', value?.toString()?.includes?.(',') ? 'All' : '']
+							.filter(Boolean)
+							.join(' '),
+						onclick: () => onClearAll?.(),
+						class: 'opacity-50 hover:opacity-80 active:opacity-100'
+					}
+				: undefined
+		].filter(Boolean) as {
+			id: string;
+			label: string;
+			onclick: () => void;
+			class: string;
+		}[]
+	);
 </script>
 
 <div class={twMerge('mb-2 flex flex-col gap-1', !options.length && 'opacity-50')}>
@@ -21,20 +62,19 @@
 			By {filter.label}
 		</label>
 
-		{#if filter.selected}
-			<button
-				class="text-xs opacity-50 transition-opacity duration-200 hover:opacity-80 active:opacity-100"
-				onclick={() => onClearAll?.()}
-				in:fade={{ duration: 200 }}
-				out:fade={{ duration: 100, delay: 200 }}
-			>
-				{#if filter.selected.toString()?.includes?.(',')}
-					Clear All
-				{:else}
-					Clear
-				{/if}
-			</button>
-		{/if}
+		<flex class="flex gap-4">
+			{#each actions as action (action.id)}
+				<button
+					class={twMerge(action.class, 'text-xs whitespace-nowrap transition-opacity duration-200')}
+					onclick={action.onclick}
+					in:slide={{ duration: 100, axis: 'x' }}
+					out:slide={{ duration: 100, delay: 200, axis: 'x' }}
+					animate:flip={{ duration: 200 }}
+				>
+					{action.label}
+				</button>
+			{/each}
+		</flex>
 	</div>
 
 	<Select
@@ -44,7 +84,12 @@
 			clear: 'hover:bg-surface3 bg-transparent'
 		}}
 		{options}
-		bind:selected={filter.selected}
+		bind:selected={
+			() => value,
+			(v) => {
+				filter.selected = v;
+			}
+		}
 		multiple
 		{onSelect}
 	/>

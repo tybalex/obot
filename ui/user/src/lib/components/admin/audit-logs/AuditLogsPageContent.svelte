@@ -99,11 +99,25 @@
 		].join(',')
 	};
 
-	const searchParamsAsArray: [keyof AuditLogURLFilters, string | null][] = $derived(
-		supportedFilters.map((d) => [
-			d,
-			page.url.searchParams.get(d) ?? defaultSearchParams[d]?.toString() ?? ''
-		])
+	const searchParamsAsArray: [keyof AuditLogURLFilters, string | undefined | null][] = $derived(
+		supportedFilters.map((d) => {
+			const hasSearchParam = page.url.searchParams.has(d);
+
+			const value = page.url.searchParams.get(d);
+			const isValueDefined = isSafe(value);
+
+			return [
+				d,
+				isValueDefined
+					? // Value is defined then decode and use it
+						decodeURIComponent(value)
+					: hasSearchParam
+						? // Value is not defined but has a search param then override with empty string
+							''
+						: // No search params return default value if exist otherwise return undefined
+							(defaultSearchParams[d]?.toString() ?? null)
+			];
+		})
 	);
 
 	// Extract search supported params from the URL and convert them to AuditLogURLFilters
@@ -111,7 +125,7 @@
 	const searchParamFilters = $derived.by<AuditLogURLFilters>(() => {
 		return searchParamsAsArray.reduce(
 			(acc, [key, value]) => {
-				acc[key!] = decodeURIComponent(value ?? '');
+				acc[key!] = value;
 				return acc;
 			},
 			{} as Record<string, unknown>
@@ -121,10 +135,10 @@
 	// Keep only filters with defined values
 	const prunedSearchParamFilters = $derived.by(() => {
 		return searchParamsAsArray
-			.filter(([, value]) => !!value)
+			.filter(([, value]) => isSafe(value))
 			.reduce(
 				(acc, [key, value]) => {
-					acc[key!] = decodeURIComponent(value ?? '');
+					acc[key!] = value;
 					return acc;
 				},
 				{} as Record<string, unknown>
@@ -236,6 +250,10 @@
 		// Prevent losing focus from the input
 		history.replaceState(null, '', page.url);
 	}, 100);
+
+	function isSafe<T = unknown>(value: T) {
+		return value !== undefined && value !== null;
+	}
 
 	async function nextPage() {
 		if (isReachedMax) return;
@@ -459,12 +477,14 @@
 	{#if selectedAuditLog}
 		<AuditLogDetails onClose={handleRightSidebarClose} auditLog={selectedAuditLog} />
 	{/if}
+
 	{#if showFilters}
 		<AuditFilters
 			onClose={handleRightSidebarClose}
 			filters={{ ...auditLogsSlideoverFilters }}
 			{getUserDisplayName}
 			{getFilterDisplayLabel}
+			getDefaultValue={(filter) => defaultSearchParams[filter]}
 		/>
 	{/if}
 </dialog>
@@ -513,7 +533,7 @@
 						class="rounded-full p-1 transition-colors duration-200 hover:bg-blue-500/25"
 						onclick={() => {
 							const url = page.url;
-							url.searchParams.delete(filterKey);
+							url.searchParams.set(filterKey, '');
 
 							goto(url, { noScroll: true });
 						}}
