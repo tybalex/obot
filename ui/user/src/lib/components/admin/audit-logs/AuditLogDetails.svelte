@@ -178,13 +178,13 @@
 				{@const body = JSON.stringify(auditLog.responseBody, null, 2)}
 
 				<p class="translate-y-2 pt-4 text-base font-semibold">Response Body</p>
-				<div class="relative">
+				<div class="relative text-white">
 					<pre class="default-scrollbar-thin max-h-96 overflow-y-auto p-4">
 						<code class="language-json">{body}</code>
 					</pre>
 
 					<CopyButton
-						classes={{ button: 'absolute right-4 top-4 flex flex-col items-end' }}
+						classes={{ button: 'absolute right-4 top-4 flex flex-col items-end text-current' }}
 						text={body}
 					/>
 				</div>
