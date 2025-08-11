@@ -478,7 +478,7 @@
 		{getUserDisplayName}
 		{emptyContent}
 	></AuditLogsTable>
-{:else}
+{:else if !showLoadingSpinner}
 	<div class="mt-12 flex w-md max-w-full flex-col items-center gap-4 self-center text-center">
 		<Captions class="size-24 text-gray-200 dark:text-gray-900" />
 		<h4 class="text-lg font-semibold text-gray-400 dark:text-gray-600">No audit logs</h4>
