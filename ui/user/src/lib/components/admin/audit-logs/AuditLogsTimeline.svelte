@@ -42,6 +42,8 @@
 	} from 'date-fns';
 	import type { AuditLog } from '$lib/services';
 	import { debounce } from 'es-toolkit';
+	import { autoUpdate, computePosition, flip, offset } from '@floating-ui/dom';
+	import { fade } from 'svelte/transition';
 
 	interface Props<T> {
 		start: Date;
@@ -55,7 +57,7 @@
 
 	let { start, end, data }: Props<AuditLog> = $props();
 
-	let tooltipElement = $state<HTMLElement>();
+	let highlightedRectElement = $state<SVGRectElement>();
 
 	let paddingLeft = $state(24);
 	let paddingRight = $state(8);
@@ -414,26 +416,58 @@
 	function durationToMinutes(duration: Duration) {
 		return durationToHours(duration) * 60 + (duration.minutes ?? 0);
 	}
+
+	function tooltip(reference: Element, floating: HTMLElement) {
+		const compute = async () => {
+			const position = await computePosition(reference, floating, {
+				placement: 'top',
+				middleware: [
+					offset(8),
+					flip({
+						padding: {
+							top: 0,
+							right: 40,
+							left: 40,
+							bottom: 0
+						},
+						boundary: document.documentElement,
+						fallbackPlacements: ['top', 'top-end', 'top-start', 'left-start', 'right-start']
+					})
+				]
+			});
+
+			const { x, y } = position;
+
+			floating.style.transform = `translate(${x}px, ${y}px)`;
+		};
+
+		return autoUpdate(reference, floating, compute, {
+			animationFrame: true,
+			ancestorScroll: true,
+			ancestorResize: true
+		});
+	}
 </script>
 
 <div bind:clientHeight bind:clientWidth class="group relative h-full w-full">
-	<div
-		class="tooltip pointer-events-none fixed top-0 left-0 flex flex-col"
-		style="opacity: 0;"
-		{@attach (node) => {
-			tooltipElement = node;
-		}}
-	>
-		<div class="flex flex-col gap-0 text-xs">
-			<div>
-				{currentItem?.date}
+	{#if highlightedRectElement && currentItem}
+		<div
+			class="tooltip pointer-events-none fixed top-0 left-0 flex flex-col shadow-md"
+			{@attach (node) => tooltip(highlightedRectElement!, node)}
+			in:fade={{ duration: 100, delay: 10 }}
+			out:fade={{ duration: 100 }}
+		>
+			<div class="flex flex-col gap-0 text-xs">
+				<div>
+					{currentItem?.date}
+				</div>
+				<div class="text-sm">
+					{currentItem?.key}
+				</div>
 			</div>
-			<div class="text-sm">
-				{currentItem?.key}
-			</div>
+			<div class="text-2xl font-bold">{currentItem?.value}</div>
 		</div>
-		<div class="text-2xl font-bold">{currentItem?.value}</div>
-	</div>
+	{/if}
 
 	<svg width={clientWidth} height={clientHeight} viewBox={`0 0 ${clientWidth} ${clientHeight}`}>
 		<g transform="translate({paddingLeft}, {paddingTop})">
@@ -561,25 +595,15 @@
 						.attr('height', (d) => Math.abs(yScale(d[0]) - yScale(d[1])))
 						.attr('width', xScale.bandwidth())
 						.attr('cursor', 'pointer')
-						.on('mouseover', function () {
-							// Show tooltip
-							if (tooltipElement) {
-								select(tooltipElement).style('opacity', 1);
-							}
-
-							// Highlight the hovered bar
-							select(this).style('stroke', 'white').style('stroke-width', 2);
-						})
-						.on('mousemove', function (event, d) {
-							if (!tooltipElement) return;
-
-							const element = this as SVGRectElement;
-
-							const t = select(tooltipElement);
+						.attr('class', 'text-on-surface1')
+						.on('pointerenter', function (ev, d) {
+							highlightedRectElement = this as SVGRectElement;
 
 							const item: { key?: string; value?: string; date?: string } = {};
 
-							const parentData = select(element.parentNode as SVGElement).datum() as {
+							const parentData = select(
+								highlightedRectElement.parentNode as SVGElement
+							).datum() as {
 								key: string;
 							};
 
@@ -597,16 +621,14 @@
 								date: string;
 							};
 
-							t.style('left', event.pageX + 10 + 'px').style('top', event.pageY - 28 + 'px');
+							select(this).attr('stroke', 'currentColor').attr('stroke-width', 2);
 						})
-						.on('mouseout', function () {
-							if (!tooltipElement) return;
+						.on('pointerleave', function () {
+							if (this === highlightedRectElement) {
+								highlightedRectElement = undefined;
+							}
 
-							const t = select(tooltipElement);
-							// Hide tooltip
-							t.style('opacity', 0);
-							// Remove highlight
-							select(this).style('stroke', 'none');
+							select(this).attr('stroke-width', 0);
 						});
 				}}
 			>
