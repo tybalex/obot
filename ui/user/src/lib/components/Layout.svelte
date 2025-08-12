@@ -26,6 +26,7 @@
 	import { twMerge } from 'tailwind-merge';
 	import { afterNavigate } from '$app/navigation';
 	import BetaLogo from './navbar/BetaLogo.svelte';
+	import ConfigureBanner from './admin/ConfigureBanner.svelte';
 
 	interface Props {
 		classes?: {
@@ -134,6 +135,8 @@
 			layout.sidebarOpen = false;
 		}
 	});
+
+	const excludeConfigureBanner = ['/admin/model-providers', '/admin/auth-providers'];
 
 	initLayout();
 	const layout = getLayout();
@@ -267,6 +270,9 @@
 				<div
 					class={twMerge('h-full w-full max-w-(--breakpoint-xl)', classes?.childrenContainer ?? '')}
 				>
+					{#if pathname.includes('/admin') && !excludeConfigureBanner.includes(pathname)}
+						<ConfigureBanner />
+					{/if}
 					{@render children()}
 				</div>
 			</div>

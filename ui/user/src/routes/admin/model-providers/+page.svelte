@@ -20,6 +20,8 @@
 	import { onMount } from 'svelte';
 	import DefaultModels from '$lib/components/admin/DefaultModels.svelte';
 	import { sortModelProviders } from '$lib/sort.js';
+	import { AlertTriangle } from 'lucide-svelte';
+	import { adminConfigStore } from '$lib/stores/adminConfig.svelte.js';
 
 	let { data } = $props();
 	let { modelProviders: initialModelProviders } = data;
@@ -31,6 +33,7 @@
 	let configuringModelProviderValues = $state<Record<string, string>>();
 	let configureError = $state<string>();
 	let loading = $state(false);
+	let atLeastOneConfigured = $derived(modelProviders.some((provider) => provider.configured));
 
 	initModels([]);
 	const adminModels = getAdminModels();
@@ -131,6 +134,7 @@
 
 				// Fetch the updated model providers and available models
 				modelProviders = await AdminService.listModelProviders();
+				adminConfigStore.updateModelProviders(modelProviders);
 				adminModels.items = await AdminService.listModels();
 
 				// Close the provider configuration dialog
@@ -165,6 +169,19 @@
 				Model Providers
 				<DefaultModels bind:this={defaultModelsDialog} availableModels={adminModels.items} />
 			</h1>
+
+			{#if !atLeastOneConfigured}
+				<div class="notification-alert flex flex-col gap-2">
+					<div class="flex items-center gap-2">
+						<AlertTriangle class="size-6 flex-shrink-0 self-start text-yellow-500" />
+						<p class="my-0.5 flex flex-col text-sm font-semibold">No Model Providers Configured!</p>
+					</div>
+					<span class="text-sm font-light break-all">
+						To use Obot's features, you'll need to set up a Model Provider. Select and configure one
+						below to get started!
+					</span>
+				</div>
+			{/if}
 		</div>
 		<div class="grid grid-cols-1 gap-4 py-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{#each sortedModelProviders as modelProvider (modelProvider.id)}
@@ -188,6 +205,7 @@
 					onDeconfigure={async () => {
 						await AdminService.deconfigureModelProvider(modelProvider.id);
 						modelProviders = await AdminService.listModelProviders();
+						adminConfigStore.updateModelProviders(modelProviders);
 					}}
 				>
 					{#snippet configuredActions(provider)}
