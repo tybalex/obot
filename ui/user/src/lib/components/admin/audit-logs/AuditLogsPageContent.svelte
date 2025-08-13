@@ -135,16 +135,19 @@
 	});
 
 	// Keep only filters with defined values
-	const prunedSearchParamFilters = $derived.by(() => {
-		return searchParamsAsArray
-			.filter(([, value]) => isSafe(value))
-			.reduce(
-				(acc, [key, value]) => {
-					acc[key!] = value;
-					return acc;
-				},
-				{} as Record<string, unknown>
-			);
+	const pillsSearchParamFilters = $derived.by(() => {
+		return (
+			searchParamsAsArray
+				// exclude start_time and end_time from pills filters
+				.filter(([key, value]) => !(key === 'start_time' || key === 'end_time') && isSafe(value))
+				.reduce(
+					(acc, [key, value]) => {
+						acc[key!] = value;
+						return acc;
+					},
+					{} as Record<string, unknown>
+				)
+		);
 	});
 
 	const propsFilters = $derived.by(() => {
@@ -208,7 +211,7 @@
 
 	// Base filters with time filters and query and pagination
 	const allFilters = $derived({
-		...prunedSearchParamFilters,
+		...pillsSearchParamFilters,
 		...propsFilters,
 		start_time: timeRangeFilters.startTime.toISOString(),
 		end_time: timeRangeFilters.endTime?.toISOString(),
@@ -511,7 +514,7 @@
 </dialog>
 
 {#snippet filters()}
-	{@const entries = Object.entries(prunedSearchParamFilters)}
+	{@const entries = Object.entries(pillsSearchParamFilters)}
 	{@const filters = entries.filter(([, value]) => !!value) as [
 		keyof AuditLogURLFilters,
 		string | number | null
