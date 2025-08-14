@@ -42,6 +42,7 @@ export interface Layout {
 	projectToConfigure?: Project;
 	newChatMode?: boolean;
 	deleting?: boolean;
+	input?: string;
 }
 
 export function isSomethingSelected(layout: Layout) {
@@ -95,6 +96,9 @@ export function openMCPServerTools(layout: Layout, mcpServer: ProjectMCP) {
 	layout.fileEditorOpen = false;
 	layout.sidebarConfig = 'mcp-server-tools';
 	layout.mcpServer = mcpServer;
+	if (responsive.isMobile) {
+		layout.sidebarOpen = false;
+	}
 }
 
 export function openMCPServer(layout: Layout, mcpServer: ProjectMCP) {
@@ -102,6 +106,9 @@ export function openMCPServer(layout: Layout, mcpServer: ProjectMCP) {
 	layout.fileEditorOpen = false;
 	layout.sidebarConfig = 'mcp-server';
 	layout.mcpServer = mcpServer;
+	if (responsive.isMobile) {
+		layout.sidebarOpen = false;
+	}
 }
 export function closeSidebarConfig(layout: Layout) {
 	layout.sidebarConfig = undefined;
@@ -115,6 +122,9 @@ export function openConfigureProject(layout: Layout, project: Project) {
 	closeAll(layout);
 	layout.sidebarConfig = 'project-configuration';
 	layout.projectToConfigure = project;
+	if (responsive.isMobile) {
+		layout.sidebarOpen = false;
+	}
 }
 
 export function initLayout(layout: Layout) {

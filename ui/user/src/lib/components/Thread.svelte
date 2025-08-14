@@ -40,6 +40,8 @@
 		createProject?: CreateProjectForm;
 		assistant?: Assistant;
 		isNew?: boolean;
+		onInputChange?: (input: string) => void;
+		inputValue?: string;
 	}
 
 	let {
@@ -47,7 +49,9 @@
 		project = $bindable(),
 		createProject = $bindable(),
 		assistant,
-		isNew = $bindable()
+		isNew = $bindable(),
+		onInputChange,
+		inputValue
 	}: Props = $props();
 
 	let messagesDiv = $state<HTMLDivElement>();
@@ -99,6 +103,9 @@
 				messages: [],
 				inProgress: false
 			};
+
+			layout.input = '';
+			input?.setValue('');
 		}
 
 		scrollSmooth = false;
@@ -486,12 +493,15 @@
 	bind:this={threadContainer}
 >
 	<div
-		class={twMerge('top-fade-bar', layout.fileEditorOpen ? 'left-5' : 'left-1/2 -translate-x-1/2')}
+		class={twMerge(
+			'top-fade-bar pointer-events-none',
+			layout.fileEditorOpen ? 'left-5' : 'left-1/2 -translate-x-1/2'
+		)}
 		style="width: {fadeBarWidth}px"
 	></div>
 	<div
 		class={twMerge(
-			'bottom-fade-bar',
+			'bottom-fade-bar pointer-events-none',
 			layout.fileEditorOpen ? 'left-5' : 'left-1/2 -translate-x-1/2'
 		)}
 		style="width: {fadeBarWidth}px"
@@ -581,6 +591,7 @@
 						await tick();
 						scrollControls?.stickToBottom();
 						await thread?.invoke(i);
+						onInputChange?.('');
 						isNew = false;
 					}}
 					onArrowKeys={(direction) => {
@@ -590,6 +601,8 @@
 							globalPromptIndex++;
 						}
 					}}
+					{onInputChange}
+					initialValue={inputValue}
 					bind:items={layout.items}
 				>
 					<div class="flex w-full items-center justify-between">

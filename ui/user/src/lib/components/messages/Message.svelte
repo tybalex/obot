@@ -86,6 +86,18 @@
 	let showToolInputDetails = $state(false);
 	let showToolOutputDetails = $state(false);
 
+	let showCopied = $state(false);
+	let copiedTimeout = $state<ReturnType<typeof setTimeout>>();
+
+	// For file content, we want to animate the content as it's written
+	let fileCursor = new Tween(0);
+	let prevFileContent = $state('');
+	let animatedFileContent = $derived(
+		msg.file?.content && !msg.done
+			? msg.file.content.slice(0, fileCursor.current)
+			: msg.file?.content || ''
+	);
+
 	// Check if this is an Memory tool message
 	let isMemoryTool = $derived(
 		msg.sourceName === 'Create Memory' ||
@@ -103,6 +115,17 @@
 
 		animating = true;
 		cursor.set(content.length, { duration: 500 }).then(() => (animating = false));
+	});
+
+	$effect(() => {
+		if (msg.file?.content && !msg.done) {
+			if (!msg.file.content.startsWith(prevFileContent)) {
+				fileCursor.set(0, { duration: 0 });
+			}
+			prevFileContent = msg.file.content;
+
+			fileCursor.set(msg.file.content.length, { duration: 300 });
+		}
 	});
 
 	$effect(() => {
@@ -231,8 +254,17 @@
 	}
 
 	async function copyContentToClipboard(textContent?: string) {
+		if (copiedTimeout) {
+			clearTimeout(copiedTimeout);
+		}
+
 		try {
 			await navigator.clipboard.writeText(textContent ?? content);
+			showCopied = true;
+
+			copiedTimeout = setTimeout(() => {
+				showCopied = false;
+			}, 750);
 		} catch (err) {
 			console.error('Failed to copy message:', err);
 		}
@@ -378,24 +410,36 @@
 {/snippet}
 
 {#snippet files()}
-	{#if msg.file?.filename}
+	{#if msg.file}
 		<button
-			class="my-2 flex max-w-[750px] cursor-pointer flex-col overflow-x-auto rounded-3xl border border-gray-300 bg-white text-start text-black shadow-lg dark:bg-black dark:text-gray-50"
+			class={twMerge(
+				'my-2 flex w-[750px] cursor-pointer flex-col rounded-3xl border border-gray-300 bg-white text-start text-black shadow-lg dark:bg-black dark:text-gray-50',
+				!msg.file?.filename && 'cursor-wait'
+			)}
+			disabled={!msg.file?.filename}
 			onclick={fileLoad}
 		>
 			<div class="text-md flex justify-between gap-2 px-5 pt-4">
 				<div class="flex items-center gap-2 truncate">
-					<FileText class="min-w-fit" />
-					<span use:overflowToolTip>{msg.file.filename}</span>
+					<FileText class="size-4" />
+					{#if msg.file?.filename}
+						<span use:overflowToolTip>{msg.file.filename}</span>
+					{:else}
+						<span class="text-gray-400 dark:text-gray-600">...</span>
+					{/if}
 				</div>
 			</div>
 			<div class="relative">
 				<div class="font-body text-md p-5 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-					{msg.file.content.split('\n').splice(0, 6).join('\n')}
+					{#if msg.file?.content}
+						{animatedFileContent}
+					{/if}
 				</div>
-				<div
-					class="absolute bottom-0 z-20 h-24 w-full rounded-3xl bg-linear-to-b from-transparent to-white dark:to-black"
-				></div>
+				{#if !msg.done}
+					<div
+						class="absolute bottom-0 z-20 h-24 w-full rounded-3xl bg-linear-to-b from-transparent to-white dark:to-black"
+					></div>
+				{/if}
 			</div>
 		</button>
 		{#if msg.file.content && isTextFile(msg.file.filename)}
@@ -521,23 +565,24 @@
 							>
 								<FileSymlink class="size-4" />
 							</button>
-							<button
-								class="icon-button-small"
-								use:tooltip={'Download'}
-								onclick={() => {
-									const link = document.createElement('a');
-									link.href = `data:${content.mimeType};base64,${content.data}`;
-									link.download = `image-${Date.now()}.${content.mimeType.split('/')[1]}`;
-									document.body.appendChild(link);
-									link.click();
-									document.body.removeChild(link);
-								}}
-							>
-								<Download class="size-4" />
-							</button>
+							{@render downloadImageButton(
+								`data:${content.mimeType};base64,${content.data}`,
+								`image-${Date.now()}.${content.mimeType.split('/')[1]}`
+							)}
 						</div>
 					</div>
 				{/if}
+			{/each}
+		{:else if parsedOutput?.images}
+			{#each parsedOutput.images as image, i (i)}
+				<div class="flex flex-col gap-2">
+					<button class="mt-2 w-full max-w-md" onclick={() => onPreviewImage?.(image?.downloadUrl)}>
+						<img src={image?.downloadUrl} alt="tool output" class="rounded-xl" />
+					</button>
+					<div class="flex gap-2">
+						{@render downloadImageButton(image?.downloadUrl, image?.workspaceFilePath)}
+					</div>
+				</div>
 			{/each}
 		{/if}
 	{/if}
@@ -731,7 +776,7 @@
 					<div class={twMerge('mt-2 -ml-1 flex gap-2', classes?.messageActions)}>
 						<div>
 							<button
-								use:tooltip={'Copy message to clipboard'}
+								use:tooltip={showCopied ? 'Copied!' : 'Copy message to clipboard'}
 								class="icon-button-small"
 								onclick={() => copyContentToClipboard()}
 							>
@@ -769,6 +814,23 @@
 {/if}
 
 <MemoriesDialog bind:this={memoriesDialog} {project} />
+
+{#snippet downloadImageButton(data: string, filename: string)}
+	<button
+		class="icon-button-small"
+		use:tooltip={'Download'}
+		onclick={() => {
+			const link = document.createElement('a');
+			link.href = data;
+			link.download = filename;
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+		}}
+	>
+		<Download class="size-4" />
+	</button>
+{/snippet}
 
 <style lang="postcss">
 	/* The :global is to get rid of warnings about the selector not being found */
