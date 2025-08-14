@@ -23,6 +23,7 @@
 	import McpServerInstances from './McpServerInstances.svelte';
 	import McpServerTools from '../mcp/McpServerTools.svelte';
 	import AuditLogsPageContent from './audit-logs/AuditLogsPageContent.svelte';
+	import { page } from '$app/state';
 
 	type MCPType = 'single' | 'multi' | 'remote';
 
@@ -61,7 +62,13 @@
 		rule: AccessControlRule;
 		resourceId: string;
 	}>();
-	let selected = $state<string>(entry ? 'overview' : 'configuration');
+	let selected = $derived.by(() => {
+		const searchParams = page.url.searchParams;
+
+		const tab = searchParams.get('view');
+
+		return tab ?? (entry ? 'overview' : 'configuration');
+	});
 	let showLeftChevron = $state(false);
 	let showRightChevron = $state(false);
 	let scrollContainer = $state<HTMLDivElement>();
@@ -78,12 +85,6 @@
 		AdminService.listUsers().then((data) => {
 			users = data;
 		});
-
-		const url = new URL(window.location.href);
-		const initialView = url.searchParams.get('view');
-		if (initialView) {
-			selected = initialView;
-		}
 
 		checkScrollPosition();
 		scrollContainer?.addEventListener('scroll', checkScrollPosition);
@@ -140,8 +141,6 @@
 
 	function handleSelectionChange(newSelection: string) {
 		if (newSelection !== selected) {
-			selected = newSelection;
-
 			const url = new URL(window.location.href);
 			url.searchParams.set('view', newSelection);
 			goto(url.toString(), { replaceState: true });

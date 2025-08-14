@@ -309,7 +309,12 @@
 				class="button-text px-1"
 				onclick={(e) => {
 					e.stopPropagation();
-					goto(`/admin/audit-logs?mcpId=${encodeURIComponent(mcpId ?? '')}&userId=${d.id}`);
+
+					if (!mcpId) return;
+					const id = mcpId.split('-').at(-1);
+
+					if (!id) return;
+					goto(`/admin/mcp-servers/s/${encodeURIComponent(id)}?view=audit-logs&userId=${d.id}`);
 				}}
 			>
 				View Audit Logs
