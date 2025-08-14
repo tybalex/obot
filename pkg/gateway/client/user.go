@@ -38,7 +38,7 @@ func (c *Client) UserFromToken(ctx context.Context, token string) (*types.User, 
 
 		namespace = tkn.AuthProviderNamespace
 		name = tkn.AuthProviderName
-		return tx.Where("id = ?", tkn.UserID).First(u).Error
+		return tx.Where("id = ? AND deleted_at IS NULL", tkn.UserID).First(u).Error
 	}); err != nil {
 		return nil, "", "", err
 	}
@@ -63,7 +63,7 @@ func (c *Client) Users(ctx context.Context, query types.UserQuery) ([]types.User
 
 func (c *Client) User(ctx context.Context, username string) (*types.User, error) {
 	u := new(types.User)
-	if err := c.db.WithContext(ctx).Where("hashed_username = ?", hash.String(username)).First(u).Error; err != nil {
+	if err := c.db.WithContext(ctx).Where("hashed_username = ? AND deleted_at IS NULL", hash.String(username)).First(u).Error; err != nil {
 		return nil, err
 	}
 
@@ -72,6 +72,16 @@ func (c *Client) User(ctx context.Context, username string) (*types.User, error)
 
 func (c *Client) UserByID(ctx context.Context, id string) (*types.User, error) {
 	u := new(types.User)
+	if err := c.db.WithContext(ctx).Where("id = ? AND deleted_at IS NULL", id).First(u).Error; err != nil {
+		return nil, err
+	}
+
+	return u, c.decryptUser(ctx, u)
+}
+
+// UserByIDIncludeDeleted returns a user by ID including soft-deleted users (for audit purposes)
+func (c *Client) UserByIDIncludeDeleted(ctx context.Context, id string) (*types.User, error) {
+	u := new(types.User)
 	if err := c.db.WithContext(ctx).Where("id = ?", id).First(u).Error; err != nil {
 		return nil, err
 	}
@@ -79,17 +89,33 @@ func (c *Client) UserByID(ctx context.Context, id string) (*types.User, error) {
 	return u, c.decryptUser(ctx, u)
 }
 
+// UsersIncludeDeleted returns all users including soft-deleted ones (for audit purposes)
+func (c *Client) UsersIncludeDeleted(ctx context.Context, query types.UserQuery) ([]types.User, error) {
+	query.IncludeDeleted = true
+	return c.Users(ctx, query)
+}
+
 func (c *Client) DeleteUser(ctx context.Context, userID string) (*types.User, error) {
-	existingUser := new(types.User)
+	var (
+		existingUser = new(types.User)
+		responseUser = types.User{}
+	)
+
 	if err := c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Where("id = ?", userID).First(existingUser).Error; err != nil {
 			return err
 		}
 
+		// Decrypt user to get original values before soft delete
+		if err := c.decryptUser(ctx, existingUser); err != nil {
+			return fmt.Errorf("failed to decrypt user: %w", err)
+		}
+
 		if existingUser.Role.HasRole(types2.RoleAdmin) {
 			var adminCount int64
 			// We filter out empty email users here, because that is the bootstrap user.
-			if err := tx.Model(new(types.User)).Where("role = ? and hashed_email != ''", types2.RoleAdmin).Count(&adminCount).Error; err != nil {
+			// Also exclude already soft-deleted users from the count.
+			if err := tx.Model(new(types.User)).Where("role = ? and hashed_email != '' and deleted_at IS NULL", types2.RoleAdmin).Count(&adminCount).Error; err != nil {
 				return err
 			}
 
@@ -98,16 +124,41 @@ func (c *Client) DeleteUser(ctx context.Context, userID string) (*types.User, er
 			}
 		}
 
-		if err := tx.Where("user_id = ?", existingUser.ID).Delete(new(types.Identity)).Error; err != nil {
+		// Soft delete: set timestamp and preserve original values
+		now := time.Now()
+		existingUser.DeletedAt = &now
+		existingUser.OriginalEmail = existingUser.Email
+		existingUser.OriginalUsername = existingUser.Username
+
+		// Clear sensitive data and make fields unique to allow re-signup
+		// Append timestamp to prevent conflicts with new users using same email
+		deletedSuffix := fmt.Sprintf("_deleted_%d", now.Unix())
+		existingUser.Email = existingUser.Email + deletedSuffix
+		existingUser.Username = existingUser.Username + deletedSuffix
+		existingUser.HashedEmail = hash.String(existingUser.Email)
+		existingUser.HashedUsername = hash.String(existingUser.Username)
+
+		// Copy the existing user before we encrypt it so that we can return the right values in the response.
+		responseUser = *existingUser
+		responseUser.Email = responseUser.OriginalEmail
+		responseUser.Username = responseUser.OriginalUsername
+
+		// Encrypt the modified user
+		if err := c.encryptUser(ctx, existingUser); err != nil {
+			return fmt.Errorf("failed to encrypt user: %w", err)
+		}
+
+		// Update the user with soft delete fields and modified email/username
+		if err := tx.Save(existingUser).Error; err != nil {
 			return err
 		}
 
-		return tx.Delete(existingUser).Error
+		return nil
 	}); err != nil {
 		return nil, err
 	}
 
-	return existingUser, c.decryptUser(ctx, existingUser)
+	return &responseUser, nil
 }
 
 func (c *Client) UpdateUser(ctx context.Context, actingUserIsAdmin bool, updatedUser *types.User, userID string) (*types.User, error) {
@@ -123,7 +174,7 @@ func (c *Client) UpdateUser(ctx context.Context, actingUserIsAdmin bool, updated
 
 		// If the username is being changed, then ensure that a user with that name doesn't already exist.
 		if len(updatedUser.Username) != 0 && updatedUser.Username != existingUser.Username {
-			if err := tx.Model(updatedUser).Where("username = ?", updatedUser.Username).First(new(types.User)).Error; err == nil {
+			if err := tx.Model(updatedUser).Where("username = ? AND deleted_at IS NULL", updatedUser.Username).First(new(types.User)).Error; err == nil {
 				return &AlreadyExistsError{name: fmt.Sprintf("user with username %q", updatedUser.Username)}
 			} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return err
@@ -146,8 +197,9 @@ func (c *Client) UpdateUser(ctx context.Context, actingUserIsAdmin bool, updated
 				}
 				// If the role is being changed from admin to non-admin, then ensure that this isn't the last admin.
 				// We filter out empty email users here, because that is the bootstrap user.
+				// Also exclude soft-deleted users from the count.
 				var adminCount int64
-				if err := tx.Model(new(types.User)).Where("role = ? and hashed_email != ''", types2.RoleAdmin).Count(&adminCount).Error; err != nil {
+				if err := tx.Model(new(types.User)).Where("role = ? and hashed_email != '' and deleted_at IS NULL", types2.RoleAdmin).Count(&adminCount).Error; err != nil {
 					return err
 				}
 
@@ -170,7 +222,7 @@ func (c *Client) UpdateUser(ctx context.Context, actingUserIsAdmin bool, updated
 }
 
 func (c *Client) UpdateUserInternalStatus(ctx context.Context, userID string, internal bool) error {
-	return c.db.WithContext(ctx).Model(new(types.User)).Where("id = ?", userID).Update("internal", internal).Error
+	return c.db.WithContext(ctx).Model(new(types.User)).Where("id = ? AND deleted_at IS NULL", userID).Update("internal", internal).Error
 }
 
 func (c *Client) UpdateProfileIfNeeded(ctx context.Context, user *types.User, authProviderName, authProviderNamespace, authProviderURL string) error {
@@ -311,6 +363,16 @@ func (c *Client) encryptUser(ctx context.Context, user *types.User) error {
 	} else {
 		user.DisplayName = base64.StdEncoding.EncodeToString(b)
 	}
+	if b, err = transformer.TransformToStorage(ctx, []byte(user.OriginalEmail), dataCtx); err != nil {
+		errs = append(errs, err)
+	} else {
+		user.OriginalEmail = base64.StdEncoding.EncodeToString(b)
+	}
+	if b, err = transformer.TransformToStorage(ctx, []byte(user.OriginalUsername), dataCtx); err != nil {
+		errs = append(errs, err)
+	} else {
+		user.OriginalUsername = base64.StdEncoding.EncodeToString(b)
+	}
 
 	user.Encrypted = true
 
@@ -379,6 +441,30 @@ func (c *Client) decryptUser(ctx context.Context, user *types.User) error {
 			errs = append(errs, err)
 		} else {
 			user.DisplayName = string(out)
+		}
+	} else {
+		errs = append(errs, err)
+	}
+
+	decoded = make([]byte, base64.StdEncoding.DecodedLen(len(user.OriginalEmail)))
+	n, err = base64.StdEncoding.Decode(decoded, []byte(user.OriginalEmail))
+	if err == nil {
+		if out, _, err = transformer.TransformFromStorage(ctx, decoded[:n], dataCtx); err != nil {
+			errs = append(errs, err)
+		} else {
+			user.OriginalEmail = string(out)
+		}
+	} else {
+		errs = append(errs, err)
+	}
+
+	decoded = make([]byte, base64.StdEncoding.DecodedLen(len(user.OriginalUsername)))
+	n, err = base64.StdEncoding.Decode(decoded, []byte(user.OriginalUsername))
+	if err == nil {
+		if out, _, err = transformer.TransformFromStorage(ctx, decoded[:n], dataCtx); err != nil {
+			errs = append(errs, err)
+		} else {
+			user.OriginalUsername = string(out)
 		}
 	} else {
 		errs = append(errs, err)

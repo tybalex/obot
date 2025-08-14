@@ -30,6 +30,10 @@ type User struct {
 	DailyPromptTokensLimit     int       `json:"dailyPromptTokensLimit"`
 	DailyCompletionTokensLimit int       `json:"dailyCompletionTokensLimit"`
 	Encrypted                  bool      `json:"encrypted"`
+	// Soft delete fields
+	DeletedAt        *time.Time `json:"deletedAt,omitempty"`
+	OriginalEmail    string     `json:"-"`
+	OriginalUsername string     `json:"-"`
 }
 
 func ConvertUser(u *User, roleFixed bool, authProviderName string) *types2.User {
@@ -37,7 +41,7 @@ func ConvertUser(u *User, roleFixed bool, authProviderName string) *types2.User 
 		return nil
 	}
 
-	return &types2.User{
+	user := &types2.User{
 		Metadata: types2.Metadata{
 			ID:      fmt.Sprint(u.ID),
 			Created: *types2.NewTime(u.CreatedAt),
@@ -54,13 +58,22 @@ func ConvertUser(u *User, roleFixed bool, authProviderName string) *types2.User 
 		Internal:                   u.Internal,
 		DailyPromptTokensLimit:     u.DailyPromptTokensLimit,
 		DailyCompletionTokensLimit: u.DailyCompletionTokensLimit,
+		OriginalEmail:              u.OriginalEmail,
+		OriginalUsername:           u.OriginalUsername,
 	}
+
+	if u.DeletedAt != nil {
+		user.DeletedAt = types2.NewTime(*u.DeletedAt)
+	}
+
+	return user
 }
 
 type UserQuery struct {
-	Username string
-	Email    string
-	Role     types2.Role
+	Username       string
+	Email          string
+	Role           types2.Role
+	IncludeDeleted bool
 }
 
 func NewUserQuery(u url.Values) UserQuery {
@@ -70,9 +83,10 @@ func NewUserQuery(u url.Values) UserQuery {
 	}
 
 	return UserQuery{
-		Username: u.Get("username"),
-		Email:    u.Get("email"),
-		Role:     types2.Role(role),
+		Username:       u.Get("username"),
+		Email:          u.Get("email"),
+		Role:           types2.Role(role),
+		IncludeDeleted: u.Get("includeDeleted") == "true",
 	}
 }
 
@@ -85,6 +99,11 @@ func (q UserQuery) Scope(db *gorm.DB) *gorm.DB {
 	}
 	if q.Role != 0 {
 		db = db.Where("role = ?", q.Role)
+	}
+
+	// Filter out soft-deleted users by default
+	if !q.IncludeDeleted {
+		db = db.Where("deleted_at IS NULL")
 	}
 
 	return db.Order("id")
