@@ -230,7 +230,7 @@
 				</div>
 			{/if}
 
-			<ChevronDown class="size-5 flex-shrink-0 self-start" />
+			<ChevronDown class="ml-auto size-5 flex-shrink-0 self-start" />
 		</div>
 
 		{#if onClear && !multiple}
