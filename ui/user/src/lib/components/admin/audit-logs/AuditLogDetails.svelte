@@ -125,7 +125,7 @@
 				{@const body = JSON.stringify(auditLog.requestBody, null, 2)}
 
 				<p class="translate-y-2 pt-4 text-base font-semibold">Request Body</p>
-				<div class="relative">
+				<div class="relative text-white">
 					<pre class="default-scrollbar-thin max-h-96 overflow-y-auto p-4">
 						<code class="language-json">{body}</code>
 					</pre>
