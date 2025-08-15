@@ -105,10 +105,18 @@
 		const key = option.id.toString();
 		const isSelected = selectedValues.some((d) => d === key);
 
-		if (isSelected) {
-			selected = selectedValues.filter((d) => d !== key).join(',');
+		if (multiple) {
+			if (isSelected) {
+				selected = selectedValues.filter((d) => d !== key).join(',');
+			} else {
+				selected = [key, ...selectedValues].join(',');
+			}
 		} else {
-			selected = [key, ...selectedValues].join(',');
+			if (isSelected) {
+				selected = '';
+			} else {
+				selected = key;
+			}
 		}
 
 		search = '';

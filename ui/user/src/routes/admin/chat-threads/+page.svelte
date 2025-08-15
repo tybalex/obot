@@ -6,11 +6,20 @@
 	import { Eye, LoaderCircle, MessageCircle, Funnel, X } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
-	import { afterNavigate, goto } from '$app/navigation';
+	import { goto } from '$app/navigation';
 	import { formatTimeAgo } from '$lib/time';
 	import Search from '$lib/components/Search.svelte';
 	import { clickOutside } from '$lib/actions/clickoutside';
 	import { dialogAnimation } from '$lib/actions/dialogAnimation';
+	import { page } from '$app/state';
+
+	type Filters = {
+		username: string;
+		email: string;
+		project: string;
+	};
+
+	const URL_SEARCH_PARAMS: (keyof Filters)[] = ['username', 'email', 'project'];
 
 	let threads = $state<ProjectThread[]>([]);
 	let filteredThreads = $state<ProjectThread[]>([]);
@@ -20,16 +29,9 @@
 	let userMap = $derived(new Map(users.map((u) => [u.id, u])));
 
 	let rightSidebar = $state<HTMLDialogElement>();
-	let filters = $state({
-		username: '',
-		email: '',
-		project: ''
-	});
-	let modifiedFilters = $state({
-		username: '',
-		email: '',
-		project: ''
-	});
+
+	let filters: Filters = $derived(getFiltersFromUrl());
+	let modifiedFilters = $state(getFiltersFromUrl());
 
 	// Get unique options from thread data for Select components
 	let usernameOptions = $derived.by(() => {
@@ -84,21 +86,16 @@
 	);
 
 	function getFiltersFromUrl() {
-		const url = new URL(window.location.href);
-		return {
-			username: url.searchParams.get('username') || '',
-			email: url.searchParams.get('email') || '',
-			project: url.searchParams.get('project') || ''
-		};
+		const searchParams = page.url.searchParams;
+
+		return URL_SEARCH_PARAMS.reduce((acc, val) => {
+			acc[val as keyof Filters] = searchParams.get(val) || '';
+			return acc;
+		}, {} as Filters);
 	}
 
 	onMount(() => {
-		loadThreads();
-	});
-
-	afterNavigate(() => {
-		filters = getFiltersFromUrl();
-		modifiedFilters = { ...filters };
+		loadThreads().then(applyFilters);
 	});
 
 	async function loadThreads() {
@@ -147,7 +144,7 @@
 		}
 	}
 
-	$effect(() => {
+	function applyFilters() {
 		// First filter to only include project threads and exclude system tasks
 		let filtered = threads.filter((thread) => !thread.project && !thread.systemTask);
 
@@ -202,7 +199,7 @@
 		);
 
 		filteredThreads = filtered;
-	});
+	}
 
 	function handleViewThread(thread: ProjectThread) {
 		// Navigate to thread view
@@ -215,17 +212,29 @@
 
 	function handleRightSidebarClose() {
 		rightSidebar?.close();
-		modifiedFilters = filters;
+		modifiedFilters = { ...$state.snapshot(filters) };
 	}
 
-	function handleSetFilters() {
-		filters = modifiedFilters;
+	function handleClearAll() {
+		modifiedFilters = {
+			username: '',
+			email: '',
+			project: ''
+		};
+	}
+
+	async function handleApplyFilters() {
 		rightSidebar?.close();
-		const url = new URL(window.location.href);
-		url.searchParams.set('username', filters.username);
-		url.searchParams.set('email', filters.email);
-		url.searchParams.set('project', filters.project);
-		goto(url.toString(), { noScroll: true });
+
+		const url = page.url;
+
+		for (const key of URL_SEARCH_PARAMS) {
+			url.searchParams.set(key, modifiedFilters[key]);
+		}
+
+		await goto(url.toString(), { noScroll: true });
+
+		applyFilters();
 	}
 </script>
 
@@ -372,7 +381,7 @@
 					class="dark:border-surface3 bg-surface1 border border-transparent shadow-inner dark:bg-black"
 					options={usernameOptions}
 					selected={modifiedFilters.username}
-					onSelect={(option) => (modifiedFilters.username = option.id)}
+					onSelect={(_, value) => (modifiedFilters.username = value?.toString() ?? '')}
 					position="top"
 					onClear={() => (modifiedFilters.username = '')}
 				/>
@@ -387,7 +396,7 @@
 					class="bg-surface1 dark:border-surface3 border border-transparent shadow-inner dark:bg-black"
 					options={emailOptions}
 					selected={modifiedFilters.email}
-					onSelect={(option) => (modifiedFilters.email = option.id)}
+					onSelect={(_, value) => (modifiedFilters.email = value?.toString() ?? '')}
 					position="top"
 					onClear={() => (modifiedFilters.email = '')}
 				/>
@@ -402,7 +411,7 @@
 					class="bg-surface1 dark:border-surface3 border border-transparent shadow-inner dark:bg-black"
 					options={projectOptions}
 					selected={modifiedFilters.project}
-					onSelect={(option) => (modifiedFilters.project = option.id)}
+					onSelect={(_, value) => (modifiedFilters.project = value?.toString() ?? '')}
 					position="top"
 					onClear={() => (modifiedFilters.project = '')}
 				/>
@@ -410,18 +419,11 @@
 			<div class="mt-auto flex flex-col gap-2">
 				<button
 					class="button-secondary text-md w-full rounded-lg px-4 py-2"
-					onclick={() => {
-						modifiedFilters = {
-							username: '',
-							email: '',
-							project: ''
-						};
-						handleSetFilters();
-					}}>Clear All</button
+					onclick={handleClearAll}>Clear All</button
 				>
 				<button
 					class="button-primary text-md w-full rounded-lg px-4 py-2"
-					onclick={handleSetFilters}>Apply Filters</button
+					onclick={handleApplyFilters}>Apply Filters</button
 				>
 			</div>
 		</div>
