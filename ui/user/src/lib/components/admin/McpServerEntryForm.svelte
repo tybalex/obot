@@ -367,7 +367,7 @@
 
 		<div class="mt-4 flex min-h-full flex-col gap-8 pb-8">
 			<!-- temporary filter mcp server by name and catalog entry id-->
-			<AuditLogsPageContent mcpId={null} {mcpCatalogEntryId} mcpServerDisplayName={name}>
+			<AuditLogsPageContent {mcpId} {mcpCatalogEntryId} mcpServerDisplayName={name}>
 				{#snippet emptyContent()}
 					<div class="mt-12 flex w-md flex-col items-center gap-4 self-center text-center">
 						<Users class="size-24 text-gray-200 dark:text-gray-900" />

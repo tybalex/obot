@@ -10,6 +10,7 @@
 		selected?: string | number | null;
 		default?: string | number | null;
 		options: { id: string; label: string }[];
+		readonly disabled: boolean;
 	};
 
 	export type FilterOption = {
@@ -29,6 +30,9 @@
 
 	interface Props {
 		filters?: AuditLogURLFilters;
+		isFilterDisabled?: (key: keyof AuditLogURLFilters) => boolean;
+		// Used to filter server ids when selecting a multi instance server
+		filterOptions?: (option: string, filterId?: keyof AuditLogURLFilters) => boolean;
 		onClose: () => void;
 		getUserDisplayName: (userId: string) => string;
 		getFilterDisplayLabel?: (key: keyof AuditLogURLFilters) => string;
@@ -37,10 +41,12 @@
 
 	let {
 		filters: externFilters,
+		isFilterDisabled,
 		onClose,
 		getUserDisplayName,
 		getFilterDisplayLabel,
-		getDefaultValue
+		getDefaultValue,
+		filterOptions
 	}: Props = $props();
 
 	const url = new URL(page.url);
@@ -69,6 +75,9 @@
 				},
 				get options() {
 					return filtersOptions[filterId];
+				},
+				get disabled() {
+					return isFilterDisabled?.(filterId) ?? false;
 				}
 			};
 			return acc;
@@ -78,25 +87,27 @@
 	const filterInputsAsArray = $derived(Object.values(filterInputs));
 
 	$effect(() => {
-		const processLog = async (filterId: string) => {
+		const processLog = async (filterId: keyof AuditLogURLFilters) => {
 			const response = await AdminService.listAuditLogFilterOptions(filterId);
 
 			if (filterId === 'user_id') {
 				return (
-					response.options
+					response?.options
+						?.filter((d) => filterOptions?.(d, filterId) ?? true)
 						?.map((d) => ({
 							id: d,
 							label: getUserDisplayName(d)
-						}))
-						?.filter(Boolean) ?? []
+						})) ?? []
 				);
 			}
 
 			return (
-				response?.options?.map((d) => ({
-					id: d,
-					label: d
-				})) ?? []
+				response?.options
+					?.filter((d) => filterOptions?.(d, filterId) ?? true)
+					?.map((d) => ({
+						id: d,
+						label: d
+					})) ?? []
 			);
 		};
 

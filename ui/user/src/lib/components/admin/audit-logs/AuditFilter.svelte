@@ -56,7 +56,12 @@
 	);
 </script>
 
-<div class={twMerge('mb-2 flex flex-col gap-1', !options.length && 'opacity-50')}>
+<div
+	class={twMerge(
+		'mb-2 flex flex-col gap-1',
+		(filter.disabled || !options.length) && 'pointer-events-none opacity-50'
+	)}
+>
 	<div class="flex items-center justify-between">
 		<label for={filter.property} class="text-md font-light">
 			By {filter.label}
