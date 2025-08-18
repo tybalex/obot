@@ -8,6 +8,7 @@
 	} from 'lucide-svelte';
 	import {
 		AdminService,
+		type AuditLogURLFilters,
 		type AuditLogUsageStats,
 		type OrgUser,
 		type UsageStatsFilters
@@ -15,9 +16,13 @@
 	import StatBar from '../StatBar.svelte';
 	import { tooltip } from '$lib/actions/tooltip.svelte';
 	import HorizontalBarGraph from '../../graph/HorizontalBarGraph.svelte';
-	import UsageFilters from './UsageFilters.svelte';
 	import { clickOutside } from '$lib/actions/clickoutside';
 	import { dialogAnimation } from '$lib/actions/dialogAnimation';
+	import { SvelteMap } from 'svelte/reactivity';
+	import { afterNavigate } from '$app/navigation';
+	import { page } from '$app/state';
+	import FiltersDrawer from '../filters-drawer/FiltersDrawer.svelte';
+	import { getUserDisplayName } from '../filters-drawer/utils';
 
 	interface Props {
 		mcpId?: string;
@@ -26,7 +31,6 @@
 		users: OrgUser[];
 		filters?: UsageStatsFilters;
 		sort?: { sortBy: string; sortOrder: 'asc' | 'desc' };
-		serverNames?: string[];
 	}
 
 	let {
@@ -34,10 +38,43 @@
 		mcpCatalogEntryId,
 		mcpServerDisplayName,
 		filters,
-		sort = { sortBy: 'created_at', sortOrder: 'desc' },
-		users,
-		serverNames
+		sort = { sortBy: 'created_at', sortOrder: 'desc' }
 	}: Props = $props();
+
+	const supportedFilters: (keyof AuditLogURLFilters)[] = ['user_id', 'mcp_server_display_name'];
+
+	const searchParamsAsArray: [keyof AuditLogURLFilters, string | undefined | null][] = $derived(
+		supportedFilters.map((d) => {
+			const hasSearchParam = page.url.searchParams.has(d);
+
+			const value = page.url.searchParams.get(d);
+			const isValueDefined = isSafe(value);
+
+			return [
+				d,
+				isValueDefined
+					? // Value is defined then decode and use it
+						decodeURIComponent(value)
+					: hasSearchParam
+						? // Value is not defined but has a search param then override with empty string
+							''
+						: // No search params return default value if exist otherwise return undefined
+							null
+			];
+		})
+	);
+
+	// Extract search supported params from the URL and convert them to AuditLogURLFilters
+	// This is used to filter the audit logs based on the URL parameters
+	const searchParamFilters = $derived.by<AuditLogURLFilters>(() => {
+		return searchParamsAsArray.reduce(
+			(acc, [key, value]) => {
+				acc[key!] = value;
+				return acc;
+			},
+			{} as Record<string, unknown>
+		);
+	});
 
 	let listUsageStats = $state<Promise<AuditLogUsageStats>>();
 	let graphPageSize = $state(10);
@@ -47,6 +84,9 @@
 	let graphTotals = $derived<Record<string, number>>({});
 	let showFilters = $state(false);
 	let rightSidebar = $state<HTMLDialogElement>();
+	const userMap = new SvelteMap<string, OrgUser>();
+
+	const users = $derived(userMap.values().toArray());
 
 	type GraphConfig = {
 		id: string;
@@ -308,6 +348,14 @@
 		if (mcpId || mcpCatalogEntryId || mcpServerDisplayName || filters || sort) reload();
 	});
 
+	afterNavigate(() => {
+		AdminService.listUsersIncludeDeleted().then((userData) => {
+			for (const user of userData) {
+				userMap.set(user.id, user);
+			}
+		});
+	});
+
 	async function reload() {
 		listUsageStats = mcpId
 			? AdminService.listServerOrInstanceAuditLogStats(mcpId, {
@@ -348,11 +396,34 @@
 
 	function handleRightSidebarClose() {
 		rightSidebar?.close();
-		showFilters = false;
+		setTimeout(() => {
+			showFilters = false;
+		}, 300);
 	}
 
 	function hasData(graphConfigs: GraphConfig[]) {
 		return graphConfigs.some((cfg) => graphTotals[cfg.id] ?? 0 > 0);
+	}
+
+	function getFilterDisplayLabel(key: keyof AuditLogURLFilters) {
+		if (key === 'mcp_server_display_name') return 'Server';
+		if (key === 'mcp_server_catalog_entry_name') return 'Server Catalog Entry Name';
+		if (key === 'mcp_id') return 'Server ID';
+		if (key === 'start_time') return 'Start Time';
+		if (key === 'end_time') return 'End Time';
+		if (key === 'user_id') return 'User';
+		if (key === 'client_name') return 'Client Name';
+		if (key === 'client_version') return 'Client Version';
+		if (key === 'call_type') return 'Call Type';
+		if (key === 'session_id') return 'Session ID';
+		if (key === 'response_status') return 'Response Status';
+		if (key === 'client_ip') return 'Client IP';
+
+		return key.replace(/_(\w)/g, ' $1');
+	}
+
+	function isSafe<T = unknown>(value: T) {
+		return value !== undefined && value !== null;
 	}
 </script>
 
@@ -360,7 +431,7 @@
 	<div class="flex w-full justify-center">
 		<LoaderCircle class="size-6 animate-spin" />
 	</div>
-{:then stats}
+{:then _}
 	{#if !hasData(filteredGraphConfigs)}
 		<div class="flex flex-col gap-8">
 			<div class="flex items-center justify-between gap-4">
@@ -485,12 +556,11 @@
 		class="dark:border-surface1 dark:bg-surface1 fixed! top-0! right-0! bottom-0! left-auto! z-40 h-screen w-auto max-w-none rounded-none border-0 bg-white shadow-lg outline-none!"
 	>
 		{#if showFilters}
-			<UsageFilters
-				usageStats={stats}
-				{users}
+			<FiltersDrawer
 				onClose={handleRightSidebarClose}
-				{filters}
-				{serverNames}
+				filters={searchParamFilters}
+				{getFilterDisplayLabel}
+				getUserDisplayName={(...args) => getUserDisplayName(userMap, ...args)}
 			/>
 		{/if}
 	</dialog>

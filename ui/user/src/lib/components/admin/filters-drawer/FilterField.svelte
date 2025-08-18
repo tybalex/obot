@@ -1,20 +1,43 @@
+<script module lang="ts">
+	export type FilterOption = {
+		label: string;
+		id: string;
+	};
+
+	export type FilterInput = {
+		label: string;
+		property: FilterKey;
+		selected?: string | number | null;
+		default?: string | number | null;
+		options: FilterOption[];
+		readonly disabled: boolean;
+	};
+</script>
+
 <script lang="ts">
 	import { flip } from 'svelte/animate';
 	import { slide } from 'svelte/transition';
 	import { twMerge } from 'tailwind-merge';
 	import Select, { type SelectProps } from '$lib/components/Select.svelte';
-	import type { FilterInput } from './AuditFilters.svelte';
+	import type { FilterKey } from './FiltersDrawer.svelte';
 
 	interface Props {
 		filter: FilterInput;
+		optionsSort?: (a: FilterOption, b: FilterOption) => number;
 		onSelect: SelectProps<{ id: string; label: string }>['onSelect'];
 		onClearAll?: () => void;
 		onReset?: () => void;
 	}
 
-	let { filter, onSelect, onClearAll, onReset }: Props = $props();
+	let {
+		filter,
+		optionsSort = (a: FilterOption, b: FilterOption) => a.label.localeCompare(b.label),
+		onSelect,
+		onClearAll,
+		onReset
+	}: Props = $props();
 
-	let options = $derived(filter.options ?? []);
+	let options = $derived([...(filter?.options ?? [])].sort(optionsSort));
 
 	const value = $derived(
 		filter.selected === null ? (filter.default ?? '') : (filter.selected ?? '')

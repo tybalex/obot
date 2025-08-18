@@ -3,30 +3,16 @@
 		keyof AuditLogURLFilters,
 		'query' | 'offset' | 'limit' | 'start_time' | 'end_time'
 	>;
-
-	export type FilterInput = {
-		label: string;
-		property: FilterKey;
-		selected?: string | number | null;
-		default?: string | number | null;
-		options: { id: string; label: string }[];
-		readonly disabled: boolean;
-	};
-
-	export type FilterOption = {
-		label: string;
-		id: string;
-	};
 </script>
 
 <script lang="ts">
-	import AuditFilter from './AuditFilter.svelte';
-	import { X } from 'lucide-svelte';
+	import { untrack } from 'svelte';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { X } from 'lucide-svelte';
 	import type { AuditLogURLFilters } from '$lib/services/admin/types';
 	import { AdminService } from '$lib/services';
-	import { untrack } from 'svelte';
+	import AuditFilter, { type FilterInput, type FilterOption } from './FilterField.svelte';
 
 	interface Props {
 		filters?: AuditLogURLFilters;
@@ -34,7 +20,7 @@
 		// Used to filter server ids when selecting a multi instance server
 		filterOptions?: (option: string, filterId?: keyof AuditLogURLFilters) => boolean;
 		onClose: () => void;
-		getUserDisplayName: (userId: string) => string;
+		getUserDisplayName: (userId: string, hasConflict?: () => boolean) => string;
 		getFilterDisplayLabel?: (key: keyof AuditLogURLFilters) => string;
 		getDefaultValue?: <T extends keyof AuditLogURLFilters>(filter: T) => AuditLogURLFilters[T];
 	}
@@ -96,7 +82,7 @@
 						?.filter((d) => filterOptions?.(d, filterId) ?? true)
 						?.map((d) => ({
 							id: d,
-							label: getUserDisplayName(d)
+							label: getUserDisplayName(d, () => response.options.some((id) => id === d))
 						})) ?? []
 				);
 			}

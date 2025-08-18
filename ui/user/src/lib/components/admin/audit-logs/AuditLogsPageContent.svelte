@@ -20,12 +20,13 @@
 	import { clickOutside } from '$lib/actions/clickoutside';
 	import { dialogAnimation } from '$lib/actions/dialogAnimation';
 	import AuditLogDetails from '$lib/components/admin/audit-logs/AuditLogDetails.svelte';
-	import AuditFilters from '$lib/components/admin/audit-logs/AuditFilters.svelte';
 	import AuditLogsTable from './AuditLogs.svelte';
 	import AuditLogsTimeline from './AuditLogsTimeline.svelte';
 	import AuditLogCalendar from './AuditLogCalendar.svelte';
 	import { localState } from '$lib/runes/localState.svelte';
 	import Loading from '$lib/icons/Loading.svelte';
+	import FiltersDrawer from '../filters-drawer/FiltersDrawer.svelte';
+	import { getUserDisplayName } from '../filters-drawer/utils';
 
 	interface Props {
 		mcpId?: string | null;
@@ -291,23 +292,6 @@
 		}
 	}
 
-	function getUserDisplayName(id: string): string {
-		const user = users.get(id);
-		let display =
-			user?.displayName ??
-			user?.originalUsername ??
-			user?.originalEmail ??
-			user?.username ??
-			user?.email ??
-			'Unknown User';
-
-		if (user?.deletedAt) {
-			display += ' (Deleted)';
-		}
-
-		return display;
-	}
-
 	function getFilterDisplayLabel(key: keyof AuditLogURLFilters) {
 		if (key === 'mcp_server_display_name') return 'Server';
 		if (key === 'mcp_server_catalog_entry_name') return 'Server Catalog Entry Name';
@@ -341,7 +325,7 @@
 		}
 
 		if (label === 'user_id') {
-			return getUserDisplayName(value + '');
+			return getUserDisplayName(users, value + '');
 		}
 
 		return value + '';
@@ -490,7 +474,8 @@
 			showFilters = false;
 			rightSidebar?.show();
 		}}
-		{getUserDisplayName}
+		getUserDisplayName={(userId: string, hasConflict?: () => boolean) =>
+			getUserDisplayName(users, userId, hasConflict)}
 		{emptyContent}
 	></AuditLogsTable>
 {:else if !showLoadingSpinner}
@@ -515,7 +500,7 @@
 	{/if}
 
 	{#if showFilters}
-		<AuditFilters
+		<FiltersDrawer
 			onClose={handleRightSidebarClose}
 			filters={{ ...auditLogsSlideoverFilters }}
 			isFilterDisabled={(key) => {
@@ -526,7 +511,7 @@
 
 				return false;
 			}}
-			{getUserDisplayName}
+			getUserDisplayName={(...args) => getUserDisplayName(users, ...args)}
 			{getFilterDisplayLabel}
 			getDefaultValue={(filter) => defaultSearchParams[filter]}
 			filterOptions={(option, filterId) => {
