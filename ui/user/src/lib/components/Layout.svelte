@@ -181,7 +181,7 @@
 											{link.label}
 										</a>
 									{/if}
-									{#if tooltips[link.href as keyof typeof tooltips]}
+									{#if !version.current.authEnabled && tooltips[link.href as keyof typeof tooltips]}
 										<InfoTooltip text={tooltips[link.href as keyof typeof tooltips]} />
 									{/if}
 								</div>
