@@ -4,10 +4,10 @@
 	import { SvelteMap } from 'svelte/reactivity';
 	import { flip } from 'svelte/animate';
 	import { X, ChevronLeft, ChevronRight, Funnel, Captions } from 'lucide-svelte';
-	import { throttle } from 'es-toolkit';
+	import { debounce } from 'es-toolkit';
 	import { set, endOfDay, isBefore, subDays } from 'date-fns';
 	import { page } from '$app/state';
-	import { afterNavigate, goto } from '$app/navigation';
+	import { afterNavigate, goto, replaceState } from '$app/navigation';
 	import { type DateRange } from '$lib/components/Calendar.svelte';
 	import Search from '$lib/components/Search.svelte';
 	import {
@@ -244,7 +244,7 @@
 	});
 
 	// Throttle query update
-	const handleQueryChange = throttle((value: string) => {
+	const handleQueryChange = debounce((value: string) => {
 		query = value;
 
 		if (value) {
@@ -255,7 +255,7 @@
 
 		// Update the query search param without cause app to react
 		// Prevent losing focus from the input
-		history.replaceState(null, '', page.url);
+		replaceState(page.url, { query: value });
 	}, 100);
 
 	function isSafe<T = unknown>(value: T) {
@@ -292,20 +292,21 @@
 		}
 	}
 
-	function getFilterDisplayLabel(key: keyof AuditLogURLFilters) {
-		if (key === 'mcp_server_display_name') return 'Server';
-		if (key === 'mcp_server_catalog_entry_name') return 'Server Catalog Entry Name';
-		if (key === 'mcp_id') return 'Server ID';
-		if (key === 'start_time') return 'Start Time';
-		if (key === 'end_time') return 'End Time';
-		if (key === 'user_id') return 'User';
-		if (key === 'client_name') return 'Client Name';
-		if (key === 'client_version') return 'Client Version';
-		if (key === 'call_type') return 'Call Type';
-		if (key === 'session_id') return 'Session ID';
-		if (key === 'response_status') return 'Response Status';
-		if (key === 'client_ip') return 'Client IP';
-		if (key === 'call_identifier') return 'Identifier';
+	function getFilterDisplayLabel(key: string) {
+		const _key = key as keyof AuditLogURLFilters;
+
+		if (_key === 'mcp_server_display_name') return 'Server';
+		if (_key === 'mcp_server_catalog_entry_name') return 'Server Catalog Entry Name';
+		if (_key === 'mcp_id') return 'Server ID';
+		if (_key === 'start_time') return 'Start Time';
+		if (_key === 'end_time') return 'End Time';
+		if (_key === 'user_id') return 'User';
+		if (_key === 'client_name') return 'Client Name';
+		if (_key === 'client_version') return 'Client Version';
+		if (_key === 'call_type') return 'Call Type';
+		if (_key === 'session_id') return 'Session ID';
+		if (_key === 'response_status') return 'Response Status';
+		if (_key === 'client_ip') return 'Client IP';
 
 		return key.replace(/_(\w)/g, ' $1');
 	}

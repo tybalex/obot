@@ -1,25 +1,22 @@
 <script lang="ts">
 	import Layout from '$lib/components/Layout.svelte';
 	import Table from '$lib/components/Table.svelte';
-	import Select from '$lib/components/Select.svelte';
 	import { AdminService, type ProjectThread, type Project, type OrgUser } from '$lib/services';
-	import { Eye, LoaderCircle, MessageCircle, Funnel, X } from 'lucide-svelte';
+	import { Eye, LoaderCircle, MessageCircle, Funnel } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
-	import { goto } from '$app/navigation';
+	import { goto, replaceState } from '$app/navigation';
 	import { formatTimeAgo } from '$lib/time';
 	import Search from '$lib/components/Search.svelte';
 	import { clickOutside } from '$lib/actions/clickoutside';
 	import { dialogAnimation } from '$lib/actions/dialogAnimation';
 	import { page } from '$app/state';
+	import FiltersDrawer from '$lib/components/admin/filters-drawer/FiltersDrawer.svelte';
+	import { getUserDisplayName } from '$lib/components/admin/filters-drawer/utils';
+	import type { FilterOptionsEndpoint } from '$lib/components/admin/filters-drawer/types';
+	import { debounce } from 'es-toolkit';
 
-	type Filters = {
-		username: string;
-		email: string;
-		project: string;
-	};
-
-	const URL_SEARCH_PARAMS: (keyof Filters)[] = ['username', 'email', 'project'];
+	type SupportedFilter = 'username' | 'email' | 'project' | 'query';
 
 	let threads = $state<ProjectThread[]>([]);
 	let filteredThreads = $state<ProjectThread[]>([]);
@@ -30,50 +27,80 @@
 
 	let rightSidebar = $state<HTMLDialogElement>();
 
-	let filters: Filters = $derived(getFiltersFromUrl());
-	let modifiedFilters = $state(getFiltersFromUrl());
+	let showFilters = $state(false);
 
-	// Get unique options from thread data for Select components
-	let usernameOptions = $derived.by(() => {
+	const supportedFilters: Exclude<SupportedFilter, 'query'>[] = ['username', 'email', 'project'];
+
+	const searchParamsAsArray: [SupportedFilter, string | undefined | null][] = $derived(
+		supportedFilters.map((d) => {
+			const hasSearchParam = page.url.searchParams.has(d);
+
+			const value = page.url.searchParams.get(d);
+			const isValueDefined = isSafe(value);
+
+			return [
+				d,
+				isValueDefined
+					? // Value is defined then decode and use it
+						decodeURIComponent(value)
+					: hasSearchParam
+						? // Value is not defined but has a search param then override with empty string
+							''
+						: // No search params return default value if exist otherwise return undefined
+							null
+			];
+		})
+	);
+
+	// Extract search supported params from the URL and convert them to AuditLogURLFilters
+	// This is used to filter the audit logs based on the URL parameters
+	const searchParamFilters = $derived.by<Record<SupportedFilter, string | undefined | null>>(() => {
+		return searchParamsAsArray.reduce(
+			(acc, [key, value]) => {
+				acc[key!] = value;
+				return acc;
+			},
+			{} as Record<SupportedFilter, string | undefined | null>
+		);
+	});
+
+	let query = $state(page.url.searchParams.get('query') || '');
+
+	// Base filters with time filters and query and pagination
+	const pageFilters = $derived({
+		...searchParamFilters,
+		query
+	});
+
+	const options = $derived.by(() => {
 		const usernames = new Set<string>();
+		const emails = new Set<string>();
+		const projectNames = new Set<string>();
+
 		threads.forEach((thread) => {
 			const user = userMap.get(thread.userID || '');
 			if (user?.displayName) {
 				usernames.add(user.displayName);
 			}
-		});
-		return Array.from(usernames)
-			.sort()
-			.map((username) => ({ id: username, label: username }));
-	});
 
-	let emailOptions = $derived.by(() => {
-		const emails = new Set<string>();
-		threads.forEach((thread) => {
-			const user = userMap.get(thread.userID || '');
 			if (user?.email) {
 				emails.add(user.email);
 			}
-		});
-		return Array.from(emails)
-			.sort()
-			.map((email) => ({ id: email, label: email }));
-	});
 
-	let projectOptions = $derived.by(() => {
-		const projectNames = new Set<string>();
-		threads.forEach((thread) => {
 			const projectName = projectMap.get(thread.projectID || '') || thread.projectID;
 			if (projectName) {
 				projectNames.add(projectName);
 			}
 		});
-		return Array.from(projectNames)
-			.sort()
-			.map((projectName) => ({ id: projectName, label: projectName }));
+
+		return {
+			username: { options: Array.from(usernames).sort() },
+			email: { options: Array.from(emails).sort() },
+			project: { options: Array.from(projectNames).sort() }
+		};
 	});
+
 	let loading = $state(true);
-	let searchTerm = $state('');
 	let tableData = $derived(
 		filteredThreads.map((thread) => {
 			return {
@@ -85,18 +112,40 @@
 		})
 	);
 
-	function getFiltersFromUrl() {
-		const searchParams = page.url.searchParams;
+	const updateQuery = debounce((value: string) => {
+		query = value;
 
-		return URL_SEARCH_PARAMS.reduce((acc, val) => {
-			acc[val as keyof Filters] = searchParams.get(val) || '';
-			return acc;
-		}, {} as Filters);
-	}
+		if (value) {
+			page.url.searchParams.set('query', value);
+		} else {
+			page.url.searchParams.delete('query');
+		}
+
+		// Update the query search param without cause app to react
+		// Prevent losing focus from the input
+		// history.replaceState(null, '', page.url);
+		replaceState(page.url, { query });
+	}, 100);
 
 	onMount(() => {
-		loadThreads().then(applyFilters);
+		loadThreads();
 	});
+
+	$effect(() => {
+		filteredThreads = applyFilters(threads, pageFilters);
+	});
+
+	function getFilterDisplayLabel(key: string) {
+		if (key === 'email') return 'Email';
+		if (key === 'project') return 'Project';
+		if (key === 'username') return 'User Name';
+
+		return key.replace(/_(\w)/g, ' $1');
+	}
+
+	function isSafe<T = unknown>(value: T) {
+		return value !== undefined && value !== null;
+	}
 
 	async function loadThreads() {
 		loading = true;
@@ -127,78 +176,85 @@
 				timeoutPromise
 			]);
 
-			threads = threadsData;
+			// threads = threadsData;
 			projects = projectsData;
 			users = usersData;
 			// Filter to only include project threads (project: true) and exclude system tasks
-			filteredThreads = threads.filter((thread) => thread.project && !thread.systemTask);
+			threads = threadsData;
 		} catch (error) {
 			console.error('Failed to load data:', error);
 			// Set empty arrays as fallback
 			threads = [];
 			projects = [];
 			users = [];
-			filteredThreads = [];
+			// filteredThreads = [];
 		} finally {
 			loading = false;
 		}
 	}
 
-	function applyFilters() {
+	function applyFilters(
+		data: ProjectThread[] = threads,
+		filters: typeof pageFilters = pageFilters
+	) {
 		// First filter to only include project threads and exclude system tasks
-		let filtered = threads.filter((thread) => !thread.project && !thread.systemTask);
+		let filtered = data.filter((thread) => !thread.project && !thread.systemTask);
 
-		// Then apply search filter
-		if (searchTerm.trim() !== '') {
-			const term = searchTerm.toLowerCase();
-			filtered = filtered.filter((thread) => {
+		type FilterFunction = [string | undefined | null, (array: ProjectThread[]) => ProjectThread[]];
+
+		const queryFilterFunction = (array: ProjectThread[]) => {
+			return array.filter((thread) => {
 				const user = userMap.get(thread.userID || '');
 				return (
-					thread.name?.toLowerCase().includes(term) ||
-					thread.id.toLowerCase().includes(term) ||
-					thread.userID?.toLowerCase().includes(term) ||
-					thread.projectID?.toLowerCase().includes(term) ||
-					user?.displayName?.toLowerCase().includes(term) ||
-					user?.email?.toLowerCase().includes(term) ||
+					thread.name?.toLowerCase().includes(query) ||
+					thread.id.toLowerCase().includes(query) ||
+					thread.userID?.toLowerCase().includes(query) ||
+					thread.projectID?.toLowerCase().includes(query) ||
+					user?.displayName?.toLowerCase().includes(query) ||
+					user?.email?.toLowerCase().includes(query) ||
 					projectMap
 						.get(thread.projectID || '')
 						?.toLowerCase()
-						.includes(term)
+						.includes(query)
 				);
 			});
-		}
+		};
 
-		// Apply specific filters
-		if (filters.username.trim() !== '') {
-			const usernameTerm = filters.username.toLowerCase();
-			filtered = filtered.filter((thread) => {
+		const usernameFilterFunction = (array: ProjectThread[]) => {
+			return array.filter((thread) => {
 				const user = userMap.get(thread.userID || '');
-				return user?.displayName?.toLowerCase().includes(usernameTerm);
+				return (filters?.username ?? '')
+					?.toLowerCase()
+					.includes(user?.displayName?.toLowerCase() || '');
 			});
-		}
+		};
 
-		if (filters.email.trim() !== '') {
-			const emailTerm = filters.email.toLowerCase();
-			filtered = filtered.filter((thread) => {
+		const emailFilterFunction = (array: ProjectThread[]) => {
+			return array.filter((thread) => {
 				const user = userMap.get(thread.userID || '');
-				return user?.email?.toLowerCase().includes(emailTerm);
+				return (filters?.email ?? '')?.toLowerCase().includes(user?.email?.toLowerCase() || '');
 			});
-		}
+		};
 
-		if (filters.project.trim() !== '') {
-			const projectTerm = filters.project.toLowerCase();
-			filtered = filtered.filter((thread) => {
-				const projectName = projectMap.get(thread.projectID || '') || thread.projectID;
-				return projectName?.toLowerCase().includes(projectTerm);
+		const projectFilterFunction = (array: ProjectThread[]) => {
+			return array.filter((thread) => {
+				return (filters?.project ?? '')
+					?.toLowerCase()
+					.includes(thread.projectID?.toLowerCase() || '');
 			});
-		}
+		};
+
+		const filterFns: FilterFunction[] = [
+			[pageFilters.query, queryFilterFunction],
+			[filters.username, usernameFilterFunction],
+			[filters.email, emailFilterFunction],
+			[filters.project, projectFilterFunction]
+		].filter((d) => !!d[0]) as FilterFunction[];
 
 		// sort by most recent
-		filtered = filtered.sort(
-			(a, b) => new Date(b.created).getTime() - new Date(a.created).getTime()
-		);
-
-		filteredThreads = filtered;
+		return filterFns
+			.reduce((acc, val) => val[1](acc), filtered)
+			.sort((a, b) => new Date(b.created).getTime() - new Date(a.created).getTime());
 	}
 
 	function handleViewThread(thread: ProjectThread) {
@@ -212,29 +268,22 @@
 
 	function handleRightSidebarClose() {
 		rightSidebar?.close();
-		modifiedFilters = { ...$state.snapshot(filters) };
+		setTimeout(() => {
+			showFilters = false;
+		}, 300);
 	}
 
-	function handleClearAll() {
-		modifiedFilters = {
-			username: '',
-			email: '',
-			project: ''
-		};
-	}
-
-	async function handleApplyFilters() {
-		rightSidebar?.close();
-
-		const url = page.url;
-
-		for (const key of URL_SEARCH_PARAMS) {
-			url.searchParams.set(key, modifiedFilters[key]);
+	async function optionsEndpoint(filterId: SupportedFilter) {
+		switch (filterId) {
+			case 'username':
+				return options.username;
+			case 'email':
+				return options.email;
+			case 'project':
+				return options.project;
+			default:
+				return [];
 		}
-
-		await goto(url.toString(), { noScroll: true });
-
-		applyFilters();
 	}
 </script>
 
@@ -250,13 +299,15 @@
 			<div class="flex flex-col gap-2">
 				<div class="flex items-center gap-4">
 					<Search
+						value={query}
 						class="dark:bg-surface1 dark:border-surface3 border border-transparent bg-white shadow-sm"
-						onChange={(val) => (searchTerm = val)}
+						onChange={updateQuery}
 						placeholder="Search threads..."
 					/>
 					<button
 						class="hover:bg-surface1 dark:bg-surface1 dark:hover:bg-surface3 dark:border-surface3 button flex h-12 w-fit items-center justify-center gap-1 rounded-lg border border-transparent bg-white shadow-sm"
 						onclick={() => {
+							showFilters = true;
 							rightSidebar?.show();
 						}}
 					>
@@ -273,14 +324,14 @@
 					<div class="flex w-full flex-col items-center justify-center py-12 text-center">
 						<MessageCircle class="size-24 text-gray-200 dark:text-gray-700" />
 						<h3 class="mt-4 text-lg font-semibold text-gray-400 dark:text-gray-600">
-							{#if searchTerm}
+							{#if query}
 								No threads found
 							{:else}
 								No threads available
 							{/if}
 						</h3>
 						<p class="mt-2 text-sm font-light text-gray-400 dark:text-gray-600">
-							{#if searchTerm}
+							{#if query}
 								Try adjusting your search terms.
 							{:else}
 								Threads will appear here once they are created.
@@ -356,78 +407,17 @@
 	bind:this={rightSidebar}
 	use:clickOutside={[handleRightSidebarClose, true]}
 	use:dialogAnimation={{ type: 'drawer' }}
-	class="dark:border-surface1 dark:bg-surface1 fixed! top-0! right-0! bottom-0! left-auto! z-40 h-dvh w-auto max-w-none rounded-none border-0 bg-white shadow-lg outline-none!"
+	class="dark:border-surface1 dark:bg-surface1 fixed! top-0! right-0! bottom-0! left-auto! z-40 h-screen w-auto max-w-none rounded-none border-0 bg-white shadow-lg outline-none!"
 >
-	<div class="dark:border-surface3 h-full w-screen border-l border-transparent md:w-sm">
-		<div class="relative w-full text-center">
-			<h4 class="p-4 text-xl font-semibold">Filters</h4>
-			<button
-				class="icon-button absolute top-1/2 right-4 -translate-y-1/2"
-				onclick={handleRightSidebarClose}
-			>
-				<X class="size-5" />
-			</button>
-		</div>
-		<div
-			class="default-scrollbar-thin flex h-[calc(100%-60px)] flex-col gap-4 overflow-y-auto p-4 pt-0"
-		>
-			<div class="mb-2 flex flex-col gap-1">
-				<label for="username-select" class="text-md font-light"> Username </label>
-				<Select
-					classes={{
-						clear: 'hover:bg-surface3 bg-transparent'
-					}}
-					id="username-select"
-					class="dark:border-surface3 bg-surface1 border border-transparent shadow-inner dark:bg-black"
-					options={usernameOptions}
-					selected={modifiedFilters.username}
-					onSelect={(_, value) => (modifiedFilters.username = value?.toString() ?? '')}
-					position="top"
-					onClear={() => (modifiedFilters.username = '')}
-				/>
-			</div>
-			<div class="mb-2 flex flex-col gap-1">
-				<label for="email-select" class="text-sm"> Email </label>
-				<Select
-					classes={{
-						clear: 'hover:bg-surface3 bg-transparent'
-					}}
-					id="email-select"
-					class="bg-surface1 dark:border-surface3 border border-transparent shadow-inner dark:bg-black"
-					options={emailOptions}
-					selected={modifiedFilters.email}
-					onSelect={(_, value) => (modifiedFilters.email = value?.toString() ?? '')}
-					position="top"
-					onClear={() => (modifiedFilters.email = '')}
-				/>
-			</div>
-			<div class="mb-2 flex flex-col gap-1">
-				<label for="project-select" class="text-sm"> Project Name </label>
-				<Select
-					classes={{
-						clear: 'hover:bg-surface3 bg-transparent'
-					}}
-					id="project-select"
-					class="bg-surface1 dark:border-surface3 border border-transparent shadow-inner dark:bg-black"
-					options={projectOptions}
-					selected={modifiedFilters.project}
-					onSelect={(_, value) => (modifiedFilters.project = value?.toString() ?? '')}
-					position="top"
-					onClear={() => (modifiedFilters.project = '')}
-				/>
-			</div>
-			<div class="mt-auto flex flex-col gap-2">
-				<button
-					class="button-secondary text-md w-full rounded-lg px-4 py-2"
-					onclick={handleClearAll}>Clear All</button
-				>
-				<button
-					class="button-primary text-md w-full rounded-lg px-4 py-2"
-					onclick={handleApplyFilters}>Apply Filters</button
-				>
-			</div>
-		</div>
-	</div>
+	{#if showFilters}
+		<FiltersDrawer
+			onClose={handleRightSidebarClose}
+			filters={searchParamFilters}
+			{getFilterDisplayLabel}
+			getUserDisplayName={(...args) => getUserDisplayName(userMap, ...args)}
+			endpoint={optionsEndpoint as unknown as FilterOptionsEndpoint}
+		/>
+	{/if}
 </dialog>
 
 <svelte:head>

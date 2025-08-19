@@ -13,16 +13,18 @@
 	import type { AuditLogURLFilters } from '$lib/services/admin/types';
 	import { AdminService } from '$lib/services';
 	import AuditFilter, { type FilterInput, type FilterOption } from './FilterField.svelte';
+	import type { FilterOptionsEndpoint } from './types';
 
 	interface Props {
-		filters?: AuditLogURLFilters;
+		filters?: Record<string, string | number | undefined | null>;
 		isFilterDisabled?: (key: keyof AuditLogURLFilters) => boolean;
 		// Used to filter server ids when selecting a multi instance server
 		filterOptions?: (option: string, filterId?: keyof AuditLogURLFilters) => boolean;
 		onClose: () => void;
 		getUserDisplayName: (userId: string, hasConflict?: () => boolean) => string;
-		getFilterDisplayLabel?: (key: keyof AuditLogURLFilters) => string;
+		getFilterDisplayLabel?: (key: string) => string;
 		getDefaultValue?: <T extends keyof AuditLogURLFilters>(filter: T) => AuditLogURLFilters[T];
+		endpoint?: FilterOptionsEndpoint;
 	}
 
 	let {
@@ -32,7 +34,8 @@
 		getUserDisplayName,
 		getFilterDisplayLabel,
 		getDefaultValue,
-		filterOptions
+		filterOptions,
+		endpoint = AdminService.listAuditLogFilterOptions
 	}: Props = $props();
 
 	const url = new URL(page.url);
@@ -74,7 +77,7 @@
 
 	$effect(() => {
 		const processLog = async (filterId: keyof AuditLogURLFilters) => {
-			const response = await AdminService.listAuditLogFilterOptions(filterId);
+			const response = await endpoint(filterId);
 
 			if (filterId === 'user_id') {
 				return (

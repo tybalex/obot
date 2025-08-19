@@ -405,7 +405,7 @@
 		return graphConfigs.some((cfg) => graphTotals[cfg.id] ?? 0 > 0);
 	}
 
-	function getFilterDisplayLabel(key: keyof AuditLogURLFilters) {
+	function getFilterDisplayLabel(key: string) {
 		if (key === 'mcp_server_display_name') return 'Server';
 		if (key === 'mcp_server_catalog_entry_name') return 'Server Catalog Entry Name';
 		if (key === 'mcp_id') return 'Server ID';
