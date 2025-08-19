@@ -1,6 +1,6 @@
 <script lang="ts" generics="T extends { id: string | number }">
-	import { ChevronDown, ChevronsLeft, ChevronsRight, ChevronUp } from 'lucide-svelte';
-	import type { Snippet } from 'svelte';
+	import { ChevronsLeft, ChevronsRight, ArrowDown, ArrowUp } from 'lucide-svelte';
+	import { type Snippet } from 'svelte';
 	import { twMerge } from 'tailwind-merge';
 
 	interface Props<T> {
@@ -39,7 +39,9 @@
 	let total = $state(data.length);
 
 	let sortableFields = $derived(new Set(sortable));
-	let sortedBy = $state<{ property: string; order: 'asc' | 'desc' }>();
+	let sortedBy = $state<{ property: string; order: 'asc' | 'desc' } | undefined>(
+		sortable?.[0] ? { property: sortable[0], order: 'asc' } : undefined
+	);
 	let sortedData = $state<T[]>([]);
 
 	$effect(() => {
@@ -94,24 +96,30 @@
 							onclick={() => {
 								if (!sortable?.includes(property)) return;
 								if (!sortedBy || sortedBy.property !== property) {
-									sortedBy = { property, order: 'desc' };
+									sortedBy = { property, order: 'asc' };
 								} else {
 									sortedBy.order = sortedBy.order === 'asc' ? 'desc' : 'asc';
 								}
 							}}
 						>
-							<span class="flex grow items-center justify-between gap-4">
+							<span class="flex grow items-center gap-4">
 								{headerTitle ?? property}
+
 								{#if sortable?.includes(property)}
+									{@const isActive = sortedBy?.property === property}
+									{@const isSortable = sortedBy && isActive}
+
 									<button class="opacity-0 group-hover:opacity-100">
-										{#if sortedBy && sortedBy.property === property}
-											{#if sortedBy.order === 'desc'}
-												<ChevronUp class="size-4" />
+										{#if isSortable}
+											{@const isDesc = sortedBy?.order === 'desc'}
+
+											{#if isDesc}
+												<ArrowUp class="size-4" />
 											{:else}
-												<ChevronDown class="size-4" />
+												<ArrowDown class="size-4" />
 											{/if}
 										{:else}
-											<ChevronDown class="size-4" />
+											<ArrowDown class="size-4 opacity-25" />
 										{/if}
 									</button>
 								{/if}

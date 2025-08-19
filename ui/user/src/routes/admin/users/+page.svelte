@@ -101,6 +101,7 @@
 				<Table
 					data={tableData}
 					fields={['name', 'email', 'role', 'lastActive']}
+					sortable={['name', 'email', 'role', 'lastActive']}
 					headers={[{ title: 'Last Active', property: 'lastActive' }]}
 				>
 					{#snippet onRenderColumn(property, d)}
