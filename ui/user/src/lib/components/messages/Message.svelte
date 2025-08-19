@@ -43,6 +43,7 @@
 			root?: string;
 			prompt?: string;
 		};
+		compactFilePreview?: boolean;
 	}
 
 	let {
@@ -56,7 +57,8 @@
 		disableMessageToEditor,
 		noMemoryTool,
 		clearable = false,
-		classes
+		classes,
+		compactFilePreview
 	}: Props = $props();
 
 	let content = $derived(
@@ -123,7 +125,6 @@
 				fileCursor.set(0, { duration: 0 });
 			}
 			prevFileContent = msg.file.content;
-
 			fileCursor.set(msg.file.content.length, { duration: 300 });
 		}
 	});
@@ -413,8 +414,8 @@
 	{#if msg.file}
 		<button
 			class={twMerge(
-				'my-2 flex w-[750px] cursor-pointer flex-col rounded-3xl border border-gray-300 bg-white text-start text-black shadow-lg dark:bg-black dark:text-gray-50',
-				!msg.file?.filename && 'cursor-wait'
+				'my-2 flex w-[750px] w-md max-w-full cursor-pointer flex-col rounded-3xl border border-gray-300 bg-white text-start text-black shadow-lg md:w-[750px] dark:bg-black dark:text-gray-50',
+				!msg.file?.filename && !msg.aborted && !msg.done && 'cursor-wait'
 			)}
 			disabled={!msg.file?.filename}
 			onclick={fileLoad}
@@ -429,13 +430,17 @@
 					{/if}
 				</div>
 			</div>
-			<div class="relative">
-				<div class="font-body text-md p-5 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-					{#if msg.file?.content}
+			<div class="relative" transition:slide={{ axis: 'y', duration: 50 }}>
+				{#if compactFilePreview}
+					<div class="font-body text-md p-5 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+						{msg.file.content.split('\n').splice(0, 6).join('\n')}
+					</div>
+				{:else}
+					<div class="font-body text-md p-5 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
 						{animatedFileContent}
-					{/if}
-				</div>
-				{#if !msg.done}
+					</div>
+				{/if}
+				{#if !msg.done || compactFilePreview}
 					<div
 						class="absolute bottom-0 z-20 h-24 w-full rounded-3xl bg-linear-to-b from-transparent to-white dark:to-black"
 					></div>

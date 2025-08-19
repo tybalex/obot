@@ -323,6 +323,7 @@
 
 	let projectModelProvider = $derived(project.defaultModelProvider ?? projectDefaultModelProvider);
 	let projectModel = $derived(project.defaultModel ?? projectDefaultModel);
+	let lastMessageWithFile = $derived(messages.messages.findLastIndex((msg) => msg.file));
 
 	$effect(() => {
 		if (!project.defaultModelProvider || !project.defaultModel) {
@@ -554,6 +555,7 @@
 							imagePreviewSrc = imgSrc;
 							imagePreviewDialog?.showModal();
 						}}
+						compactFilePreview={!!layout.fileEditorOpen || i !== lastMessageWithFile}
 					/>
 				{/each}
 			{/if}
@@ -610,15 +612,17 @@
 				>
 					<div class="flex w-full items-center justify-between">
 						<div class="flex items-center">
-							<div in:fade>
-								<Files
-									thread
-									{project}
-									bind:currentThreadID={id}
-									helperText="Files"
-									classes={{ list: 'max-h-[60vh] space-y-4 overflow-y-auto pt-2 pb-6 text-sm' }}
-								/>
-							</div>
+							{#key id}
+								<div in:fade>
+									<Files
+										thread
+										{project}
+										bind:currentThreadID={id}
+										helperText="Files"
+										classes={{ list: 'max-h-[60vh] space-y-4 overflow-y-auto pt-2 pb-6 text-sm' }}
+									/>
+								</div>
+							{/key}
 						</div>
 						{#if projectModelProvider && projectModel}
 							<ThreadModelSelector
