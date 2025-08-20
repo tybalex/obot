@@ -51,6 +51,7 @@
 	let highlightedFields = $state<Set<string>>(new Set());
 	let showConfirmClose = $state(false);
 	let initialFormJson = $state<string>('');
+	let resizing = $state(false);
 
 	export function open() {
 		configDialog?.open();
@@ -137,6 +138,7 @@
 		clearHighlights();
 	}}
 	onClickOutside={() => {
+		if (resizing) return;
 		if ((isNew && hasFieldFilledOut(form)) || (!isNew && hasFormChanged())) {
 			showConfirmClose = true;
 		} else {
@@ -213,6 +215,8 @@
 										'text-input-filled h-32 resize-y whitespace-pre-wrap',
 										highlightRequired && 'border-red-500 bg-red-500/20 ring-red-500 focus:ring-1'
 									)}
+									onmousedown={() => (resizing = true)}
+									onmouseup={() => (resizing = false)}
 								></textarea>
 							{:else}
 								<input
