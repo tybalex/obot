@@ -58,9 +58,11 @@
 	}
 
 	function shouldShowWarning(mcp: (typeof projectMCPs.items)[0]) {
-		if (typeof mcp.authenticated === 'boolean' && !mcp.authenticated) {
-			return true;
+		if (typeof mcp.authenticated === 'boolean') {
+			return !mcp.authenticated;
 		}
+
+		return !!mcp.oauthURL;
 	}
 
 	async function handleRemoveMcp() {
@@ -114,7 +116,7 @@
 										? 'Configuration Required'
 										: 'Authentication Required'}
 								>
-									<TriangleAlert class="size-4" stroke="currentColor" fill="none" color="orange" />
+									<TriangleAlert class="size-3" stroke="currentColor" fill="none" color="orange" />
 								</span>
 							{/if}
 						</p>
