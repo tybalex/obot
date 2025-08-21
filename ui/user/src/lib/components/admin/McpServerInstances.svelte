@@ -229,7 +229,7 @@
 							class="button-text px-1"
 							onclick={(e) => {
 								e.stopPropagation();
-								goto(`/admin/mcp-servers/c/${entry?.id}?view=audit-logs&user_id=${d.userID}`);
+								goto(`/admin/mcp-servers/c/${entry?.id}?view=audit-logs`);
 							}}
 						>
 							View Audit Logs
