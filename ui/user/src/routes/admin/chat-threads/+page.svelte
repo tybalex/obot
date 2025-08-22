@@ -75,10 +75,11 @@
 	const options = $derived.by(() => {
 		const usernames = new Set<string>();
 		const emails = new Set<string>();
-		const projectNames = new Set<string>();
+		const projects = new Set<string>();
 
 		threads.forEach((thread) => {
 			const user = userMap.get(thread.userID || '');
+
 			if (user?.displayName) {
 				usernames.add(user.displayName);
 			}
@@ -87,16 +88,15 @@
 				emails.add(user.email);
 			}
 
-			const projectName = projectMap.get(thread.projectID || '') || thread.projectID;
-			if (projectName) {
-				projectNames.add(projectName);
+			if (thread.projectID) {
+				projects.add(thread.projectID);
 			}
 		});
 
 		return {
 			username: { options: Array.from(usernames).sort() },
 			email: { options: Array.from(emails).sort() },
-			project: { options: Array.from(projectNames).sort() }
+			project: { options: Array.from(projects).sort() }
 		};
 	});
 
