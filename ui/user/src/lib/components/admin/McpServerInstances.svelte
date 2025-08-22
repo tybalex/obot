@@ -33,6 +33,7 @@
 	import { twMerge } from 'tailwind-merge';
 	import Confirm from '../Confirm.svelte';
 	import McpServerK8sInfo from './McpServerK8sInfo.svelte';
+	import { page } from '$app/state';
 
 	interface Props {
 		catalogId?: string;
@@ -229,7 +230,13 @@
 							class="button-text px-1"
 							onclick={(e) => {
 								e.stopPropagation();
-								goto(`/admin/mcp-servers/c/${entry?.id}?view=audit-logs`);
+
+								const url = new URL(`/admin/mcp-servers/c/${entry?.id}`, page.url.origin);
+
+								url.searchParams.set('view', 'audit-logs');
+								url.searchParams.set('mcp_id', d.id);
+
+								goto(url);
 							}}
 						>
 							View Audit Logs
