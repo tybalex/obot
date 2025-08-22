@@ -81,7 +81,7 @@
 		const processLog = async (filterId: keyof AuditLogURLFilters) => {
 			const response = await endpoint(filterId);
 
-			if (filterId === 'user_id') {
+			if (['user_id', 'user_ids'].includes(filterId)) {
 				return (
 					response?.options
 						?.filter((d) => filterOptions?.(d, filterId) ?? true)
@@ -138,7 +138,7 @@
 
 	function handleClearAllFilters() {
 		filterInputsAsArray
-			.filter((filter) => (isFilterClearable ? isFilterClearable(filter.property) : true))
+			.filter((filter) => (isFilterClearable ? isFilterClearable?.(filter.property) : true))
 			.forEach((filterInput) => {
 				filterInput.selected = '';
 			});

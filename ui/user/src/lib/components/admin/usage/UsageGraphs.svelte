@@ -1,11 +1,5 @@
 <script lang="ts">
-	import {
-		ChevronsLeft,
-		ChevronsRight,
-		LoaderCircle,
-		Funnel,
-		ChartBarDecreasing
-	} from 'lucide-svelte';
+	import { ChevronsLeft, ChevronsRight, Funnel, ChartBarDecreasing, X } from 'lucide-svelte';
 	import {
 		AdminService,
 		type AuditLogURLFilters,
@@ -19,31 +13,57 @@
 	import { clickOutside } from '$lib/actions/clickoutside';
 	import { dialogAnimation } from '$lib/actions/dialogAnimation';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { afterNavigate } from '$app/navigation';
-	import { page } from '$app/state';
+	import { afterNavigate, goto } from '$app/navigation';
 	import FiltersDrawer from '../filters-drawer/FiltersDrawer.svelte';
 	import { getUserDisplayName } from '../filters-drawer/utils';
+	import type { SupportedStateFilter } from './types';
+	import { fade, slide } from 'svelte/transition';
+	import { flip } from 'svelte/animate';
+	import { endOfDay, isBefore, set, subDays } from 'date-fns';
+	import { page } from '$app/state';
+	import { DEFAULT_MCP_CATALOG_ID } from '$lib/constants';
+	import type { DateRange } from '$lib/components/Calendar.svelte';
+	import AuditLogCalendar from '../audit-logs/AuditLogCalendar.svelte';
+	import Loading from '$lib/icons/Loading.svelte';
 
-	interface Props {
-		mcpId?: string;
-		mcpCatalogEntryId?: string;
-		mcpServerDisplayName?: string;
-		users: OrgUser[];
-		filters?: UsageStatsFilters;
-		sort?: { sortBy: string; sortOrder: 'asc' | 'desc' };
-	}
+	type Props = {
+		mcpId?: string | null;
+		mcpServerDisplayName?: string | null;
+		mcpServerCatalogEntryName?: string | null;
+	};
 
-	let {
-		mcpId,
-		mcpCatalogEntryId,
-		mcpServerDisplayName,
-		filters,
-		sort = { sortBy: 'created_at', sortOrder: 'desc' }
-	}: Props = $props();
+	type GraphConfig = {
+		id: string;
+		label: string;
+		xKey: string;
+		yKey: string;
+		tooltip: string;
+		formatXLabel?: (x: string | number) => string;
+		formatTooltipText?: (data: Record<string, string | number>) => string;
+		transform: (stats?: AuditLogUsageStats) => Array<Record<string, string | number>>;
+	};
 
-	const supportedFilters: (keyof AuditLogURLFilters)[] = ['user_id', 'mcp_server_display_name'];
+	let { mcpId, mcpServerCatalogEntryName, mcpServerDisplayName }: Props = $props();
 
-	const searchParamsAsArray: [keyof AuditLogURLFilters, string | undefined | null][] = $derived(
+	const supportedFilters: SupportedStateFilter[] = [
+		'user_ids',
+		'mcp_id',
+		'mcp_server_display_names',
+		'mcp_server_catalog_entry_names',
+		'start_time',
+		'end_time'
+	];
+
+	const proxy = new Map<SupportedStateFilter, keyof AuditLogURLFilters>([
+		['user_ids', 'user_id'],
+		['mcp_id', 'mcp_id'],
+		['mcp_server_display_names', 'mcp_server_display_name'],
+		['mcp_server_catalog_entry_names', 'mcp_server_catalog_entry_name'],
+		['end_time', 'end_time'],
+		['start_time', 'start_time']
+	]);
+
+	const searchParamsAsArray: [keyof UsageStatsFilters, string | undefined | null][] = $derived(
 		supportedFilters.map((d) => {
 			const hasSearchParam = page.url.searchParams.has(d);
 
@@ -64,54 +84,132 @@
 		})
 	);
 
-	// Extract search supported params from the URL and convert them to AuditLogURLFilters
+	// Extract search supported params from the URL and convert them to UsageStatsFilters
 	// This is used to filter the audit logs based on the URL parameters
-	const searchParamFilters = $derived.by<AuditLogURLFilters>(() => {
+	const searchParamFilters = $derived.by<UsageStatsFilters>(() => {
 		return searchParamsAsArray.reduce(
 			(acc, [key, value]) => {
 				acc[key!] = value;
 				return acc;
 			},
-			{} as Record<string, unknown>
+			{} as Record<string, string | number | undefined | null>
 		);
 	});
 
+	const propsFilters = $derived.by(() => {
+		const entries: [key: string, value: string | null | undefined][] = [
+			['mcp_id', mcpId],
+			['mcp_server_display_names', mcpServerDisplayName],
+			['mcp_server_catalog_entry_names', mcpServerCatalogEntryName]
+		];
+
+		return (
+			entries
+				// Filter out undefined values, null values should be kept as they mean the value is specified
+				.filter(([, value]) => value !== undefined)
+				.reduce(
+					(acc, [key, value]) => ((acc[key] = value!), acc),
+					{} as Record<string, string | null>
+				)
+		);
+	});
+
+	const propsFiltersKeys = $derived(new Set(Object.keys(propsFilters)));
+
+	// Keep only filters with defined values
+	const pillsSearchParamFilters = $derived.by(() => {
+		const filters = searchParamsAsArray
+			// exclude start_time and end_time from pills filters
+			.filter(([key, value]) => !(key === 'start_time' || key === 'end_time') && isSafe(value))
+			.reduce(
+				(acc, [key, value]) => {
+					acc[key!] = value as string | number;
+					return acc;
+				},
+				{} as Record<string, string | number>
+			);
+
+		// Sort pills; those from props goes first
+		return Object.entries({
+			...filters,
+			...propsFilters
+		})
+			.sort((a, b) => {
+				if (propsFiltersKeys.has(a[0])) {
+					return -1;
+				}
+
+				return a[0].localeCompare(b[0]);
+			})
+			.reduce(
+				(acc, val) => {
+					acc[val[0]] = val[1] as string | number;
+					return acc;
+				},
+				{} as Record<string, string | number>
+			);
+	});
+
+	// Filters to be used in the audit logs slideover
+	// Exclude filters that are set via props and not undefined
+	const auditLogsSlideoverFilters = $derived.by(() => {
+		const clone = { ...searchParamFilters };
+
+		for (const key of ['start_time', 'end_time']) {
+			delete clone[key as SupportedStateFilter];
+		}
+
+		return { ...clone, ...propsFilters };
+	});
+
+	let timeRangeFilters = $derived.by(() => {
+		const { start_time, end_time } = searchParamFilters;
+
+		const endTime = set(new Date(end_time || new Date()), { milliseconds: 0, seconds: 0 });
+
+		const getStartTime = (date: typeof start_time) => {
+			const parsedStartTime = set(new Date(date ? date : Date.now()), {
+				milliseconds: 0,
+				seconds: 0
+			});
+
+			if (date) {
+				// Ensure start time is not after end time
+				if (isBefore(parsedStartTime, endTime)) {
+					return parsedStartTime;
+				}
+			}
+
+			// Return 7 days before end time
+			return subDays(endTime, 7);
+		};
+
+		const startTime = getStartTime(start_time);
+
+		return {
+			startTime,
+			endTime
+		};
+	});
+
+	let filters = $derived({
+		...searchParamFilters,
+		...propsFilters,
+		start_time: timeRangeFilters.startTime.toISOString(),
+		end_time: timeRangeFilters.endTime.toISOString()
+	});
+
+	let showLoadingSpinner = $state(true);
 	let listUsageStats = $state<Promise<AuditLogUsageStats>>();
 	let graphPageSize = $state(10);
 	let graphPages = $state<Record<string, number>>({});
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let graphData = $derived<Record<string, Array<any>>>({});
+	let graphData = $derived<Record<string, Record<string, string | number>[]>>({});
 	let graphTotals = $derived<Record<string, number>>({});
 	let showFilters = $state(false);
 	let rightSidebar = $state<HTMLDialogElement>();
-	const userMap = new SvelteMap<string, OrgUser>();
 
-	const users = $derived(userMap.values().toArray());
-
-	type GraphConfig = {
-		id: string;
-		label: string;
-		xKey: string;
-		yKey: string;
-		tooltip: string;
-		formatXLabel?: (x: string | number) => string;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		formatTooltipText?: (data: Record<string, any>) => string;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		transform: (stats?: AuditLogUsageStats) => Array<Record<string, any>>;
-	};
-
-	function userDisplayName(user?: OrgUser): string {
-		if (!user) {
-			return 'Unknown';
-		}
-
-		let display = user.originalEmail || user.email || user.id || 'Unknown';
-		if (user.deletedAt) {
-			display += ' (Deleted)';
-		}
-		return display;
-	}
+	const usersMap = new SvelteMap<string, OrgUser>([]);
+	const usersAsArray = $derived(usersMap.values().toArray());
 
 	const graphConfigs: GraphConfig[] = [
 		{
@@ -171,7 +269,7 @@
 			tooltip: 'ms',
 			formatXLabel: (d) => String(d).split('.').slice(1).join('.'),
 			formatTooltipText: (data) =>
-				`${data.averageResponseTimeMs.toFixed(2)}ms avg • ${data.serverDisplayName}`,
+				`${(data.averageResponseTimeMs as number).toFixed(2)}ms avg • ${data.serverDisplayName}`,
 			transform: (stats) => {
 				const responseTimes = new Map<
 					string,
@@ -214,7 +312,7 @@
 				return parts[parts.length - 1];
 			},
 			formatTooltipText: (data) =>
-				`${data.processingTimeMs.toFixed(2)}ms • ${data.serverDisplayName}`,
+				`${(data.processingTimeMs as number).toFixed(2)}ms • ${data.serverDisplayName}`,
 			transform: (stats) => {
 				const rows = [];
 				for (const s of stats?.items ?? []) {
@@ -307,11 +405,11 @@
 			yKey: 'callCount',
 			tooltip: 'calls',
 			formatTooltipText: (data) => {
-				const user = users.find((u) => u.id === data.userId);
+				const user = usersAsArray.find((u) => u.id === data.userId);
 				return `${data.callCount} calls • ${userDisplayName(user)}`;
 			},
 			formatXLabel: (userId) => {
-				const user = users.find((u) => u.id === userId);
+				const user = usersAsArray.find((u) => u.id === userId);
 				return userDisplayName(user);
 			},
 			transform: (stats) => {
@@ -333,7 +431,7 @@
 
 	// Filter out server-related graphs when viewing a specific server
 	const filteredGraphConfigs = $derived.by(() => {
-		const isSpecificServer = mcpId || mcpCatalogEntryId;
+		const isSpecificServer = mcpId;
 		if (isSpecificServer) {
 			// Remove server comparison graphs when viewing a specific server
 			return graphConfigs.filter(
@@ -344,40 +442,78 @@
 		return graphConfigs;
 	});
 
-	$effect(() => {
-		if (mcpId || mcpCatalogEntryId || mcpServerDisplayName || filters || sort) reload();
-	});
-
 	afterNavigate(() => {
 		AdminService.listUsersIncludeDeleted().then((userData) => {
 			for (const user of userData) {
-				userMap.set(user.id, user);
+				usersMap.set(user.id, user);
 			}
+		});
+	});
+
+	$effect(() => {
+		if (mcpId || filters) reload();
+	});
+
+	$effect(() => {
+		if (!listUsageStats) return;
+		showLoadingSpinner = true;
+
+		updateGraphs().then(() => {
+			showLoadingSpinner = false;
 		});
 	});
 
 	async function reload() {
 		listUsageStats = mcpId
 			? AdminService.listServerOrInstanceAuditLogStats(mcpId, {
-					startTime: filters?.startTime ?? '',
-					endTime: filters?.endTime ?? ''
+					start_time: filters.start_time,
+					end_time: filters.end_time
 				})
 			: AdminService.listAuditLogUsageStats({
-					...filters,
-					...(mcpCatalogEntryId && { mcpServerCatalogEntryName: mcpCatalogEntryId }),
-					...(mcpServerDisplayName && { mcpServerDisplayNames: [mcpServerDisplayName] })
+					...filters
 				});
 	}
 
-	$effect(() => {
-		if (!listUsageStats) return;
-		updateGraphs();
+	function userDisplayName(user?: OrgUser): string {
+		if (!user) {
+			return 'Unknown';
+		}
+
+		let display = user.originalEmail || user.email || user.id || 'Unknown';
+		if (user.deletedAt) {
+			display += ' (Deleted)';
+		}
+		return display;
+	}
+
+	afterNavigate(() => {
+		AdminService.listUsersIncludeDeleted().then((userData) => {
+			for (const user of userData) {
+				usersMap.set(user.id, user);
+			}
+		});
+
+		Promise.all([
+			AdminService.listMCPCatalogEntries(DEFAULT_MCP_CATALOG_ID),
+			AdminService.listMCPCatalogServers(DEFAULT_MCP_CATALOG_ID)
+		]).then(([entries, servers]) => {
+			const names = new Set<string>();
+			for (const entry of entries ?? []) {
+				if (!entry.deleted && entry.manifest?.name) {
+					names.add(entry.manifest.name);
+				}
+			}
+			for (const server of servers ?? []) {
+				if (!server.deleted && server.manifest?.name) {
+					names.add(server.manifest.name);
+				}
+			}
+		});
 	});
 
 	async function updateGraphs() {
 		const stats = await listUsageStats;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const data: Record<string, any[]> = {};
+		const data: Record<string, Record<string, string | number>[]> = {};
 		const totals: Record<string, number> = {};
 
 		for (const cfg of filteredGraphConfigs) {
@@ -406,20 +542,63 @@
 	}
 
 	function getFilterDisplayLabel(key: string) {
-		if (key === 'mcp_server_display_name') return 'Server';
-		if (key === 'mcp_server_catalog_entry_name') return 'Server Catalog Entry Name';
-		if (key === 'mcp_id') return 'Server ID';
-		if (key === 'start_time') return 'Start Time';
-		if (key === 'end_time') return 'End Time';
-		if (key === 'user_id') return 'User';
-		if (key === 'client_name') return 'Client Name';
-		if (key === 'client_version') return 'Client Version';
-		if (key === 'call_type') return 'Call Type';
-		if (key === 'session_id') return 'Session ID';
-		if (key === 'response_status') return 'Response Status';
-		if (key === 'client_ip') return 'Client IP';
+		const _key = key as SupportedStateFilter;
+
+		if (_key === 'mcp_server_display_names') return 'Server';
+		if (_key === 'mcp_server_catalog_entry_names') return 'Server Catalog Entry Name';
+		if (_key === 'mcp_id') return 'Server ID';
+		if (_key === 'start_time') return 'Start Time';
+		if (_key === 'end_time') return 'End Time';
+		if (_key === 'user_ids') return 'User';
 
 		return key.replace(/_(\w)/g, ' $1');
+	}
+
+	function getFilterValue(label: SupportedStateFilter, value: string | number) {
+		if (label === 'start_time' || label === 'end_time') {
+			return new Date(value).toLocaleString(undefined, {
+				year: 'numeric',
+				month: 'short',
+				day: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+				second: '2-digit',
+				hour12: true,
+				timeZoneName: 'short'
+			});
+		}
+
+		if (label === 'user_ids') {
+			const hasConflict = (display?: string) => {
+				const isConflicted = usersAsArray.some(
+					(user) =>
+						user.id !== value && display && getUserDisplayName(usersMap, user.id) === display
+				);
+
+				return isConflicted;
+			};
+
+			return getUserDisplayName(usersMap, value + '', hasConflict);
+		}
+
+		return value + '';
+	}
+
+	function handleDateChange({ start, end }: DateRange) {
+		const url = page.url;
+
+		if (start) {
+			url.searchParams.set('start_time', start.toISOString());
+
+			if (end) {
+				url.searchParams.set('end_time', end.toISOString());
+			} else {
+				const end = endOfDay(start);
+				url.searchParams.set('end_time', end.toISOString());
+			}
+		}
+
+		goto(url.toString(), { noScroll: true });
 	}
 
 	function isSafe<T = unknown>(value: T) {
@@ -427,78 +606,78 @@
 	}
 </script>
 
-{#await listUsageStats}
-	<div class="flex w-full justify-center">
-		<LoaderCircle class="size-6 animate-spin" />
-	</div>
-{:then _}
-	{#if !hasData(filteredGraphConfigs)}
-		<div class="flex flex-col gap-8">
-			<div class="flex items-center justify-between gap-4">
-				<div class="flex-1">
-					<StatBar startTime={filters?.startTime ?? ''} endTime={filters?.endTime ?? ''} />
-				</div>
-				<div class="flex items-center gap-2">
-					{#if !(mcpId || mcpCatalogEntryId || mcpServerDisplayName)}
-						<button
-							class="hover:bg-surface1 dark:bg-surface1 dark:hover:bg-surface3 dark:border-surface3 button flex h-12 w-fit items-center justify-center gap-1 rounded-lg border border-transparent bg-white shadow-sm"
-							onclick={() => {
-								showFilters = true;
-								rightSidebar?.show();
-							}}
-						>
-							<Funnel class="size-4" />
-							Filters
-						</button>
-					{/if}
-				</div>
-			</div>
-
-			<div class="mt-12 flex w-md flex-col items-center gap-4 self-center text-center">
-				<ChartBarDecreasing class="size-24 text-gray-200 dark:text-gray-900" />
-				<h4 class="text-lg font-semibold text-gray-400 dark:text-gray-600">No usage stats</h4>
-				<p class="w-sm text-sm font-light text-gray-400 dark:text-gray-600">
-					Currently, there are no usage stats for the range or selected filters. Try modifying your
-					search criteria or try again later.
-				</p>
-			</div>
+{#if showLoadingSpinner}
+	<div
+		class="absolute inset-0 z-10 flex items-center justify-center"
+		in:fade={{ duration: 100 }}
+		out:fade|global={{ duration: 300, delay: 500 }}
+	>
+		<div
+			class="bg-surface3/50 border-surface3 flex flex-col items-center gap-4 rounded-2xl border px-16 py-8 text-blue-500 shadow-md backdrop-blur-[1px] dark:text-blue-500"
+		>
+			<Loading class="size-32 stroke-1" />
+			<div class="text-2xl font-semibold">Loading stats...</div>
 		</div>
-	{:else}
-		<div class="flex flex-col gap-8">
-			<!-- Summary with filter button -->
-			<div class="flex items-center justify-between gap-4">
-				<div class="flex-1">
-					<StatBar startTime={filters?.startTime ?? ''} endTime={filters?.endTime ?? ''} />
-				</div>
-				<div class="flex items-center gap-2">
-					{#if !(mcpId || mcpCatalogEntryId || mcpServerDisplayName)}
-						<button
-							class="hover:bg-surface1 dark:bg-surface1 dark:hover:bg-surface3 dark:border-surface3 button flex h-12 w-fit items-center justify-center gap-1 rounded-lg border border-transparent bg-white shadow-sm"
-							onclick={() => {
-								showFilters = true;
-								rightSidebar?.show();
-							}}
-						>
-							<Funnel class="size-4" />
-							Filters
-						</button>
-					{/if}
-				</div>
-			</div>
+	</div>
+{/if}
 
-			<div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
-				{#each filteredGraphConfigs as cfg (cfg.id)}
-					{@const full = graphData[cfg.id] ?? []}
-					{@const total = graphTotals[cfg.id] ?? 0}
-					{@const page = graphPages[cfg.id] ?? 0}
-					{@const maxPage = Math.max(0, Math.ceil(total / graphPageSize) - 1)}
-					{@const paginated = full.slice(page * graphPageSize, (page + 1) * graphPageSize)}
+<div class="flex flex-col gap-8">
+	<div class="flex flex-col">
+		<div class="flex w-full justify-end gap-4">
+			<AuditLogCalendar
+				start={timeRangeFilters.startTime}
+				end={timeRangeFilters.endTime}
+				onChange={handleDateChange}
+			/>
 
-					<div
-						class="dark:bg-surface1 dark:border-surface3 rounded-md border border-transparent bg-white p-6 shadow-sm"
-					>
-						<h3 class="mb-4 text-lg font-semibold">{cfg.label}</h3>
+			{#if !mcpId}
+				<button
+					class="hover:bg-surface1 dark:bg-surface1 dark:hover:bg-surface3 dark:border-surface3 button flex h-12 w-fit items-center justify-center gap-1 rounded-lg border border-transparent bg-white shadow-sm"
+					onclick={() => {
+						showFilters = true;
+						rightSidebar?.show();
+					}}
+				>
+					<Funnel class="size-4" />
+					Filters
+				</button>
+			{/if}
+		</div>
+	</div>
 
+	{@render filtersPill()}
+
+	<!-- Summary with filter button -->
+	<div class="flex items-center justify-between gap-4">
+		<div class="flex-1">
+			<StatBar startTime={filters?.start_time ?? ''} endTime={filters?.end_time ?? ''} />
+		</div>
+	</div>
+
+	{#if !showLoadingSpinner && !hasData(filteredGraphConfigs)}
+		<div class="mt-12 flex w-md flex-col items-center gap-4 self-center text-center">
+			<ChartBarDecreasing class="size-24 text-gray-200 dark:text-gray-900" />
+			<h4 class="text-lg font-semibold text-gray-400 dark:text-gray-600">No usage stats</h4>
+			<p class="w-sm text-sm font-light text-gray-400 dark:text-gray-600">
+				Currently, there are no usage stats for the range or selected filters. Try modifying your
+				search criteria or try again later.
+			</p>
+		</div>
+	{:else if !showLoadingSpinner}
+		<div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+			{#each filteredGraphConfigs as cfg (cfg.id)}
+				{@const full = graphData[cfg.id] ?? []}
+				{@const total = graphTotals[cfg.id] ?? 0}
+				{@const page = graphPages[cfg.id] ?? 0}
+				{@const maxPage = Math.max(0, Math.ceil(total / graphPageSize) - 1)}
+				{@const paginated = full.slice(page * graphPageSize, (page + 1) * graphPageSize)}
+
+				<div
+					class="dark:bg-surface1 dark:border-surface3 rounded-md border border-transparent bg-white p-6 shadow-sm"
+				>
+					<h3 class="mb-4 text-lg font-semibold">{cfg.label}</h3>
+
+					<div class="h-[300px] min-h-[300h]">
 						{#if paginated.length > 0}
 							<HorizontalBarGraph
 								data={paginated}
@@ -509,59 +688,125 @@
 									((d) => `${d[cfg.yKey]} ${cfg.tooltip}`)}
 								formatXLabel={cfg.formatXLabel}
 							/>
-						{:else}
+						{:else if !showLoadingSpinner}
 							<div
 								class="flex h-[300px] items-center justify-center text-sm font-light text-gray-400 dark:text-gray-600"
 							>
 								No data available
 							</div>
 						{/if}
-
-						{#if maxPage > 0}
-							<div
-								class="mt-4 flex items-center justify-center gap-4 border-t border-gray-200 p-4 dark:border-gray-700"
-							>
-								<button
-									class="icon-button disabled:opacity-50"
-									onclick={() => setGraphPage(cfg.id, Math.max(0, page - 1))}
-									disabled={page === 0}
-									use:tooltip={'Previous Page'}
-								>
-									<ChevronsLeft class="size-5" />
-								</button>
-								<span class="text-sm">
-									Page {page + 1} of {maxPage + 1}
-									(showing {Math.min(graphPageSize, total - page * graphPageSize)} of {total} items)
-								</span>
-								<button
-									class="icon-button disabled:opacity-50"
-									onclick={() => setGraphPage(cfg.id, Math.min(maxPage, page + 1))}
-									disabled={page >= maxPage}
-									use:tooltip={'Next Page'}
-								>
-									<ChevronsRight class="size-5" />
-								</button>
-							</div>
-						{/if}
 					</div>
-				{/each}
-			</div>
+
+					{#if maxPage > 0}
+						<div
+							class="mt-4 flex items-center justify-center gap-4 border-t border-gray-200 p-4 dark:border-gray-700"
+						>
+							<button
+								class="icon-button disabled:opacity-50"
+								onclick={() => setGraphPage(cfg.id, Math.max(0, page - 1))}
+								disabled={page === 0}
+								use:tooltip={'Previous Page'}
+							>
+								<ChevronsLeft class="size-5" />
+							</button>
+							<span class="text-sm">
+								Page {page + 1} of {maxPage + 1}
+								(showing {Math.min(graphPageSize, total - page * graphPageSize)} of {total} items)
+							</span>
+							<button
+								class="icon-button disabled:opacity-50"
+								onclick={() => setGraphPage(cfg.id, Math.min(maxPage, page + 1))}
+								disabled={page >= maxPage}
+								use:tooltip={'Next Page'}
+							>
+								<ChevronsRight class="size-5" />
+							</button>
+						</div>
+					{/if}
+				</div>
+			{/each}
 		</div>
 	{/if}
+</div>
 
-	<dialog
-		bind:this={rightSidebar}
-		use:clickOutside={[handleRightSidebarClose, true]}
-		use:dialogAnimation={{ type: 'drawer' }}
-		class="dark:border-surface1 dark:bg-surface1 fixed! top-0! right-0! bottom-0! left-auto! z-40 h-screen w-auto max-w-none rounded-none border-0 bg-white shadow-lg outline-none!"
-	>
-		{#if showFilters}
-			<FiltersDrawer
-				onClose={handleRightSidebarClose}
-				filters={searchParamFilters}
-				{getFilterDisplayLabel}
-				getUserDisplayName={(...args) => getUserDisplayName(userMap, ...args)}
-			/>
-		{/if}
-	</dialog>
-{/await}
+<dialog
+	bind:this={rightSidebar}
+	use:clickOutside={[handleRightSidebarClose, true]}
+	use:dialogAnimation={{ type: 'drawer' }}
+	class="dark:border-surface1 dark:bg-surface1 fixed! top-0! right-0! bottom-0! left-auto! z-40 h-screen w-auto max-w-none rounded-none border-0 bg-white shadow-lg outline-none!"
+>
+	{#if showFilters}
+		<FiltersDrawer
+			onClose={handleRightSidebarClose}
+			filters={auditLogsSlideoverFilters}
+			{getFilterDisplayLabel}
+			getUserDisplayName={(...args) => getUserDisplayName(usersMap, ...args)}
+			isFilterDisabled={(filterId) => propsFiltersKeys.has(filterId)}
+			isFilterClearable={(filterId) => !propsFiltersKeys.has(filterId)}
+			endpoint={async (filterId: string, ...args) => {
+				const proxyFilterId = proxy.get(filterId as SupportedStateFilter) ?? filterId;
+				return AdminService.listAuditLogFilterOptions(proxyFilterId, ...args);
+			}}
+		/>
+	{/if}
+</dialog>
+
+{#snippet filtersPill()}
+	{@const entries = Object.entries(pillsSearchParamFilters)}
+	{@const filterEntries = entries.filter(([, value]) => !!value) as [
+		SupportedStateFilter,
+		string | number | null
+	][]}
+	{@const hasFilters = !!filterEntries.length}
+
+	{#if hasFilters}
+		<div
+			class="flex flex-wrap items-center gap-2"
+			in:slide={{ duration: 100 }}
+			out:slide={{ duration: 50 }}
+		>
+			{#each filterEntries as [filterKey, filterValues] (filterKey)}
+				{@const displayLabel = getFilterDisplayLabel(filterKey)}
+				{@const values = filterValues?.toString().split(',').filter(Boolean) ?? []}
+				{@const isClearable = Object.keys(propsFilters).every((d) => d !== filterKey)}
+
+				<div
+					class="flex items-center gap-1 rounded-lg border border-blue-500/50 bg-blue-500/10 px-4 py-2 text-blue-600 dark:text-blue-300"
+					animate:flip={{ duration: 100 }}
+				>
+					<div class="text-xs font-semibold">
+						<span>{displayLabel}</span>
+						<span>:</span>
+						{#each values as value (value)}
+							{@const isMultiple = values.length > 1}
+
+							{#if isMultiple}
+								<span class="font-light">
+									<span>{getFilterValue(filterKey, value)}</span>
+								</span>
+
+								<span class="mx-1 font-bold last:hidden">OR</span>
+							{:else}
+								<span class="font-light">{getFilterValue(filterKey, value)}</span>
+							{/if}
+						{/each}
+					</div>
+
+					{#if isClearable}
+						<button
+							class="rounded-full p-1 transition-colors duration-200 hover:bg-blue-500/25"
+							onclick={() => {
+								const url = page.url;
+								url.searchParams.set(filterKey, '');
+
+								goto(url, { noScroll: true });
+							}}
+						>
+							<X class="size-3" />
+						</button>
+					{/if}
+				</div>
+			{/each}
+		</div>
+	{/if}
+{/snippet}

@@ -582,15 +582,16 @@ export async function listServerOrInstanceAuditLogs(
 }
 
 type AuditLogUsageFilters = {
-	mcpServerCatalogEntryName?: string;
-	mcpServerDisplayNames?: string[];
-	userIds?: string[];
-	startTime?: string | null;
-	endTime?: string | null;
+	mcp_id?: string;
+	mcp_server_catalog_entry_names?: string;
+	mcp_server_display_names?: string;
+	user_ids?: string;
+	start_time?: string | null;
+	end_time?: string | null;
 };
 
 export async function listAuditLogUsageStats(
-	filters?: AuditLogUsageFilters,
+	filters?: Partial<AuditLogUsageFilters>,
 	opts?: { fetch?: Fetcher }
 ) {
 	const queryString = buildQueryString(filters ?? {});
@@ -609,8 +610,8 @@ export async function listAuditLogFilterOptions(filterId: string, opts?: { fetch
 }
 
 type ServerOrInstanceAuditLogStatsFilters = {
-	startTime?: string;
-	endTime?: string;
+	start_time?: string;
+	end_time?: string;
 };
 export async function listServerOrInstanceAuditLogStats(
 	mcpId: string, // can either by server instance or mcp server id ex. ms- or msi-

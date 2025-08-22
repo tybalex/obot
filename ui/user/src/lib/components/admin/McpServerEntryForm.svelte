@@ -345,17 +345,21 @@
 
 {#snippet usageView()}
 	{#if entry}
-		{@const name = 'manifest' in entry ? entry.manifest.name : undefined}
-		{@const mcpCatalogEntryId = 'isCatalogEntry' in entry ? entry.id : undefined}
-		<UsageGraphs
-			mcpServerDisplayName={name}
-			{mcpCatalogEntryId}
-			{users}
-			filters={{
-				startTime: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-				endTime: new Date().toISOString()
-			}}
-		/>
+		{@const isMultiUserServer = !!page.url.pathname.match(/\/mcp-servers\/s.*$/)?.[0]}
+		{@const isSingleUserServer =
+			!isMultiUserServer && ['npx', 'uvx', 'containerized'].includes(entry.manifest.runtime)}
+		{@const isRemoteServer = !isMultiUserServer && entry.manifest.runtime === 'remote'}
+
+		{@const mcpServerDisplayName = entry.manifest?.name ?? null}
+		{@const entryId = entry.id ?? null}
+
+		<div class="mt-4 flex min-h-full flex-col gap-8 pb-8">
+			<UsageGraphs
+				mcpId={isMultiUserServer ? entryId : null}
+				mcpServerCatalogEntryName={isSingleUserServer || isRemoteServer ? entryId : null}
+				{mcpServerDisplayName}
+			/>
+		</div>
 	{/if}
 {/snippet}
 

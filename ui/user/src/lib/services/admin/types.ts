@@ -379,10 +379,12 @@ export type AuditLogURLFilters = {
 };
 
 export type UsageStatsFilters = {
-	userIds?: string[];
-	mcpServerDisplayNames?: string[];
-	startTime?: string | null;
-	endTime?: string | null;
+	mcp_id?: string;
+	user_ids?: string;
+	mcp_server_display_names?: string;
+	mcp_server_catalog_entry_names?: string;
+	start_time?: string | null;
+	end_time?: string | null;
 };
 
 export interface K8sServerEvent {

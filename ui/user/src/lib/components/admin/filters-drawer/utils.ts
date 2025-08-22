@@ -12,7 +12,7 @@ import type { OrgUser } from '$lib/services';
 export function getUserDisplayName(
 	users: Map<string, OrgUser>,
 	id: string,
-	hasConflict?: () => boolean
+	hasConflict?: (display?: string) => boolean
 ): string {
 	const user = users.get(id);
 
@@ -30,7 +30,7 @@ export function getUserDisplayName(
 
 	// If a conflict detection function is provided and it returns true,
 	// add secondary identifier to disambiguate the user
-	if (hasConflict?.()) {
+	if (hasConflict?.(display)) {
 		const secondaryValues = [
 			user?.email,
 			user?.originalEmail,
