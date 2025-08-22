@@ -38,6 +38,7 @@
 		min,
 		set,
 		endOfMinute,
+		getHours,
 		type Duration
 	} from 'date-fns';
 	import type { AuditLog } from '$lib/services';
@@ -495,7 +496,13 @@
 
 							if (startOfMinute(date) < date) return formatSecond;
 
-							if (startOfHour(date) < date) return formatMinute;
+							if (startOfHour(date) < date) {
+								if (getHours(date) === 0) {
+									return formatDayOfMonth;
+								}
+
+								return formatMinute;
+							}
 
 							if (startOfDay(date) < date) {
 								return formatHour;
