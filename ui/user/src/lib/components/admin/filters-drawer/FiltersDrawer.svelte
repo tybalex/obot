@@ -18,6 +18,7 @@
 	interface Props {
 		filters?: Record<string, string | number | undefined | null>;
 		isFilterDisabled?: (key: keyof AuditLogURLFilters) => boolean;
+		isFilterClearable?: (key: keyof AuditLogURLFilters) => boolean;
 		// Used to filter server ids when selecting a multi instance server
 		filterOptions?: (option: string, filterId?: keyof AuditLogURLFilters) => boolean;
 		onClose: () => void;
@@ -30,6 +31,7 @@
 	let {
 		filters: externFilters,
 		isFilterDisabled,
+		isFilterClearable,
 		onClose,
 		getUserDisplayName,
 		getFilterDisplayLabel,
@@ -135,9 +137,11 @@
 	}
 
 	function handleClearAllFilters() {
-		filterInputsAsArray.forEach((filterInput) => {
-			filterInput.selected = '';
-		});
+		filterInputsAsArray
+			.filter((filter) => (isFilterClearable ? isFilterClearable(filter.property) : true))
+			.forEach((filterInput) => {
+				filterInput.selected = '';
+			});
 	}
 </script>
 

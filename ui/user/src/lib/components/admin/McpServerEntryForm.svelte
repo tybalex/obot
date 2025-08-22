@@ -361,13 +361,23 @@
 
 {#snippet auditLogsView()}
 	{#if entry}
-		{@const name = 'manifest' in entry ? entry.manifest.name : null}
-		{@const mcpId = 'isCatalogEntry' in entry ? null : entry.id}
-		{@const mcpCatalogEntryId = 'isCatalogEntry' in entry ? entry.id : null}
+		{@const isMultiUserServer = !!page.url.pathname.match(/\/mcp-servers\/s.*$/)?.[0]}
+		{@const isSingleUserServer =
+			!isMultiUserServer && ['npx', 'uvx', 'containerized'].includes(entry.manifest.runtime)}
+		{@const isRemoteServer = !isMultiUserServer && entry.manifest.runtime === 'remote'}
+
+		{@const mcpServerDisplayName = entry.manifest?.name ?? null}
+		{@const entryId = entry.id ?? null}
+		{@const mcpCatalogEntryId = 'catalogEntryID' in entry ? entry?.catalogEntryID : null}
 
 		<div class="mt-4 flex min-h-full flex-col gap-8 pb-8">
 			<!-- temporary filter mcp server by name and catalog entry id-->
-			<AuditLogsPageContent {mcpId} {mcpCatalogEntryId} mcpServerDisplayName={name}>
+			<AuditLogsPageContent
+				mcpId={isMultiUserServer ? entryId : null}
+				mcpServerCatalogEntryName={isSingleUserServer || isRemoteServer ? entryId : null}
+				{mcpServerDisplayName}
+				{catalogId}
+			>
 				{#snippet emptyContent()}
 					<div class="mt-12 flex w-md flex-col items-center gap-4 self-center text-center">
 						<Users class="size-24 text-gray-200 dark:text-gray-900" />
@@ -377,8 +387,8 @@
 						<p class="text-sm font-light text-gray-400 dark:text-gray-600">
 							This server has not had any active usage in the last 7 days.
 						</p>
-						{#if mcpId || mcpCatalogEntryId}
-							{@const param = mcpId ? 'mcpId=' + mcpId : 'entryId=' + mcpCatalogEntryId}
+						{#if entryId || mcpCatalogEntryId}
+							{@const param = entryId ? 'mcpId=' + entryId : 'entryId=' + mcpCatalogEntryId}
 							<p class="text-sm font-light text-gray-400 dark:text-gray-600">
 								See more usage details in the server's <a
 									href={`/admin/audit-logs?${param}`}

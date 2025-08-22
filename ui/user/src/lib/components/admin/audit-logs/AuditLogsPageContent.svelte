@@ -30,12 +30,14 @@
 
 	interface Props {
 		mcpId?: string | null;
-		mcpCatalogEntryId?: string | null;
+		catalogId?: string | null;
 		mcpServerDisplayName?: string | null;
+		mcpServerCatalogEntryName?: string | null;
 		emptyContent?: Snippet;
 	}
 
-	let { mcpServerDisplayName, emptyContent }: Props = $props();
+	let { mcpServerDisplayName, mcpServerCatalogEntryName, mcpId, catalogId, emptyContent }: Props =
+		$props();
 
 	let auditLogsResponse = $state<PaginatedResponse<AuditLog>>();
 	const auditLogsTotalItems = $derived(auditLogsResponse?.total ?? 0);
@@ -76,7 +78,8 @@
 	// Supported filters for the audit logs
 	// These filters are used to filter the audit logs based on the URL parameters
 	// Ignore other params
-	const supportedFilters: (keyof AuditLogURLFilters)[] = [
+	type SupportedFilter = keyof AuditLogURLFilters;
+	const supportedFilters: SupportedFilter[] = [
 		'user_id',
 		'mcp_id',
 		'mcp_server_display_name',
@@ -103,7 +106,7 @@
 		].join(',')
 	};
 
-	const searchParamsAsArray: [keyof AuditLogURLFilters, string | undefined | null][] = $derived(
+	const searchParamsAsArray: [SupportedFilter, string | undefined | null][] = $derived(
 		supportedFilters.map((d) => {
 			const hasSearchParam = page.url.searchParams.has(d);
 
@@ -136,25 +139,10 @@
 		);
 	});
 
-	// Keep only filters with defined values
-	const pillsSearchParamFilters = $derived.by(() => {
-		return (
-			searchParamsAsArray
-				// exclude start_time and end_time from pills filters
-				.filter(([key, value]) => !(key === 'start_time' || key === 'end_time') && isSafe(value))
-				.reduce(
-					(acc, [key, value]) => {
-						acc[key!] = value;
-						return acc;
-					},
-					{} as Record<string, unknown>
-				)
-		);
-	});
-
 	const propsFilters = $derived.by(() => {
-		const entries: [key: string, value: string | null | undefined][] = [
-			['mcp_server_display_name', mcpServerDisplayName]
+		const entries: [key: SupportedFilter, value: string | null | undefined][] = [
+			['mcp_server_display_name', mcpServerDisplayName],
+			['mcp_server_catalog_entry_name', mcpServerCatalogEntryName]
 		];
 
 		return (
@@ -162,6 +150,54 @@
 				// Filter out undefined values, null values should be kept as they mean the value is specified
 				.filter(([, value]) => value !== undefined)
 				.reduce((acc, [key, value]) => ((acc[key] = value!), acc), {} as Record<string, unknown>)
+		);
+	});
+
+	const propsFiltersKeys = $derived(new Set(Object.keys(propsFilters)));
+
+	// Keep only filters with defined values
+	const pillsSearchParamFilters = $derived.by(() => {
+		const base = searchParamsAsArray
+			// exclude start_time and end_time from pills filters
+			.filter(([key, value]) => !(key === 'start_time' || key === 'end_time') && isSafe(value))
+			.reduce(
+				(acc, [key, value]) => {
+					acc[key] = value as string | number;
+					return acc;
+				},
+				{} as Record<string, string | number>
+			) as Record<keyof AuditLogURLFilters, string>;
+
+		return (
+			Object.entries({ ...propsFilters, ...base })
+				.filter(([, value]) => !!value)
+				// Sort to prioritize props filter keys first, then alphabetically
+				.sort((a, b) => {
+					// If both keys are in propsFiltersKeys, sort alphabetically
+					if (propsFiltersKeys.has(a[0]) && propsFiltersKeys.has(b[0])) {
+						return a[0].localeCompare(b[0]);
+					}
+
+					// If only a is in propsFiltersKeys, it comes first
+					if (propsFiltersKeys.has(a[0])) {
+						return -1;
+					}
+
+					// If only b is in propsFiltersKeys, it comes first
+					if (propsFiltersKeys.has(b[0])) {
+						return 1;
+					}
+
+					// If neither are in propsFiltersKeys, sort alphabetically
+					return a[0].localeCompare(b[0]);
+				})
+				.reduce(
+					(acc, val) => {
+						acc[val[0] as keyof AuditLogURLFilters] = val[1] as string;
+						return acc;
+					},
+					{} as Record<string, string | number>
+				) as Record<keyof AuditLogURLFilters, string>
 		);
 	});
 
@@ -283,13 +319,7 @@
 	}
 
 	async function fetchAuditLogs(filters: typeof searchParamFilters) {
-		const { mcp_id: mcpId } = filters;
-
-		if (mcpId) {
-			return (auditLogsResponse = await AdminService.listServerOrInstanceAuditLogs(mcpId, filters));
-		} else {
-			return (auditLogsResponse = await AdminService.listAuditLogs(filters));
-		}
+		return (auditLogsResponse = await AdminService.listAuditLogs(filters));
 	}
 
 	function getFilterDisplayLabel(key: string) {
@@ -504,39 +534,42 @@
 		<FiltersDrawer
 			onClose={handleRightSidebarClose}
 			filters={{ ...auditLogsSlideoverFilters }}
-			isFilterDisabled={(key) => {
-				if (!mcpServerDisplayName) return false;
-
-				if (key === 'mcp_server_display_name') return true;
-				if (key === 'mcp_server_catalog_entry_name') return true;
-
-				return false;
-			}}
+			isFilterDisabled={(filterId) => propsFiltersKeys.has(filterId)}
+			isFilterClearable={(filterId) => !propsFiltersKeys.has(filterId)}
 			getUserDisplayName={(...args) => getUserDisplayName(users, ...args)}
 			{getFilterDisplayLabel}
 			getDefaultValue={(filter) => defaultSearchParams[filter]}
-			filterOptions={(option, filterId) => {
-				if (filterId === 'mcp_id') {
-					if (page.url.pathname.match(/[\w\d]+$/)) {
-						const selectedMcpId = page.params?.id ?? '';
-
-						return !selectedMcpId || option.endsWith(selectedMcpId);
-					}
+			endpoint={async (filterId: string, ...args) => {
+				if (filterId !== 'mcp_id') {
+					return await AdminService.listAuditLogFilterOptions(filterId, ...args);
 				}
 
-				return true;
+				if (mcpId) {
+					const response = await AdminService.listAuditLogFilterOptions(filterId, ...args);
+
+					return { options: response?.options.filter((option) => option.endsWith(mcpId)) ?? [] };
+				}
+
+				if (!catalogId || !mcpServerCatalogEntryName) {
+					return { options: [] };
+				}
+
+				const items = await AdminService.listMCPServersForEntry(
+					catalogId,
+					mcpServerCatalogEntryName
+				);
+
+				const options = items?.map?.((item) => item.id) ?? [];
+
+				return { options };
 			}}
 		/>
 	{/if}
 </dialog>
 
 {#snippet filters()}
-	{@const entries = Object.entries(pillsSearchParamFilters)}
-	{@const filters = entries.filter(([, value]) => !!value) as [
-		keyof AuditLogURLFilters,
-		string | number | null
-	][]}
-	{@const hasFilters = !!filters.length}
+	{@const entries = Object.entries(pillsSearchParamFilters) as [keyof AuditLogURLFilters, string][]}
+	{@const hasFilters = !!entries.length}
 
 	{#if hasFilters}
 		<div
@@ -544,9 +577,10 @@
 			in:slide={{ duration: 100 }}
 			out:slide={{ duration: 50 }}
 		>
-			{#each filters as [filterKey, filterValues] (filterKey)}
+			{#each entries as [filterKey, filterValues] (filterKey)}
 				{@const displayLabel = getFilterDisplayLabel(filterKey)}
 				{@const values = filterValues?.toString().split(',').filter(Boolean) ?? []}
+				{@const isClearable = !propsFiltersKeys.has(filterKey)}
 
 				<div
 					class="flex items-center gap-1 rounded-lg border border-blue-500/50 bg-blue-500/10 px-4 py-2 text-blue-600 dark:text-blue-300"
@@ -570,17 +604,19 @@
 						{/each}
 					</div>
 
-					<button
-						class="rounded-full p-1 transition-colors duration-200 hover:bg-blue-500/25"
-						onclick={() => {
-							const url = page.url;
-							url.searchParams.set(filterKey, '');
+					{#if isClearable}
+						<button
+							class="rounded-full p-1 transition-colors duration-200 hover:bg-blue-500/25"
+							onclick={() => {
+								const url = page.url;
+								url.searchParams.set(filterKey, '');
 
-							goto(url, { noScroll: true });
-						}}
-					>
-						<X class="size-3" />
-					</button>
+								goto(url, { noScroll: true });
+							}}
+						>
+							<X class="size-3" />
+						</button>
+					{/if}
 				</div>
 			{/each}
 		</div>
