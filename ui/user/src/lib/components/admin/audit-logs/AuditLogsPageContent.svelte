@@ -551,7 +551,7 @@
 				}
 
 				if (!catalogId || !mcpServerCatalogEntryName) {
-					return { options: [] };
+					return await AdminService.listAuditLogFilterOptions(filterId, ...args);
 				}
 
 				const items = await AdminService.listMCPServersForEntry(
