@@ -146,9 +146,9 @@
 				return [startOfHour, endOfHour];
 			}
 
+			// make the start boundary to start of day to ensure days are rendered correctly in ticks
 			return [
-				(d: Date) =>
-					set(d, { hours: Math.floor(d.getHours() / step) * step, minutes: 0, seconds: 0 }),
+				startOfDay,
 				(d: Date) =>
 					set(d, { hours: Math.ceil(d.getHours() / step) * step, minutes: 0, seconds: 0 })
 			];
