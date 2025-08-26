@@ -216,7 +216,7 @@
 	let timeRangeFilters = $derived.by(() => {
 		const { start_time, end_time } = searchParamFilters;
 
-		const endTime = set(new Date(end_time || new Date()), { milliseconds: 0, seconds: 0 });
+		const endTime = set(new Date(end_time || new Date()), { milliseconds: 0, seconds: 59 });
 
 		const getStartTime = (date: typeof start_time) => {
 			const parsedStartTime = set(new Date(date ? date : Date.now()), {
@@ -232,7 +232,7 @@
 			}
 
 			// Return 7 days before end time
-			return subDays(endTime, 7);
+			return set(subDays(endTime, 7), { seconds: 0, milliseconds: 0 });
 		};
 
 		const startTime = getStartTime(start_time);

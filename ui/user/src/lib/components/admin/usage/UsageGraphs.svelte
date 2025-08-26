@@ -165,7 +165,7 @@
 	let timeRangeFilters = $derived.by(() => {
 		const { start_time, end_time } = searchParamFilters;
 
-		const endTime = set(new Date(end_time || new Date()), { milliseconds: 0, seconds: 0 });
+		const endTime = set(new Date(end_time || new Date()), { milliseconds: 0, seconds: 59 });
 
 		const getStartTime = (date: typeof start_time) => {
 			const parsedStartTime = set(new Date(date ? date : Date.now()), {

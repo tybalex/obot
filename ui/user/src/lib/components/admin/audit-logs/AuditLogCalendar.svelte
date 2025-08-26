@@ -14,7 +14,7 @@
 		{
 			label: 'Last Hour',
 			onpointerdown: () => {
-				end = set(new Date(), { milliseconds: 0, seconds: 0 });
+				end = set(new Date(), { milliseconds: 0, seconds: 59 });
 
 				start = subHours(end, 1);
 
@@ -25,7 +25,7 @@
 		{
 			label: 'Last 6 Hour',
 			onpointerdown: () => {
-				end = set(new Date(), { milliseconds: 0, seconds: 0 });
+				end = set(new Date(), { milliseconds: 0, seconds: 59 });
 				start = subHours(end, 6);
 
 				onChange({ end, start });
@@ -35,7 +35,7 @@
 		{
 			label: 'Last 24 Hour',
 			onpointerdown: () => {
-				end = set(new Date(), { milliseconds: 0, seconds: 0 });
+				end = set(new Date(), { milliseconds: 0, seconds: 59 });
 				start = subHours(end, 24);
 
 				onChange({ end, start });
@@ -45,7 +45,7 @@
 		{
 			label: 'Last 7 Days',
 			onpointerdown: () => {
-				end = set(new Date(), { milliseconds: 0, seconds: 0 });
+				end = set(new Date(), { milliseconds: 0, seconds: 59 });
 				start = startOfDay(subDays(end, 7));
 
 				onChange({ end, start: start });
@@ -55,7 +55,7 @@
 		{
 			label: 'Last 30 Days',
 			onpointerdown: () => {
-				end = set(new Date(), { milliseconds: 0, seconds: 0 });
+				end = set(new Date(), { milliseconds: 0, seconds: 59 });
 				start = startOfDay(subDays(end, 30));
 
 				onChange({ end, start: start });
@@ -65,7 +65,7 @@
 		{
 			label: 'Last 60 Days',
 			onpointerdown: () => {
-				end = set(new Date(), { milliseconds: 0, seconds: 0 });
+				end = set(new Date(), { milliseconds: 0, seconds: 59 });
 				start = startOfDay(subDays(end, 60));
 
 				onChange({ end, start: start });
@@ -75,7 +75,7 @@
 		{
 			label: 'Last 90 Days',
 			onpointerdown: () => {
-				end = set(new Date(), { milliseconds: 0, seconds: 0 });
+				end = set(new Date(), { milliseconds: 0, seconds: 59 });
 				start = startOfDay(subDays(end, 90));
 
 				onChange({ end, start: start });
