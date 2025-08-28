@@ -7,6 +7,7 @@
 
 	interface Props {
 		entry?: MCPCatalogEntry | MCPCatalogServer | ProjectMCP;
+		parent?: Props['entry'];
 		catalogId?: string;
 		onAuthenticate?: () => void;
 		project?: Project;
@@ -16,6 +17,7 @@
 
 	let {
 		entry,
+		parent,
 		catalogId,
 		onAuthenticate,
 		project,
@@ -59,6 +61,7 @@
 			<div class="pb-8">
 				<McpServerInfo
 					{entry}
+					{parent}
 					descriptionPlaceholder="Add a description for this MCP server in the Configuration tab"
 				>
 					{#snippet preContent()}

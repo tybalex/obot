@@ -8,19 +8,18 @@
 	import { twMerge } from 'tailwind-merge';
 
 	interface Props {
-		data:
-			| MCPCatalogServer
-			| MCPCatalogEntry
-			| (MCPCatalogServer & { categories: string[] })
-			| (MCPCatalogEntry & { categories: string[] });
+		data: (MCPCatalogServer | MCPCatalogEntry) & { categories?: string[]; alias?: string };
+		parent?: Props['data'];
 		onClick: () => void;
 		action?: Snippet;
 	}
 
-	let { data, onClick, action }: Props = $props();
+	let { data, parent, onClick, action }: Props = $props();
+
 	let icon = $derived(data.manifest.icon);
-	let name = $derived('alias' in data ? data.alias : data.manifest.name);
-	let categories = $derived('categories' in data ? data.categories : parseCategories(data));
+	let name = $derived(data?.alias ?? parent?.manifest.name ?? data?.manifest?.name);
+	let description = $derived(parent?.manifest?.description ?? data?.manifest?.description);
+	let categories = $derived(parent?.categories ?? data.categories! ?? parseCategories(data));
 	let needsUpdate = $derived(!('isCatalogEntry' in data) ? !data.configured : false);
 </script>
 
@@ -52,7 +51,7 @@
 				categories.length > 0 ? 'line-clamp-2' : 'line-clamp-3'
 			)}
 		>
-			{stripMarkdownToText(data.manifest.description ?? '')}
+			{stripMarkdownToText(description ?? '')}
 		</span>
 		<div class="line-clamp-1 flex w-full gap-1 pt-2">
 			{#each categories as category (category)}

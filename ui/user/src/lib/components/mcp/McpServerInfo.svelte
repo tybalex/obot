@@ -11,6 +11,7 @@
 
 	interface Props {
 		entry: MCPCatalogEntry | MCPCatalogServer | ProjectMCP;
+		parent?: Props['entry'];
 		descriptionPlaceholder?: string;
 		preContent?: Snippet;
 	}
@@ -111,15 +112,29 @@
 		return details.filter((d) => d);
 	}
 
-	let { entry, descriptionPlaceholder = 'No description available', preContent }: Props = $props();
+	let {
+		entry,
+		parent,
+		descriptionPlaceholder = 'No description available',
+		preContent
+	}: Props = $props();
 	let details = $derived(convertEntryDetails(entry));
-	let description = $derived(
-		('manifest' in entry
-			? entry.manifest.description
-			: 'description' in entry
-				? entry.description
-				: '') ?? ''
-	);
+	let description = $derived.by(() => {
+		const descriptions = [
+			() => ('description' in entry ? entry.description : undefined),
+			() => ('manifest' in entry ? entry.manifest.description : undefined),
+			() => (parent && 'manifest' in parent ? parent?.manifest?.description : undefined)
+		];
+
+		for (const fn of descriptions) {
+			const desc = fn();
+			if (desc) {
+				return desc;
+			}
+		}
+
+		return '';
+	});
 </script>
 
 {#if preContent}

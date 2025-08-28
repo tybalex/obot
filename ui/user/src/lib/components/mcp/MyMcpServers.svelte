@@ -480,6 +480,7 @@
 							{#if connectedServer.server}
 								<McpCard
 									data={connectedServer.server}
+									parent={connectedServer.parent}
 									onClick={() => {
 										if (onConnectedServerCardClick) {
 											onConnectedServerCardClick(connectedServer);
@@ -720,7 +721,12 @@
 		{/if}
 
 		{#if serverOrEntry}
-			<McpServerInfoAndTools entry={serverOrEntry} />
+			<McpServerInfoAndTools
+				entry={serverOrEntry}
+				parent={selectedEntryOrServer && 'parent' in selectedEntryOrServer
+					? selectedEntryOrServer.parent
+					: undefined}
+			/>
 		{/if}
 	</div>
 {/snippet}
