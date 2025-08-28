@@ -3,9 +3,11 @@ package mcpservercatalogentry
 import (
 	"fmt"
 
+	"github.com/gptscript-ai/gptscript/pkg/hash"
 	"github.com/obot-platform/nah/pkg/router"
 	v1 "github.com/obot-platform/obot/pkg/storage/apis/obot.obot.ai/v1"
 	"github.com/obot-platform/obot/pkg/system"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -44,6 +46,24 @@ func DeleteEntriesWithoutRuntime(req router.Request, _ router.Response) error {
 	entry := req.Object.(*v1.MCPServerCatalogEntry)
 	if string(entry.Spec.Manifest.Runtime) == "" {
 		return req.Client.Delete(req.Ctx, entry)
+	}
+
+	return nil
+}
+
+// UpdateManifestHashAndLastUpdated updates the manifest hash and last updated timestamp when configuration changes
+func UpdateManifestHashAndLastUpdated(req router.Request, _ router.Response) error {
+	entry := req.Object.(*v1.MCPServerCatalogEntry)
+
+	// Compute current config hash
+	currentHash := hash.Digest(entry.Spec.Manifest)
+
+	// Only update if hash has changed
+	if entry.Status.ManifestHash != currentHash {
+		now := metav1.Now()
+		entry.Status.ManifestHash = currentHash
+		entry.Status.LastUpdated = &now
+		return req.Client.Status().Update(req.Ctx, entry)
 	}
 
 	return nil
