@@ -22,6 +22,7 @@ import (
 	v1 "github.com/obot-platform/obot/pkg/storage/apis/obot.obot.ai/v1"
 	"github.com/obot-platform/obot/pkg/system"
 	"github.com/obot-platform/obot/pkg/validation"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	kuser "k8s.io/apiserver/pkg/authentication/user"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -361,7 +362,21 @@ func (h *Handler) DeleteUnauthorizedMCPServers(req router.Request, _ router.Resp
 			continue
 		}
 
-		hasAccess, err := h.accessControlRuleHelper.UserHasAccessToMCPServerCatalogEntry(user, server.Spec.MCPServerCatalogEntryName)
+		// Get the catalog ID for the server's catalog entry to check access properly
+		var catalogEntry v1.MCPServerCatalogEntry
+		if err := req.Get(&catalogEntry, system.DefaultNamespace, server.Spec.MCPServerCatalogEntryName); err != nil {
+			if errors.IsNotFound(err) {
+				log.Infof("Deleting MCP server %q because its catalog entry no longer exists", server.Name)
+				if err := req.Delete(&server); err != nil {
+					return fmt.Errorf("failed to delete MCP server %s: %w", server.Name, err)
+				}
+				continue
+			}
+
+			return fmt.Errorf("failed to get MCPServerCatalogEntry %s: %w", server.Spec.MCPServerCatalogEntryName, err)
+		}
+
+		hasAccess, err := h.accessControlRuleHelper.UserHasAccessToMCPServerCatalogEntryInCatalog(user, server.Spec.MCPServerCatalogEntryName, catalogEntry.Spec.MCPCatalogName)
 		if err != nil {
 			return fmt.Errorf("failed to check if user %s has access to catalog entry %s: %w", server.Spec.UserID, server.Spec.MCPServerCatalogEntryName, err)
 		}
@@ -411,9 +426,26 @@ func (h *Handler) DeleteUnauthorizedMCPServerInstances(req router.Request, _ rou
 			continue
 		}
 
-		hasAccess, err := h.accessControlRuleHelper.UserHasAccessToMCPServer(user, instance.Spec.MCPServerName)
-		if err != nil {
-			return fmt.Errorf("failed to check if user %s has access to MCP server %s: %w", instance.Spec.UserID, instance.Spec.MCPServerName, err)
+		// Get the MCP server to determine which catalog it belongs to
+		var mcpServer v1.MCPServer
+		if err := req.Get(&mcpServer, system.DefaultNamespace, instance.Spec.MCPServerName); err != nil {
+			if errors.IsNotFound(err) {
+				log.Infof("Deleting MCPServerInstance %q because its MCP server no longer exists", instance.Name)
+				if err := req.Delete(&instance); err != nil {
+					return fmt.Errorf("failed to delete MCPServerInstance %s: %w", instance.Name, err)
+				}
+				continue
+			}
+
+			return fmt.Errorf("failed to get MCPServer %s: %w", instance.Spec.MCPServerName, err)
+		}
+
+		var hasAccess bool
+		if mcpServer.Spec.SharedWithinMCPCatalogName != "" {
+			hasAccess, err = h.accessControlRuleHelper.UserHasAccessToMCPServerInCatalog(user, instance.Spec.MCPServerName, mcpServer.Spec.SharedWithinMCPCatalogName)
+			if err != nil {
+				return fmt.Errorf("failed to check if user %s has access to MCP server %s: %w", instance.Spec.UserID, instance.Spec.MCPServerName, err)
+			}
 		}
 
 		if !hasAccess {

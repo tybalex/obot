@@ -7,6 +7,7 @@ import (
 	"github.com/obot-platform/obot/apiclient/types"
 	"github.com/obot-platform/obot/pkg/accesscontrolrule"
 	v1 "github.com/obot-platform/obot/pkg/storage/apis/obot.obot.ai/v1"
+	"github.com/obot-platform/obot/pkg/system"
 	"k8s.io/apimachinery/pkg/api/errors"
 )
 
@@ -23,27 +24,46 @@ func New(acrHelper *accesscontrolrule.Helper) *Handler {
 func (h *Handler) PruneDeletedResources(req router.Request, _ router.Response) error {
 	acr := req.Object.(*v1.AccessControlRule)
 
-	// Make sure each resource still exists, and remove it if it is gone.
+	// Make sure each resource still exists and belongs to the same catalog, remove it if not.
 	var (
 		mcpservercatalogentry v1.MCPServerCatalogEntry
 		mcpserver             v1.MCPServer
 		newResources          = make([]types.Resource, 0, len(acr.Spec.Manifest.Resources))
+		catalogID             = acr.Spec.MCPCatalogID
 	)
 
+	// Default to default catalog for ACRs that have not yet been migrated
+	if catalogID == "" {
+		catalogID = system.DefaultCatalog
+	}
+
+	// Loop through each resource and make sure that it exists in the catalog.
+	// We shouldn't ever have a situation where the resource has somehow "moved" to a different catalog,
+	// but we'll check anyway.
 	for _, resource := range acr.Spec.Manifest.Resources {
 		switch resource.Type {
 		case types.ResourceTypeMCPServerCatalogEntry:
 			if err := req.Get(&mcpservercatalogentry, req.Namespace, resource.ID); err == nil {
-				newResources = append(newResources, resource)
+				// Check if entry belongs to the same catalog
+				if mcpservercatalogentry.Spec.MCPCatalogName == catalogID {
+					newResources = append(newResources, resource)
+				}
+				// If entry belongs to different catalog, remove it from the rule
 			} else if !errors.IsNotFound(err) {
 				return fmt.Errorf("failed to get MCPServerCatalogEntry %s: %w", resource.ID, err)
 			}
+			// If entry not found, remove it from the rule
 		case types.ResourceTypeMCPServer:
 			if err := req.Get(&mcpserver, req.Namespace, resource.ID); err == nil {
-				newResources = append(newResources, resource)
+				// Check if server belongs to the same catalog
+				if mcpserver.Spec.SharedWithinMCPCatalogName == catalogID {
+					newResources = append(newResources, resource)
+				}
+				// If server belongs to different catalog, remove it from the rule
 			} else if !errors.IsNotFound(err) {
 				return fmt.Errorf("failed to get MCPServer %s: %w", resource.ID, err)
 			}
+			// If server not found, remove it from the rule
 		case types.ResourceTypeSelector:
 			newResources = append(newResources, resource)
 		}

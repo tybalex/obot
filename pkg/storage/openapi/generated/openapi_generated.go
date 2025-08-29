@@ -538,6 +538,13 @@ func schema_obot_platform_obot_apiclient_types_AccessControlRule(ref common.Refe
 							Format: "",
 						},
 					},
+					"mcpCatalogID": {
+						SchemaProps: spec.SchemaProps{
+							Default: "",
+							Type:    []string{"string"},
+							Format:  "",
+						},
+					},
 					"displayName": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -571,6 +578,7 @@ func schema_obot_platform_obot_apiclient_types_AccessControlRule(ref common.Refe
 						},
 					},
 				},
+				Required: []string{"mcpCatalogID"},
 			},
 		},
 		Dependencies: []string{
@@ -9352,6 +9360,12 @@ func schema_storage_apis_obotobotai_v1_AccessControlRuleSpec(ref common.Referenc
 			SchemaProps: spec.SchemaProps{
 				Type: []string{"object"},
 				Properties: map[string]spec.Schema{
+					"mcpCatalogID": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
 					"manifest": {
 						SchemaProps: spec.SchemaProps{
 							Default: map[string]interface{}{},

@@ -4,6 +4,7 @@ metadata:
   name: acr1-everything
   namespace: default
 spec:
+  mcpCatalogID: default
   manifest:
     displayName: Everything
     resources:
