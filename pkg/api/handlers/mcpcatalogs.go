@@ -385,6 +385,12 @@ func (h *MCPCatalogHandler) GenerateToolPreviews(req api.Context) error {
 		return fmt.Errorf("failed to update catalog entry: %w", err)
 	}
 
+	now := metav1.Now()
+	entry.Status.ToolPreviewsLastGenerated = &now
+	if err := req.Storage.Status().Update(req.Context(), &entry); err != nil {
+		return fmt.Errorf("failed to update catalog entry: %w", err)
+	}
+
 	// Return the updated catalog entry
 	return req.Write(convertMCPServerCatalogEntry(entry))
 }
