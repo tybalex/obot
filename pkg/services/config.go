@@ -42,7 +42,8 @@ import (
 	"github.com/obot-platform/obot/pkg/gemini"
 	"github.com/obot-platform/obot/pkg/hash"
 	"github.com/obot-platform/obot/pkg/invoke"
-	"github.com/obot-platform/obot/pkg/jwt"
+	"github.com/obot-platform/obot/pkg/jwt/ephemeral"
+	"github.com/obot-platform/obot/pkg/jwt/persistent"
 	"github.com/obot-platform/obot/pkg/mcp"
 	"github.com/obot-platform/obot/pkg/proxy"
 	"github.com/obot-platform/obot/pkg/smtp"
@@ -125,7 +126,8 @@ type Services struct {
 	Router                     *router.Router
 	GPTClient                  *gptscript.GPTScript
 	Invoker                    *invoke.Invoker
-	TokenServer                *jwt.TokenService
+	EphemeralTokenServer       *ephemeral.TokenService
+	PersistentTokenServer      *persistent.TokenService
 	APIServer                  *server.Server
 	Started                    chan struct{}
 	GatewayServer              *gserver.Server
@@ -522,16 +524,16 @@ func New(ctx context.Context, config Config) (*Services, error) {
 	}
 
 	var (
-		tokenServer = &jwt.TokenService{}
-		events      = events.NewEmitter(storageClient, gatewayClient)
-		invoker     = invoke.NewInvoker(
+		ephemeralTokenServer = &ephemeral.TokenService{}
+		events               = events.NewEmitter(storageClient, gatewayClient)
+		invoker              = invoke.NewInvoker(
 			storageClient,
 			gptscriptClient,
 			gatewayClient,
 			mcpLoader,
 			config.Hostname,
 			config.HTTPListenPort,
-			tokenServer,
+			ephemeralTokenServer,
 			events,
 		)
 		providerDispatcher = dispatcher.New(ctx, invoker, storageClient, gptscriptClient, gatewayClient, postgresDSN)
@@ -539,17 +541,23 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		proxyManager *proxy.Manager
 	)
 
+	persistentTokenServer, err := persistent.NewTokenService(ctx, config.Hostname, gatewayClient, providerDispatcher, gptscriptClient)
+	if err != nil {
+		return nil, fmt.Errorf("failed to setup persistent token service: %w", err)
+	}
+
 	bootstrapper, err := bootstrap.New(ctx, config.Hostname, gatewayClient, gptscriptClient, config.EnableAuthentication, config.ForceEnableBootstrap)
 	if err != nil {
 		return nil, err
 	}
 
-	gatewayServer, err := gserver.New(ctx, gatewayDB, tokenServer, providerDispatcher, gserver.Options(config.GatewayConfig))
+	gatewayServer, err := gserver.New(ctx, gatewayDB, ephemeralTokenServer, providerDispatcher, gserver.Options(config.GatewayConfig))
 	if err != nil {
 		return nil, err
 	}
 
 	authenticators := gserver.NewGatewayTokenReviewer(gatewayClient, providerDispatcher)
+	authenticators = union.New(authenticators, persistentTokenServer)
 	if config.EnableAuthentication {
 		proxyManager = proxy.NewProxyManager(ctx, providerDispatcher)
 
@@ -558,7 +566,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		// Add gateway user info
 		authenticators = client.NewUserDecorator(authenticators, gatewayClient)
 		// Add token auth
-		authenticators = union.New(authenticators, tokenServer)
+		authenticators = union.New(authenticators, ephemeralTokenServer)
 		// Add bootstrap auth
 		authenticators = union.New(authenticators, bootstrapper)
 		if config.BearerToken != "" {
@@ -650,7 +658,8 @@ func New(ctx context.Context, config Config) (*Services, error) {
 			rateLimiter,
 			config.Hostname,
 		),
-		TokenServer:                tokenServer,
+		EphemeralTokenServer:       ephemeralTokenServer,
+		PersistentTokenServer:      persistentTokenServer,
 		Invoker:                    invoker,
 		GatewayServer:              gatewayServer,
 		GatewayClient:              gatewayClient,
@@ -673,6 +682,7 @@ func New(ctx context.Context, config Config) (*Services, error) {
 		MCPLoader:                  mcpLoader,
 		MCPOAuthTokenStorage:       mcpOAuthTokenStorage,
 		OAuthServerConfig: OAuthAuthorizationServerConfig{
+			JWKSURI:                           config.Hostname + "/oauth/jwks.json",
 			ResponseTypesSupported:            []string{"code"},
 			GrantTypesSupported:               []string{"authorization_code", "refresh_token"},
 			CodeChallengeMethodsSupported:     []string{"S256", "plain"},
