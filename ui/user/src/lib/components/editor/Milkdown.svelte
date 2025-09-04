@@ -173,13 +173,12 @@
 
 				const listener = ctx.get(listenerCtx);
 				listener.markdownUpdated((_ctx, markdown, prevMarkdown) => {
-					if (overrideContent || focused) return;
-
 					isEditing = true;
+					if (overrideContent || !focused) return;
+
 					if (markdown === prevMarkdown) {
 						return;
 					}
-
 					debouncedOnFileChanged(markdown);
 				});
 

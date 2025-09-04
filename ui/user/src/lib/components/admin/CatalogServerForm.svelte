@@ -374,8 +374,8 @@
 			case 'remote':
 				if (baseData.remoteConfig) {
 					manifest.remoteConfig = {
-						fixedURL: baseData.remoteConfig.fixedURL || undefined,
-						hostname: baseData.remoteConfig.hostname || undefined,
+						fixedURL: baseData.remoteConfig.fixedURL?.trim() || undefined,
+						hostname: baseData.remoteConfig.hostname?.trim() || undefined,
 						headers: baseData.remoteConfig.headers || []
 					};
 				}
