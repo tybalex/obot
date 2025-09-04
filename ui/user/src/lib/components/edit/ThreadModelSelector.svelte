@@ -358,7 +358,8 @@
 									{#each modelIds as modelId (modelId)}
 										{@const model = modelsMap.get(modelId)}
 										{@const isModelSelected =
-											threadModelProvider === providerId && threadModel === modelId}
+											threadModelProvider === providerId &&
+											(threadModel === modelId || threadModel === model?.name)}
 
 										{@const isDefaultModel =
 											defaultModelProvider === providerId && defaultModel === model?.name}
