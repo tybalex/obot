@@ -4,6 +4,7 @@
 const sidebars = {
   sidebar: [
     "overview",
+    "architecture",
     {
       type: "category",
       label: "Chat Interface",
@@ -30,6 +31,7 @@ const sidebars = {
         "concepts/admin/mcp-servers",
         "concepts/admin/mcp-server-catalogs",
         "concepts/admin/access-control",
+        "concepts/admin/filters",
       ],
     },
     {
