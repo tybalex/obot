@@ -29,6 +29,7 @@
 	import { openUrl } from '$lib/utils';
 	import CatalogConfigureForm, { type LaunchFormData } from '../mcp/CatalogConfigureForm.svelte';
 	import ResponsiveDialog from '../ResponsiveDialog.svelte';
+	import { setVirtualPageDisabled } from '../ui/virtual-page/context';
 
 	type MCPType = 'single' | 'multi' | 'remote';
 
@@ -102,6 +103,14 @@
 			listAccessControlRules = AdminService.listAccessControlRules();
 		} else if (selected === 'filters') {
 			listFilters = AdminService.listMCPFilters();
+		}
+	});
+
+	$effect(() => {
+		if (page.url.searchParams.get('view')) {
+			setVirtualPageDisabled(false);
+		} else {
+			setVirtualPageDisabled(true);
 		}
 	});
 
@@ -530,7 +539,7 @@
 		{@const entryId = entry.id ?? null}
 		{@const mcpCatalogEntryId = 'catalogEntryID' in entry ? entry?.catalogEntryID : null}
 
-		<div class="mt-4 flex min-h-full flex-col gap-8 pb-8">
+		<div class="mt-4 flex flex-1 flex-col gap-8 pb-8">
 			<!-- temporary filter mcp server by name and catalog entry id-->
 			<AuditLogsPageContent
 				mcpId={isMultiUserServer ? entryId : null}
