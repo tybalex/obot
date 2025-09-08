@@ -120,6 +120,14 @@ func (s *Server) updateUser(apiContext api.Context) error {
 		}
 	}
 
+	originalUser, err := apiContext.GatewayClient.UserByID(apiContext.Context(), userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return types2.NewErrHTTP(http.StatusNotFound, "user not found")
+		}
+		return types2.NewErrHTTP(http.StatusInternalServerError, fmt.Sprintf("failed to get original user: %v", err))
+	}
+
 	status := http.StatusInternalServerError
 	existingUser, err := apiContext.GatewayClient.UpdateUser(apiContext.Context(), apiContext.UserIsAdmin(), user, userID)
 	if err != nil {
@@ -133,6 +141,22 @@ func (s *Server) updateUser(apiContext api.Context) error {
 			status = http.StatusConflict
 		}
 		return types2.NewErrHTTP(status, fmt.Sprintf("failed to update user: %v", err))
+	}
+
+	if originalUser.Role != existingUser.Role {
+		if err = apiContext.Create(&v1.UserRoleChange{
+			ObjectMeta: metav1.ObjectMeta{
+				GenerateName: system.UserRoleChangePrefix,
+				Namespace:    apiContext.Namespace(),
+			},
+			Spec: v1.UserRoleChangeSpec{
+				UserID:  existingUser.ID,
+				OldRole: originalUser.Role,
+				NewRole: existingUser.Role,
+			},
+		}); err != nil {
+			return fmt.Errorf("failed to create user role change event: %v", err)
+		}
 	}
 
 	return apiContext.Write(types.ConvertUser(existingUser, apiContext.GatewayClient.IsExplicitAdmin(existingUser.Email), ""))

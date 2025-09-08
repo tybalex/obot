@@ -4,6 +4,7 @@ import (
 	"github.com/obot-platform/nah/pkg/handlers"
 	"github.com/obot-platform/obot/pkg/controller/generationed"
 	"github.com/obot-platform/obot/pkg/controller/handlers/accesscontrolrule"
+	"github.com/obot-platform/obot/pkg/controller/handlers/adminworkspace"
 	"github.com/obot-platform/obot/pkg/controller/handlers/agents"
 	"github.com/obot-platform/obot/pkg/controller/handlers/alias"
 	"github.com/obot-platform/obot/pkg/controller/handlers/cleanup"
@@ -18,6 +19,7 @@ import (
 	"github.com/obot-platform/obot/pkg/controller/handlers/mcpserverinstance"
 	"github.com/obot-platform/obot/pkg/controller/handlers/mcpsession"
 	"github.com/obot-platform/obot/pkg/controller/handlers/oauthapp"
+	"github.com/obot-platform/obot/pkg/controller/handlers/poweruserworkspace"
 	"github.com/obot-platform/obot/pkg/controller/handlers/projectinvitation"
 	"github.com/obot-platform/obot/pkg/controller/handlers/projects"
 	"github.com/obot-platform/obot/pkg/controller/handlers/retention"
@@ -73,6 +75,8 @@ func (c *Controller) setupRoutes() {
 	mcpserverinstance := mcpserverinstance.New(c.services.GatewayClient)
 	accesscontrolrule := accesscontrolrule.New(c.services.AccessControlRuleHelper)
 	mcpWebhookValidations := mcpwebhookvalidation.New()
+	powerUserWorkspaceHandler := poweruserworkspace.NewHandler(c.services.GatewayClient)
+	adminWorkspaceHandler := adminworkspace.New(c.services.GatewayClient)
 
 	// Runs
 	root.Type(&v1.Run{}).FinalizeFunc(v1.RunFinalizer, runs.DeleteRunState)
@@ -237,6 +241,7 @@ func (c *Controller) setupRoutes() {
 	root.Type(&v1.MCPServerCatalogEntry{}).HandlerFunc(mcpservercatalogentry.EnsureUserCount)
 
 	// MCPServer
+	root.Type(&v1.MCPServer{}).HandlerFunc(mcpserver.MigrateSharedWithinMCPCatalogName)
 	root.Type(&v1.MCPServer{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.MCPServer{}).HandlerFunc(mcpserver.DeleteServersWithoutRuntime)
 	root.Type(&v1.MCPServer{}).HandlerFunc(mcpserver.DetectDrift)
@@ -249,6 +254,7 @@ func (c *Controller) setupRoutes() {
 	root.Type(&v1.MCPServerInstance{}).FinalizeFunc(v1.MCPServerInstanceFinalizer, mcpserverinstance.RemoveOAuthToken)
 
 	// AccessControlRule
+	root.Type(&v1.AccessControlRule{}).HandlerFunc(cleanup.Cleanup)
 	root.Type(&v1.AccessControlRule{}).HandlerFunc(accesscontrolrule.PruneDeletedResources)
 
 	// ProjectInvitations
@@ -274,10 +280,17 @@ func (c *Controller) setupRoutes() {
 	// MCP Webhook Validations
 	root.Type(&v1.MCPWebhookValidation{}).HandlerFunc(mcpWebhookValidations.CleanupResources)
 
+	// UserRoleChange
+	root.Type(&v1.UserRoleChange{}).HandlerFunc(powerUserWorkspaceHandler.HandleRoleChange)
+
+	// PowerUserWorkspace
+	root.Type(&v1.PowerUserWorkspace{}).HandlerFunc(powerUserWorkspaceHandler.CreateACR)
+
 	// Project-based MCP Servers
 	root.Type(&v1.ProjectMCPServer{}).FinalizeFunc(v1.ProjectMCPServerFinalizer, credentialCleanup.ShutdownProjectMCP)
 	root.Type(&v1.ProjectMCPServer{}).HandlerFunc(cleanup.Cleanup)
 
 	c.toolRefHandler = toolRef
 	c.mcpCatalogHandler = mcpCatalog
+	c.adminWorkspaceHandler = adminWorkspaceHandler
 }

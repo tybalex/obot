@@ -37,8 +37,10 @@ func (in *MCPServer) Get(field string) (value string) {
 		return in.Spec.UserID
 	case "spec.mcpServerCatalogEntryName":
 		return in.Spec.MCPServerCatalogEntryName
-	case "spec.sharedWithinMCPCatalogName":
-		return in.Spec.SharedWithinMCPCatalogName
+	case "spec.mcpCatalogID":
+		return in.Spec.MCPCatalogID
+	case "spec.powerUserWorkspaceID":
+		return in.Spec.PowerUserWorkspaceID
 	}
 	return ""
 }
@@ -48,7 +50,8 @@ func (in *MCPServer) FieldNames() []string {
 		"spec.threadName",
 		"spec.userID",
 		"spec.mcpServerCatalogEntryName",
-		"spec.sharedWithinMCPCatalogName",
+		"spec.mcpCatalogID",
+		"spec.powerUserWorkspaceID",
 	}
 }
 
@@ -56,7 +59,8 @@ func (in *MCPServer) DeleteRefs() []Ref {
 	return []Ref{
 		{ObjType: &Thread{}, Name: in.Spec.ThreadName},
 		{ObjType: &MCPServerCatalogEntry{}, Name: in.Spec.MCPServerCatalogEntryName},
-		{ObjType: &MCPCatalog{}, Name: in.Spec.SharedWithinMCPCatalogName},
+		{ObjType: &MCPCatalog{}, Name: in.Spec.MCPCatalogID},
+		{ObjType: &PowerUserWorkspace{}, Name: in.Spec.PowerUserWorkspaceID},
 	}
 }
 
@@ -71,14 +75,18 @@ type MCPServerSpec struct {
 	Alias string `json:"alias,omitempty"`
 	// UserID is the user that created this server.
 	UserID string `json:"userID,omitempty"`
-	// SharedWithinMCPCatalogName contains the name of the MCPCatalog inside of which this server was directly created by the admin, if there is one.
+	// SharedWithinMCPCatalogName is a deprecated field. It is renamed to MCPCatalogID.
 	SharedWithinMCPCatalogName string `json:"sharedWithinMCPCatalogName,omitempty"`
+	// MCPCatalogID contains the name of the MCPCatalog inside of which this server was directly created by the admin, if there is one.
+	MCPCatalogID string `json:"mcpCatalogID,omitempty"`
 	// MCPServerCatalogEntryName contains the name of the MCPServerCatalogEntry from which this MCP server was created, if there is one.
 	MCPServerCatalogEntryName string `json:"mcpServerCatalogEntryName,omitempty"`
 	// NeedsURL indicates whether the server's URL needs to be updated to match the catalog entry.
 	NeedsURL bool `json:"needsURL,omitempty"`
 	// PreviousURL contains the URL of the server before it was updated to match the catalog entry.
 	PreviousURL string `json:"previousURL,omitempty"`
+	// PowerUserWorkspaceID contains the name of the PowerUserWorkspace that owns this MCP server, if there is one.
+	PowerUserWorkspaceID string `json:"powerUserWorkspaceID,omitempty"`
 }
 
 type MCPServerStatus struct {

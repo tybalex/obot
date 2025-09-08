@@ -154,7 +154,7 @@ func remoteConfigHasDrifted(needsURL bool, serverConfig *types.RemoteRuntimeConf
 // EnsureMCPServerInstanceUserCount ensures that mcp server instance user count for multi-user MCP servers is up to date.
 func (*Handler) EnsureMCPServerInstanceUserCount(req router.Request, _ router.Response) error {
 	server := req.Object.(*v1.MCPServer)
-	if server.Spec.SharedWithinMCPCatalogName == "" {
+	if server.Spec.MCPCatalogID == "" {
 		// Server is not multi-user, ensure we're not tracking the instance user count
 		if server.Status.MCPServerInstanceUserCount == nil {
 			return nil
@@ -193,6 +193,18 @@ func (h *Handler) DeleteServersWithoutRuntime(req router.Request, _ router.Respo
 	server := req.Object.(*v1.MCPServer)
 	if string(server.Spec.Manifest.Runtime) == "" {
 		return req.Client.Delete(req.Ctx, server)
+	}
+
+	return nil
+}
+
+func (h *Handler) MigrateSharedWithinMCPCatalogName(req router.Request, _ router.Response) error {
+	server := req.Object.(*v1.MCPServer)
+
+	if server.Spec.SharedWithinMCPCatalogName != "" && server.Spec.MCPCatalogID == "" {
+		server.Spec.MCPCatalogID = server.Spec.SharedWithinMCPCatalogName
+		server.Spec.SharedWithinMCPCatalogName = ""
+		return req.Client.Update(req.Ctx, server)
 	}
 
 	return nil
